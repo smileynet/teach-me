@@ -32,8 +32,8 @@
         label.appendChild(input);
         label.appendChild(document.createTextNode(' ' + opt.textContent));
         label.dataset.explanation = opt.dataset.explanation || '';
-        label.dataset.source = opt.dataset.source || '';
-        label.dataset.sourceLabel = opt.dataset.sourceLabel || 'Read more';
+        // Sources as JSON array: [{url, label, section}]
+        label.dataset.sources = opt.dataset.sources || '[]';
         label.dataset.isCorrect = opt === correct ? 'true' : 'false';
         container.appendChild(label);
         opt.remove();
@@ -60,18 +60,31 @@
           });
         }
 
-        // Show explanation with source link
+        // Show explanation with source links
         const explanation = document.createElement('div');
         explanation.className = 'quiz-explanation';
         explanation.innerHTML = selected.dataset.explanation;
-        if (selected.dataset.source) {
-          const link = document.createElement('a');
-          link.href = selected.dataset.source;
-          link.target = '_blank';
-          link.rel = 'noopener';
-          link.className = 'quiz-source-link';
-          link.textContent = '📖 ' + selected.dataset.sourceLabel;
-          explanation.appendChild(link);
+        const sources = JSON.parse(selected.dataset.sources || '[]');
+        if (sources.length) {
+          const list = document.createElement('ul');
+          list.className = 'quiz-sources';
+          sources.forEach(src => {
+            const li = document.createElement('li');
+            const link = document.createElement('a');
+            link.href = src.url;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            link.textContent = src.label;
+            li.appendChild(link);
+            if (src.section) {
+              const detail = document.createElement('span');
+              detail.className = 'quiz-source-detail';
+              detail.textContent = ' — ' + src.section;
+              li.appendChild(detail);
+            }
+            list.appendChild(li);
+          });
+          explanation.appendChild(list);
         }
         container.appendChild(explanation);
 

@@ -28,6 +28,29 @@ The user wants to test their retention. This is not a grilling session (plan-sha
 - Include plausible distractors drawn from adjacent concepts
 - For application questions, use scenarios tied to the user's mission
 
+## Source links on answers
+
+Every answer (correct AND incorrect) should include links to authoritative sources. These help the learner verify and deepen understanding.
+
+**Quality rules for source links:**
+- Link to **specific page sections** (use #anchors when available), not top-level docs pages
+- Each link must **directly help answer the question** — could someone read that section and determine why this answer is correct/incorrect?
+- Prefer multiple targeted links over one generic one (e.g., both the Iceberg spec section AND the AWS implementation docs)
+- Include a `section` note explaining what the linked page covers and why it's relevant
+- **Never link to generic overviews** (e.g., "AWS S3 Documentation" home page) — find the specific subsection
+
+**Format in HTML:**
+```html
+<div class="quiz-option"
+  data-explanation="Why this is correct/incorrect."
+  data-sources='[
+    {"url":"https://...#section","label":"Source Name","section":"What this covers and why it matters"},
+    {"url":"https://...#section","label":"Another Source","section":"Complementary perspective"}
+  ]'>
+  Answer text
+</div>
+```
+
 ## After the quiz
 
 Summarise: what was solid, what needs review. Suggest whether the user is ready to advance or should revisit material.
