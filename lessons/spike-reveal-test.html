@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spike 004: Progressive Reveal Test</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    .reveal-controls { text-align: center; margin-top: 1rem; }
+    .reveal-btn { padding: 0.4rem 1rem; border: 1px solid #dee2e6; border-radius: 4px; background: #fff; cursor: pointer; font-size: 0.9rem; }
+    .reveal-btn:hover { background: #f8f9fa; }
+    .reveal-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .reveal-step { margin: 0 1rem; color: #6b7280; font-size: 0.9rem; }
+    [data-reveal]:focus { outline: 2px solid #2563eb; outline-offset: 4px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<h1>Progressive Reveal: Iceberg Architecture</h1>
+<p>Click Next (or press →) to build up the Iceberg metadata tree layer by layer.</p>
+
+<div data-reveal>
+  <svg viewBox="0 0 340 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:400px;display:block;margin:0 auto">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/>
+      </marker>
+    </defs>
+
+    <!-- Step 1: Catalog -->
+    <g data-step="1">
+      <rect x="60" y="10" width="220" height="50" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="170" y="40" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600">AWS Glue Data Catalog</text>
+    </g>
+
+    <!-- Step 2: Metadata files -->
+    <g data-step="2">
+      <line x1="170" y1="60" x2="170" y2="80" stroke="#374151" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <rect x="60" y="80" width="220" height="50" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+      <text x="170" y="110" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600">Metadata Files (JSON)</text>
+    </g>
+
+    <!-- Step 3: Manifest files -->
+    <g data-step="3">
+      <line x1="170" y1="130" x2="170" y2="150" stroke="#374151" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <rect x="60" y="150" width="220" height="50" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+      <text x="170" y="180" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600">Manifest Files (Avro)</text>
+    </g>
+
+    <!-- Step 4: Data files -->
+    <g data-step="4">
+      <line x1="170" y1="200" x2="170" y2="220" stroke="#374151" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <rect x="60" y="220" width="220" height="50" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="170" y="250" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600">Data Files (Parquet)</text>
+    </g>
+  </svg>
+</div>
+
+<script src="../assets/progressive-reveal.js"></script>
+</body>
+</html>

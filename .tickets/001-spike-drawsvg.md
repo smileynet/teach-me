@@ -1,7 +1,7 @@
 ---
 id: "001"
 title: "Spike: drawsvg for teaching diagrams"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: spike

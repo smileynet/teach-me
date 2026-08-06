@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spike 003: Quiz Component Test</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/quiz.css">
+</head>
+<body>
+
+<h1>Quiz: Iceberg Metadata Tree</h1>
+<p>Test your understanding of Lesson 1.</p>
+
+<div data-quiz>
+
+  <div class="quiz-question" data-correct="1">
+    <p class="quiz-prompt">What problem does Iceberg's manifest file solve?</p>
+    <div class="quiz-option" data-explanation="Correct! Manifests list data files with column stats, eliminating the need to list S3 directories.">Eliminates the need to list S3 directories by tracking files with column-level statistics</div>
+    <div class="quiz-option" data-explanation="Schema is stored in the metadata file, not manifests.">Stores the table schema and partition specifications for downstream consumers</div>
+    <div class="quiz-option" data-explanation="Access control is handled by AWS Lake Formation, not Iceberg manifests.">Controls which users can access specific partitions of the data lake</div>
+    <div class="quiz-option" data-explanation="Compression is a property of the data files (Parquet), not the manifest layer.">Compresses data files to reduce storage costs in the S3 data layer</div>
+  </div>
+
+  <div class="quiz-question" data-correct="3">
+    <p class="quiz-prompt">What makes Iceberg writes atomic (all-or-nothing)?</p>
+    <div class="quiz-option" data-explanation="Locking would limit concurrency. Iceberg uses optimistic concurrency, not locks.">The catalog locks the table during writes preventing any concurrent access</div>
+    <div class="quiz-option" data-explanation="Data files are written first, but they're invisible until the snapshot is committed.">Data files are written to a staging area and moved atomically to the final path</div>
+    <div class="quiz-option" data-explanation="Correct! The catalog pointer updates atomically to the new metadata file — it either points to the new snapshot or it doesn't.">The catalog pointer to the current metadata file is updated as a single atomic operation</div>
+    <div class="quiz-option" data-explanation="S3 doesn't provide transactions. Atomicity comes from the catalog's pointer swap.">S3's built-in transaction support ensures all files appear simultaneously to readers</div>
+  </div>
+
+  <div class="quiz-question" data-correct="2">
+    <p class="quiz-prompt">Why can Iceberg evolve partition schemes without rewriting existing data?</p>
+    <div class="quiz-option" data-explanation="Old data keeps its original partitioning. Only new writes use the new scheme.">Old data is automatically repartitioned in the background by a compaction process</div>
+    <div class="quiz-option" data-explanation="Correct! The metadata stores partition spec history — old files keep their original spec, new files use the new one, and the engine translates at query time.">Partition spec history is stored in metadata — the engine handles translation at query time</div>
+    <div class="quiz-option" data-explanation="The catalog stores a pointer to metadata, not partition mappings per file.">The catalog maintains a separate partition mapping table that's updated independently</div>
+    <div class="quiz-option" data-explanation="Iceberg supports multiple partition specs simultaneously — that's the whole point of partition evolution.">Partition schemes are applied only at query time so the physical layout never changes</div>
+  </div>
+
+</div>
+
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 ---
 id: "002"
 title: "Spike: D2 sketch mode for hand-drawn diagrams"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: spike

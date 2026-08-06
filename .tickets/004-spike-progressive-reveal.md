@@ -1,7 +1,7 @@
 ---
 id: "004"
 title: "Spike: progressive reveal for SVG diagrams"
-status: open
+status: done
 priority: medium
 blocked_by: []
 type: spike
