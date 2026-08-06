@@ -1,0 +1,11 @@
+{
+  "name": "default",
+  "description": "teach-me default agent with browser and diagram tools",
+  "tools": ["@builtin"],
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--headless"]
+    }
+  }
+}
