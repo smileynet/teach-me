@@ -1,0 +1,5 @@
+# Ephemeral working notes (session-scoped, not committed)
+.scratch/
+
+# Reference repos (large, cloned locally for study)
+.references/
