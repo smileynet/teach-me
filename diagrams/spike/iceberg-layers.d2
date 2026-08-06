@@ -1,0 +1,31 @@
+direction: down
+
+catalog: AWS Glue Data Catalog {
+  style: {
+    fill: "#dbeafe"
+    stroke: "#2563eb"
+    border-radius: 6
+  }
+}
+
+metadata: Metadata Files (S3) {
+  style: {
+    fill: "#fef3c7"
+    stroke: "#d97706"
+    border-radius: 6
+  }
+  json: v2.metadata.json
+  manifests: manifest-list.avro
+}
+
+data: Data Files (S3) {
+  style: {
+    fill: "#dcfce7"
+    stroke: "#16a34a"
+    border-radius: 6
+  }
+  parquet: "*.parquet"
+}
+
+catalog -> metadata: points to current version
+metadata.manifests -> data.parquet: lists files with column stats

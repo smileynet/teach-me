@@ -1,0 +1,29 @@
+direction: right
+
+producers: Data Producers {
+  style.fill: "#dbeafe"
+  style.stroke: "#2563eb"
+  style.border-radius: 6
+}
+
+glue: Glue ETL {
+  style.fill: "#fef3c7"
+  style.stroke: "#d97706"
+  style.border-radius: 6
+}
+
+table: Iceberg Table {
+  style.fill: "#dcfce7"
+  style.stroke: "#16a34a"
+  style.border-radius: 6
+}
+
+athena: Athena Query {
+  style.fill: "#dbeafe"
+  style.stroke: "#2563eb"
+  style.border-radius: 6
+}
+
+producers -> glue: raw events
+glue -> table: write Parquet
+table -> athena: scan with pruning

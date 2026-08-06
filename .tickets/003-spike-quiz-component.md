@@ -1,7 +1,7 @@
 ---
 id: "003"
 title: "Spike: interactive quiz component"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: spike

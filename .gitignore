@@ -3,3 +3,6 @@
 
 # Reference repos (large, cloned locally for study)
 .references/
+
+# Python virtual environment
+.venv/
