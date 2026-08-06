@@ -1,0 +1,59 @@
+---
+name: browse-and-verify
+description: "Browse a URL with Playwright to validate links, find page sections, and extract content for quiz sources. Trigger: validate link, check this URL, find the section, browse page, what does this page say about, verify source."
+metadata:
+  type: protocol
+  invocation: both
+  practice: null
+---
+
+# Browse and Verify
+
+Use the Playwright MCP tools (`@playwright/mcp`) to validate URLs, find linkable sections, and extract content for quiz source links.
+
+## Setup
+
+The Playwright MCP server is configured in `.kiro/agents/default.json`. It provides 40+ browser tools via accessibility snapshots (~200-400 tokens per page, very efficient).
+
+If Playwright MCP is unavailable, fall back to the `web_fetch` tool with `search_terms`.
+
+## When to use
+
+- **Before adding a quiz source link**: navigate to the URL, verify the page loads and the content exists
+- **When finding the right section to link**: browse the page and look for heading IDs/anchors
+- **When writing explanations**: read the relevant section to ground your explanation in the source
+- **When a learner questions a source**: re-read the section to confirm accuracy
+
+## Workflow: Validate and find the right section
+
+1. **Navigate** to the page URL
+2. **Check the snapshot** — does the page load? Is the content relevant?
+3. **Find headings** — look for section IDs in the accessibility snapshot to construct `#anchor` links
+4. **Read the section** — confirm the content actually answers/addresses the quiz question
+5. **Write the source entry** with the specific URL#anchor, label, and section description
+
+## Quality rules for quiz source links
+
+1. **Always browse before committing** — dead links and irrelevant pages erode trust
+2. **Link to the most specific section** — use `#anchor` IDs from headings
+3. **Read the section** to confirm it actually helps answer the question
+4. **Write the `section` field** based on what you read, not assumptions
+5. **If no good anchor exists**, link to the page and describe which paragraph is relevant
+6. **Never link to generic overviews** — the linked page must significantly help answer the specific question
+7. **Multiple targeted links > one vague link** — e.g., both the spec section AND the AWS implementation docs
+
+## Fallback: web_fetch
+
+When Playwright MCP is not configured or the page is simple (static HTML, no JS rendering needed):
+
+```
+web_fetch url="https://iceberg.apache.org/spec/" search_terms="manifest lists" mode="selective"
+```
+
+This returns ~10 lines around matches. Sufficient for validation but won't find heading IDs as reliably.
+
+## When NOT to use Playwright
+
+- **Page is static HTML** and you only need to check if it loads → use `web_fetch` in `truncated` mode
+- **You need a HEAD request** (just check HTTP status) → `web_fetch` is lighter
+- **Content is already in your context** from a prior fetch → don't re-browse
