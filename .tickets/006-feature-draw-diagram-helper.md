@@ -1,7 +1,7 @@
 ---
 id: "006"
 title: "Feature: draw-diagram.py helper script"
-status: open
+status: done
 priority: high
 blocked_by: ["001"]
 type: feature
