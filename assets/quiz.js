@@ -32,6 +32,8 @@
         label.appendChild(input);
         label.appendChild(document.createTextNode(' ' + opt.textContent));
         label.dataset.explanation = opt.dataset.explanation || '';
+        label.dataset.source = opt.dataset.source || '';
+        label.dataset.sourceLabel = opt.dataset.sourceLabel || 'Read more';
         label.dataset.isCorrect = opt === correct ? 'true' : 'false';
         container.appendChild(label);
         opt.remove();
@@ -58,10 +60,19 @@
           });
         }
 
-        // Show explanation
-        const explanation = document.createElement('p');
+        // Show explanation with source link
+        const explanation = document.createElement('div');
         explanation.className = 'quiz-explanation';
-        explanation.textContent = selected.dataset.explanation;
+        explanation.innerHTML = selected.dataset.explanation;
+        if (selected.dataset.source) {
+          const link = document.createElement('a');
+          link.href = selected.dataset.source;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          link.className = 'quiz-source-link';
+          link.textContent = '📖 ' + selected.dataset.sourceLabel;
+          explanation.appendChild(link);
+        }
         container.appendChild(explanation);
 
         // Disable further input

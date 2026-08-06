@@ -48,6 +48,14 @@
   color: #374151;
 }
 
+.quiz-source-link {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #2563eb;
+  text-decoration: underline;
+}
+
 .quiz-summary {
   margin-top: 1.5rem;
   padding: 1rem;
