@@ -1,7 +1,7 @@
 ---
 id: "007"
 title: "Feature: integrate diagrams into teach skill"
-status: open
+status: done
 priority: medium
 blocked_by: ["001", "006"]
 type: feature

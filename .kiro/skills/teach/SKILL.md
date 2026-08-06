@@ -62,6 +62,8 @@ Each lesson should recommend a primary source for the user to read or watch. Thi
 
 Each lesson should contain a reminder to ask followup questions to the agent. The agent is their teacher, and can assist with anything that's unclear.
 
+Each lesson with an architectural or conceptual explanation **must include at least one inline SVG diagram**. Place a one-line verbal summary above the diagram. For complex architectures with 3+ layers, use the progressive-reveal component (`data-step` attributes + `assets/progressive-reveal.js`).
+
 ## Assets
 
 Lessons are built from reusable **components**, stored in `./assets/`: stylesheets, quiz widgets, simulators, diagram helpers — anything a second lesson could reuse.
@@ -72,7 +74,24 @@ A shared stylesheet is the first component every workspace earns: every lesson l
 
 ### Diagrams
 
-Read `./assets/svg-patterns.md` before creating any visual. Use inline SVG directly in lesson HTML — the agent generates text, SVG is text, zero tooling required. Follow the visual teaching steering (`.kiro/steering/visual-teaching.md`) for color vocabulary, element limits, and anti-patterns.
+Every architectural or conceptual explanation needs a visual. Before creating one:
+
+1. Read `./assets/svg-patterns.md` for reusable snippet patterns
+2. Follow `.kiro/steering/visual-teaching.md` for color vocabulary and anti-patterns
+3. Choose the right tool:
+
+| Diagram type | Method |
+|-------------|--------|
+| Standard teaching diagram (stack, flow, hub) | `python tools/draw-diagram.py --type X --data '{...}'` |
+| Custom layout or annotated detail | Raw inline SVG from patterns |
+| Complex auto-layout (sequence, state machine) | D2 (`d2 input.d2 output.svg`) |
+
+**Rules:**
+- One-line verbal summary ABOVE every diagram (dual coding principle)
+- Max 5-9 elements per diagram — break complex systems into multiple
+- Use progressive reveal (`data-step` attrs + `assets/progressive-reveal.js`) for 3+ layers
+- Colors: blue=primary, green=output, amber=processing/warning, red=error, gray=infrastructure
+- Labels go ON the diagram, never separate
 
 ## The Mission
 
