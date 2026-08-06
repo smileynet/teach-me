@@ -38,6 +38,7 @@ tools/            — project scripts and automation
 | Ephemeral notes / scratch work | Write to `.scratch/`, promote or delete later |
 | Reference repo to study | Clone into `.references/`, use `study-reference` skill |
 | Plan needs stress-testing | Use `/grill-with-docs` |
+| Work on visual tooling | Check `.tickets/` for frontier (status: open, blocked_by all done) |
 
 ## Constraints
 
