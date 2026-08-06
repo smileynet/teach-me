@@ -1,0 +1,16 @@
+{
+  "name": "browser",
+  "description": "Specialist browser agent — validates URLs, extracts page sections, finds heading anchors, reads documentation pages. Dispatch to this agent for any web browsing task.",
+  "tools": ["read", "write", "grep", "shell", "@playwright"],
+  "allowedTools": ["read", "write", "grep", "shell", "@playwright"],
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--headless"]
+    }
+  },
+  "resources": [
+    "skill://.kiro/skills/browse-and-verify/SKILL.md"
+  ],
+  "prompt": "You are a browser specialist. Your job is to navigate web pages, validate links, find specific sections, extract content, and report back. Always use the Playwright tools for browsing. Report findings concisely: page status, relevant headings with IDs, and extracted content."
+}

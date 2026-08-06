@@ -9,13 +9,13 @@ metadata:
 
 # Browse and Verify
 
-Use the Playwright MCP tools (`@playwright/mcp`) to validate URLs, find linkable sections, and extract content for quiz source links.
+Dispatch to the **browser** specialist agent (`.kiro/agents/browser.json`) for URL validation, section extraction, and heading discovery. The browser agent has the Playwright MCP configured — the default agent does NOT load Playwright (40+ tools would degrade tool selection).
 
 ## Setup
 
-The Playwright MCP server is configured in `.kiro/agents/default.json`. It provides 40+ browser tools via accessibility snapshots (~200-400 tokens per page, very efficient).
+The browser agent is at `.kiro/agents/browser.json` with `@playwright/mcp` configured headless. Dispatch to it for any browsing task rather than loading Playwright in the main context.
 
-If Playwright MCP is unavailable, fall back to the `web_fetch` tool with `search_terms`.
+If the browser agent is unavailable, fall back to the `web_fetch` tool (built-in, no MCP needed).
 
 ## When to use
 

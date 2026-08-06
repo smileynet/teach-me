@@ -1,11 +1,12 @@
 {
   "name": "default",
-  "description": "teach-me default agent with browser and diagram tools",
+  "description": "teach-me default agent — teaching, lesson authoring, quiz creation, diagram generation",
   "tools": ["@builtin"],
-  "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest", "--headless"]
-    }
-  }
+  "resources": [
+    "file://MISSION.md",
+    "file://RESOURCES.md",
+    "file://NOTES.md",
+    "file://assets/svg-patterns.md",
+    "skill://.kiro/skills/**/SKILL.md"
+  ]
 }
