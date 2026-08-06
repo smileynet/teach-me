@@ -1,0 +1,38 @@
+# teach-me mise configuration
+# Tool versions + task runner
+
+[tools]
+python = "3.12"
+node = "22"
+
+[env]
+PYTHONDONTWRITEBYTECODE = "1"
+
+[tasks.render-diagrams]
+description = "Render .mmd and .d2 diagram files to SVG"
+run = "bash tools/render-diagrams.sh"
+
+[tasks.open-lesson]
+description = "Open the latest lesson in the browser"
+run = """
+latest=$(ls -1 lessons/*.html 2>/dev/null | sort | tail -1)
+if [ -n "$latest" ]; then open "$latest"; else echo "No lessons found"; fi
+"""
+
+[tasks.install-deps]
+description = "Install Python and Node dependencies"
+run = """
+pip install drawsvg
+npx playwright install chromium
+"""
+
+[tasks.validate-links]
+description = "Validate all source links in quiz HTML files"
+run = """
+echo "Link validation requires the browser agent — dispatch manually"
+echo "Use: /agent browser then browse each URL"
+"""
+
+[tasks.spike]
+description = "Run a spike script"
+run = "python tools/spike-drawsvg.py"

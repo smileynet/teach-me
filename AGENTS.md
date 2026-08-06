@@ -28,6 +28,10 @@ tools/            — project scripts and automation
 | Start learning | `/teach <topic>` | Mission interview or next lesson |
 | Test retention | `/quiz-me` | Knowledge verification round |
 | Re-explain | `/wait-what` | Simpler re-pitch of last message |
+| Render diagrams | `mise run render-diagrams` | .mmd/.d2 files → SVG in assets/generated/ |
+| Open latest lesson | `mise run open-lesson` | Opens in browser |
+| Install deps | `mise run install-deps` | drawsvg + playwright chromium |
+| Browse/validate URL | Switch to `browser` agent | Specialist with Playwright MCP |
 
 ## Workflow
 
