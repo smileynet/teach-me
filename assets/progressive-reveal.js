@@ -50,6 +50,12 @@
       if (e.key === 'ArrowLeft' && current > 1) { current--; updateVisibility(); }
     });
 
+    // Click SVG to advance
+    svg.style.cursor = 'pointer';
+    svg.addEventListener('click', () => {
+      if (current < maxStep) { current++; updateVisibility(); }
+    });
+
     updateVisibility();
   });
 })();
