@@ -48,12 +48,29 @@
   color: #374151;
 }
 
-.quiz-source-link {
-  display: block;
+.quiz-sources {
   margin-top: 0.5rem;
+  padding-left: 0;
+  list-style: none;
+}
+
+.quiz-sources li {
+  margin: 0.3rem 0;
   font-size: 0.85rem;
+}
+
+.quiz-sources li::before {
+  content: '📖 ';
+}
+
+.quiz-sources a {
   color: #2563eb;
   text-decoration: underline;
+}
+
+.quiz-source-detail {
+  color: #6b7280;
+  font-size: 0.8rem;
 }
 
 .quiz-summary {
