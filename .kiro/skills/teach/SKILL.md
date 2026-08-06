@@ -70,6 +70,10 @@ Reuse is the default, not the exception. Before authoring a lesson, read `./asse
 
 A shared stylesheet is the first component every workspace earns: every lesson links it, so the lessons look like one consistent course rather than a pile of one-offs. As the workspace grows, so should the component library.
 
+### Diagrams
+
+Read `./assets/svg-patterns.md` before creating any visual. Use inline SVG directly in lesson HTML — the agent generates text, SVG is text, zero tooling required. Follow the visual teaching steering (`.kiro/steering/visual-teaching.md`) for color vocabulary, element limits, and anti-patterns.
+
 ## The Mission
 
 Every lesson should be tied into the mission - the reason that the user is interested in learning about the topic.
