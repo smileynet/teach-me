@@ -1,8 +1,10 @@
 ---
 name: quiz-me
-description: Test my retention — quiz me on what I've learned so far.
-disable-model-invocation: true
-argument-hint: "What topic or lesson should I quiz you on?"
+description: "Test my retention — quiz me on what I've learned so far. Trigger: quiz me, test me, check my understanding, what have I learned, review session."
+metadata:
+  type: process
+  invocation: user-only
+  practice: null
 ---
 
 The user wants to test their retention. This is not a grilling session (plan-sharpening) — it is knowledge verification.

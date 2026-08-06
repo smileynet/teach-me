@@ -1,10 +1,11 @@
 # AGENTS.md — teach-me
 
-Agent-assisted learning platform. Skills and tools that help users learn about topics through structured, AI-guided sessions.
+Test bed for learning-oriented agent skills. Refined here, then ported to crew-research for global deployment.
 
 ## Workspace Layout
 
 ```
+.kiro/skills/     — kiro-cli skills (teach, quiz-me, wait-what)
 .memory/          — persistent project knowledge (glossary, ADRs)
 .memory/adr/      — architecture decision records
 .scratch/         — ephemeral working notes (gitignored)
@@ -12,13 +13,21 @@ Agent-assisted learning platform. Skills and tools that help users learn about t
 tools/            — project scripts and automation
 ```
 
-## Commands
+## Skills
 
-No build tools detected yet. Update this section when a language/framework is chosen.
+| Skill | Trigger | What it does |
+|-------|---------|-------------|
+| teach | `/teach`, "teach me", "next lesson" | Multi-session learning with stateful workspace |
+| quiz-me | `/quiz-me`, "test me" | Retention testing via interview |
+| wait-what | `/wait-what`, "I don't understand" | Re-explain when comprehension fails |
+
+## Commands
 
 | Task | Command | Expected |
 |------|---------|----------|
-| (none yet) | — | — |
+| Start learning | `/teach <topic>` | Mission interview or next lesson |
+| Test retention | `/quiz-me` | Knowledge verification round |
+| Re-explain | `/wait-what` | Simpler re-pitch of last message |
 
 ## Workflow
 
