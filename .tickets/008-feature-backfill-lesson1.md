@@ -1,7 +1,7 @@
 ---
 id: "008"
 title: "Feature: backfill lesson 1 with inline SVG"
-status: open
+status: done
 priority: medium
 blocked_by: ["001"]
 type: feature
