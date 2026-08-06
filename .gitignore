@@ -6,3 +6,6 @@
 
 # Python virtual environment
 .venv/
+
+# Playwright MCP session data
+.playwright-mcp/
