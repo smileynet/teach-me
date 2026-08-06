@@ -39,6 +39,7 @@ When creating lessons with diagrams or visual aids, follow these evidence-based 
 - Text that merely restates what the visual shows (redundancy principle)
 - Complex diagrams with 10+ elements at one level (overloads working memory)
 - Inconsistent colors/shapes between lessons
+- D2 sketch mode for inline SVGs (3-4x file size: 78-98KB vs 19-26KB normal mode — use normal mode by default, sketch only for standalone files where approachability outweighs size)
 
 ## Implementation
 

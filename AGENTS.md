@@ -51,6 +51,21 @@ tools/            — project scripts and automation
 | Don't accumulate scratch files | Promote to `.memory/` or delete after use |
 | Don't put implementation details in CONTEXT.md | Use ADRs for decisions with rationale |
 | Don't commit .scratch/ or .references/ | Both are gitignored |
+| Don't load Playwright MCP in default agent | Dispatch to `browser` specialist (40+ tools degrades selection) |
+| Don't assume subagent tool trust inherits | Each specialist agent needs its own `allowedTools` or it stalls silently |
+
+## Skill Format (kiro-cli)
+
+Skills live in `.kiro/skills/<name>/SKILL.md`. Frontmatter:
+```yaml
+name: skill-name
+description: "What it does. Trigger: trigger phrases."
+metadata:
+  type: process|protocol|reference
+  invocation: user-only|both
+  practice: null
+```
+Skills are auto-loaded via `skill://.kiro/skills/**/SKILL.md`. Reference files go alongside SKILL.md (relative paths work).
 
 ## When Blocked
 
