@@ -1,7 +1,7 @@
 ---
 id: "005"
 title: "Research: visual tooling open questions"
-status: open
+status: done
 priority: medium
 blocked_by: []
 type: research
