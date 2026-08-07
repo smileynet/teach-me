@@ -60,15 +60,48 @@ python tools/draw-diagram.py --type hub --data '{
 }'
 ```
 
-## Color Vocabulary
+### Graph (fan-out/fan-in, groups, auto-layout)
 
-| Name | Meaning | Use for |
-|------|---------|---------|
-| `blue` | Primary, input, the thing being discussed | Main components, sources |
-| `green` | Success, output, healthy state | Results, data at rest |
-| `amber` | Warning, caution, operational | Processing, metadata |
-| `red` | Error, anti-pattern | Problems, wrong approaches |
-| `gray` | Infrastructure, neutral | Supporting services |
+The most flexible type. Nodes are named by ID, edges can connect one-to-many or many-to-one. Layout is computed automatically via topological ranking.
+
+```bash
+python tools/draw-diagram.py --type graph --data '{
+  "direction": "LR",
+  "nodes": [
+    {"id": "lb", "label": "Load Balancer", "preset": "infrastructure"},
+    {"id": "w1", "label": "Worker 1", "preset": "concept"},
+    {"id": "w2", "label": "Worker 2", "preset": "concept"},
+    {"id": "db", "label": "Database", "preset": "example"}
+  ],
+  "edges": [
+    {"from": "lb", "to": ["w1", "w2"], "label": "distribute"},
+    {"from": ["w1", "w2"], "to": "db", "label": "write"}
+  ],
+  "groups": [
+    {"label": "Compute", "nodes": ["w1", "w2"]}
+  ]
+}'
+```
+
+**Features:**
+- `"from"` and `"to"` accept single ID or array (fan-out/fan-in)
+- `"groups"` draw a dashed background rectangle around named nodes
+- `"direction"`: `"LR"` (left-to-right) or `"TB"` (top-to-bottom)
+- Auto-ranks nodes by dependency depth (sources left/top, sinks right/bottom)
+
+## Color Vocabulary & Presets
+
+Colors can be specified by name or preset. Presets map teaching intent to color:
+
+| Preset | Color | Use for |
+|--------|-------|---------|
+| `concept` | blue | The thing being taught, primary components |
+| `example` | green | Concrete instances, outputs, results |
+| `process` | amber | Processing, transformation, operational steps |
+| `anti-pattern` | red | Problems, errors, what not to do |
+| `infrastructure` | gray | Supporting services, neutral context |
+
+Use `"preset": "concept"` or `"color": "blue"` — both work.
 
 ## Output
 
