@@ -1,0 +1,98 @@
+{
+  "schema_version": 2,
+  "reviewer": "codex",
+  "reviewed_at": "2026-08-07T15:08:09Z",
+  "verdict": "changes_requested",
+  "commits": {
+    "scope": "all ancestors through reviewed_through, inclusive",
+    "reviewed_through": "d02d6125dc503503d069b9c046eca82b60cb3c20"
+  },
+  "ticket_source": {
+    "type": "tkt",
+    "root": ".tickets",
+    "observed_version": "tkt 0.1.0"
+  },
+  "tickets": [
+    {
+      "path": ".tickets/001-spike-drawsvg.md",
+      "blob": "c313f2bc846a0d8d9e97ba25933c9db8c0e1e103"
+    },
+    {
+      "path": ".tickets/002-spike-d2-sketch.md",
+      "blob": "d7284cacc36b2ecae3d8e6027c378b5a97f3621a"
+    },
+    {
+      "path": ".tickets/003-spike-quiz-component.md",
+      "blob": "8553d9f47eeb2cd928413f1547ff709559a8e70c"
+    },
+    {
+      "path": ".tickets/004-spike-progressive-reveal.md",
+      "blob": "b7a80f7d63fbf5839aed18283e6d51e4e2f0bbf8"
+    },
+    {
+      "path": ".tickets/005-research-visual-tooling.md",
+      "blob": "1a06ebbfd0f64c6ee6acb0162f49ed5915221eac"
+    },
+    {
+      "path": ".tickets/006-feature-draw-diagram-helper.md",
+      "blob": "b2ab851a62126d603157d4a3951a06877135aaab"
+    },
+    {
+      "path": ".tickets/007-feature-teach-diagram-integration.md",
+      "blob": "3f8ed13af39e85a6961faf957295f9ddbd1be19f"
+    },
+    {
+      "path": ".tickets/008-feature-backfill-lesson1.md",
+      "blob": "4de3ac83303e8c81ba3cd57c16245186fcf58bbc"
+    },
+    {
+      "path": ".tickets/009-feature-mermaid-mcp.md",
+      "blob": "c09017118e04cee2f97e7a38444938162bf5e945"
+    },
+    {
+      "path": ".tickets/010-feature-diagram-dsl.md",
+      "blob": "8f128468cb4435480afff753b4446f9082912a76"
+    },
+    {
+      "path": ".tickets/011-feature-spaced-repetition.md",
+      "blob": "91934495b12d53fa4af6d0f8785776202264dc72"
+    },
+    {
+      "path": ".tickets/012-feature-glossary-component.md",
+      "blob": "90d84a0240f8eeec96404f6418944106cb5bbef7"
+    },
+    {
+      "path": ".tickets/013-integrate-svg-accessibility.md",
+      "blob": "5ca486b162ef19819dd5419f44d09e9011a2f673"
+    },
+    {
+      "path": ".tickets/014-integrate-quiz-best-practices.md",
+      "blob": "bc0f79faff59a6cb9e4a32dbe868e76ba34505b8"
+    },
+    {
+      "path": ".tickets/015-integrate-diagram-selection.md",
+      "blob": "46ca8aa81260fcf7acd2e9ceea0f109728cdf48a"
+    },
+    {
+      "path": ".tickets/016-integrate-browser-workflow.md",
+      "blob": "30798cdbb98dca7e03d8eaa92ec86011a8123a85"
+    },
+    {
+      "path": ".tickets/017-housekeeping-prune-scratch.md",
+      "blob": "c6c5e29ef926bf1d9f83b7edc41405e26e8e0cf4"
+    }
+  ],
+  "adoption": {
+    "status": "complete",
+    "target": "d02d6125dc503503d069b9c046eca82b60cb3c20",
+    "started_at": "2026-08-07T15:08:09Z",
+    "completed_at": "2026-08-07T15:08:09Z",
+    "commit_batch_limit": 25,
+    "ticket_batch_limit": 15,
+    "reviewed_ticket_blobs": [],
+    "coverage": {
+      "commits_complete": true,
+      "tickets_complete": true
+    }
+  }
+}
