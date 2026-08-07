@@ -1,38 +1,81 @@
 # teach-me mise configuration
-# Tool versions + task runner
+# Tool versions + task runner + environment
+
+min_version = "2024.9.5"
 
 [tools]
 python = "3.12"
 node = "22"
+uv = "latest"
+
+[settings]
+lockfile = true
 
 [env]
 PYTHONDONTWRITEBYTECODE = "1"
+_.python.venv = { path = ".venv", create = true }
+
+[tasks.setup]
+description = "Install Python dependencies (fast, via uv)"
+run = "uv pip install drawsvg"
+sources = ["mise.toml"]
+
+[tasks.draw]
+description = "Generate an SVG diagram (usage: mise run draw -- --type flow --data '{...}')"
+depends = ["setup"]
+run = "python tools/draw-diagram.py"
 
 [tasks.render-diagrams]
-description = "Render .mmd and .d2 diagram files to SVG"
+description = "Render .mmd and .d2 files to SVG"
 run = "bash tools/render-diagrams.sh"
+sources = ["diagrams/**/*.{mmd,d2}"]
+outputs = ["assets/generated/*.svg"]
 
 [tasks.open-lesson]
 description = "Open the latest lesson in the browser"
 run = """
 latest=$(ls -1 lessons/*.html 2>/dev/null | sort | tail -1)
-if [ -n "$latest" ]; then open "$latest"; else echo "No lessons found"; fi
+if [ -n "$latest" ]; then xdg-open "$latest" 2>/dev/null || open "$latest"; else echo "No lessons found"; fi
 """
 
-[tasks.install-deps]
-description = "Install Python and Node dependencies"
+[tasks.rehydrate]
+description = "Clone reference repos from REFERENCES.md"
 run = """
-pip install drawsvg
-npx playwright install chromium
+mkdir -p .references
+grep '^git clone' REFERENCES.md | while IFS= read -r line; do
+  dir=$(echo "$line" | awk '{print $NF}')
+  if [ -d "$dir" ]; then
+    echo "  skip: $dir (exists)"
+  else
+    eval "$line"
+  fi
+done
 """
 
-[tasks.validate-links]
-description = "Validate all source links in quiz HTML files"
+[tasks.doctor]
+description = "Check project health"
 run = """
-echo "Link validation requires the browser agent — dispatch manually"
-echo "Use: /agent browser then browse each URL"
+echo "=== Tool versions ==="
+python --version
+node --version
+uv --version
+echo ""
+echo "=== Venv ==="
+[ -d .venv ] && echo "✓ .venv exists" || echo "✗ .venv missing (run: mise install)"
+python -c "import drawsvg" 2>/dev/null && echo "✓ drawsvg installed" || echo "✗ drawsvg missing (run: mise run setup)"
+echo ""
+echo "=== Optional tools ==="
+if command -v d2 >/dev/null 2>&1; then echo "✓ d2"; else echo "○ d2 not installed (optional)"; fi
+if command -v mmdc >/dev/null 2>&1; then echo "✓ mmdc"; else echo "○ mmdc not installed (optional)"; fi
+echo ""
+echo "=== References ==="
+[ -d .references/drawsvg ] && echo "✓ references cloned" || echo "○ references not cloned (run: mise run rehydrate)"
 """
 
-[tasks.spike]
-description = "Run a spike script"
-run = "python tools/spike-drawsvg.py"
+[tasks.verify]
+description = "Smoke-test the diagram tool"
+depends = ["setup"]
+run = """
+python tools/draw-diagram.py --type flow --data '{"nodes":[{"label":"A","color":"blue"},{"label":"B","color":"green"}],"arrows":["test"]}' > /dev/null
+echo "✓ draw-diagram.py OK"
+"""
