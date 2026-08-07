@@ -1,16 +1,31 @@
 {
   "name": "browser",
   "description": "Specialist browser agent — validates URLs, extracts page sections, finds heading anchors, reads documentation pages. Dispatch to this agent for any web browsing task.",
-  "tools": ["read", "write", "grep", "shell", "@playwright"],
-  "allowedTools": ["read", "write", "grep", "shell", "@playwright"],
+  "tools": ["read", "write", "grep", "@playwright"],
+  "allowedTools": [
+    "read",
+    "write",
+    "grep",
+    "@playwright/browser_navigate",
+    "@playwright/browser_find",
+    "@playwright/browser_snapshot",
+    "@playwright/browser_evaluate",
+    "@playwright/browser_network_requests",
+    "@playwright/browser_tabs"
+  ],
   "mcpServers": {
     "playwright": {
       "command": "npx",
-      "args": ["@playwright/mcp@latest", "--headless"]
+      "args": [
+        "@playwright/mcp@latest",
+        "--headless",
+        "--isolated",
+        "--image-responses", "omit"
+      ]
     }
   },
   "resources": [
     "skill://.kiro/skills/browse-and-verify/SKILL.md"
   ],
-  "prompt": "You are a browser specialist. Your job is to navigate web pages, validate links, find specific sections, extract content, and report back. Always use the Playwright tools for browsing. Report findings concisely: page status, relevant headings with IDs, and extracted content."
+  "prompt": "You are a browser specialist. Your job is to navigate web pages, validate links, find specific sections, extract content, and report back. Use the Playwright tools for browsing. Report findings concisely: page status, relevant headings with IDs, and extracted content. Never take screenshots — use accessibility snapshots and browser_find to locate content."
 }

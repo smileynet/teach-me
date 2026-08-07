@@ -25,6 +25,15 @@ COLORS = {
     "gray":  {"fill": "#f3f4f6", "stroke": "#6b7280"},
 }
 
+# Teaching presets (inspired by C4 domain vocabulary pattern from mingrammer/diagrams)
+PRESETS = {
+    "concept":        "blue",   # the thing being taught
+    "example":        "green",  # a concrete instance or output
+    "process":        "amber",  # processing, transformation, operational
+    "anti-pattern":   "red",    # problems, errors, what not to do
+    "infrastructure": "gray",   # supporting context, neutral
+}
+
 FONT = "system-ui, sans-serif"
 ARROW_COLOR = "#374151"
 
@@ -37,7 +46,10 @@ def _make_arrow(drawing):
 
 
 def labeled_box(d, x, y, w, h, label, color="blue", subtitle=None):
-    """Draw a rounded labeled box."""
+    """Draw a rounded labeled box. Color can be a name or a preset."""
+    # Resolve preset to color
+    if color in PRESETS:
+        color = PRESETS[color]
     c = COLORS.get(color, COLORS["blue"])
     d.append(draw.Rectangle(x, y, w, h, rx=6, fill=c["fill"], stroke=c["stroke"], stroke_width=1.5))
     ty = y + h / 2 + (0 if not subtitle else -6)
@@ -160,20 +172,159 @@ def diagram_hub(data):
     return d
 
 
+def diagram_graph(data):
+    """Free-form graph with named nodes and edges (supports fan-out/fan-in).
+
+    data: {
+      "direction": "LR"|"TB" (default "LR"),
+      "nodes": [{"id": "x", "label": "...", "color"|"preset": "blue"}],
+      "edges": [{"from": "x"|["x","y"], "to": "z"|["z","w"], "label": "..."}],
+      "groups": [{"label": "...", "nodes": ["x", "y"]}]  (optional)
+    }
+    """
+    direction = data.get("direction", "LR")
+    nodes = {n["id"]: n for n in data["nodes"]}
+    edges = data.get("edges", [])
+    groups = data.get("groups", [])
+    is_lr = direction == "LR"
+    box_w, box_h = (120, 50) if is_lr else (140, 50)
+    gap_major, gap_minor = 50, 30
+
+    # Assign ranks via topological BFS
+    node_ids = list(nodes.keys())
+    in_degree = {nid: 0 for nid in node_ids}
+    for e in edges:
+        targets = e["to"] if isinstance(e["to"], list) else [e["to"]]
+        for t in targets:
+            if t in in_degree:
+                in_degree[t] += 1
+
+    ranks = {}
+    queue = [nid for nid, deg in in_degree.items() if deg == 0]
+    rank = 0
+    while queue:
+        for nid in queue:
+            ranks[nid] = rank
+        next_queue = []
+        for e in edges:
+            sources = e["from"] if isinstance(e["from"], list) else [e["from"]]
+            targets = e["to"] if isinstance(e["to"], list) else [e["to"]]
+            for s in sources:
+                if s in queue:
+                    for t in targets:
+                        in_degree[t] -= 1
+                        if in_degree[t] == 0 and t not in ranks:
+                            next_queue.append(t)
+        queue = next_queue
+        rank += 1
+
+    for nid in node_ids:
+        if nid not in ranks:
+            ranks[nid] = rank
+
+    # Group by rank, calculate positions
+    rank_groups = {}
+    for nid, r in ranks.items():
+        rank_groups.setdefault(r, []).append(nid)
+
+    num_ranks = max(ranks.values()) + 1
+    max_per_rank = max(len(v) for v in rank_groups.values())
+
+    if is_lr:
+        total_w = num_ranks * (box_w + gap_major) + 20
+        total_h = max(max_per_rank * (box_h + gap_minor) + 40, 100)
+    else:
+        total_w = max(max_per_rank * (box_w + gap_minor) + 40, 200)
+        total_h = num_ranks * (box_h + gap_major) + 20
+
+    positions = {}
+    for r, nids in rank_groups.items():
+        for i, nid in enumerate(nids):
+            if is_lr:
+                x = 10 + r * (box_w + gap_major)
+                span = len(nids) * (box_h + gap_minor) - gap_minor
+                y = (total_h - span) / 2 + i * (box_h + gap_minor)
+            else:
+                span = len(nids) * (box_w + gap_minor) - gap_minor
+                x = (total_w - span) / 2 + i * (box_w + gap_minor)
+                y = 10 + r * (box_h + gap_major)
+            positions[nid] = (x, y)
+
+    d = draw.Drawing(total_w, total_h)
+    marker = _make_arrow(d)
+
+    # Draw group backgrounds
+    for group in groups:
+        gnids = [n for n in group.get("nodes", []) if n in positions]
+        if not gnids:
+            continue
+        gxs = [positions[n][0] for n in gnids]
+        gys = [positions[n][1] for n in gnids]
+        gx, gy = min(gxs) - 10, min(gys) - 25
+        gw = max(gxs) - min(gxs) + box_w + 20
+        gh = max(gys) - min(gys) + box_h + 35
+        d.append(draw.Rectangle(gx, gy, gw, gh, rx=8, fill='#f9fafb',
+                                stroke='#d1d5db', stroke_width=1, stroke_dasharray='4'))
+        d.append(draw.Text(group.get("label", ""), 10, gx + 8, gy + 12,
+                           font_family=FONT, fill='#6b7280'))
+
+    # Draw nodes
+    for nid, node in nodes.items():
+        if nid in positions:
+            x, y = positions[nid]
+            color = node.get("color", node.get("preset", "blue"))
+            labeled_box(d, x, y, box_w, box_h, node["label"], color, node.get("subtitle"))
+
+    # Draw edges (fan-out/fan-in)
+    for e in edges:
+        sources = e["from"] if isinstance(e["from"], list) else [e["from"]]
+        targets = e["to"] if isinstance(e["to"], list) else [e["to"]]
+        label = e.get("label")
+        for s in sources:
+            for t in targets:
+                if s not in positions or t not in positions:
+                    continue
+                sx, sy = positions[s]
+                tx, ty = positions[t]
+                if is_lr:
+                    x1, y1 = sx + box_w, sy + box_h / 2
+                    x2, y2 = tx, ty + box_h / 2
+                else:
+                    x1, y1 = sx + box_w / 2, sy + box_h
+                    x2, y2 = tx + box_w / 2, ty
+                d.append(draw.Line(x1, y1, x2, y2, stroke=ARROW_COLOR,
+                                   stroke_width=1.5, marker_end=marker))
+        # Label on first edge
+        if label and sources and targets:
+            s, t = sources[0], targets[0]
+            if s in positions and t in positions:
+                sx, sy = positions[s]
+                tx, ty = positions[t]
+                if is_lr:
+                    lx = (sx + box_w + tx) / 2
+                    ly = (sy + ty) / 2 + box_h / 2 - 10
+                else:
+                    lx = (sx + tx) / 2 + box_w / 2
+                    ly = (sy + box_h + ty) / 2 - 4
+                d.append(draw.Text(label, 10, lx, ly, text_anchor='middle',
+                                   font_family=FONT, fill='#6b7280'))
+
+    return d
+
+
 DIAGRAM_TYPES = {
     "stack": diagram_stack,
     "flow": diagram_flow,
     "hub": diagram_hub,
+    "graph": diagram_graph,
 }
 
 
 def main():
     parser = argparse.ArgumentParser(description="Generate teaching diagrams as inline SVG")
     parser.add_argument("--type", required=True, choices=DIAGRAM_TYPES.keys(),
-                        help="Diagram type: stack, flow, hub")
+                        help="Diagram type: stack, flow, hub, graph")
     parser.add_argument("--data", required=True, help="JSON data for the diagram")
-    parser.add_argument("--step-attrs", action="store_true",
-                        help="Add data-step attributes for progressive reveal (one step per element)")
     args = parser.parse_args()
 
     try:
