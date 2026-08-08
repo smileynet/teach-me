@@ -41,6 +41,20 @@ When creating lessons with diagrams or visual aids, follow these evidence-based 
 - Inconsistent colors/shapes between lessons
 - D2 sketch mode for inline SVGs (3-4x file size: 78-98KB vs 19-26KB normal mode — use normal mode by default, sketch only for standalone files where approachability outweighs size)
 
+## Accessibility (WCAG 2.1 compliance)
+
+Every informative SVG requires:
+- `role="img"` on the `<svg>` element
+- `<title>` as first child with a brief description of what the diagram shows
+- `aria-labelledby` linking to the title's ID
+- `viewBox` only (no fixed width/height) — responsive scaling via CSS `max-width:100%; height:auto`
+
+**Color independence:** Do not rely on color alone to convey meaning. Every color-coded element must also have a text label. The color vocabulary reinforces meaning — it does not carry it.
+
+**Progressive reveal accessibility:** When using `data-step` for step-through diagrams, ensure `aria-live="polite"` on the container so screen readers announce new content as steps advance.
+
+**The `--title` flag on draw-diagram.py handles all of the above automatically.** For hand-written SVGs, follow the accessibility pattern in `assets/svg-patterns.md`.
+
 ## Implementation
 
 - Read `assets/svg-patterns.md` for reusable SVG snippets
