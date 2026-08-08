@@ -52,6 +52,22 @@ web_fetch url="https://iceberg.apache.org/spec/" search_terms="manifest lists" m
 
 This returns ~10 lines around matches. Sufficient for validation but won't find heading IDs as reliably.
 
+## Escalation Decision Tree
+
+**Default to `web_fetch` first** — it's faster (no browser startup) and sufficient for most documentation pages:
+
+1. Try `web_fetch` with `search_terms` (selective mode)
+2. If content is empty or minimal (JS-rendered page): escalate to Playwright
+3. If you need heading IDs / anchor discovery: escalate to Playwright
+4. If the page requires interaction (login, cookie consent, expand sections): Playwright required
+
+| Page type | Tool | Why |
+|-----------|------|-----|
+| Static docs (most sources) | `web_fetch` | Fast, sufficient |
+| AWS docs (some JS-rendered) | Playwright | Content loads dynamically |
+| Pages needing `#anchor` discovery | Playwright | Accessibility snapshot shows heading refs |
+| Any page where fetch returns empty | Playwright | JS rendering needed |
+
 ## When NOT to use Playwright
 
 - **Page is static HTML** and you only need to check if it loads → use `web_fetch` in `truncated` mode
