@@ -1,7 +1,7 @@
 ---
 id: "017"
 title: "Housekeeping: prune .scratch/ after integration"
-status: open
+status: done
 priority: low
 blocked_by: ["013", "014", "015", "016"]
 type: feature
@@ -25,6 +25,6 @@ Keep only:
 
 ## Acceptance criteria
 
-- [ ] All actionable findings captured in steering/skills/tools
-- [ ] Scratch files deleted (they're gitignored anyway, but clean workspace)
-- [ ] No knowledge lost — anything durable is in `.memory/` or guidance files
+- [x] All actionable findings captured in steering/skills/tools
+- [x] Scratch files deleted (they're gitignored anyway, but clean workspace)
+- [x] No knowledge lost — anything durable is in `.memory/` or guidance files
