@@ -90,3 +90,14 @@ Analyze for:
 - No Lighthouse / accessibility audit (that's ticket 013)
 - No cross-browser testing (static HTML, Chromium-only is fine)
 - No aesthetic judgment from the tool itself — that's the agent's job when reading screenshots
+
+## Screenshot Hygiene
+
+Each run **wipes the output directory first** — only the most current screenshots exist. Never accumulate multiple versions of the same feature state.
+
+When capturing manual screenshots (via Playwright MCP during development):
+- Save to `.scratch/screenshots/` with descriptive names (no timestamps)
+- Before a new capture session, delete the previous session's screenshots
+- One screenshot per state, not multiples of the same thing
+
+The principle: anyone reading `.scratch/visual-qa/` sees exactly the current state. No archaeology required.

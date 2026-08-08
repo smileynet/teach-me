@@ -338,6 +338,10 @@ def main():
         time.sleep(0.5)
 
     output_dir = Path(args.output_dir)
+    # Clean previous run — only keep most current screenshots
+    if output_dir.exists():
+        import shutil
+        shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     manifest = {
