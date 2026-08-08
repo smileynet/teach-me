@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lesson 1: The Iceberg Metadata Tree</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
 </head>
 <body>
 
@@ -21,7 +22,7 @@
 <ul>
   <li><strong>Listing is the bottleneck.</strong> To plan a query, the engine must list directories to discover files. At scale (millions of files), listing is slow and eventually rate-limited by S3.</li>
   <li><strong>No isolation.</strong> A reader scanning files mid-write sees partial data. There's no "transaction" — just files appearing.</li>
-  <li><strong>Schema and partition changes are surgery.</strong> Changing a partition scheme means rewriting all existing data. Evolving a schema risks breaking downstream consumers.</li>
+  <li><strong>Schema and <span class="term" data-term="partition">partition</span> changes are surgery.</strong> Changing a partition scheme means rewriting all existing data. Evolving a schema risks breaking downstream consumers.</li>
 </ul>
 
 <p>Iceberg solves all three with a single design: <strong>it tracks exactly which files belong to a table at any point in time, in a metadata tree stored alongside the data</strong>. <a href="https://iceberg.apache.org/spec/" class="citation">[Iceberg Spec]</a></p>
@@ -31,7 +32,7 @@
 <p>Every Iceberg table has three layers of metadata, each pointing to the next:</p>
 
 <div class="key-concept">
-<strong>Catalog → Metadata File → Manifest List → Manifest Files → Data Files</strong><br>
+<strong><span class="term" data-term="catalog">Catalog</span> → <span class="term" data-term="metadata-file">Metadata File</span> → <span class="term" data-term="manifest-list">Manifest List</span> → <span class="term" data-term="manifest-file">Manifest Files</span> → Data Files</strong><br>
 Each layer answers a different question. The catalog says "where is the current version?" The metadata file says "what's the schema, partitioning, and snapshots?" The manifests say "which specific files, with what stats?"
 </div>
 
@@ -44,7 +45,7 @@ Each layer answers a different question. The catalog says "where is the current 
   </tr>
   <tr>
     <td><strong>Metadata file</strong></td>
-    <td>Schema, partition spec, sort order, snapshot history, and pointers to manifest lists</td>
+    <td>Schema, <span class="term" data-term="partition-spec">partition spec</span>, sort order, snapshot history, and pointers to manifest lists</td>
     <td>JSON files in S3 (<code>metadata/</code> prefix)</td>
   </tr>
   <tr>
@@ -69,10 +70,10 @@ Each layer answers a different question. The catalog says "where is the current 
 <h3>No more file listing</h3>
 <p>Query engines read the manifest files to find exactly which data files to scan — they never list S3 directories. The manifests also carry column-level stats, so the engine can <em>skip entire files</em> that can't contain matching rows. This is called <strong>manifest-level pruning</strong>. <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/introduction.html" class="citation">[AWS Prescriptive Guidance]</a></p>
 
-<h3>Snapshot isolation (MVCC)</h3>
-<p>Every write creates a new <strong>snapshot</strong> — a manifest list pointing to the file set as of that write. Readers see a consistent view by reading from a snapshot. Writers create a new snapshot atomically (the catalog pointer updates, or it doesn't). No partial reads, no coordination needed between readers and writers.</p>
+<h3><span class="term" data-term="mvcc">Snapshot isolation (MVCC)</span></h3>
+<p>Every write creates a new <strong><span class="term" data-term="snapshot">snapshot</span></strong> — a manifest list pointing to the file set as of that write. Readers see a consistent view by reading from a snapshot. Writers create a new snapshot atomically (the catalog pointer updates, or it doesn't). No partial reads, no coordination needed between readers and writers.</p>
 
-<h3>Schema and partition evolution without rewrites</h3>
+<h3><span class="term" data-term="schema-evolution">Schema and partition evolution</span> without rewrites</h3>
 <p>The metadata file stores schema <em>history</em> and partition spec <em>history</em>. Old data files keep their original schema and partitioning; new files use the new spec. The engine handles the translation at query time. Your customer's producers can evolve schemas without rewriting their lake. <a href="https://iceberg.apache.org/docs/latest/" class="citation">[Iceberg Docs]</a></p>
 
 <h2>On AWS: Where Each Layer Lives</h2>
@@ -113,7 +114,7 @@ Each layer answers a different question. The catalog says "where is the current 
 <h2>The One-Liner to Remember</h2>
 
 <div class="key-concept">
-Iceberg is a <strong>file-tracking metadata tree on top of object storage</strong> — it gives you transactions, time travel, and schema evolution without a database, without rewriting data, and without listing directories.
+Iceberg is a <strong>file-tracking metadata tree on top of object storage</strong> — it gives you transactions, <span class="term" data-term="time-travel">time travel</span>, and schema evolution without a database, without rewriting data, and without listing directories.
 </div>
 
 <h2>Limitations Worth Knowing</h2>
@@ -133,6 +134,22 @@ Iceberg is a <strong>file-tracking metadata tree on top of object storage</stron
   <p><strong>Next lesson:</strong> The AWS service map — which services play which roles (catalog, compute, storage, governance) and how they connect.</p>
   <p><strong>Questions?</strong> Ask me anything that's unclear. I'm your teacher here — no question is too basic.</p>
 </div>
+
+<script type="application/json" id="glossary-data">
+{
+  "partition": "A way of organizing data files into groups by column value (e.g., all rows where year=2024 go in one folder). Lets queries skip irrelevant files entirely.",
+  "catalog": "The single entry point that says 'here is the current version of this table.' In Iceberg, it's just a pointer to the latest metadata file — not a full database.",
+  "metadata-file": "A JSON file that records everything about a table's current state: its schema, how it's partitioned, and which snapshots exist.",
+  "manifest-list": "A file that lists all the manifest files for one snapshot. It's the bridge between 'which version?' and 'which data files?'",
+  "manifest-file": "A file listing actual data files along with stats about each one (row counts, column min/max). Query engines use these stats to skip files without opening them.",
+  "partition-spec": "The rule that defines how data is split into partitions. In Iceberg, this is versioned — you can change it and old data keeps its original layout.",
+  "snapshot": "A frozen view of which files belong to the table at one point in time. Every write creates a new one. Readers always see a complete, consistent set of files — never a half-written state.",
+  "mvcc": "Multi-Version Concurrency Control — readers and writers work on different snapshots simultaneously without blocking each other. No locks needed.",
+  "schema-evolution": "Changing a table's column structure (adding, renaming, reordering columns) without rewriting existing data files. Old files keep their original schema; the engine translates at read time.",
+  "time-travel": "Querying a table as it looked at a past point in time by reading from an older snapshot. Useful for debugging, auditing, or reproducing results."
+}
+</script>
+<script src="../assets/glossary.js"></script>
 
 </body>
 </html>
