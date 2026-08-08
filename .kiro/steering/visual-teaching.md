@@ -23,14 +23,15 @@ When creating lessons with diagrams or visual aids, follow these evidence-based 
 
 ## Diagram Selection
 
-| Content type | Use |
-|-------------|-----|
-| Architecture layers | Inline SVG layered stack |
-| Data/request flows | Inline SVG flow or Mermaid sequence |
-| Decision processes | Mermaid flowchart |
-| State machines | Mermaid state diagram |
-| Component relationships | Inline SVG hub-and-spoke |
-| Comparisons | Inline SVG side-by-side |
+| Content type | Tool | Command |
+|-------------|------|---------|
+| Architecture layers | `draw-diagram.py --type stack` | Vertical layered stack |
+| Data/request flows | `draw-diagram.py --type flow` | Left-to-right pipeline |
+| Service maps | `draw-diagram.py --type hub` | Central hub with radial spokes |
+| Fan-out/fan-in, dependency graphs | `draw-diagram.py --type graph` | Auto-ranked nodes with edges, groups |
+| Custom layout, annotated detail | Raw inline SVG | Use patterns from `assets/svg-patterns.md` |
+| Complex auto-layout (sequence, state machine) | D2 CLI | `d2 input.d2 output.svg` |
+| Step-by-step buildup of a diagram | Progressive reveal | `data-step` attrs + `assets/progressive-reveal.js` |
 
 ## Anti-Patterns (DO NOT)
 
@@ -59,4 +60,6 @@ Every informative SVG requires:
 
 - Read `assets/svg-patterns.md` for reusable SVG snippets
 - Inline SVG directly in lesson HTML (zero dependencies)
-- For standard diagram types (sequence, flowchart), write Mermaid source and render with `tools/render-diagrams.sh` if available
+- Use `draw-diagram.py` for standard types — outputs accessible, responsive SVG to stdout
+- For complex auto-layout (sequence diagrams, state machines), use D2: `d2 input.d2 output.svg`
+- Render `.mmd`/`.d2` batch files with `tools/render-diagrams.sh` (outputs to `assets/generated/`)

@@ -1,7 +1,7 @@
 ---
 id: "015"
 title: "Integrate: update diagram selection table with current tools"
-status: open
+status: done
 priority: medium
 blocked_by: []
 type: feature
@@ -27,6 +27,6 @@ type: feature
 
 ## Acceptance criteria
 
-- [ ] Diagram selection table matches available tools (no Mermaid references)
-- [ ] Progressive reveal documented in steering
-- [ ] Graph type mentioned for fan-out/fan-in use cases
+- [x] Diagram selection table matches available tools (no Mermaid references)
+- [x] Progressive reveal documented in steering
+- [x] Graph type mentioned for fan-out/fan-in use cases
