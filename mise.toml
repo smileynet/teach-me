@@ -17,7 +17,7 @@ _.python.venv = { path = ".venv", create = true }
 
 [tasks.setup]
 description = "Install Python dependencies (fast, via uv)"
-run = "uv pip install drawsvg"
+run = "uv pip install drawsvg playwright"
 sources = ["mise.toml"]
 
 [tasks.draw]
@@ -79,3 +79,15 @@ run = """
 python tools/draw-diagram.py --type flow --data '{"nodes":[{"label":"A","color":"blue"},{"label":"B","color":"green"}],"arrows":["test"]}' > /dev/null
 echo "✓ draw-diagram.py OK"
 """
+
+[tasks."visual-qa"]
+description = "Run visual QA on all lesson pages (auto-serves)"
+depends = ["setup"]
+run = "python tools/visual-qa.py --serve"
+sources = ["assets/**/*.{js,css}", "lessons/*.html", "tools/visual-qa.py"]
+outputs = [".scratch/visual-qa/manifest.json"]
+
+[tasks."visual-qa:focus"]
+description = "Run visual QA focused on one component (usage: mise run visual-qa:focus -- glossary)"
+depends = ["setup"]
+run = "python tools/visual-qa.py --serve --focus"
