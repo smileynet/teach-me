@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glossary Component Test</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+</head>
+<body>
+  <h1>Glossary Component Test</h1>
+  <p class="lesson-meta">Component spike — verifying tooltip behavior</p>
+
+  <h2>Inline definitions (data-def)</h2>
+  <p>
+    Apache Iceberg organizes data into
+    <span class="term" data-def="A complete set of data files visible at a point in time. Created on every write operation.">snapshots</span>,
+    each representing a consistent view of the table. The
+    <span class="term" data-def="A JSON or Avro file listing all manifest files for a snapshot, plus table schema and partition info.">manifest list</span>
+    points to the actual data files on disk.
+  </p>
+
+  <h2>Glossary-referenced definitions (data-term)</h2>
+  <p>
+    The <span class="term" data-term="teaching-workspace">teaching workspace</span> holds
+    everything for a learning topic. Each session targets the learner's
+    <span class="term" data-term="zpd">zone of proximal development</span>
+    to maximize <span class="term" data-term="storage-strength">storage strength</span>.
+  </p>
+
+  <h2>With glossary link (data-ref)</h2>
+  <p>
+    A <span class="term" data-term="mission" data-ref="#glossary">mission</span>
+    grounds every teaching decision in a real-world goal.
+  </p>
+
+  <h2>Keyboard test</h2>
+  <p>Tab to each term above and press Enter or Space to show tooltips. Press Escape to dismiss.</p>
+
+  <script type="application/json" id="glossary-data">
+  {
+    "teaching-workspace": "A per-topic directory holding mission, resources, lessons, learning records, and assets — the folder is the continuity, not the conversation.",
+    "zpd": "The range where material is challenging enough to require effort but not so far ahead it's unlearnable. Each lesson targets this.",
+    "storage-strength": "Long-term retention — the real goal of teaching. Built through retrieval practice, spacing, interleaving.",
+    "mission": "The concrete real-world reason a user is learning a topic. Grounds every teaching decision."
+  }
+  </script>
+  <script src="../assets/glossary.js"></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 ---
 id: "012"
 title: "Feature: clickable inline glossary component"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: feature
@@ -50,11 +50,11 @@ When writing a lesson, the teach skill should:
 
 ## Acceptance criteria
 
-- [ ] `assets/glossary.js` + `assets/glossary.css` created
-- [ ] Click/hover shows definition tooltip
-- [ ] Works with both inline `data-def` and referenced `data-term`
-- [ ] Keyboard accessible (focusable, shows on Enter)
-- [ ] Dismisses on click-outside or Escape
-- [ ] Visually subtle (doesn't distract from lesson flow)
-- [ ] < 80 lines JS, < 40 lines CSS
-- [ ] Works with existing style.css
+- [x] `assets/glossary.js` + `assets/glossary.css` created
+- [x] Click/hover shows definition tooltip
+- [x] Works with both inline `data-def` and referenced `data-term`
+- [x] Keyboard accessible (focusable, shows on Enter)
+- [x] Dismisses on click-outside or Escape
+- [x] Visually subtle (doesn't distract from lesson flow)
+- [x] < 80 lines JS, < 40 lines CSS
+- [x] Works with existing style.css
