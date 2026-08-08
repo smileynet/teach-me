@@ -86,8 +86,3 @@ depends = ["setup"]
 run = "python tools/visual-qa.py --serve"
 sources = ["assets/**/*.{js,css}", "lessons/*.html", "tools/visual-qa.py"]
 outputs = [".scratch/visual-qa/manifest.json"]
-
-[tasks."visual-qa:focus"]
-description = "Run visual QA focused on one component (usage: mise run visual-qa:focus -- glossary)"
-depends = ["setup"]
-run = "python tools/visual-qa.py --serve --focus"
