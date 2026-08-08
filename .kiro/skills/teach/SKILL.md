@@ -160,6 +160,14 @@ Each of these should be based on a **feedback loop**, where the user receives fe
 
 For quizzes, each answer should be exactly the same number of words (and characters, if possible). Don't give the user any clues about the answer through formatting.
 
+When embedding a quiz, include a noscript fallback so the lesson degrades gracefully without JavaScript:
+
+```html
+<noscript>
+  <p><em>This quiz requires JavaScript to run. The questions and answers are visible below — try answering mentally, then check the source for the correct answer marked with <code>data-correct</code>.</em></p>
+</noscript>
+```
+
 ## Acquiring Wisdom
 
 Wisdom comes from true real-world interaction - testing your skills outside the learning environment.

@@ -1,7 +1,7 @@
 ---
 id: "014"
 title: "Integrate: quiz component best practices"
-status: open
+status: done
 priority: medium
 blocked_by: []
 type: feature
@@ -41,7 +41,7 @@ Key findings NOT yet integrated:
 
 ## Acceptance criteria
 
-- [ ] `aria-live="polite"` on feedback region
-- [ ] Color-independent indicators (icons, not just color)
-- [ ] localStorage stores answered state (refresh doesn't reset)
-- [ ] Noscript fallback documented
+- [x] `aria-live="polite"` on feedback region
+- [x] Color-independent indicators (icons, not just color)
+- [x] localStorage stores answered state (refresh doesn't reset)
+- [x] Noscript fallback documented

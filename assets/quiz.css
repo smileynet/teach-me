@@ -32,10 +32,20 @@
   background: #dcfce7 !important;
   border-color: #16a34a !important;
 }
+.quiz-correct::before {
+  content: '✓ ';
+  font-weight: 700;
+  color: #16a34a;
+}
 
 .quiz-incorrect {
   background: #fef2f2 !important;
   border-color: #dc2626 !important;
+}
+.quiz-incorrect::before {
+  content: '✗ ';
+  font-weight: 700;
+  color: #dc2626;
 }
 
 .quiz-explanation {
@@ -80,4 +90,8 @@
   border-radius: 6px;
   text-align: center;
   font-size: 1.1rem;
+}
+
+.quiz-feedback-region {
+  min-height: 0;
 }
