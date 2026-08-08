@@ -93,6 +93,32 @@ Every architectural or conceptual explanation needs a visual. Before creating on
 - Colors: blue=primary, green=output, amber=processing/warning, red=error, gray=infrastructure
 - Labels go ON the diagram, never separate
 
+### Glossary Terms
+
+On first use of a domain term the learner may not know, wrap it in a glossary tooltip:
+
+```html
+<!-- Inline definition (one-off terms specific to this lesson) -->
+<span class="term" data-def="A complete set of data files visible at a point in time.">snapshot</span>
+
+<!-- Glossary lookup (term defined in the JSON block below) -->
+<span class="term" data-term="snapshot">snapshot</span>
+
+<!-- With link to reference doc -->
+<span class="term" data-term="snapshot" data-ref="glossary.html#snapshot">snapshot</span>
+```
+
+At the bottom of the lesson (before `</body>`), include a glossary JSON block and the script:
+
+```html
+<script type="application/json" id="glossary-data">
+{ "snapshot": "A complete set of data files visible at a point in time." }
+</script>
+<script src="../assets/glossary.js"></script>
+```
+
+Also link `assets/glossary.css` in the `<head>`. After the lesson, add any new terms to `.memory/CONTEXT.md`.
+
 ## The Mission
 
 Every lesson should be tied into the mission - the reason that the user is interested in learning about the topic.
