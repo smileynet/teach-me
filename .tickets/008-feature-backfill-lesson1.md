@@ -25,7 +25,7 @@ Arrows between layers with brief annotations.
 
 ## Acceptance criteria
 
-- [ ] ASCII diagram replaced with inline SVG
-- [ ] Colors follow visual teaching steering
-- [ ] One-line verbal summary above diagram
-- [ ] Renders correctly in browser
+- [x] ASCII diagram replaced with inline SVG
+- [x] Colors follow visual teaching steering
+- [x] One-line verbal summary above diagram
+- [x] Renders correctly in browser

@@ -27,13 +27,13 @@ Does D2's sketch mode produce approachable hand-drawn diagrams suitable for teac
 
 ## Success criteria
 
-- [ ] D2 installs and runs on macOS
-- [ ] Sketch mode produces visually distinct hand-drawn output
-- [ ] SVG embeds in HTML correctly (with and without `--no-xml-tag`)
-- [ ] Render time < 200ms per diagram
-- [ ] D2 syntax is simple enough for agent to generate without errors
+- [x] D2 installs and runs on macOS
+- [x] Sketch mode produces visually distinct hand-drawn output
+- [x] SVG embeds in HTML correctly (with and without `--no-xml-tag`)
+- [x] Render time < 200ms per diagram
+- [x] D2 syntax is simple enough for agent to generate without errors
 
 ## Output
 
 - `diagrams/spike/` — the test .d2 files
-- `.scratch/spike-results/d2-results.md` — findings, screenshots/comparison, decision
+- Decision: D2 adopted for auto-layout diagrams; normal mode preferred over sketch (see `.kiro/steering/visual-teaching.md`)

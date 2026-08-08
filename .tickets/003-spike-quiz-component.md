@@ -26,12 +26,12 @@ Can we build a lightweight vanilla JS quiz widget that shuffles answers at rende
 
 ## Success criteria
 
-- [ ] Answers appear in random order on each page load
-- [ ] Immediate feedback (green/red + explanation text)
-- [ ] Works with no network requests (fully self-contained)
-- [ ] Keyboard navigable
-- [ ] Looks good with the existing `assets/style.css`
-- [ ] < 100 lines of JS, < 50 lines of CSS
+- [x] Answers appear in random order on each page load
+- [x] Immediate feedback (green/red + explanation text)
+- [x] Works with no network requests (fully self-contained)
+- [x] Keyboard navigable
+- [x] Looks good with the existing `assets/style.css`
+- [x] < 100 lines of JS, < 50 lines of CSS
 
 ## Output
 

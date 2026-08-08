@@ -36,4 +36,4 @@ type: research
 
 ## Output
 
-Write findings to `.scratch/research/visual-open-questions.md` as answers are found (append incrementally).
+Findings incorporated into `.kiro/steering/visual-teaching.md` (diagram selection table, color vocabulary) and `REFERENCES.md` (repos cloned for evaluation).

@@ -22,6 +22,6 @@ Update the teach skill so it naturally produces inline SVG diagrams when authori
 
 ## Acceptance criteria
 
-- [ ] Teach skill SKILL.md mentions diagram creation
-- [ ] Next lesson generated includes at least one inline SVG
-- [ ] Diagrams follow visual teaching steering rules
+- [x] Teach skill SKILL.md mentions diagram creation
+- [x] Next lesson generated includes at least one inline SVG
+- [x] Diagrams follow visual teaching steering rules

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+shopt -s nullglob
 
 # render-diagrams.sh — Render .mmd (Mermaid) and .d2 files to SVG
 # Outputs to assets/generated/
@@ -26,7 +27,7 @@ errors=0
 
 # Render .d2 files
 if command -v d2 &>/dev/null; then
-  for f in "$INPUT_DIR"/*.d2 2>/dev/null; do
+  for f in "$INPUT_DIR"/*.d2; do
     [ -f "$f" ] || continue
     base=$(basename "$f" .d2)
     echo "  d2: $f → $OUTPUT_DIR/$base.svg"
@@ -38,14 +39,15 @@ if command -v d2 &>/dev/null; then
     fi
   done
 else
-  if ls "$INPUT_DIR"/*.d2 &>/dev/null 2>&1; then
+  d2_files=("$INPUT_DIR"/*.d2)
+  if [ ${#d2_files[@]} -gt 0 ]; then
     echo "WARNING: .d2 files found but d2 not installed. Run: brew install d2"
   fi
 fi
 
 # Render .mmd files
 if command -v mmdc &>/dev/null; then
-  for f in "$INPUT_DIR"/*.mmd 2>/dev/null; do
+  for f in "$INPUT_DIR"/*.mmd; do
     [ -f "$f" ] || continue
     base=$(basename "$f" .mmd)
     echo "  mermaid: $f → $OUTPUT_DIR/$base.svg"
@@ -57,7 +59,7 @@ if command -v mmdc &>/dev/null; then
     fi
   done
 elif command -v npx &>/dev/null; then
-  for f in "$INPUT_DIR"/*.mmd 2>/dev/null; do
+  for f in "$INPUT_DIR"/*.mmd; do
     [ -f "$f" ] || continue
     base=$(basename "$f" .mmd)
     echo "  mermaid (npx): $f → $OUTPUT_DIR/$base.svg"
@@ -69,7 +71,8 @@ elif command -v npx &>/dev/null; then
     fi
   done
 else
-  if ls "$INPUT_DIR"/*.mmd &>/dev/null 2>&1; then
+  mmd_files=("$INPUT_DIR"/*.mmd)
+  if [ ${#mmd_files[@]} -gt 0 ]; then
     echo "WARNING: .mmd files found but no Mermaid renderer installed."
     echo "  Option A (recommended): pip install mmdc"
     echo "  Option B: npm install -g @mermaid-js/mermaid-cli"

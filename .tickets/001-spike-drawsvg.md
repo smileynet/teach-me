@@ -25,12 +25,12 @@ Can drawsvg produce good-looking inline SVG diagrams for HTML lessons with minim
 
 ## Success criteria
 
-- [ ] All 3 diagrams render correctly in browser
-- [ ] `as_svg()` returns valid inline SVG string (no file I/O needed)
-- [ ] Diagrams look good enough for teaching materials
-- [ ] Code is concise enough for an agent to generate reliably (<30 lines per diagram)
+- [x] All 3 diagrams render correctly in browser
+- [x] `as_svg()` returns valid inline SVG string (no file I/O needed)
+- [x] Diagrams look good enough for teaching materials
+- [x] Code is concise enough for an agent to generate reliably (<30 lines per diagram)
 
 ## Output
 
 - `tools/spike-drawsvg.py` — the spike script
-- `.scratch/spike-results/drawsvg-results.md` — findings and decision (adopt / reject / pivot)
+- `tools/draw-diagram.py` — adopted; spike findings led to the draw-diagram helper (ticket 006)

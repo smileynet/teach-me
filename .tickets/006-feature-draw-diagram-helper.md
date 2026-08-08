@@ -26,8 +26,8 @@ A Python helper at `tools/draw-diagram.py` with reusable functions for generatin
 
 ## Acceptance criteria
 
-- [ ] All core functions produce valid SVG
-- [ ] Output embeds correctly in HTML lessons
-- [ ] Colors match visual teaching steering vocabulary
-- [ ] Works headless (no display, no Cairo)
-- [ ] CLI mode: `python tools/draw-diagram.py --type flow --data '{...}'` → stdout SVG
+- [x] All core functions produce valid SVG
+- [x] Output embeds correctly in HTML lessons
+- [x] Colors match visual teaching steering vocabulary
+- [x] Works headless (no display, no Cairo)
+- [x] CLI mode: `python tools/draw-diagram.py --type flow --data '{...}'` → stdout SVG

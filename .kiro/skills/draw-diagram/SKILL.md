@@ -14,7 +14,7 @@ Generate teaching diagrams as inline SVG via `tools/draw-diagram.py`. Output goe
 ## Prerequisites
 
 ```bash
-mise run install-deps  # installs drawsvg
+mise run setup  # installs drawsvg via uv
 ```
 
 ## Commands

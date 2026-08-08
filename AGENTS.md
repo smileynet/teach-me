@@ -30,7 +30,7 @@ tools/            — project scripts and automation
 | Re-explain | `/wait-what` | Simpler re-pitch of last message |
 | Render diagrams | `mise run render-diagrams` | .mmd/.d2 files → SVG in assets/generated/ |
 | Open latest lesson | `mise run open-lesson` | Opens in browser |
-| Install deps | `mise run install-deps` | drawsvg + playwright chromium |
+| Install deps | `mise run setup` | drawsvg via uv (fast) |
 | Browse/validate URL | Switch to `browser` agent | Specialist with Playwright MCP |
 
 ## Workflow
