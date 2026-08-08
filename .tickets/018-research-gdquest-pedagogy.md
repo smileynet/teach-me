@@ -1,7 +1,7 @@
 ---
 id: "018"
 title: "Research: GDQuest vault pedagogical analysis"
-status: open
+status: done
 priority: medium
 blocked_by: []
 type: research
