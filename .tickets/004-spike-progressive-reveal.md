@@ -25,11 +25,11 @@ Can we build a simple JS component that shows SVG diagram elements step-by-step 
 
 ## Success criteria
 
-- [ ] Step-by-step reveal works with keyboard (← →) and buttons
-- [ ] CSS transitions provide smooth fade (not jarring show/hide)
-- [ ] Works with inline SVG (not just img tags)
-- [ ] < 50 lines of JS
-- [ ] No external dependencies
+- [x] Step-by-step reveal works with keyboard (← →) and buttons
+- [x] CSS transitions provide smooth fade (not jarring show/hide)
+- [x] Works with inline SVG (not just img tags)
+- [x] < 50 lines of JS
+- [x] No external dependencies
 
 ## Output
 
