@@ -1,7 +1,7 @@
 ---
 id: "013"
 title: "Integrate: SVG accessibility and responsive scaling"
-status: open
+status: done
 priority: medium
 blocked_by: []
 type: feature
@@ -39,7 +39,7 @@ Key findings NOT yet integrated into guidance or tools:
 
 ## Acceptance criteria
 
-- [ ] draw-diagram.py outputs SVGs with `role="img"` and `<title>`
-- [ ] svg-patterns.md has an accessibility snippet pattern
-- [ ] Visual steering mentions WCAG requirements
-- [ ] Lessons use CSS-sized SVGs (no fixed width/height attrs)
+- [x] draw-diagram.py outputs SVGs with `role="img"` and `<title>`
+- [x] svg-patterns.md has an accessibility snippet pattern
+- [x] Visual steering mentions WCAG requirements
+- [x] Lessons use CSS-sized SVGs (no fixed width/height attrs)

@@ -325,6 +325,8 @@ def main():
     parser.add_argument("--type", required=True, choices=DIAGRAM_TYPES.keys(),
                         help="Diagram type: stack, flow, hub, graph")
     parser.add_argument("--data", required=True, help="JSON data for the diagram")
+    parser.add_argument("--title", default=None,
+                        help="Accessible title for the SVG (used in <title> and aria-labelledby)")
     args = parser.parse_args()
 
     try:
@@ -335,7 +337,43 @@ def main():
 
     diagram_fn = DIAGRAM_TYPES[args.type]
     d = diagram_fn(data)
-    print(d.as_svg())
+
+    # Get the raw SVG and patch for accessibility + responsive scaling
+    svg_str = d.as_svg()
+
+    # Remove XML declaration if present
+    import re
+    svg_str = re.sub(r'<\?xml[^?]*\?>\s*', '', svg_str)
+
+    # Extract width/height from <svg> tag, convert to viewBox-only
+    match = re.search(r'<svg[^>]*>', svg_str)
+    if match:
+        svg_tag = match.group(0)
+        w_match = re.search(r'width="([^"]+)"', svg_tag)
+        h_match = re.search(r'height="([^"]+)"', svg_tag)
+        w = w_match.group(1) if w_match else '400'
+        h = h_match.group(1) if h_match else '300'
+
+        # Remove width, height, and any existing viewBox
+        new_tag = re.sub(r'\s*width="[^"]*"', '', svg_tag)
+        new_tag = re.sub(r'\s*height="[^"]*"', '', new_tag)
+        new_tag = re.sub(r'\s*viewBox="[^"]*"', '', new_tag)
+
+        # Build accessibility and scaling attributes
+        attrs = f'viewBox="0 0 {w} {h}" role="img"'
+        if args.title:
+            attrs += ' aria-labelledby="diagram-title"'
+        attrs += ' style="display:block;margin:1.5rem auto;max-width:100%;height:auto"'
+
+        new_tag = new_tag.replace('<svg', f'<svg {attrs}', 1)
+        svg_str = svg_str.replace(svg_tag, new_tag)
+
+    # Insert <title> as first child of <svg>
+    if args.title:
+        title_el = f'<title id="diagram-title">{args.title}</title>'
+        svg_str = re.sub(r'(<svg[^>]*>)', r'\1' + title_el, svg_str, count=1)
+
+    print(svg_str)
 
 
 if __name__ == "__main__":

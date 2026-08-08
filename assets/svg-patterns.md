@@ -2,6 +2,32 @@
 
 Reusable inline SVG patterns for teaching diagrams. Read this before writing any lesson — use these patterns rather than inventing new ones each time.
 
+## Accessibility Pattern (required on all SVGs)
+
+Every informative SVG must include:
+
+```svg
+<svg viewBox="0 0 WIDTH HEIGHT" role="img" aria-labelledby="UNIQUE-ID"
+     style="display:block;margin:1.5rem auto;max-width:100%;height:auto">
+  <title id="UNIQUE-ID">Brief description of what the diagram shows</title>
+  <!-- diagram content -->
+</svg>
+```
+
+**Rules:**
+- `role="img"` — tells screen readers this is an image, not interactive content
+- `<title>` — the accessible name (read aloud by screen readers)
+- `aria-labelledby` — links the SVG to its title element
+- `viewBox` only — no fixed `width`/`height` attributes (responsive scaling via CSS)
+- `max-width:100%; height:auto` — scales with container, maintains aspect ratio
+- Unique ID per diagram on the page (e.g., `diagram-metadata-tree`, `diagram-pipeline`)
+
+**If using `draw-diagram.py`:**
+```bash
+python tools/draw-diagram.py --type flow --title "Data pipeline stages" --data '...'
+```
+The `--title` flag handles all of the above automatically.
+
 ## Design Rules
 
 - Max 5-9 elements per diagram
