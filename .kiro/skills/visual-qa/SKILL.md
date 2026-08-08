@@ -9,98 +9,84 @@ metadata:
 
 # Visual QA
 
-Exercise interactive components in lesson pages, capture screenshots at each interaction state, and produce a structured report.
+Verify that UI components render and behave correctly by exercising them and analyzing the evidence.
 
-## Two Modes
+## General Check
 
-### Full check (all pages, all components)
+Run the automated tool to exercise all components across all pages:
 
 ```bash
 mise run visual-qa
 ```
 
-Runs against every `lessons/*.html` page. Detects which components are present, exercises each one, captures screenshots, and reports pass/fail.
+This produces `.scratch/visual-qa/manifest.json` + screenshots per page. If it exits 0, all behavioral checks pass (tooltips appear, trays open, quizzes give feedback, SVGs render). If it exits 1, something is broken — read the manifest for which checks failed.
 
-### Feature-focused check (one component across all pages)
+The tool is a *behavioral* check. It answers "does this work?" not "does this look right?"
+
+## Feature-Specific Visual Review
+
+After building or modifying a specific feature, run the tool with `--focus` to scope screenshots, then analyze those screenshots against the feature's design intent.
 
 ```bash
-mise run visual-qa:focus -- glossary
-mise run visual-qa:focus -- quiz
-mise run visual-qa:focus -- reveal
-mise run visual-qa:focus -- diagrams
+python tools/visual-qa.py --serve --focus glossary
 ```
 
-After building or modifying a specific component, run focused mode to exercise only that feature. Faster, and the output is scoped to what you just changed.
+Then load the screenshots and analyze. The analysis prompt should be tailored to what the feature is supposed to look and feel like.
 
-## When to use
+### Glossary
 
-| Situation | Mode |
-|-----------|------|
-| After modifying `assets/glossary.js` or `glossary.css` | `--focus glossary` |
-| After running the jargon skill on a lesson | `--focus glossary` |
-| After modifying quiz or reveal components | `--focus quiz` / `--focus reveal` |
-| After writing a new lesson with diagrams | `--focus diagrams` |
-| Before closing a visual feature ticket | Full check |
-| After any change to `assets/style.css` | Full check |
-| CI / pre-push validation | Full check |
+Capture: `.scratch/visual-qa/*/glossary-hover.png`, `glossary-tray-term.png`, `glossary-tray-list.png`
 
-## Output
+Analyze for:
+- **Hover tooltip**: Dark background, white text, positioned above the term with arrow pointing down. Text is readable (not clipped, not overflowing). Does not obscure the content the learner is reading.
+- **Term underlines**: Dotted, muted color, subtle — noticeable but not distracting. Should NOT look like a hyperlink (no solid underline, no blue color on the text itself).
+- **Tray (term view)**: Slides from right, 320px wide, shows term name as heading + definition as body text. "← All terms" link visible. × close button in top-right.
+- **Tray (list view)**: All defined terms listed, clickable, no visual clutter. Title says "Glossary". Back button hidden.
+- **Overall**: Terms blend into the lesson flow. A reader who ignores them sees normal prose. A reader who notices them can get help without context-switching.
 
-Screenshots and a manifest go to `.scratch/visual-qa/`:
+### Quiz
 
-```
-.scratch/visual-qa/
-├── manifest.json              # structured results (machine-readable)
-├── 0001-iceberg-metadata-tree/
-│   ├── full-page.png
-│   ├── glossary-hover.png
-│   ├── glossary-tray-term.png
-│   ├── glossary-tray-list.png
-│   └── ...
-└── spike-quiz-test/
-    ├── quiz-initial.png
-    └── quiz-answered.png
-```
+Capture: `.scratch/visual-qa/*/quiz-initial.png`, `quiz-answered.png`
 
-### manifest.json
+Analyze for:
+- **Initial state**: Questions bold, options in bordered cards. All options same visual weight — no clue which is correct. Radio buttons visible.
+- **After answer**: Selected answer highlighted green (correct) or red (incorrect). Correct answer always highlighted green. Explanation appears below with blue left-border callout. Source links present if specified.
+- **Overall**: Clean, not gamified. Looks like a thoughtful knowledge check, not a game show.
 
-```json
-{
-  "summary": {"pages": 5, "interactions": 23, "checks_passed": 15, "checks_failed": 0}
-}
-```
+### Progressive Reveal
 
-Exit code: 0 = pass, 1 = failures.
+Capture: `.scratch/visual-qa/*/reveal-step-*.png`
 
-## What it checks per component
+Analyze for:
+- **Step 1**: Only one element visible. Clear call-to-action (Next button). "Step 1 of N" indicator.
+- **Step N**: Each step adds exactly one element to the diagram. Previous elements remain. Arrows/connections appear between steps.
+- **Controls**: Prev/Next buttons centered, step counter between them. Prev disabled on step 1.
+- **Overall**: Builds the mental model incrementally. No step shows more than 5-9 elements total. Colors follow vocabulary (blue=primary, amber=metadata, green=data).
 
-| Component | Checks |
-|-----------|--------|
-| Glossary | Terms resolve to definitions, hover shows tooltip, click opens tray, back shows list, escape closes |
-| Quiz | Options render, clicking answer shows green/red feedback |
-| Progressive reveal | Steps detected, Next button advances through all, each step captured |
-| Diagrams | SVG elements have non-zero bounding boxes |
-| All | No JavaScript console errors |
+### Diagrams (SVG)
 
-## Interpreting results
+Capture: `.scratch/visual-qa/*/diagrams.png` or `full-page.png`
 
-A **pass** means the component behaves correctly (opens, closes, renders). It does NOT check visual aesthetics — for that, open the screenshots and review against `.kiro/steering/visual-teaching.md`.
+Analyze for:
+- **Renders at all**: Non-blank, visible shapes and text.
+- **Color vocabulary**: Blue for primary/input, amber for processing/metadata, green for output/data, gray for infrastructure. Consistent within the page.
+- **Labels**: ON the diagram (inside or immediately adjacent to shapes), not in a separate legend.
+- **Scale**: Fits within the lesson column width without horizontal scroll. Text readable at normal zoom.
+- **Overall**: Teaches something. If removing it wouldn't hurt understanding, it shouldn't be there (coherence principle).
 
-A **fail** means a component is broken: tooltip doesn't appear, tray won't open, quiz gives no feedback, SVG has zero dimensions. Fix the component before shipping.
+## When to Run
 
-## For deeper visual review
+| Situation | What to do |
+|-----------|-----------|
+| Changed `assets/*.js` or `assets/*.css` | `mise run visual-qa` (full behavioral check) |
+| Just built a new component | `--focus <component>` + analyze screenshots against the section above |
+| Ran jargon skill on a lesson | `--focus glossary` + quick check terms aren't overloading the page |
+| Before closing a visual ticket | Full check + analyze relevant screenshots |
+| Routine health check | `mise run visual-qa` — if green, move on |
 
-After the tool runs, load screenshots for image analysis:
+## What This Does NOT Do
 
-```
-Read .scratch/visual-qa/manifest.json for results.
-If failures: read the failing screenshots and diagnose.
-If pass but want aesthetics review: read screenshots and compare against
-visual-teaching.md color vocabulary and spatial contiguity rules.
-```
-
-## Dependencies
-
-- `playwright` Python package (installed via `mise run setup`)
-- Chromium browser (install via `playwright install chromium`)
-- No running server needed — uses `--serve` flag to auto-start one
+- No pixel-diff regression (content changes constantly)
+- No Lighthouse / accessibility audit (that's ticket 013)
+- No cross-browser testing (static HTML, Chromium-only is fine)
+- No aesthetic judgment from the tool itself — that's the agent's job when reading screenshots
