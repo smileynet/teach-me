@@ -1,7 +1,7 @@
 ---
 id: "016"
 title: "Integrate: browser agent workflow documentation"
-status: open
+status: done
 priority: low
 blocked_by: []
 type: feature
@@ -37,5 +37,5 @@ Key findings NOT yet fully integrated:
 
 ## Acceptance criteria
 
-- [ ] Browse skill documents the navigate→find→snapshot workflow
-- [ ] Fallback escalation (web_fetch first, Playwright if empty) documented
+- [x] Browse skill documents the navigate→find→snapshot workflow
+- [x] Fallback escalation (web_fetch first, Playwright if empty) documented
