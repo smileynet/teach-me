@@ -73,3 +73,7 @@ Skills are auto-loaded via `skill://.kiro/skills/**/SKILL.md`. Reference files g
 2. Check `.references/` for patterns in reference repos
 3. If domain term is ambiguous — ask, then record in CONTEXT.md
 4. If architecture choice needed — write ADR with options, propose to user
+
+## Test Fixture
+
+The root-level teaching workspace (MISSION.md, RESOURCES.md, lessons/, learning-records/) is the **Iceberg on AWS** example — a real teaching session used as a test fixture. See `examples/README.md` for what to test feature changes against.
