@@ -95,7 +95,7 @@ run = "python tools/theme-preview.py"
 [tasks.sr]
 description = "Show SR status (what's due, health). Pass topic slug to filter."
 depends = ["setup"]
-run = "python tools/review.py --list"
+run = "python tools/sr-status.py"
 
 [tasks."sr:review"]
 description = "Review due cards. Optionally pass topic slug to narrow scope."
@@ -106,3 +106,18 @@ run = "python tools/review.py"
 description = "Show stats per topic (or pass topic slug for one)."
 depends = ["setup"]
 run = "python tools/review.py --stats"
+
+[tasks."sr:check"]
+description = "Validate question quality (leech detection, format issues)."
+depends = ["setup"]
+run = "python tools/sr-check.py"
+
+[tasks."sr:analytics"]
+description = "Knowledge state: retrievability, what's decaying, load forecast."
+depends = ["setup"]
+run = "python tools/sr-analytics.py"
+
+[tasks."sr:lifecycle"]
+description = "Card lifecycle ops (suspend, retire, reset, sync-lessons)."
+depends = ["setup"]
+run = "python tools/sr-lifecycle.py"
