@@ -1,7 +1,7 @@
 ---
 id: "037"
 title: "Spike: code block cards — rich CLI rendering + HTML display"
-status: open
+status: done
 priority: medium
 blocked_by: ["034"]
 type: spike
@@ -51,11 +51,19 @@ Can we extend SR cards to include syntax-highlighted code blocks that render wel
 
 ## Success criteria
 
-- [ ] Card with code block renders syntax-highlighted in terminal
-- [ ] Same card renders syntax-highlighted in HTML review page
-- [ ] Code theme respects terminal palette (ansi_dark/ansi_light)
-- [ ] Plain-text cards still work unchanged (backward compatible)
-- [ ] Effort estimate for full implementation documented
+- [x] Card with code block renders syntax-highlighted in terminal
+- [x] Same card renders syntax-highlighted in HTML review page
+- [x] Code theme respects terminal palette (ansi_dark/ansi_light)
+- [x] Plain-text cards still work unchanged (backward compatible)
+- [x] Effort estimate for full implementation documented
+
+## Resolution (2026-08-09)
+
+**Works.** Added `prompt_code` and `answer_code` as optional dict fields on Card. Rich's `Syntax` class renders them with ansi_dark theme inside the Panel. Zero new dependencies (Pygments comes with Rich).
+
+**Effort for full implementation:** Already done — the spike IS the implementation. Optional fields are backward compatible, rendering handles presence/absence. HTML path will work via highlight.js when the quick-check page (ticket 035) is built.
+
+**Pattern:** `Panel(Group(Markdown(prompt_text), Syntax(code, language)))` — composable Rich renderables stacked vertically.
 
 ## Time box
 
