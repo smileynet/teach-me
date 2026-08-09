@@ -66,6 +66,24 @@ Every lesson starts with brief orientation, then gets to the content:
 
 The tone is a knowledgeable colleague at a whiteboard — direct, assumes intelligence, doesn't over-explain motivation.
 
+### Referencing Prior Concepts
+
+When a concept from a prior lesson reappears, briefly restate it in a clause. Don't assume the learner remembers.
+
+- Good: "The manifest list (which tracks which data files belong to a snapshot) also stores..."
+- Bad: "The manifest list also stores..." (assumes they remember what it does)
+- Bad: "As we discussed in Lesson 1, the manifest list is a file that..." (too formal, too long)
+
+One clause is enough. If the concept needs more than a sentence to refresh, use a `<details>` reminder instead.
+
+### Writing Style
+
+- **Grade 8-10 reading level.** Sentences average 15-20 words. Cap at 25 words.
+- **No subordinate clause stacking.** One conditional or relative clause per sentence max.
+- **No idioms or cultural references.** Non-native speakers are part of the audience.
+- **Short paragraphs.** 1-4 sentences. Single-sentence paragraphs are fine for emphasis.
+- **Plain words.** "Use" not "utilize", "find" not "ascertain", "show" not "demonstrate".
+
 ### Grounding Claims
 
 When stating facts (latency, scale, failure modes): cite a source or frame as general ("at scale, listing becomes the bottleneck"). Don't invent specific numbers. End-state preview should be testable against the lesson's quiz or challenge.
