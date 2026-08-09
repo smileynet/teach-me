@@ -184,6 +184,22 @@ Use `<details>` for content that's useful but not required to follow the lesson.
 
 **When NOT to use:** Don't hide core content. If the learner needs it to understand the lesson's point, it belongs in the main flow.
 
+### Exercises (optional)
+
+When the learner's mission involves *applying* knowledge (not just understanding it), add a brief exercise near the end of the lesson. Use `<details>` for progressive hints:
+
+```html
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> [Task description — what to figure out, not how]</p>
+  <details><summary>Hint 1</summary><p>...</p></details>
+  <details><summary>Hint 2</summary><p>...</p></details>
+  <details><summary>Answer</summary><p>...</p></details>
+</div>
+```
+
+Not every lesson needs one. Skip if the lesson is purely conceptual orientation and the learner isn't expected to apply it yet.
+
 ## The Mission
 
 Every lesson should be tied into the mission - the reason that the user is interested in learning about the topic.

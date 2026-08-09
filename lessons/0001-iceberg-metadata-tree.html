@@ -146,6 +146,23 @@ Iceberg is a <strong>file-tracking metadata tree on top of object storage</stron
 <p>Read the first two sections of the <a href="https://iceberg.apache.org/spec/">Iceberg Table Spec</a> ("Format Versioning" and "Overview"). It's the authoritative source for everything in this lesson. ~15 minutes.</p>
 
 <div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A query asks for all orders where <code>customer_id = 42</code> from a table with 10,000 data files. Trace the path from the catalog to the data. Which layers can skip files, and how?</p>
+  <details>
+  <summary>Hint 1</summary>
+  <p>Start at the catalog. It points to one metadata file. The metadata file points to the current snapshot's manifest list.</p>
+  </details>
+  <details>
+  <summary>Hint 2</summary>
+  <p>The manifest list points to manifest files. Each manifest file has per-file column stats — including min/max for customer_id.</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>Catalog → metadata file → manifest list → manifest files (check customer_id min/max stats → skip files where max < 42 or min > 42) → only read matching data files. The manifest layer is where pruning happens.</p>
+  </details>
+</div>
+
+<div class="next-steps">
   <h3>What's Next</h3>
   <p><strong>Next lesson:</strong> The AWS service map — which services play which roles (catalog, compute, storage, governance) and how they connect.</p>
   <p><strong>Questions?</strong> Ask me anything that's unclear. I'm your teacher here — no question is too basic.</p>

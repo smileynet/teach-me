@@ -1,7 +1,7 @@
 ---
 id: "024"
 title: "Spike: challenge/exercise component"
-status: open
+status: done
 priority: high
 blocked_by: ["021"]
 type: spike
@@ -25,11 +25,11 @@ No separate `challenge` skill needed — it's a paragraph in the teach skill.
 
 ## Acceptance criteria
 
-- [ ] HTML pattern demonstrated in lesson 1 (one exercise)
-- [ ] Progressive hints via `<details>`
-- [ ] Teach skill documents when to include exercises (mission-dependent)
-- [ ] ~~`challenge` skill created~~ Not needed — covered in teach skill
-- [ ] ~~Visual distinction~~ Minimal — left border is enough
+- [x] HTML pattern demonstrated in lesson 1 (one exercise)
+- [x] Progressive hints via `<details>`
+- [x] Teach skill documents when to include exercises (mission-dependent)
+- [x] ~~`challenge` skill created~~ Not needed — covered in teach skill
+- [x] ~~Visual distinction~~ Minimal — left border is enough
 
 ## Depends on
 
