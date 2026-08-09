@@ -1,7 +1,7 @@
 ---
 id: "023"
 title: "Spike: reading level constraint (Grade 8-10)"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: spike
@@ -32,7 +32,7 @@ Lesson 1 was written by an agent without a reading level constraint. Some senten
 
 ## Acceptance criteria
 
-- [ ] Lesson 1 audited with sentence length data
-- [ ] 3-5 sentences rewritten to demonstrate the constraint
-- [ ] Teach skill documents the rule
-- [ ] Before/after comparison presented
+- [x] Lesson 1 audited with sentence length data
+- [x] 3-5 sentences rewritten to demonstrate the constraint
+- [x] Teach skill documents the rule
+- [x] Before/after comparison presented

@@ -1,7 +1,7 @@
 ---
 id: "022"
 title: "Spike: explicit callbacks to prior lessons"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: spike
@@ -25,6 +25,6 @@ That's it. No mock lessons, no expandable reminders (covered by 021 if needed), 
 ## Acceptance criteria
 
 - [x] ~~Teach skill documents callback pattern with examples~~ Simplified
-- [ ] Teach skill says: restate prior concepts briefly on reuse
-- [ ] One example in the skill showing good vs bad
+- [x] Teach skill says: restate prior concepts briefly on reuse
+- [x] One example in the skill showing good vs bad
 - [ ] ~~Mock lesson-2 opening~~ Removed — premature
