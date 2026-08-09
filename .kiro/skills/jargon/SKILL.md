@@ -65,7 +65,7 @@ For each term that passes all three gates:
 - Add a `<script type="application/json" id="glossary-data">` block before `</body>` with all definitions
 - Add `<link rel="stylesheet" href="../assets/glossary.css">` to `<head>` if not present
 - Add `<script src="../assets/glossary.js"></script>` before `</body>` if not present
-- Target: 5-12 terms per lesson. Fewer is better. If you have more than 12, the lesson is probably covering too much ground.
+- If you're annotating more than ~12 terms, the lesson is probably covering too much ground — but let the gates decide, not a hard count.
 
 ### 6. Check prior lessons (optional)
 
