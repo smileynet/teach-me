@@ -12,7 +12,13 @@
 <h1>Iceberg Metadata Tree</h1>
 <p class="lesson-meta">Reference · <a href="../lessons/0001-iceberg-metadata-tree.html">Full lesson →</a></p>
 
-<p><strong>One-liner:</strong> Iceberg is a file-tracking metadata tree on top of object storage — transactions, time travel, and schema evolution without a database, without rewriting data, without listing directories.</p>
+<div class="key-concept">
+  <strong>Core concept:</strong> Instead of listing files to discover what's in a table, Iceberg maintains a metadata tree that tracks exactly which files exist, with what schema, at each point in time. The tree replaces listing (manifests know the files), gives isolation (snapshots are immutable), and enables evolution (specs are versioned).
+</div>
+
+<h2>How to Think About It</h2>
+
+<p>Every Iceberg table is a chain of pointers: the catalog says "the current state is here" → the metadata file says "these are the snapshots and schema versions" → the manifest list says "these manifest files describe this snapshot" → each manifest says "these specific data files exist, with these stats." A query follows the chain. A write creates a new snapshot and atomically swings the pointer.</p>
 
 <h2>The Five Layers</h2>
 
