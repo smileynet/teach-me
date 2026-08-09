@@ -34,6 +34,6 @@ Current lesson 1 opening: jumps to "A traditional data lake is just files in S3 
 
 ## Acceptance criteria
 
-- [ ] Lesson 1 opening rewritten with explicit problem-first structure
-- [ ] Teach skill documents the pattern with examples
-- [ ] Side-by-side comparison presented for review (before/after)
+- [x] Lesson 1 opening rewritten with explicit problem-first structure
+- [x] Teach skill documents the pattern with examples
+- [x] Side-by-side comparison presented for review (before/after)

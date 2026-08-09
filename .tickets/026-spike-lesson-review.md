@@ -29,8 +29,8 @@ That's 5 items, not 10. Run mentally after writing, not as a formal tool invocat
 ## Acceptance criteria
 
 - [x] Teach skill has a "Before publishing" checklist (5 items)
-- [ ] ~~Separate `lesson-review` skill~~ Not needed — it's a paragraph in teach
-- [ ] ~~Automated reading level script~~ Deferred unless proven needed
+- [x] ~~Separate `lesson-review` skill~~ Not needed — it's a paragraph in teach
+- [x] ~~Automated reading level script~~ Deferred unless proven needed
 - [x] Run against lesson 1 to verify it passes
 
 ## Depends on
