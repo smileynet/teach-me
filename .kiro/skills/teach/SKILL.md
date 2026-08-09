@@ -54,6 +54,35 @@ A lesson should be **beautiful** — clean, readable typography and layout — s
 
 The lesson should be short, and completable very quickly. Learners' working memory is very small, and we need to stay within it. But each lesson should give the user a single tangible win that they can build on. It should be directly tied to the mission, and should be in the user's zone of proximal development.
 
+### Lesson Opening Structure
+
+Every lesson follows this opening sequence:
+
+1. **End-state preview** (immediately after lesson-meta): One sentence or key-concept box showing what the learner will be able to do/explain after this lesson. This is the destination. Write it AFTER the lesson content is complete, and verify the quiz/challenge at the end tests this exact claim.
+
+2. **Problem opening**: Start with what's broken, missing, or painful — not the solution. Make the learner *feel* the gap with a concrete scenario before introducing the concept that fills it.
+   - Good: "Picture this: your query engine spends minutes listing directories before reading a single row..."
+   - Bad: "Apache Iceberg is a table format that solves three problems..."
+   - The problem should be visceral and specific, not abstract and enumerated.
+
+3. **Solution introduction**: Only after the learner feels the pain, name the solution and state its core idea in one sentence.
+
+The rest of the lesson teaches the mechanics. But without a problem opening, the learner has no *reason* to care about the mechanics.
+
+### Grounding Claims
+
+Before writing the problem opening or end-state preview, ground every factual assertion:
+
+1. Identify claims that assert specific facts (latency, scale, failure modes, percentages)
+2. Research each claim — search for official docs, benchmarks, case studies that quantify the problem
+3. For each claim, choose one:
+   - **Cited**: real number with source link (preferred) — "S3 LIST requests return max 1000 keys per call [AWS docs]"
+   - **Hypothetical**: frame without specific numbers — "Imagine a table with millions of files — listing alone dominates query time"
+   - **Mission-grounded**: draw from the learner's context — "Your customer's lakehouse likely has..."
+4. Never state a specific number as fact without a source
+
+**End-state preview must be testable:** the lesson's quiz or challenge should directly verify the claimed capability. If you can't quiz it, you overclaimed.
+
 If possible, open the lesson file for the user by running a CLI command.
 
 Each lesson should link via HTML anchors to other lessons and reference documents.
