@@ -28,9 +28,11 @@ When creating lessons with diagrams or visual aids, follow these evidence-based 
 | Architecture layers | `draw-diagram.py --type stack` | Vertical layered stack |
 | Data/request flows | `draw-diagram.py --type flow` | Left-to-right pipeline |
 | Service maps | `draw-diagram.py --type hub` | Central hub with radial spokes |
-| Fan-out/fan-in, dependency graphs | `draw-diagram.py --type graph` | Auto-ranked nodes with edges, groups |
+| Fan-out/fan-in, dependency graphs (≤8 nodes) | `draw-diagram.py --type graph` | Auto-ranked nodes with edges, groups |
+| Cyclic graphs, state machines, 9+ nodes | `draw-diagram.py --type graph --backend graphviz` | Auto-layout via Graphviz (dot/neato/fdp) |
+| Network topologies (undirected) | `draw-diagram.py --type graph --backend graphviz --engine neato` | Force-directed layout |
 | Custom layout, annotated detail | Raw inline SVG | Use patterns from `assets/svg-patterns.md` |
-| Complex auto-layout (sequence, state machine) | D2 CLI | `d2 input.d2 output.svg` |
+| Sequence diagrams (multi-actor message flows) | D2 CLI | `d2 input.d2 output.svg` |
 | Step-by-step buildup of a diagram | Progressive reveal | `data-step` attrs + `assets/progressive-reveal.js` |
 
 ## Anti-Patterns (DO NOT)
