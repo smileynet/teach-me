@@ -346,7 +346,11 @@ The user will sometimes express preferences of how they want to be taught, or th
 
 ## Spaced Repetition Questions
 
-After writing a lesson, generate 3-5 spaced repetition questions and append them to the topic's question bank. This builds long-term retention — the real goal of teaching.
+After writing a lesson, generate 3-5 spaced repetition questions and append them to the topic's question bank. These questions test **conceptual understanding** — can the learner explain the idea, not recite the details.
+
+### The core principle
+
+Questions should require the learner to **reconstruct reasoning from their mental model**, not recall specific wording. Each question targets one relationship or implication in the concept. Think "tomographic cuts" through the mental model — no single question captures understanding, but collectively they trace its edges.
 
 ### How to generate
 
@@ -356,10 +360,10 @@ Use `tools/questions.py` to append cards:
 from tools.questions import Card, append_card
 
 card = Card(
-    prompt="Explain to a colleague why Iceberg uses manifest files instead of listing data files in the catalog.",
-    expected_answer="Manifest files allow atomic operations on large file sets without locking the catalog. The catalog only points to the current manifest list, enabling snapshot isolation.",
-    question_type="explain",        # explain|compare|apply|predict
-    difficulty_tier="understand",   # recall|understand|apply|analyze
+    prompt="Why does Iceberg need a separate manifest list layer between metadata files and manifests?",
+    expected_answer="Should mention: (1) groups manifests into atomic sets per snapshot, (2) allows the catalog to point to one manifest list (not N manifests) for atomic commit. Bonus: enables snapshot isolation — readers see a consistent set.",
+    question_type="explain",
+    difficulty_tier="understand",
     lesson_id="0001-iceberg-metadata-tree",
     section_heading="Metadata Tree",
     generated_by="teach-skill",
@@ -370,26 +374,46 @@ append_card("iceberg-on-aws", card)
 
 The topic slug matches the teaching workspace topic (e.g., `iceberg-on-aws`). Cards are stored in `learning-records/questions/<topic-slug>.jsonl`, one card per line.
 
-### What to ask
+### Question patterns (use these)
 
-- **"Explain to [person from their mission] why..."** — tests understanding through articulation
-- **"Compare X and Y. Where does the analogy break down?"** — tests discrimination
-- **"Your team hits [scenario]. What's happening and why?"** — tests application
-- **"Predict what happens if [condition changes]"** — tests mental model
+| Pattern | Tests | Example |
+|---------|-------|---------|
+| **"Why does X work this way?"** | Mechanism/reasoning | "Why does Iceberg use a tree instead of flat listing?" |
+| **"What would happen if..."** | Prediction from model | "What happens to queries if you skip compaction?" |
+| **"When would you choose X over Y?"** | Application/transfer | "When would hidden partitioning beat Hive-style?" |
+| **"How is X different from Y?"** | Discrimination | "How does copy-on-write differ from in-place update?" |
+| **"Your team hits [scenario]..."** | Real-world transfer | "A query is slow on a 10M file table. What's likely?" |
+| **"What problem does X solve?"** | Purpose/motivation | "What breaks without snapshot isolation?" |
+
+### How to frame expected answers
+
+Expected answers are **criteria to check against**, not scripts to reproduce. The learner generates their own explanation, then checks: "Did I hit the key points?"
+
+**Format:**
+```
+Should mention: (1) [key idea], (2) [key relationship].
+Bonus: [deeper insight that signals strong understanding].
+```
+
+**Good:** `Should mention: (1) manifests carry column stats, (2) engine skips files whose stats don't match the predicate. Bonus: this replaces directory listing entirely.`
+
+**Bad:** `Manifest files store per-file statistics including min/max values per column, row counts, and null counts, which the query engine uses to skip files.` (This is a script to memorize, not criteria to check against.)
 
 ### What NOT to ask
 
-- Recognition questions ("Which of these is correct?")
-- Recall questions ("List the five layers")
-- Questions answerable by pattern-matching the wording
-- Questions too broad to answer in 2-3 sentences
+- **Definition parroting** ("What is a manifest list?") — tests recall of words, not understanding
+- **Yes/no questions** — too shallow, no retrieval effort
+- **Enumeration** ("List the five layers") — inconsistent retrieval, no structural understanding
+- **Compound questions** — two questions in one produces unreliable self-grading
+- **Questions you could answer by pattern-matching the lesson text** — if the wording is too close to the source, it tests recognition not understanding
 
 ### Rules
 
-- **One concept per card.** Atomic questions with atomic answers.
-- **3-5 cards per lesson maximum.** More causes review overload.
-- **Target relationships, not isolated facts.** "Why does X require Y?" beats "What is X?"
-- **Include one mission-scenario question.** Ground it in their real work.
+- **One relationship per card.** Each question targets one "why" or "how" — never two.
+- **3-5 cards per lesson maximum.** More causes review overload and dilutes quality.
+- **Test the model, not the words.** If you could answer without understanding, rewrite it.
+- **Include one mission-scenario question.** Ground it in their real work context.
+- **Understand before encoding.** Only write questions for concepts the lesson actually taught — questions don't create understanding, they reinforce it.
 - **Cards are due immediately** after the lesson (SM-2 starts at interval=0).
 
 ## Before Publishing a Lesson

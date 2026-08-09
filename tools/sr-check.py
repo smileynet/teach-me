@@ -40,11 +40,16 @@ GOOD_PREFIXES = [
     "why does",
     "why do",
     "what happens if",
+    "what would happen",
     "predict",
     "your team",
     "your customer",
     "your colleague",
     "how would you",
+    "how is",
+    "when would",
+    "what problem",
+    "what breaks",
 ]
 
 
@@ -62,6 +67,14 @@ def check_card(card: Card, lapse_counts: dict[str, int]) -> list[str]:
     # Check answer length (atomicity)
     if len(card.expected_answer) > 300:
         warnings.append(f"expected_answer is {len(card.expected_answer)} chars — may not be atomic (split into multiple cards?)")
+
+    # Check for script-style answers (should use criteria format)
+    answer_lower = card.expected_answer.lower()
+    has_criteria = any(marker in answer_lower for marker in [
+        "should mention", "key idea", "check:", "bonus:", "e.g.", "core:"
+    ])
+    if len(card.expected_answer) > 80 and not has_criteria and "\n" not in card.expected_answer:
+        warnings.append("expected_answer looks like a script, not criteria — use 'Should mention: (1)...' format")
 
     # Check prompt length (too short = vague)
     if len(card.prompt) < 20:

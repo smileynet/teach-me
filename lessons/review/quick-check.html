@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SR Review — Iceberg on AWS</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    .card {
+      border: 2px solid var(--border, #e5e7eb);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      background: var(--card-bg, #ffffff);
+    }
+    .card-prompt {
+      border-left: 4px solid #2563eb;
+      padding-left: 1rem;
+      margin-bottom: 1rem;
+    }
+    .card-answer {
+      border-left: 4px solid #16a34a;
+      padding-left: 1rem;
+      display: none;
+    }
+    .card-answer.revealed {
+      display: block;
+    }
+    .card-meta {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-top: 0.5rem;
+    }
+    .card-type {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #dbeafe;
+      color: #2563eb;
+    }
+    .reveal-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.5rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+    .reveal-btn:hover { background: #1d4ed8; }
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    pre code { background: none; color: inherit; }
+    .kw { color: #c084fc; }
+    .str { color: #86efac; }
+    .fn { color: #93c5fd; }
+    .op { color: #fbbf24; }
+    .cm { color: #6b7280; font-style: italic; }
+    .rating { margin-top: 1rem; display: none; }
+    .rating.revealed { display: block; }
+    .rating button {
+      padding: 0.4rem 0.8rem;
+      margin-right: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      cursor: pointer;
+      background: white;
+    }
+    .rating button:hover { background: #f3f4f6; }
+    .rating button.selected { background: #dbeafe; border-color: #2563eb; }
+  </style>
+</head>
+<body>
+
+<h1>📚 SR Review</h1>
+<p class="lesson-meta">Topic: Iceberg on AWS · 3 cards due</p>
+
+<div class="card" id="card1">
+  <div class="card-prompt">
+    <span class="card-type">explain</span>
+    <p><strong>Explain to a colleague why Iceberg uses a metadata tree instead of flat file listing.</strong></p>
+  </div>
+  <button class="reveal-btn" onclick="reveal('card1')">Show Answer</button>
+  <div class="card-answer">
+    <p>A metadata tree enables <strong>atomic multi-file commits</strong> without locking the catalog. Each snapshot points to a manifest list → manifests → data files, so readers and writers never block each other.</p>
+    <p>Key benefits:</p>
+    <ul>
+      <li>No directory listing at query time</li>
+      <li>Snapshot isolation (MVCC)</li>
+      <li>Schema evolution without data rewrites</li>
+    </ul>
+  </div>
+  <div class="rating" id="card1-rating">
+    <p>Could you explain this?</p>
+    <button onclick="rate('card1', 1)">No</button>
+    <button onclick="rate('card1', 3)">Sort of</button>
+    <button onclick="rate('card1', 5)">Yes</button>
+  </div>
+  <div class="card-meta">From: Lesson 1 — Why a tree? · Tags: iceberg, metadata, architecture</div>
+</div>
+
+<div class="card" id="card2">
+  <div class="card-prompt">
+    <span class="card-type">apply</span>
+    <p><strong>What's wrong with this query for reading an Iceberg table?</strong></p>
+    <pre><code><span class="kw">SELECT</span> *
+<span class="kw">FROM</span> iceberg_table
+<span class="kw">WHERE</span> year <span class="op">=</span> <span class="str">2024</span>
+  <span class="kw">AND</span> month <span class="kw">BETWEEN</span> <span class="str">1</span> <span class="kw">AND</span> <span class="str">6</span>;</code></pre>
+  </div>
+  <button class="reveal-btn" onclick="reveal('card2')">Show Answer</button>
+  <div class="card-answer">
+    <p>Uses <strong>Hive-style partition predicates</strong> (<code>year</code>, <code>month</code>) but Iceberg uses hidden partitioning. Filter on the source column instead:</p>
+    <pre><code><span class="kw">SELECT</span> * <span class="kw">FROM</span> iceberg_table
+<span class="kw">WHERE</span> event_time <span class="op">>=</span> <span class="str">'2024-01-01'</span>
+  <span class="kw">AND</span> event_time <span class="op"><</span> <span class="str">'2024-07-01'</span>;</code></pre>
+    <p>Iceberg prunes automatically based on the partition spec — you don't reference partition columns directly.</p>
+  </div>
+  <div class="rating" id="card2-rating">
+    <p>Could you explain this?</p>
+    <button onclick="rate('card2', 1)">No</button>
+    <button onclick="rate('card2', 3)">Sort of</button>
+    <button onclick="rate('card2', 5)">Yes</button>
+  </div>
+  <div class="card-meta">From: Lesson 1 — Query Planning · Tags: iceberg, sql, partitioning</div>
+</div>
+
+<div class="card" id="card3">
+  <div class="card-prompt">
+    <span class="card-type">explain</span>
+    <p><strong>Explain what this function does and why it might fail under concurrent writes:</strong></p>
+    <pre><code><span class="kw">def</span> <span class="fn">commit_snapshot</span>(catalog, table, new_files):
+    current <span class="op">=</span> catalog.load_table_metadata(table)
+    manifest <span class="op">=</span> build_manifest(current.snapshot, new_files)
+    new_metadata <span class="op">=</span> current.with_snapshot(manifest)
+    catalog.update_metadata(table, new_metadata)</code></pre>
+  </div>
+  <button class="reveal-btn" onclick="reveal('card3')">Show Answer</button>
+  <div class="card-answer">
+    <p>This is an <strong>optimistic concurrency commit</strong> — reads current state, builds new metadata, writes back. It fails because there is <strong>no conflict check</strong>: between <code>load_table_metadata</code> and <code>update_metadata</code>, another writer could have committed.</p>
+    <p>Fix: compare-and-swap on the catalog pointer (check it hasn't changed since you read it).</p>
+  </div>
+  <div class="rating" id="card3-rating">
+    <p>Could you explain this?</p>
+    <button onclick="rate('card3', 1)">No</button>
+    <button onclick="rate('card3', 3)">Sort of</button>
+    <button onclick="rate('card3', 5)">Yes</button>
+  </div>
+  <div class="card-meta">From: Lesson 1 — MVCC · Tags: iceberg, concurrency, python</div>
+</div>
+
+<script>
+function reveal(cardId) {
+  document.querySelector(`#${cardId} .card-answer`).classList.add('revealed');
+  document.querySelector(`#${cardId} .reveal-btn`).style.display = 'none';
+  document.querySelector(`#${cardId}-rating`).classList.add('revealed');
+}
+function rate(cardId, quality) {
+  const buttons = document.querySelectorAll(`#${cardId}-rating button`);
+  buttons.forEach(b => b.classList.remove('selected'));
+  event.target.classList.add('selected');
+  // In production: POST to review.py endpoint or store for batch commit
+  console.log(`Rated ${cardId}: quality=${quality}`);
+}
+</script>
+<script src="../assets/theme-toggle.js"></script>
+
+</body>
+</html>
