@@ -54,6 +54,12 @@ tools/            — project scripts and automation
 | Don't load Playwright MCP in default agent | Dispatch to `browser` specialist (40+ tools degrades selection) |
 | Don't assume subagent tool trust inherits | Each specialist agent needs its own `allowedTools` or it stalls silently |
 
+## Environment
+
+- Codex sandbox (bwrap) fails in this environment: `bwrap: loopback: Failed RTM_NEWADDR`. Use `codex exec --dangerously-bypass-approvals-and-sandbox` for dispatches.
+- Playwright MCP requires headless mode (no X server).
+- Bedrock image limit: >20 images in conversation history triggers 2000px max. Resize to ≤768px; dispatch fresh subagents for image analysis in long sessions.
+
 ## Skill Format (kiro-cli)
 
 Skills live in `.kiro/skills/<name>/SKILL.md`. Frontmatter:
