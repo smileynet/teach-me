@@ -100,4 +100,30 @@ When capturing manual screenshots (via Playwright MCP during development):
 - Before a new capture session, delete the previous session's screenshots
 - One screenshot per state, not multiples of the same thing
 
+### Sizing for Analysis
+
+**The Bedrock constraint:** When a conversation has >20 images total (across all turns, accumulated in history), the per-image max drops from 8000px to 2000px. In long sessions with multiple screenshot rounds, you WILL hit this.
+
+**Rules:**
+1. Pre-resize all screenshots to **≤ 768px long edge** before analysis (safe under all limits, fast to process)
+2. In long sessions (15+ images already sent), **dispatch a fresh subagent** for image analysis — it starts with zero image history
+3. Never accumulate >15 images in a single session without dispatching
+
+```bash
+# Resize for analysis
+for f in .scratch/visual-qa/**/*.png; do
+  magick "$f" -resize '768x768>' "$f"
+done
+```
+
+**Fresh subagent for image analysis (when session has accumulated images):**
+```
+Dispatch subagent: "Read these images and analyze against [criteria]:
+  .scratch/visual-qa/0001-iceberg-metadata-tree/full-page.png
+  .scratch/visual-qa/0001-iceberg-metadata-tree/glossary-tray-term.png
+Write findings to .scratch/visual-qa-analysis.md"
+```
+
+**Analysis batching:** ≤ 3 images per analysis call. Label each with its role.
+
 The principle: anyone reading `.scratch/visual-qa/` sees exactly the current state. No archaeology required.

@@ -250,6 +250,21 @@ RECIPES = {
 }
 
 
+def _resize_screenshots(output_dir):
+    """Resize all PNGs to ≤768px long edge for Bedrock multi-image analysis."""
+    magick = None
+    for cmd in ['magick', 'convert']:
+        if subprocess.run(['which', cmd], capture_output=True).returncode == 0:
+            magick = cmd
+            break
+    if not magick:
+        return  # ImageMagick not available, skip silently
+
+    for png in output_dir.rglob('*.png'):
+        subprocess.run([magick, str(png), '-resize', '768x768>', str(png)],
+                       capture_output=True)
+
+
 # --- Main ---
 
 def run_page(page, url, page_path, out_dir, focus=None):
@@ -397,6 +412,9 @@ def main():
         'checks_passed': total_passed,
         'checks_failed': total_failed
     }
+
+    # Resize screenshots for analysis (≤1568px long edge)
+    _resize_screenshots(output_dir)
 
     manifest_path = output_dir / 'manifest.json'
     with open(manifest_path, 'w') as f:
