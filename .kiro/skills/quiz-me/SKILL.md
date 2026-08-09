@@ -9,6 +9,20 @@ metadata:
 
 The user wants to test their retention. This is not a grilling session (plan-sharpening) — it is knowledge verification.
 
+## SR-Powered Review Mode
+
+If spaced repetition cards exist (`learning-records/questions/*.jsonl`), check what's due first:
+
+```bash
+python tools/sr-status.py          # quick health check
+python tools/review.py             # list due cards
+python tools/review.py <topic>     # filter to one topic
+```
+
+When cards are due, prefer surfacing them as conversational questions (the learner explains, you assess quality 0-5 and record via `review.py --review ID QUALITY`). This integrates naturally with the Socratic dialog below.
+
+If the user asks to "review" or "practice" without specifying a topic, use due cards across all topics (interleaved). If they name a topic, filter to that topic.
+
 ## How to quiz
 
 1. **Read the workspace state** — check `./learning-records/`, `./lessons/`, and `./reference/` to understand what the user has been taught.
