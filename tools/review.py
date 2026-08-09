@@ -59,10 +59,10 @@ def cmd_due(topic: str | None, today: date | None = None) -> None:
         print()
 
 
-def cmd_stats(today: date | None = None) -> None:
-    """Show stats for all topics."""
+def cmd_stats(topic: str | None = None, today: date | None = None) -> None:
+    """Show stats for all topics or a single topic."""
     today = today or date.today()
-    topics = list_topics()
+    topics = [topic] if topic else list_topics()
 
     if not topics:
         print("No question banks found.")
@@ -73,6 +73,23 @@ def cmd_stats(today: date | None = None) -> None:
     for t in topics:
         s = stats(t, today)
         print(f"  {t:<28} {s['total']:>5}  {s['due']:>3}  {s['active']:>6}  {s['mastered']:>8}")
+
+
+def cmd_list_topics(today: date | None = None) -> None:
+    """List topics with due/total counts."""
+    today = today or date.today()
+    topics = list_topics()
+
+    if not topics:
+        print("No question banks found.")
+        return
+
+    print("Available topics:\n")
+    for t in topics:
+        s = stats(t, today)
+        due_str = f"  ({s['due']} due)" if s['due'] > 0 else ""
+        print(f"  {t}  [{s['total']} cards]{due_str}")
+    print(f"\nUsage: python tools/review.py <topic-slug>  (or no arg for all)")
 
 
 def cmd_review(card_id: str, quality: int, topic: str | None = None) -> None:
@@ -123,15 +140,20 @@ def _find_topic_by_id(card_id: str) -> str | None:
 
 def main():
     parser = argparse.ArgumentParser(description="Spaced repetition review mode")
-    parser.add_argument("--topic", "-t", help="Filter to a specific topic slug")
+    parser.add_argument("topic", nargs="?", default=None,
+                        help="Topic slug to filter (default: all topics)")
+    parser.add_argument("--list", "-l", action="store_true",
+                        help="List topics with due/total counts")
     parser.add_argument("--stats", "-s", action="store_true", help="Show stats per topic")
     parser.add_argument("--review", "-r", nargs=2, metavar=("ID", "QUALITY"),
                         help="Record a review: card ID and quality (0-5)")
 
     args = parser.parse_args()
 
-    if args.stats:
-        cmd_stats()
+    if args.list:
+        cmd_list_topics()
+    elif args.stats:
+        cmd_stats(args.topic)
     elif args.review:
         card_id, quality = args.review
         cmd_review(card_id, int(quality), args.topic)
