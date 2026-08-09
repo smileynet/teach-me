@@ -1,59 +1,43 @@
 ---
 id: "034"
-title: "Feature: support media and rich content in SR card prompts"
+title: "Research: media and rich content in SR prompts — prior art and spike recommendations"
 status: open
-priority: low
+priority: medium
 blocked_by: []
-type: feature
+type: research
 ---
 
-# Feature: support media and rich content in SR card prompts
+# Research: media and rich content in SR prompts
 
-## What to build
+## What to research
 
-Allow SR cards to include diagrams, code blocks, and formatted text in prompts and expected answers — not just plain strings.
+How do existing SR/flashcard systems handle rich content (diagrams, code, formatted text) in prompts? What libraries, formats, and rendering approaches work well in CLI + HTML hybrid environments?
 
-## Why
+## Research questions
 
-Many concepts are best tested visually ("annotate this diagram") or with code ("what's wrong with this query?"). Plain-text-only cards miss these modalities.
+1. **Format**: How do Anki, Mochi, Orbit, and repeater store rich content in cards? (HTML fields? Markdown? Embedded media?)
+2. **CLI rendering**: What Python libraries render rich content in terminal? (rich, textual, blessed?) How do they handle code blocks, tables, images?
+3. **Code-in-cards**: How do programming-focused SR tools (cert-pepper, Exercism) present code blocks? Syntax highlighting? Diff views?
+4. **Diagram references**: How do tools reference/embed visuals in flashcards? (Inline SVG? Image paths? URLs?)
+5. **Hybrid rendering**: When the same card renders both in terminal (review.py) and in HTML (quiz page), what abstraction handles both?
 
-## Design sketch
+## Repos to clone and explore
 
-Extend the Card schema to support rich content:
+- [ ] `repeater` (https://github.com/shaankhosla/repeater) — how it handles note formatting
+- [ ] `cert-pepper` (https://github.com/cert-pepper/cert-pepper) — code-heavy cards + Claude explanations
+- [ ] Anki source (https://github.com/ankitects/anki) — HTML field rendering, media storage
+- [ ] Orbit (https://github.com/andymatuschak/orbit) — web component rendering of rich prompts
+- [ ] `rich` library examples (https://github.com/Textualize/rich) — terminal rendering of code, markdown, panels
 
-```json
-{
-  "prompt": "What layer is missing from this diagram?",
-  "prompt_media": {
-    "type": "svg_ref",
-    "path": "lessons/0001-iceberg-metadata-tree.html#diagram-aws-layers"
-  },
-  "expected_answer": "The manifest list layer — it sits between metadata files and manifests.",
-  "answer_media": null
-}
-```
+## Spikes to consider
 
-Media types:
-- `svg_ref` — reference to an SVG in a lesson (render during review)
-- `code_block` — syntax-highlighted code snippet
-- `markdown` — formatted text with inline code, bold, links
-
-Review CLI would need to:
-- Render code blocks with syntax highlighting (via `rich` library)
-- Reference diagrams by pointing to the lesson URL
-- Fall back to plain text if terminal doesn't support rich output
-
-## Open questions
-
-- How to render SVGs in terminal? Just show the lesson URL?
-- Should code blocks be inline in the JSONL or referenced by path?
-- Does the `rich` library add too much dependency weight?
-- For agent-driven review (quiz-me skill), the agent can render anything — is CLI rendering even needed?
+1. **Spike: code block cards** — extend Card schema with `prompt_code` field, render via `rich` in terminal, syntax-highlighted `<pre>` in HTML
+2. **Spike: diagram reference cards** — card references an SVG by lesson path, terminal shows the URL, HTML embeds inline
+3. **Spike: markdown prompt rendering** — store prompts as markdown, render with `rich.markdown` in terminal + marked.js in HTML
 
 ## Acceptance criteria
 
-- [ ] Card schema supports `prompt_media` and `answer_media` fields
-- [ ] At least code blocks render in terminal review (via rich or similar)
-- [ ] SVG references show as clickable lesson links in terminal
-- [ ] quiz-me skill can render rich content when presenting cards
-- [ ] Backward compatible — plain-text cards still work unchanged
+- [ ] Research findings documented in `.scratch/research/034-media-in-prompts.md`
+- [ ] At least 2 reference repos cloned to `.references/` and explored
+- [ ] Spike recommendation with effort estimate (which approach, what deps, what tradeoffs)
+- [ ] Decision: which rich content type to implement first (code blocks? diagrams? markdown?)

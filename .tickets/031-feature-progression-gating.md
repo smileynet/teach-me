@@ -1,40 +1,48 @@
 ---
 id: "031"
-title: "Feature: gate lesson progression on retention threshold"
+title: "Feature: soft-recommend review before new lessons"
 status: open
 priority: medium
 blocked_by: []
 type: feature
 ---
 
-# Feature: gate lesson progression on retention threshold
+# Feature: soft-recommend review before new lessons
 
 ## What to build
 
-Before advancing to the next lesson, the teach skill checks whether prior material has reached a target retrievability (e.g., 90%). If not, it surfaces due cards first and suggests reviewing before new material.
+When SR cards are due, the teach skill mentions it and recommends reviewing — but always provides new content if asked. Never block, never force an override. The posture is "provide if asked" — the learner is in charge of their schedule.
 
-## Why
+## Design
 
-SRS retains but doesn't teach. If a learner moves forward while prior concepts are decaying, new material built on those foundations won't stick. Gating ensures the base is solid before adding weight.
+At session start or before a new lesson, if cards are due:
 
-## Design sketch
+```
+📚 You have 4 cards due for review (iceberg-on-aws).
+   A quick review helps cement what you've already learned.
+   Want to do a few review questions first, or jump straight to new material?
+```
 
-1. teach skill runs `python tools/sr-analytics.py <topic>` before writing a new lesson
-2. If avg retrievability < threshold (configurable, default 85%), surface due cards instead of new material
-3. Soft gate: inform the learner and recommend review, but don't block if they insist on continuing
-4. After review session brings retrievability above threshold, proceed normally
+If they say "new material" — give them new material, no friction. If they say "review" — surface due cards conversationally.
 
-## Open questions
+## Principles
 
-- What threshold? 85%? 90%? Need real usage data to calibrate.
-- Hard gate (block progression) vs soft gate (recommend but allow override)?
-- Should it gate per-concept or per-topic average?
-- How many sessions of data before the gate activates? (Don't gate lesson 2 when lesson 1 was yesterday)
+- **Recommend, never gate.** The learner knows their schedule and energy.
+- **Provide if asked.** If they want new content, deliver it immediately.
+- **Mention, don't nag.** One line at session start. Don't repeat mid-lesson.
+- **Data-informed recommendation.** If retrievability is dropping fast (below 70%), make the recommendation stronger but still not blocking: "Several concepts from last lesson are decaying — reviewing now would strengthen them."
+
+## What NOT to do
+
+- Don't require the learner to say "skip" or "override" — that's a gate with a different name
+- Don't explain SM-2 or retrievability math to the learner
+- Don't repeat the recommendation after they've chosen to continue
+- Don't frame it as a test they need to pass
 
 ## Acceptance criteria
 
-- [ ] teach skill checks retrievability before producing new lessons
-- [ ] Below-threshold surfaces due cards with explanation to learner
-- [ ] Learner can override ("I want to continue anyway")
-- [ ] Threshold configurable (in NOTES.md or workspace config)
-- [ ] Gate doesn't activate until topic has 5+ reviewed cards
+- [ ] teach skill checks sr-status at session start
+- [ ] If cards due: one-line recommendation, ask preference
+- [ ] If learner asks for new content: provide it without friction
+- [ ] Recommendation strength scales with decay (mild at 85% R, firmer at <70%)
+- [ ] Never uses language like "you must", "required", "before you can"
