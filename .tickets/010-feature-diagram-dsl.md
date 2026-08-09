@@ -1,7 +1,7 @@
 ---
 id: "010"
 title: "Feature: graphviz auto-layout backend for complex diagrams (stretch)"
-status: open
+status: done
 priority: low
 blocked_by: []
 type: feature
@@ -89,13 +89,24 @@ Simple teaching diagrams (stack, flow, hub, small graphs) should still use the b
 
 ## Acceptance criteria
 
-- [ ] `pip install graphviz` added as optional dependency
-- [ ] `--backend graphviz` produces inline SVG via pipe()
-- [ ] Engine auto-selected from graph shape (dot/neato/fdp); `--engine` override available
-- [ ] Color vocabulary applied correctly (fills, strokes, edge colors)
-- [ ] Groups render as Graphviz clusters (dot/fdp only; warn for other engines)
-- [ ] SVG post-processed for accessibility (role, title, aria-labelledby, viewBox-only)
-- [ ] Deterministic output via `start=N` for force-directed engines
-- [ ] draw-diagram skill documents when to use this backend
-- [ ] Graceful error if graphviz system binary not installed or version too old
-- [ ] Smoke test: one DAG, one cyclic graph, one clustered graph produce valid SVG
+- [x] `pip install graphviz` added as optional dependency
+- [x] `--backend graphviz` produces inline SVG via pipe()
+- [x] Engine auto-selected from graph shape (dot/neato/fdp); `--engine` override available
+- [x] Color vocabulary applied correctly (fills, strokes, edge colors)
+- [x] Groups render as Graphviz clusters (dot/fdp only; warn for other engines)
+- [x] SVG post-processed for accessibility (role, title, aria-labelledby, viewBox-only)
+- [x] Deterministic output via `start=N` for force-directed engines
+- [x] draw-diagram skill documents when to use this backend
+- [x] Graceful error if graphviz system binary not installed or version too old
+- [x] Smoke test: one DAG, one cyclic graph, one clustered graph produce valid SVG
+
+## Resolution (2026-08-09)
+
+Implemented as `--backend graphviz` option in `tools/draw-diagram.py`:
+- Engine auto-selection: dot (directed), fdp (undirected+clusters), neato (small undirected)
+- Color vocabulary mapped to graphviz node/edge attributes (fill, stroke, penwidth)
+- Clusters via `cluster_N` subgraphs with group color fills
+- SVG post-processing: strips comments, converts pt→unitless viewBox, injects accessibility attrs
+- Determinism via `start=42` + `overlap=false` + `sep=+5` for force-directed engines
+- Warning on stderr when clusters used with engines that ignore them
+- Requires: graphviz Python 0.21+, system Graphviz 10.0.1+ (tested with 14.1.5)
