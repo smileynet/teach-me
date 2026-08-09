@@ -51,5 +51,5 @@ import json; print(json.dumps({
 | Progressive reveal changes | Does spike-reveal-test.html still advance? (click, keyboard, buttons) |
 | draw-diagram.py changes | Do all 3 types in spike-drawsvg-test.html still render? |
 | Visual steering changes | Does lesson 1's SVG comply with the updated rules? |
-| Glossary component (future) | Add terms from this lesson as test data |
+| Glossary component | Does spike-glossary-test.html work? (hover tooltip, click tray, keyboard) |
 | Accessibility (ticket 013) | Apply ARIA fixes to lesson 1 and verify |
