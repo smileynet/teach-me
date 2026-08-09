@@ -116,9 +116,19 @@ Every architectural or conceptual explanation needs a visual. Before creating on
 
 | Diagram type | Method |
 |-------------|--------|
-| Standard teaching diagram (stack, flow, hub) | `python tools/draw-diagram.py --type X --data '{...}'` |
+| Standard teaching diagram (stack, flow, hub, small graph) | `python tools/draw-diagram.py --type X --data '{...}'` |
+| Complex graphs: cycles, state machines, 9+ nodes, cross-edges | `python tools/draw-diagram.py --type graph --backend graphviz --data '{...}'` |
 | Custom layout or annotated detail | Raw inline SVG from patterns |
-| Complex auto-layout (sequence, state machine) | D2 (`d2 input.d2 output.svg`) |
+| Sequence diagrams (multi-actor message flows) | D2 (`d2 input.d2 output.svg`) |
+
+**When to use graphviz backend:**
+- State machines with cycles (retry loops, error recovery flows)
+- Dependency graphs with cross-edges (service meshes, import graphs)
+- Network topologies (undirected connections, mesh layouts)
+- Any graph with 9+ interconnected nodes where rank-based layout breaks down
+- When you need auto-layout to handle complexity the agent shouldn't hand-position
+
+**Graphviz engine is auto-selected** from graph properties (directed → dot, undirected + clusters → fdp, small undirected → neato). Override with `--engine circo` for rings or `--engine twopi` for radial layouts.
 
 **Rules:**
 - One-line verbal summary ABOVE every diagram (dual coding principle)

@@ -91,3 +91,18 @@ outputs = [".scratch/visual-qa/manifest.json"]
 description = "Preview a color palette (usage: mise run theme-preview -- --palette palettes/purple-night.json)"
 depends = ["setup"]
 run = "python tools/theme-preview.py"
+
+[tasks.sr]
+description = "Show SR status (what's due, health). Pass topic slug to filter."
+depends = ["setup"]
+run = "python tools/review.py --list"
+
+[tasks."sr:review"]
+description = "Review due cards. Optionally pass topic slug to narrow scope."
+depends = ["setup"]
+run = "python tools/review.py"
+
+[tasks."sr:stats"]
+description = "Show stats per topic (or pass topic slug for one)."
+depends = ["setup"]
+run = "python tools/review.py --stats"

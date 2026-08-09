@@ -36,9 +36,12 @@ assets/             — shared components (style.css, glossary, quiz, progressiv
 
 | Task | Command | What it does |
 |------|---------|-------------|
-| Install deps | `mise run setup` | drawsvg + playwright via uv |
-| Generate diagram | `mise run draw -- --type flow --data '{...}'` | SVG to stdout |
+| Install deps | `mise run setup` | drawsvg + graphviz + playwright via uv |
+| Generate diagram | `mise run draw -- --type flow --data '{...}'` | SVG to stdout (builtin layout) |
+| Generate complex diagram | `mise run draw -- --type graph --backend graphviz --data '{...}'` | Auto-layout via Graphviz |
 | Render .mmd/.d2 | `mise run render-diagrams` | Batch render to assets/generated/ |
+| SR status | `mise run sr` | What's due, health summary |
+| SR review | `mise run sr:review` | Review all due (or `-- topic-slug` for one topic) |
 | Visual QA | `mise run visual-qa` | Exercise all components, report pass/fail |
 | Theme preview | `mise run theme-preview -- --palette palettes/purple-night.json` | Preview + contrast validation |
 | Health check | `mise run doctor` | Verify tools, venv, references |
@@ -50,13 +53,15 @@ assets/             — shared components (style.css, glossary, quiz, progressiv
 
 | Situation | Action |
 |-----------|--------|
-| Writing a lesson | Teach skill produces lesson + reference doc + glossary JSON in one pass |
+| Writing a lesson | Teach skill produces lesson + reference doc + SR questions + glossary JSON |
 | After a lesson | Run jargon skill to annotate domain terms |
 | After UI changes | `mise run visual-qa` to verify components still work |
 | Before progression | quiz-me for Socratic dialog (learner explains, agent probes) |
+| Reviewing retention | `mise run sr:review` (all topics) or `mise run sr:review -- topic-slug` |
 | New domain term | Add to `.memory/CONTEXT.md` immediately |
 | Significant decision | Write ADR in `.memory/adr/NNNN-slug.md` |
 | Changing colors | Use theme skill (preview → validate contrast → apply) |
+| Complex diagram needed | Use `--backend graphviz` for cycles, state machines, 9+ nodes |
 
 ## Constraints
 
