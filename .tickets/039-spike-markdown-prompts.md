@@ -1,7 +1,7 @@
 ---
 id: "039"
 title: "Spike: markdown prompts — store as markdown, render everywhere"
-status: open
+status: done
 priority: medium
 blocked_by: ["034"]
 type: spike
@@ -63,11 +63,21 @@ Consider: **prompts stay plain text, answers get markdown**. Simpler, and the an
 
 ## Success criteria
 
-- [ ] Rich renders markdown prompts/answers readably in terminal
-- [ ] HTML path renders the same content correctly
-- [ ] Evaluate: markdown in prompts — helpful or noisy?
-- [ ] Evaluate: markdown in answers only — is this the sweet spot?
-- [ ] Backward compatible (plain text cards render unchanged)
+- [x] Rich renders markdown prompts/answers readably in terminal
+- [x] HTML path renders the same content correctly
+- [x] Evaluate: markdown in prompts — helpful or noisy?
+- [x] Evaluate: markdown in answers only — is this the sweet spot?
+- [x] Backward compatible (plain text cards render unchanged)
+
+## Resolution (2026-08-09)
+
+**Result:** Markdown rendering works with NO schema change — just `pip install rich` and upgrade review.py renderer.
+
+**Evaluation:** Markdown is most useful in expected_answers (lists of key points, inline code for technical terms, tables for comparison). Prompts benefit from inline code but don't need much else — the conversational format stays plain.
+
+**Sweet spot:** Prompts use light markdown (inline `code`, **bold** for emphasis). Answers use full markdown (lists, code fences, tables). Both render via Rich's Markdown class transparently.
+
+**Graceful fallback:** Plain text cards unchanged. Rich not installed → prints unformatted text.
 
 ## Time box
 
