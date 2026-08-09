@@ -27,19 +27,39 @@ If the user asks to "review" or "practice" without specifying a topic, use due c
 
 1. **Read the workspace state** — check `./learning-records/`, `./lessons/`, and `./reference/` to understand what the user has been taught.
 2. **Pick the scope** — if the user named a topic or lesson, quiz on that. Otherwise, quiz across recent learning records — prioritise material that hasn't been tested yet.
-3. **Ask in rounds** — 3-5 questions per round. Mix question types:
-   - Recall (define X, what does Y do)
-   - Application (given this situation, what would you do)
-   - Discrimination (what's the difference between X and Y)
+3. **Ask in rounds** — 3-5 questions per round. Ask conceptual questions (see below).
 4. **Wait for answers** — don't reveal correct answers until the user responds.
-5. **Give immediate feedback** — correct/incorrect, plus a one-line explanation citing the source.
-6. **Record results** — if the user demonstrates solid understanding of something new, write a learning record. If they reveal a gap, note it in `NOTES.md` for the next lesson to address.
+5. **Evaluate against criteria, not exact wording** — check whether the learner's response hits the key relationship/mechanism. Multiple valid phrasings are expected. Don't penalize missing details that aren't central.
+6. **Give immediate feedback** — acknowledge what they got right, clarify what they missed (one sentence), cite the source.
+7. **Record results** — if the user demonstrates solid understanding of something new, write a learning record. If they reveal a gap, note it in `NOTES.md` for the next lesson to address.
 
 ## Question design
 
-- Each answer option should be the same length (no "longest answer is correct" tells)
-- Randomise correct answer position
-- Include plausible distractors drawn from adjacent concepts
+Questions should test whether the learner holds a working mental model — can they explain the concept, not recite it.
+
+### Patterns to use
+
+- **"Why does X work this way?"** — tests mechanism reasoning
+- **"What would happen if [thing changed]?"** — tests prediction from model
+- **"How would you explain [concept] to [person from their mission]?"** — tests articulation
+- **"What's the difference between X and Y?"** — tests discrimination
+- **"Your team is seeing [symptom]. What's likely happening?"** — tests real-world transfer
+
+### Patterns to avoid
+
+- "What is X?" / "Define X" — tests vocabulary, not understanding
+- "List the N things that..." — tests enumeration, not structure
+- "True or false: X" — too shallow, no retrieval effort
+- Anything answerable by pattern-matching lesson wording
+
+### Evaluating responses
+
+When the learner answers, check for:
+1. **Core idea present?** — Did they hit the essential relationship/mechanism?
+2. **Reasoning sound?** — Can they explain WHY, not just WHAT?
+3. **No major misconceptions?** — Are they conflating things that are importantly different?
+
+If all three: strong response. If 1-2: partial, ask a follow-up to probe deeper. If none: the concept needs re-teaching.
 - For application questions, use scenarios tied to the user's mission
 
 ## Source links on answers
@@ -85,8 +105,8 @@ When the quiz reveals a concept the learner can't explain well, generate a space
 from tools.questions import Card, append_card
 
 card = Card(
-    prompt="Explain why [concept the learner struggled with]",
-    expected_answer="[The key insight they were missing]",
+    prompt="Why does [concept they conflated or missed] matter here?",
+    expected_answer="Should mention: (1) [the key relationship they missed]. Bonus: [the distinction they conflated].",
     question_type="explain",
     difficulty_tier="understand",
     lesson_id="quiz-session",  # or the lesson being quizzed on
