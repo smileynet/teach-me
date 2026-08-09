@@ -126,7 +126,7 @@ def review_card(topic_slug: str, card_id: str, quality: int, today: date | None 
     updated_card = None
 
     for i, card in enumerate(cards):
-        if card.id == card_id:
+        if card.id == card_id or card.id.startswith(card_id):
             old_schedule = CardSchedule.from_dict(card.schedule)
             new_schedule = review(old_schedule, quality, today)
 
