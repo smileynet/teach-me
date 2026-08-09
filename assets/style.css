@@ -1,33 +1,45 @@
 /* teach-me shared styles — dark-first, readable, printable */
 
-/* --- Dark mode (default) --- */
+/* --- Dark mode (default): Purple Night --- */
 :root {
-  --text: #e4e4e7;
-  --bg: #18181b;
-  --accent: #f87171;
-  --muted: #a1a1aa;
-  --border: #3f3f46;
-  --code-bg: #27272a;
-  --link: #60a5fa;
-  --key-concept-bg: #422006;
-  --key-concept-border: #d97706;
-  --callout-bg: #172554;
-  --callout-border: #60a5fa;
+  --bg: #13111C;
+  --bg-elevated: #1C1A2E;
+  --bg-surface: #252340;
+  --text: #CDD6F4;
+  --text-muted: #9399B2;
+  --text-faint: #6C7086;
+  --accent: #CBA6F7;
+  --link: #89B4FA;
+  --border: #313244;
+  --code-bg: #1E1E2E;
+  --success: #A6E3A1;
+  --warning: #F9E2AF;
+  --error: #F38BA8;
+  --callout-bg: #1E293B;
+  --callout-border: #89B4FA;
+  --key-concept-bg: #2D1F0E;
+  --key-concept-border: #F9E2AF;
 }
 
 /* --- Light mode --- */
 [data-theme="light"] {
-  --text: #1a1a1a;
   --bg: #fffff8;
-  --accent: #e63946;
-  --muted: #6c757d;
+  --bg-elevated: #f5f5f0;
+  --bg-surface: #e8e8e3;
+  --text: #1a1a1a;
+  --text-muted: #6c757d;
+  --text-faint: #9ca3af;
+  --accent: #7c3aed;
+  --link: #2563eb;
   --border: #dee2e6;
   --code-bg: #f5f5f0;
-  --link: #2563eb;
-  --key-concept-bg: #fef3c7;
-  --key-concept-border: #f59e0b;
+  --success: #16a34a;
+  --warning: #d97706;
+  --error: #dc2626;
   --callout-bg: #eff6ff;
   --callout-border: #2563eb;
+  --key-concept-bg: #fef3c7;
+  --key-concept-border: #f59e0b;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -74,10 +86,10 @@ pre {
 pre code { background: none; padding: 0; }
 
 blockquote {
-  border-left: 3px solid var(--muted);
+  border-left: 3px solid var(--text-muted);
   padding-left: 1rem;
   margin: 1.5rem 0;
-  color: var(--muted);
+  color: var(--text-muted);
   font-style: italic;
 }
 
@@ -94,7 +106,7 @@ th, td { padding: 0.5rem 0.75rem; border: 1px solid var(--border); text-align: l
 th { background: var(--code-bg); font-weight: 600; }
 
 .lesson-meta {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 0.85rem;
   margin-bottom: 2rem;
   border-bottom: 1px solid var(--border);
@@ -126,7 +138,7 @@ th { background: var(--code-bg); font-weight: 600; }
 
 .citation {
   font-size: 0.8rem;
-  color: var(--muted);
+  color: var(--text-muted);
   vertical-align: super;
 }
 
@@ -164,7 +176,7 @@ details {
 details[open] { background: var(--code-bg); }
 details summary {
   cursor: pointer;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 details summary:hover { color: var(--link); }

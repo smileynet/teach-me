@@ -86,3 +86,8 @@ depends = ["setup"]
 run = "python tools/visual-qa.py --serve"
 sources = ["assets/**/*.{js,css}", "lessons/*.html", "tools/visual-qa.py"]
 outputs = [".scratch/visual-qa/manifest.json"]
+
+[tasks.theme-preview]
+description = "Preview a color palette (usage: mise run theme-preview -- --palette palettes/purple-night.json)"
+depends = ["setup"]
+run = "python tools/theme-preview.py"

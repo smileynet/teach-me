@@ -1,0 +1,21 @@
+{
+  "name": "Zinc Dark",
+  "mode": "dark",
+  "tokens": {
+    "bg": "#18181b",
+    "bg-elevated": "#27272a",
+    "bg-surface": "#3f3f46",
+    "text": "#e4e4e7",
+    "text-muted": "#a1a1aa",
+    "text-faint": "#71717a",
+    "accent": "#f87171",
+    "link": "#60a5fa",
+    "border": "#3f3f46",
+    "code-bg": "#27272a",
+    "success": "#86efac",
+    "warning": "#fde68a",
+    "error": "#fca5a5",
+    "callout-bg": "#172554",
+    "key-concept-bg": "#422006"
+  }
+}
