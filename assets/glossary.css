@@ -18,12 +18,13 @@
   width: max-content;
   max-width: 280px;
   padding: 0.5rem 0.7rem;
-  background: #1a1a1a;
-  color: #f8f9fa;
+  background: var(--bg-surface, #252340);
+  color: var(--text, #CDD6F4);
   font-size: 0.82rem;
   line-height: 1.45;
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border: 1px solid var(--border, #313244);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   z-index: 900;
   pointer-events: none;
 }
@@ -34,7 +35,7 @@
   left: 50%;
   transform: translateX(-50%);
   border: 6px solid transparent;
-  border-top-color: #1a1a1a;
+  border-top-color: var(--bg-surface, #252340);
 }
 
 /* --- Slide-out tray --- */
