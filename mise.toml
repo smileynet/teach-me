@@ -17,7 +17,7 @@ _.python.venv = { path = ".venv", create = true }
 
 [tasks.setup]
 description = "Install Python dependencies (fast, via uv)"
-run = "uv pip install drawsvg playwright graphviz"
+run = "uv pip install drawsvg playwright graphviz rich"
 sources = ["mise.toml"]
 
 [tasks.draw]
