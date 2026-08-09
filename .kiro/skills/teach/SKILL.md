@@ -307,7 +307,13 @@ If they can't, the reference is missing the conceptual model or the facts aren't
 
 After delivering a lesson, have a conversation with the learner to help them think through what they've learned. The goal isn't evaluation — it's helping them build confidence that they can explain and apply the concepts.
 
-This is what `quiz-me` does. When the learner returns for the next session, the agent should start with a brief conversation about the previous lesson before producing new material. The `quiz-me` skill can also be invoked explicitly by the learner at any time.
+This is what `quiz-me` does. When the learner returns for the next session, the agent should:
+1. Run `python tools/sr-status.py` to check if cards are due
+2. If cards are due, surface 2-3 as conversational questions before the new lesson
+3. Record review quality via `python tools/review.py --review ID QUALITY`
+4. Then proceed to new material
+
+The `quiz-me` skill can also be invoked explicitly by the learner at any time.
 
 ### How it works
 
@@ -396,6 +402,7 @@ Quick sanity check after writing:
 - [ ] Jargon annotated (run the jargon skill)
 - [ ] Reference doc generated alongside
 - [ ] Spaced repetition questions generated (3-5 per lesson)
+- [ ] SR quality check passes (`mise run sr:check`)
 - [ ] "What's Next" section present
 
 ## It's Working If

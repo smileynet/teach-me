@@ -10,7 +10,7 @@ Test bed for learning-oriented agent skills. Refined here, then ported to crew-r
 .memory/            — persistent knowledge (CONTEXT.md glossary, ADRs, research findings)
 .scratch/           — ephemeral (gitignored) — only visual-qa output regenerated on run
 .references/        — cloned reference repos (gitignored, rehydrate via mise run rehydrate)
-tools/              — project scripts (draw-diagram, visual-qa, theme-preview, render-diagrams)
+tools/              — project scripts (draw-diagram, visual-qa, theme-preview, render-diagrams, sr-*)
 palettes/           — color palette definitions (JSON)
 lessons/            — HTML lessons (the teaching output)
 reference/          — compressed reference docs (scannable work artifacts, alongside lessons)
@@ -42,6 +42,9 @@ assets/             — shared components (style.css, glossary, quiz, progressiv
 | Render .mmd/.d2 | `mise run render-diagrams` | Batch render to assets/generated/ |
 | SR status | `mise run sr` | What's due, health summary |
 | SR review | `mise run sr:review` | Review all due (or `-- topic-slug` for one topic) |
+| SR quality check | `mise run sr:check` | Leech detection, prompt format issues |
+| SR analytics | `mise run sr:analytics` | Knowledge %, what's decaying, load forecast |
+| SR lifecycle | `mise run sr:lifecycle -- suspend ID` | Suspend, retire, reset, sync-lessons |
 | Visual QA | `mise run visual-qa` | Exercise all components, report pass/fail |
 | Theme preview | `mise run theme-preview -- --palette palettes/purple-night.json` | Preview + contrast validation |
 | Health check | `mise run doctor` | Verify tools, venv, references |
@@ -58,6 +61,10 @@ assets/             — shared components (style.css, glossary, quiz, progressiv
 | After UI changes | `mise run visual-qa` to verify components still work |
 | Before progression | quiz-me for Socratic dialog (learner explains, agent probes) |
 | Reviewing retention | `mise run sr:review` (all topics) or `mise run sr:review -- topic-slug` |
+| Session start | `mise run sr` to check if cards are due before new material |
+| After writing questions | `mise run sr:check` as quality gate |
+| Checking knowledge health | `mise run sr:analytics` for decay alerts and load forecast |
+| Card is leeching | Suspend via `mise run sr:lifecycle -- suspend ID`, rewrite the prompt |
 | New domain term | Add to `.memory/CONTEXT.md` immediately |
 | Significant decision | Write ADR in `.memory/adr/NNNN-slug.md` |
 | Changing colors | Use theme skill (preview → validate contrast → apply) |
