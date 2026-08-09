@@ -82,6 +82,117 @@ Each layer answers a different question. The catalog says "where is the current 
 <h3><span class="term" data-term="mvcc">Snapshot isolation (MVCC)</span></h3>
 <p>Every write creates a new <strong><span class="term" data-term="snapshot">snapshot</span></strong> — a manifest list pointing to the file set as of that write. Readers see a consistent view by reading from a snapshot. Writers create a new snapshot atomically (the catalog pointer updates, or it doesn't). No partial reads, no coordination needed between readers and writers.</p>
 
+<p>The write path uses optimistic concurrency — if two writers commit at the same time, one wins and the other retries:</p>
+
+<svg viewBox="0 0 342 628" role="img" aria-labelledby="diagram-commit-cycle" style="display:block;margin:1.5rem auto;max-width:100%;height:auto"><title id="diagram-commit-cycle">Iceberg write commit cycle: optimistic concurrency with retry on conflict</title>
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 606.35)">
+<g id="node1" class="node">
+<title>start</title>
+<path fill="#dbeafe" stroke="#2563eb" stroke-width="1.5" d="M130,-577.38C130,-577.38 69,-577.38 69,-577.38 63,-577.38 57,-571.38 57,-565.38 57,-565.38 57,-553.38 57,-553.38 57,-547.38 63,-541.38 69,-541.38 69,-541.38 130,-541.38 130,-541.38 136,-541.38 142,-547.38 142,-553.38 142,-553.38 142,-565.38 142,-565.38 142,-571.38 136,-577.38 130,-577.38"/>
+<text xml:space="preserve" text-anchor="middle" x="99.5" y="-555.1" font-family="system-ui, sans-serif" font-size="12.00">Begin Write</text>
+</g>
+<g id="node2" class="node">
+<title>read_snap</title>
+<path fill="#dbeafe" stroke="#2563eb" stroke-width="1.5" d="M233.12,-477.25C233.12,-477.25 103.88,-477.25 103.88,-477.25 97.88,-477.25 91.88,-471.25 91.88,-465.25 91.88,-465.25 91.88,-453.25 91.88,-453.25 91.88,-447.25 97.88,-441.25 103.88,-441.25 103.88,-441.25 233.12,-441.25 233.12,-441.25 239.12,-441.25 245.12,-447.25 245.12,-453.25 245.12,-453.25 245.12,-465.25 245.12,-465.25 245.12,-471.25 239.12,-477.25 233.12,-477.25"/>
+<text xml:space="preserve" text-anchor="middle" x="168.5" y="-454.98" font-family="system-ui, sans-serif" font-size="12.00">Read Current Snapshot</text>
+</g>
+<g id="edge1" class="edge">
+<title>start&#45;&gt;read_snap</title>
+<path fill="none" stroke="#374151" stroke-width="1.5" d="M111.84,-540.83C122.17,-526.13 137.11,-504.89 149.06,-487.9"/>
+<polygon fill="#374151" stroke="#374151" stroke-width="1.5" points="151.84,-490.02 154.73,-479.83 146.12,-486 151.84,-490.02"/>
+</g>
+<g id="node3" class="node">
+<title>write_data</title>
+<path fill="#fef3c7" stroke="#d97706" stroke-width="1.5" d="M164.25,-396.25C164.25,-396.25 44.75,-396.25 44.75,-396.25 38.75,-396.25 32.75,-390.25 32.75,-384.25 32.75,-384.25 32.75,-372.25 32.75,-372.25 32.75,-366.25 38.75,-360.25 44.75,-360.25 44.75,-360.25 164.25,-360.25 164.25,-360.25 170.25,-360.25 176.25,-366.25 176.25,-372.25 176.25,-372.25 176.25,-384.25 176.25,-384.25 176.25,-390.25 170.25,-396.25 164.25,-396.25"/>
+<text xml:space="preserve" text-anchor="middle" x="104.5" y="-373.98" font-family="system-ui, sans-serif" font-size="12.00">Write Data Files to S3</text>
+</g>
+<g id="edge2" class="edge">
+<title>read_snap&#45;&gt;write_data</title>
+<path fill="none" stroke="#374151" stroke-width="1.5" d="M154.3,-440.72C146.09,-430.59 135.6,-417.64 126.37,-406.24"/>
+<polygon fill="#374151" stroke="#374151" stroke-width="1.5" points="129.11,-404.06 120.09,-398.5 123.67,-408.47 129.11,-404.06"/>
+</g>
+<g id="node4" class="node">
+<title>build_meta</title>
+<path fill="#fef3c7" stroke="#d97706" stroke-width="1.5" d="M155.5,-303.5C155.5,-303.5 43.5,-303.5 43.5,-303.5 37.5,-303.5 31.5,-297.5 31.5,-291.5 31.5,-291.5 31.5,-279.5 31.5,-279.5 31.5,-273.5 37.5,-267.5 43.5,-267.5 43.5,-267.5 155.5,-267.5 155.5,-267.5 161.5,-267.5 167.5,-273.5 167.5,-279.5 167.5,-279.5 167.5,-291.5 167.5,-291.5 167.5,-297.5 161.5,-303.5 155.5,-303.5"/>
+<text xml:space="preserve" text-anchor="middle" x="99.5" y="-281.23" font-family="system-ui, sans-serif" font-size="12.00">Build New Metadata</text>
+</g>
+<g id="edge3" class="edge">
+<title>write_data&#45;&gt;build_meta</title>
+<path fill="none" stroke="#374151" stroke-width="1.5" d="M103.54,-359.75C102.85,-347.32 101.92,-330.34 101.12,-315.85"/>
+<polygon fill="#374151" stroke="#374151" stroke-width="1.5" points="104.63,-316 100.59,-306.21 97.64,-316.39 104.63,-316"/>
+<text xml:space="preserve" text-anchor="middle" x="135.67" y="-328.75" font-family="system-ui, sans-serif" font-size="10.00" fill="#6b7280">new manifest</text>
+</g>
+<g id="node5" class="node">
+<title>commit</title>
+<path fill="#fef3c7" stroke="#d97706" stroke-width="1.5" d="M165.25,-210.75C165.25,-210.75 27.75,-210.75 27.75,-210.75 21.75,-210.75 15.75,-204.75 15.75,-198.75 15.75,-198.75 15.75,-186.25 15.75,-186.25 15.75,-180.25 21.75,-174.25 27.75,-174.25 27.75,-174.25 165.25,-174.25 165.25,-174.25 171.25,-174.25 177.25,-180.25 177.25,-186.25 177.25,-186.25 177.25,-198.75 177.25,-198.75 177.25,-204.75 171.25,-210.75 165.25,-210.75"/>
+<text xml:space="preserve" text-anchor="middle" x="96.5" y="-195.35" font-family="system-ui, sans-serif" font-size="12.00">Atomic Commit</text>
+<text xml:space="preserve" text-anchor="middle" x="96.5" y="-181.1" font-family="system-ui, sans-serif" font-size="12.00">(update catalog pointer)</text>
+</g>
+<g id="edge4" class="edge">
+<title>build_meta&#45;&gt;commit</title>
+<path fill="none" stroke="#374151" stroke-width="1.5" d="M98.92,-266.95C98.51,-254.57 97.96,-237.68 97.48,-223.21"/>
+<polygon fill="#374151" stroke="#374151" stroke-width="1.5" points="100.99,-223.45 97.16,-213.57 93.99,-223.68 100.99,-223.45"/>
+</g>
+<g id="node6" class="node">
+<title>conflict</title>
+<path fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5" d="M135.25,-129.25C135.25,-129.25 57.75,-129.25 57.75,-129.25 51.75,-129.25 45.75,-123.25 45.75,-117.25 45.75,-117.25 45.75,-105.25 45.75,-105.25 45.75,-99.25 51.75,-93.25 57.75,-93.25 57.75,-93.25 135.25,-93.25 135.25,-93.25 141.25,-93.25 147.25,-99.25 147.25,-105.25 147.25,-105.25 147.25,-117.25 147.25,-117.25 147.25,-123.25 141.25,-129.25 135.25,-129.25"/>
+<text xml:space="preserve" text-anchor="middle" x="96.5" y="-106.97" font-family="system-ui, sans-serif" font-size="12.00">Conflict Check</text>
+</g>
+<g id="edge5" class="edge">
+<title>commit&#45;&gt;conflict</title>
+<path fill="none" stroke="#374151" stroke-width="1.5" d="M96.5,-173.52C96.5,-164.23 96.5,-152.66 96.5,-142.08"/>
+<polygon fill="#374151" stroke="#374151" stroke-width="1.5" points="100,-142.16 96.5,-132.16 93,-142.16 100,-142.16"/>
+</g>
+<g id="node7" class="node">
+<title>success</title>
+<path fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" d="M121,-36.25C121,-36.25 12,-36.25 12,-36.25 6,-36.25 0,-30.25 0,-24.25 0,-24.25 0,-12.25 0,-12.25 0,-6.25 6,-0.25 12,-0.25 12,-0.25 121,-0.25 121,-0.25 127,-0.25 133,-6.25 133,-12.25 133,-12.25 133,-24.25 133,-24.25 133,-30.25 127,-36.25 121,-36.25"/>
+<text xml:space="preserve" text-anchor="middle" x="66.5" y="-13.97" font-family="system-ui, sans-serif" font-size="12.00">Commit Succeeded</text>
+</g>
+<g id="edge6" class="edge">
+<title>conflict&#45;&gt;success</title>
+<path fill="none" stroke="#374151" stroke-width="1.5" d="M80.54,-92.88C75.67,-86.53 70.91,-79 68.25,-71.25 65.81,-64.13 64.77,-56.14 64.48,-48.6"/>
+<polygon fill="#374151" stroke="#374151" stroke-width="1.5" points="67.98,-48.87 64.57,-38.84 60.98,-48.81 67.98,-48.87"/>
+<text xml:space="preserve" text-anchor="middle" x="93.38" y="-61.75" font-family="system-ui, sans-serif" font-size="10.00" fill="#6b7280">no conflict</text>
+</g>
+<g id="node8" class="node">
+<title>retry</title>
+<path fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" d="M283.62,-36.5C283.62,-36.5 181.38,-36.5 181.38,-36.5 175.38,-36.5 169.38,-30.5 169.38,-24.5 169.38,-24.5 169.38,-12 169.38,-12 169.38,-6 175.38,0 181.38,0 181.38,0 283.62,0 283.62,0 289.62,0 295.62,-6 295.62,-12 295.62,-12 295.62,-24.5 295.62,-24.5 295.62,-30.5 289.62,-36.5 283.62,-36.5"/>
+<text xml:space="preserve" text-anchor="middle" x="232.5" y="-21.1" font-family="system-ui, sans-serif" font-size="12.00">Retry</text>
+<text xml:space="preserve" text-anchor="middle" x="232.5" y="-6.85" font-family="system-ui, sans-serif" font-size="12.00">(re&#45;read snapshot)</text>
+</g>
+<g id="edge7" class="edge">
+<title>conflict&#45;&gt;retry</title>
+<path fill="none" stroke="#374151" stroke-width="1.5" d="M118.72,-92.57C132.02,-82.25 149.41,-69.19 165.5,-58.5 173.23,-53.36 181.64,-48.15 189.82,-43.27"/>
+<polygon fill="#374151" stroke="#374151" stroke-width="1.5" points="191.54,-46.32 198.39,-38.24 188,-40.29 191.54,-46.32"/>
+<text xml:space="preserve" text-anchor="middle" x="185" y="-61.75" font-family="system-ui, sans-serif" font-size="10.00" fill="#6b7280">conflict!</text>
+</g>
+<g id="edge8" class="edge">
+<title>retry&#45;&gt;read_snap</title>
+<path fill="none" stroke="#374151" stroke-width="1.5" d="M232.5,-37.04C232.5,-55.38 232.5,-84.81 232.5,-110.25 232.5,-379.25 232.5,-379.25 232.5,-379.25 232.5,-400.3 218.61,-418.88 203.78,-432.72"/>
+<polygon fill="#374151" stroke="#374151" stroke-width="1.5" points="201.53,-430.04 196.25,-439.23 206.1,-435.34 201.53,-430.04"/>
+<text xml:space="preserve" text-anchor="middle" x="250.12" y="-236" font-family="system-ui, sans-serif" font-size="10.00" fill="#6b7280">backoff</text>
+</g>
+<g id="node9" class="node">
+<title>readers</title>
+<path fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5" d="M287,-584.75C287,-584.75 190,-584.75 190,-584.75 184,-584.75 178,-578.75 178,-572.75 178,-572.75 178,-546 178,-546 178,-540 184,-534 190,-534 190,-534 287,-534 287,-534 293,-534 299,-540 299,-546 299,-546 299,-572.75 299,-572.75 299,-578.75 293,-584.75 287,-584.75"/>
+<text xml:space="preserve" text-anchor="middle" x="238.5" y="-569.35" font-family="system-ui, sans-serif" font-size="12.00">Readers</text>
+<text xml:space="preserve" text-anchor="middle" x="238.5" y="-555.1" font-family="system-ui, sans-serif" font-size="12.00">(see old snapshot</text>
+<text xml:space="preserve" text-anchor="middle" x="238.5" y="-540.85" font-family="system-ui, sans-serif" font-size="12.00">until commit)</text>
+</g>
+<g id="edge9" class="edge">
+<title>readers&#45;&gt;read_snap</title>
+<path fill="none" stroke="#374151" stroke-width="1.5" d="M220.65,-533.36C210.68,-519.38 198.24,-501.94 188.01,-487.59"/>
+<polygon fill="#374151" stroke="#374151" stroke-width="1.5" points="190.99,-485.75 182.33,-479.64 185.29,-489.82 190.99,-485.75"/>
+<text xml:space="preserve" text-anchor="middle" x="240.62" y="-502.5" font-family="system-ui, sans-serif" font-size="10.00" fill="#6b7280">same snapshot</text>
+</g>
+</g>
+</svg>
+
+<details>
+<summary>How does conflict detection work?</summary>
+<p>When a writer tries to commit, it checks whether the catalog's current pointer still matches the snapshot it started from. If another writer updated it in the meantime, the commit fails and the writer retries — re-reading the new snapshot, rewriting metadata against it, and attempting the commit again. On AWS Glue, this is implemented via conditional updates on the catalog entry.</p>
+</details>
+
 <h3><span class="term" data-term="schema-evolution">Schema and partition evolution</span> without rewrites</h3>
 <p>The metadata file stores schema <em>history</em> and partition spec <em>history</em>. Old data files keep their original schema and partitioning; new files use the new spec. The engine handles the translation at query time. Your customer's producers can evolve schemas without rewriting their lake. <a href="https://iceberg.apache.org/docs/latest/" class="citation">[Iceberg Docs]</a></p>
 
