@@ -1,7 +1,7 @@
 ---
 id: "011"
 title: "Feature: quiz question bank for spaced repetition (post-MVP)"
-status: open
+status: done
 priority: low
 blocked_by: []
 type: feature
@@ -122,13 +122,24 @@ learning-records/
 
 ## Acceptance criteria
 
-- [ ] SM-2 scheduler implemented (~50 LOC, in `tools/` or `assets/`)
-- [ ] teach skill generates 3-5 questions per lesson in structured JSON
-- [ ] Questions use explain-to-colleague format (not recognition/recall)
-- [ ] quiz-me skill can append gap-discovered cards to the bank
-- [ ] Review mode surfaces due cards weighted by SM-2 schedule
-- [ ] Review history stored as JSONL (future FSRS training data)
-- [ ] Provenance tracked: which lesson/section generated each card
-- [ ] Cap of 5 new cards per lesson enforced
-- [ ] Cards with interval >6 months graduated to "mastered" (no further review)
-- [ ] Graceful handling of returning-after-absence (batch overdue, don't punish ease)
+- [x] SM-2 scheduler implemented (~50 LOC, in `tools/` or `assets/`)
+- [x] teach skill generates 3-5 questions per lesson in structured JSON
+- [x] Questions use explain-to-colleague format (not recognition/recall)
+- [x] quiz-me skill can append gap-discovered cards to the bank
+- [x] Review mode surfaces due cards weighted by SM-2 schedule
+- [x] Review history stored as JSONL (future FSRS training data)
+- [x] Provenance tracked: which lesson/section generated each card
+- [x] Cap of 5 new cards per lesson enforced
+- [x] Cards with interval >6 months graduated to "mastered" (no further review)
+- [x] Graceful handling of returning-after-absence (batch overdue, don't punish ease)
+
+## Resolution (2026-08-09)
+
+Implemented as three modules in `tools/`:
+- `sm2.py` — SM-2 scheduling algorithm (pure functions, no dependencies)
+- `questions.py` — JSONL card storage per topic + review log
+- `review.py` — CLI for due cards, stats, and recording reviews
+
+Skills updated:
+- `teach` — generates 3-5 SR questions per lesson
+- `quiz-me` — appends gap-discovered cards when understanding gaps emerge
