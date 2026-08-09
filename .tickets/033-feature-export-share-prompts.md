@@ -1,47 +1,48 @@
 ---
 id: "033"
-title: "Feature: export/share SR question sets"
+title: "Feature: export SR questions to Anki format"
 status: open
 priority: low
 blocked_by: []
 type: feature
 ---
 
-# Feature: export/share SR question sets
+# Feature: export SR questions to Anki format
 
 ## What to build
 
-Export a topic's question bank into a portable format that another learner (or another teaching workspace) can import.
+Export a topic's question bank to Anki `.apkg` format so learners can share curated question sets or use Anki's mobile app for on-the-go review.
 
 ## Why
 
-When the teach-me system matures and skills deploy globally, learners working on the same topic shouldn't need to regenerate all cards from scratch. A curated question set is a reusable artifact.
+Anki has the largest flashcard ecosystem — exporting to `.apkg` lets learners:
+- Review on their phone (AnkiDroid / AnkiMobile)
+- Share decks with colleagues studying the same topic
+- Use Anki's superior mobile UX for quick daily reviews
 
 ## Design sketch
 
-Formats to consider:
-- **JSONL (native)** — just copy the file; simplest
-- **Markdown (repeater-compatible)** — `Q:/A:/C:` syntax for interop with repeater CLI
-- **Anki .apkg** — broadest ecosystem reach (via genanki Python library)
+```bash
+python tools/sr-export.py <topic> --format anki --output deck.apkg
+python tools/sr-export.py <topic> --format anki --output deck.apkg --exclude-suspended
+```
 
-Export: `python tools/sr-export.py <topic> --format jsonl|markdown|anki`
-Import: `python tools/sr-import.py <file> --topic <slug>`
-
-Import should:
-- Assign new UUIDs (avoid collisions)
-- Set schedule to "new" (recipient hasn't reviewed these)
-- Preserve provenance metadata
+Uses `genanki` Python library (well-maintained, MIT license):
+- Maps explain-to-colleague cards to "Basic (and reversed)" note type
+- Maps quick-check cards to cloze or multiple-choice note type
+- Tags from our cards → Anki tags
+- Provenance metadata in a "Source" field (lesson reference)
 
 ## Open questions
 
-- Which format(s) to support first? JSONL is trivial, Anki has ecosystem value
-- Should export include review history or just content?
-- How to handle cards that reference lesson sections the recipient doesn't have?
+- Include review history/scheduling in export, or just content? (Anki will reschedule anyway)
+- How to map our "explain to a colleague" format to Anki? (Front: prompt, Back: expected answer + explanation)
+- Should quick-check multiple-choice export as Anki's native cloze or a custom note type?
 
 ## Acceptance criteria
 
-- [ ] Export command produces portable file from a topic's JSONL
-- [ ] Import command adds cards to a topic with fresh schedule state
-- [ ] At least one format beyond native JSONL (markdown or Anki)
-- [ ] Provenance preserved (original lesson_id, generated_by)
-- [ ] No UUID collisions on import
+- [ ] `sr-export.py` produces valid `.apkg` file via genanki
+- [ ] Cards preserve: prompt, expected answer, tags, source lesson
+- [ ] Exported deck importable into Anki desktop and AnkiDroid
+- [ ] Suspended/mastered cards optionally excluded
+- [ ] Provenance preserved in a "Source" field on each note
