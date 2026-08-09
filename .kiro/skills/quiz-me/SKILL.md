@@ -54,3 +54,38 @@ Every answer (correct AND incorrect) should include links to authoritative sourc
 ## After the quiz
 
 Summarise: what was solid, what needs review. Suggest whether the user is ready to advance or should revisit material.
+
+## Gap-Discovered Cards
+
+When the quiz reveals a concept the learner can't explain well, generate a spaced repetition card targeting that gap. These cards are personalized to the learner's actual confusion points — not assumed gaps.
+
+### When to generate
+
+- The learner gives a wrong or incomplete answer that reveals a conceptual gap (not just a memory lapse)
+- The learner asks "wait, how does that work?" during feedback — they thought they understood but didn't
+- The learner conflates two concepts that are importantly different
+
+### How to generate
+
+```python
+from tools.questions import Card, append_card
+
+card = Card(
+    prompt="Explain why [concept the learner struggled with]",
+    expected_answer="[The key insight they were missing]",
+    question_type="explain",
+    difficulty_tier="understand",
+    lesson_id="quiz-session",  # or the lesson being quizzed on
+    section_heading="",
+    generated_by="quiz-skill",
+    tags=["gap", "topic-tag"],
+)
+append_card("<topic-slug>", card)
+```
+
+### Rules
+
+- **Only for genuine understanding gaps**, not memory lapses. If they knew it last week but forgot today, the existing card's SM-2 schedule handles that.
+- **Frame the question around their specific confusion.** "Explain why X isn't the same as Y" is better than a generic question — it targets exactly where their model broke.
+- **1-2 gap cards per quiz session maximum.** Don't overwhelm. The gaps become the focus of the next lesson naturally.
+- **Note the gap in NOTES.md too** so the teach skill can address it in the next lesson.

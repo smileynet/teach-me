@@ -328,6 +328,54 @@ Write a learning record capturing what the learner demonstrated understanding of
 
 The user will sometimes express preferences of how they want to be taught, or things you should keep in mind. This is the place to record those preferences, so you can refer back to them when designing lessons or working with the user.
 
+## Spaced Repetition Questions
+
+After writing a lesson, generate 3-5 spaced repetition questions and append them to the topic's question bank. This builds long-term retention — the real goal of teaching.
+
+### How to generate
+
+Use `tools/questions.py` to append cards:
+
+```python
+from tools.questions import Card, append_card
+
+card = Card(
+    prompt="Explain to a colleague why Iceberg uses manifest files instead of listing data files in the catalog.",
+    expected_answer="Manifest files allow atomic operations on large file sets without locking the catalog. The catalog only points to the current manifest list, enabling snapshot isolation.",
+    question_type="explain",        # explain|compare|apply|predict
+    difficulty_tier="understand",   # recall|understand|apply|analyze
+    lesson_id="0001-iceberg-metadata-tree",
+    section_heading="Metadata Tree",
+    generated_by="teach-skill",
+    tags=["iceberg", "metadata", "manifest"],
+)
+append_card("iceberg-on-aws", card)
+```
+
+The topic slug matches the teaching workspace topic (e.g., `iceberg-on-aws`). Cards are stored in `learning-records/questions/<topic-slug>.jsonl`, one card per line.
+
+### What to ask
+
+- **"Explain to [person from their mission] why..."** — tests understanding through articulation
+- **"Compare X and Y. Where does the analogy break down?"** — tests discrimination
+- **"Your team hits [scenario]. What's happening and why?"** — tests application
+- **"Predict what happens if [condition changes]"** — tests mental model
+
+### What NOT to ask
+
+- Recognition questions ("Which of these is correct?")
+- Recall questions ("List the five layers")
+- Questions answerable by pattern-matching the wording
+- Questions too broad to answer in 2-3 sentences
+
+### Rules
+
+- **One concept per card.** Atomic questions with atomic answers.
+- **3-5 cards per lesson maximum.** More causes review overload.
+- **Target relationships, not isolated facts.** "Why does X require Y?" beats "What is X?"
+- **Include one mission-scenario question.** Ground it in their real work.
+- **Cards are due immediately** after the lesson (SM-2 starts at interval=0).
+
 ## Before Publishing a Lesson
 
 Quick sanity check after writing:
@@ -337,6 +385,7 @@ Quick sanity check after writing:
 - [ ] Factual claims cited or framed as general
 - [ ] Jargon annotated (run the jargon skill)
 - [ ] Reference doc generated alongside
+- [ ] Spaced repetition questions generated (3-5 per lesson)
 - [ ] "What's Next" section present
 
 ## It's Working If
