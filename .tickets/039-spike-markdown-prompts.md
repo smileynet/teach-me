@@ -15,13 +15,45 @@ Should we store card prompts and answers as markdown (with inline code, bold, li
 
 ## What to try
 
-1. Write 3-5 test cards with markdown formatting:
+1. Add `rich` to project dependencies (`mise run setup`)
+2. Update `review.py` to render prompts/answers via `rich.markdown.Markdown` inside `rich.panel.Panel`
+3. Write 3-5 test cards with markdown formatting:
    - Inline code: "Explain what `OPTIMIZE` does to manifest files"
    - Bold emphasis: "Why is **snapshot isolation** critical for concurrent writes?"
-   - Code fence: multi-line code in expected_answer
-2. In terminal: render via `rich.markdown.Markdown` (subset: bold, code, lists, headers)
-3. In HTML: render via `marked.js` or server-side `markdown-it`
-4. Evaluate: does markdown add clarity, or is it noise for explain-to-colleague questions?
+   - Lists in expected_answer: key points as bullet list
+   - Fenced code block in expected_answer (SQL example)
+4. Run review in terminal — verify rendering
+5. Evaluate: does markdown add clarity for explain-to-colleague format?
+
+## Implementation pattern (from Rich exploration)
+
+```python
+from rich.console import Console
+from rich.panel import Panel
+from rich.markdown import Markdown
+from rich.rule import Rule
+
+console = Console()
+
+# Display question
+console.print(Panel(
+    Markdown(card.prompt),
+    title=f"[bold]Review[/bold] ({card.question_type})",
+    border_style="blue"
+))
+
+# After learner responds...
+console.print(Rule("Answer", style="dim"))
+console.print(Panel(
+    Markdown(card.expected_answer),
+    border_style="green"
+))
+```
+
+## Dependencies
+
+- `pip install rich` (pulls in Pygments + markdown-it-py transitively)
+- These handle both markdown rendering AND syntax highlighting for fenced code blocks
 
 ## Key decision
 

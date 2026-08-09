@@ -15,10 +15,34 @@ Can we extend SR cards to include syntax-highlighted code blocks that render wel
 
 ## What to try
 
-1. Add `prompt_code` and `answer_code` optional fields to Card schema (language + content)
-2. In `review.py`: render code via `rich.syntax.Syntax` with `ansi_dark` theme
-3. In quick-check HTML page: render via `<pre><code class="language-X">` + highlight.js
-4. Generate a test card with a Python code block, review it in both paths
+1. Add `prompt_code` and `answer_code` optional fields to Card dataclass:
+   ```python
+   prompt_code: dict | None = None   # {"language": "python", "content": "def foo():..."}
+   answer_code: dict | None = None   # {"language": "sql", "content": "SELECT..."}
+   ```
+2. In `review.py`: when `prompt_code` is present, render via `rich.syntax.Syntax`:
+   ```python
+   from rich.syntax import Syntax
+   code = Syntax(card.prompt_code["content"], card.prompt_code["language"],
+                 theme="ansi_dark", padding=1, line_numbers=True)
+   console.print(Panel(Group(Markdown(card.prompt), code), title="Question", border_style="blue"))
+   ```
+3. In quick-check HTML page: render via `<pre><code class="language-python">` + highlight.js
+4. Generate test cards:
+   - "What's wrong with this query?" + SQL code block
+   - "Explain what this function does" + Python code block
+5. Verify both terminal and HTML rendering
+
+## Key learnings from repeater
+
+- Fenced code blocks inside card content are preserved verbatim through parsing
+- `ansi_dark` theme respects terminal palette (pairs with our theme system)
+- `line_numbers` and `highlight_lines` options available for emphasizing specific lines
+
+## Dependencies
+
+- `rich` (already added for spike 039)
+- No new deps — Pygments (syntax highlighting engine) comes with Rich
 
 ## Dependencies
 

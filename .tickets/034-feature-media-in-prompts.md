@@ -1,7 +1,7 @@
 ---
 id: "034"
 title: "Research: media and rich content in SR prompts — prior art and spike recommendations"
-status: open
+status: done
 priority: medium
 blocked_by: []
 type: research
@@ -37,7 +37,15 @@ How do existing SR/flashcard systems handle rich content (diagrams, code, format
 
 ## Acceptance criteria
 
-- [ ] Research findings documented in `.scratch/research/034-media-in-prompts.md`
-- [ ] At least 2 reference repos cloned to `.references/` and explored
-- [ ] Spike recommendation with effort estimate (which approach, what deps, what tradeoffs)
-- [ ] Decision: which rich content type to implement first (code blocks? diagrams? markdown?)
+- [x] Research findings documented in `.scratch/research/034-media-in-prompts.md`
+- [x] At least 2 reference repos cloned to `.references/` and explored
+- [x] Spike recommendation with effort estimate (which approach, what deps, what tradeoffs)
+- [x] Decision: which rich content type to implement first (code blocks? diagrams? markdown?)
+
+## Resolution (2026-08-09)
+
+Research complete. Findings in `.memory/034-rich-content-proposal.md`. Repos explored: repeater, cert-pepper, rich.
+
+**Decision:** Markdown rendering first (spike 039, no schema change, 1hr). Then code blocks (037, 2hr). Diagram refs (038) last and lowest value.
+
+**Key insight:** No schema change needed for markdown — prompts/answers already support it, we just need to upgrade the renderer to Rich. Only code blocks need a new optional field.
