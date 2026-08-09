@@ -297,6 +297,8 @@ If they can't, the reference is missing the conceptual model or the facts aren't
 
 After delivering a lesson, have a conversation with the learner to help them think through what they've learned. The goal isn't evaluation — it's helping them build confidence that they can explain and apply the concepts.
 
+This is what `quiz-me` does. When the learner returns for the next session, the agent should start with a brief conversation about the previous lesson before producing new material. The `quiz-me` skill can also be invoked explicitly by the learner at any time.
+
 ### How it works
 
 Ask the learner to explain a core concept in their own words. Then help them think through it — ask follow-ups, offer worked examples, probe gently. Continue until they feel confident in their understanding.
