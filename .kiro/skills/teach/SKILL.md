@@ -191,14 +191,19 @@ When the learner's mission involves *applying* knowledge (not just understanding
 ```html
 <div class="next-steps">
   <h3>Check Your Understanding</h3>
-  <p><strong>Exercise:</strong> [Task description — what to figure out, not how]</p>
-  <details><summary>Hint 1</summary><p>...</p></details>
-  <details><summary>Hint 2</summary><p>...</p></details>
-  <details><summary>Answer</summary><p>...</p></details>
+  <p><strong>Exercise:</strong> [A question that tests WHY, not WHAT]</p>
+  <details><summary>Hint</summary><p>...</p></details>
+  <details><summary>Key points to hit</summary><p>...</p></details>
 </div>
 ```
 
-Not every lesson needs one. Skip if the lesson is purely conceptual orientation and the learner isn't expected to apply it yet.
+**Test understanding, not recall.** Good exercises ask the learner to explain, compare, or defend — not to recite steps or trace a diagram mechanically.
+
+- Good: "Your customer asks X. Explain why the naive approach breaks and what this design does differently."
+- Bad: "List the five layers in order." (that's recall, not understanding)
+- Bad: "Trace the query path from A to B." (mechanical, doesn't require insight)
+
+The exercise should be answerable by someone who *understands* the lesson's core insight, even if they can't remember every detail.
 
 ## The Mission
 
