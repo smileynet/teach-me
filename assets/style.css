@@ -113,3 +113,18 @@ th { background: var(--code-bg); font-weight: 600; }
   a { color: var(--text); }
   .next-steps { border: 1px solid var(--border); }
 }
+
+details {
+  margin: 1rem 0;
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid var(--border);
+  border-radius: 0 4px 4px 0;
+}
+details[open] { background: var(--code-bg); }
+details summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+details summary:hover { color: var(--link); }
+details[open] summary { margin-bottom: 0.5rem; }

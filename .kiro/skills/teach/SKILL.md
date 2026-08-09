@@ -135,6 +135,37 @@ At the bottom of the lesson (before `</body>`), include a glossary JSON block an
 
 Also link `assets/glossary.css` in the `<head>`. After the lesson, add any new terms to `.memory/CONTEXT.md`.
 
+### Collapsible Details
+
+Use `<details>` for content that's useful but not required to follow the lesson. Three use cases:
+
+```html
+<!-- Deep dive: optional "why" or "how" beyond the core explanation -->
+<details>
+<summary>How does pruning actually work?</summary>
+<p>Each manifest file records min/max values per column...</p>
+</details>
+
+<!-- Practical note: operational detail for later reference -->
+<details>
+<summary>What does compaction look like in practice?</summary>
+<p>You run a periodic job that merges small manifest files...</p>
+</details>
+
+<!-- Reminder (for multi-lesson workspaces): restate a prior concept -->
+<details>
+<summary>Reminder: how snapshots work</summary>
+<p>Each snapshot is a frozen view of which files belong to the table...</p>
+</details>
+```
+
+**When to use:** The core lesson path should be understandable without opening any `<details>`. Use them for:
+- Deeper "why" that would interrupt flow
+- Operational/practical notes the learner may want later
+- Prior-concept reminders in later lessons
+
+**When NOT to use:** Don't hide core content. If the learner needs it to understand the lesson's point, it belongs in the main flow.
+
 ## The Mission
 
 Every lesson should be tied into the mission - the reason that the user is interested in learning about the topic.

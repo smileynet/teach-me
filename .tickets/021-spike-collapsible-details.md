@@ -1,7 +1,7 @@
 ---
 id: "021"
 title: "Spike: collapsible details pattern (deep dives, reminders, hints)"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: spike
@@ -33,7 +33,7 @@ Current lesson 1 has no collapsible content. All information is inline at the sa
 
 ## Acceptance criteria
 
-- [ ] `<details>` CSS added to style.css
-- [ ] 2-3 examples added to lesson 1
-- [ ] Teach skill documents when to use each variant
-- [ ] Before/after comparison presented
+- [x] `<details>` CSS added to style.css
+- [x] 2-3 examples added to lesson 1
+- [x] Teach skill documents when to use each variant
+- [x] Before/after comparison presented

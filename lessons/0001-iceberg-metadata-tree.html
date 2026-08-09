@@ -74,6 +74,11 @@ Each layer answers a different question. The catalog says "where is the current 
 <h3>No more file listing</h3>
 <p>Query engines read the manifest files to find exactly which data files to scan — they never list S3 directories. The manifests also carry column-level stats, so the engine can <em>skip entire files</em> that can't contain matching rows. This is called <strong>manifest-level pruning</strong>. <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/introduction.html" class="citation">[AWS Prescriptive Guidance]</a></p>
 
+<details>
+<summary>How does pruning actually work?</summary>
+<p>Each manifest file records min/max values per column for every data file it references. When a query has a <code>WHERE timestamp > '2024-06-01'</code> predicate, the engine checks the manifest stats first. If a data file's max timestamp is <code>2024-05-15</code>, that entire file is skipped without opening it. This can eliminate 90%+ of I/O for selective queries.</p>
+</details>
+
 <h3><span class="term" data-term="mvcc">Snapshot isolation (MVCC)</span></h3>
 <p>Every write creates a new <strong><span class="term" data-term="snapshot">snapshot</span></strong> — a manifest list pointing to the file set as of that write. Readers see a consistent view by reading from a snapshot. Writers create a new snapshot atomically (the catalog pointer updates, or it doesn't). No partial reads, no coordination needed between readers and writers.</p>
 
@@ -126,7 +131,12 @@ Iceberg is a <strong>file-tracking metadata tree on top of object storage</stron
 <h2>Limitations Worth Knowing</h2>
 
 <ul>
-  <li><strong>Metadata accumulates.</strong> Every write adds metadata files and manifests. Without compaction (called "rewriting manifests" or table maintenance), metadata bloats and query planning slows. This is an operational concern for the PoC.</li>
+  <li><strong>Metadata accumulates.</strong> Every write adds metadata files and manifests. Without compaction (called "rewriting manifests" or table maintenance), metadata bloats and query planning slows. This is an operational concern for the PoC.
+  <details>
+  <summary>What does compaction look like in practice?</summary>
+  <p>You run a periodic job (e.g., daily via Glue or Spark) that merges small manifest files into fewer, larger ones and removes snapshots older than a retention threshold. AWS Glue has a built-in OPTIMIZE command for this.</p>
+  </details>
+  </li>
   <li><strong>Catalog is a single point of coordination.</strong> Concurrent writers must go through the catalog for atomic commit. On AWS, Glue handles this — but its throughput has limits (more on this in a later lesson).</li>
   <li><strong>Not a query engine.</strong> Iceberg is a table format — it doesn't execute queries. You still need Athena, Spark, Trino, etc. on top.</li>
 </ul>
