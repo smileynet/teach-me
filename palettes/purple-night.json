@@ -1,0 +1,21 @@
+{
+  "name": "Purple Night",
+  "mode": "dark",
+  "tokens": {
+    "bg": "#13111C",
+    "bg-elevated": "#1C1A2E",
+    "bg-surface": "#252340",
+    "text": "#CDD6F4",
+    "text-muted": "#9399B2",
+    "text-faint": "#6C7086",
+    "accent": "#CBA6F7",
+    "link": "#89B4FA",
+    "border": "#313244",
+    "code-bg": "#1E1E2E",
+    "success": "#A6E3A1",
+    "warning": "#F9E2AF",
+    "error": "#F38BA8",
+    "callout-bg": "#1E293B",
+    "key-concept-bg": "#2D1F0E"
+  }
+}

@@ -2,7 +2,7 @@
 
 /* --- Term styling --- */
 .term {
-  text-decoration: underline dotted var(--muted, #6c757d);
+  text-decoration: underline dotted var(--text-muted, #9399B2);
   text-underline-offset: 3px;
   cursor: help;
   position: relative;
@@ -82,7 +82,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--muted, #6c757d);
+  color: var(--text-muted, #9399B2);
   padding: 0.25rem;
 }
 .glossary-tray-close:hover { color: var(--text, #1a1a1a); }
@@ -102,7 +102,7 @@
 }
 .glossary-tray-term-def {
   line-height: 1.6;
-  color: var(--muted, #a1a1aa);
+  color: var(--text-muted, #9399B2);
 }
 
 /* List view */
