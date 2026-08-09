@@ -15,24 +15,16 @@ When a concept from a prior lesson reappears, explicitly naming it ("Remember fr
 
 ## What to build
 
-Since we only have one lesson currently, this spike focuses on the teach skill guidance + a synthetic example showing how lesson 2 would reference lesson 1 concepts.
+Lightweight: when the teach skill references a prior concept, include a one-sentence reminder inline. No formal "callback pattern" — just good writing practice.
 
-1. Update teach skill: when referencing prior concepts, name the lesson and restate briefly
-2. Write a short mock opening for a hypothetical "Lesson 2" that demonstrates the callback pattern
-3. Include the expandable reminder variant for concepts 3+ lessons old
+1. Update teach skill: "When referencing a concept from a prior lesson, briefly restate it in one clause — don't assume the learner remembers."
+2. Example: "The manifest list (the file that tracks which data files belong to this snapshot) also stores..."
 
-## Baseline
-
-Current teach skill says "read learning records to calculate ZPD" but doesn't prescribe HOW to reference prior learning in lesson prose.
-
-## Compare against
-
-- Does the callback feel natural or forced?
-- Is the restatement brief enough to not patronize?
-- Does the expandable reminder work for "maybe you forgot" situations?
+That's it. No mock lessons, no expandable reminders (covered by 021 if needed), no formal framework.
 
 ## Acceptance criteria
 
-- [ ] Teach skill documents callback pattern with examples
-- [ ] Mock lesson-2 opening demonstrates the technique
-- [ ] Comparison presented: lesson with callbacks vs without
+- [x] ~~Teach skill documents callback pattern with examples~~ Simplified
+- [ ] Teach skill says: restate prior concepts briefly on reuse
+- [ ] One example in the skill showing good vs bad
+- [ ] ~~Mock lesson-2 opening~~ Removed — premature

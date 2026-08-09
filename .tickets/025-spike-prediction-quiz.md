@@ -1,7 +1,7 @@
 ---
 id: "025"
 title: "Spike: prediction quiz (guess before reading)"
-status: open
+status: discarded
 priority: high
 blocked_by: []
 type: spike

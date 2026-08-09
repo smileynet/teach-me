@@ -1,7 +1,7 @@
 ---
 id: "027"
 title: "Spike: scaffold withdrawal (reduce hand-holding over time)"
-status: open
+status: discarded
 priority: high
 blocked_by: ["022"]
 type: spike

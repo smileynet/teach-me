@@ -1,7 +1,7 @@
 ---
 id: "020"
 title: "Spike: problem-first lesson opening"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: spike
