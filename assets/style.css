@@ -1,5 +1,22 @@
-/* teach-me shared styles — Tufte-inspired, readable, printable */
+/* teach-me shared styles — dark-first, readable, printable */
+
+/* --- Dark mode (default) --- */
 :root {
+  --text: #e4e4e7;
+  --bg: #18181b;
+  --accent: #f87171;
+  --muted: #a1a1aa;
+  --border: #3f3f46;
+  --code-bg: #27272a;
+  --link: #60a5fa;
+  --key-concept-bg: #422006;
+  --key-concept-border: #d97706;
+  --callout-bg: #172554;
+  --callout-border: #60a5fa;
+}
+
+/* --- Light mode --- */
+[data-theme="light"] {
   --text: #1a1a1a;
   --bg: #fffff8;
   --accent: #e63946;
@@ -7,6 +24,10 @@
   --border: #dee2e6;
   --code-bg: #f5f5f0;
   --link: #2563eb;
+  --key-concept-bg: #fef3c7;
+  --key-concept-border: #f59e0b;
+  --callout-bg: #eff6ff;
+  --callout-border: #2563eb;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,6 +41,7 @@ body {
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
   line-height: 1.7;
+  transition: background 0.2s, color 0.2s;
 }
 
 h1 { font-size: 2rem; margin-bottom: 0.5rem; font-weight: 600; }
@@ -80,16 +102,16 @@ th { background: var(--code-bg); font-weight: 600; }
 }
 
 .key-concept {
-  background: #fef3c7;
-  border-left: 4px solid #f59e0b;
+  background: var(--key-concept-bg);
+  border-left: 4px solid var(--key-concept-border);
   padding: 0.75rem 1rem;
   margin: 1.5rem 0;
   border-radius: 0 4px 4px 0;
 }
 
 .callout {
-  background: #eff6ff;
-  border-left: 4px solid var(--link);
+  background: var(--callout-bg);
+  border-left: 4px solid var(--callout-border);
   padding: 0.75rem 1rem;
   margin: 1.5rem 0;
   border-radius: 0 4px 4px 0;
@@ -108,12 +130,31 @@ th { background: var(--code-bg); font-weight: 600; }
   vertical-align: super;
 }
 
-@media print {
-  body { max-width: 100%; padding: 1rem; }
-  a { color: var(--text); }
-  .next-steps { border: 1px solid var(--border); }
+/* --- SVG diagrams: constrained to content width --- */
+svg[role="img"] {
+  display: block;
+  margin: 1.5rem auto;
+  max-width: min(100%, 500px);
+  height: auto;
 }
 
+/* --- Theme toggle --- */
+.theme-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  z-index: 100;
+}
+.theme-toggle:hover { border-color: var(--link); }
+
+/* --- Details/collapsible --- */
 details {
   margin: 1rem 0;
   padding: 0.5rem 0.75rem;
@@ -128,3 +169,11 @@ details summary {
 }
 details summary:hover { color: var(--link); }
 details[open] summary { margin-bottom: 0.5rem; }
+
+/* --- Print --- */
+@media print {
+  body { max-width: 100%; padding: 1rem; color: #000; background: #fff; }
+  a { color: #000; }
+  .next-steps { border: 1px solid #ccc; }
+  .theme-toggle { display: none; }
+}
