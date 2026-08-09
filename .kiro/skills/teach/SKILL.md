@@ -268,97 +268,59 @@ You should attempt to find high-reputation communities the user can join. If the
 
 When writing a lesson, simultaneously produce a companion reference doc in `reference/`. The lesson teaches; the reference doc is what the learner pulls up at work.
 
-**Lessons are rarely revisited. Reference docs are.** They should be the compressed, scannable essence — designed for a quick lookup during a meeting or architecture review, not for reading start-to-finish.
+**Lessons are rarely revisited. Reference docs are.** They should capture the conceptual model and key facts — designed for a quick lookup during a meeting, architecture review, or decision-making.
+
+### What a reference doc captures
+
+1. **The core concept** — the mental model in one sentence ("Iceberg is a metadata tree that replaces file listing")
+2. **The key visual** — the diagram that makes the concept stick
+3. **Facts in lookup form** — tables, not paragraphs
+4. **Decision aids** — "when X, do Y" (if applicable to the topic)
+5. **Terms introduced** — short definitions for the vocabulary this lesson added
+
+The reference doc is NOT a summary of the lesson. It's the *conceptual model plus the facts you'd look up*. If the lesson explains why something works, the reference shows what it is and how to use it.
 
 ### Generating references
 
-Produce `reference/NNNN-slug.html` alongside each lesson in the same authoring pass. Same stylesheet, different structure:
-
-```
-reference/0001-iceberg-metadata-tree.html
-├── One-liner summary (the elevator pitch)
-├── Key visual (same diagram from lesson or simplified)
-├── Facts table (the core information in lookup form)
-├── Terms introduced (short definitions)
-└── Link: "Full explanation → [lesson]"
-```
-
-### What belongs where
-
-| In the lesson | In the reference |
-|---------------|-----------------|
-| Why this matters | What it is (one sentence) |
-| The problem it solves | The solution (visual + table) |
-| Explanation of mechanics | The facts (no narrative) |
-| Citations and sources | Nothing — the lesson has them |
-| Exercises and gates | Nothing interactive |
-| Collapsible deep dives | Nothing optional — everything here is essential |
-
-### Cross-linking
-
-- Lesson ends with: `Reference: [Iceberg Metadata Tree →](../reference/0001-...)`
-- Reference ends with: `Full lesson: [The Iceberg Metadata Tree →](../lessons/0001-...)`
+Produce `reference/NNNN-slug.html` alongside each lesson in the same authoring pass. Same stylesheet, different structure. Cross-link both directions.
 
 ### The test
 
-A colleague who never read the lesson should be able to use the reference doc to answer a factual question. If they can't, the reference isn't compressed enough or is missing something essential.
+A colleague who never read the lesson should be able to:
+- Understand the core concept from the reference alone
+- Look up a specific fact (what layer stores what, where it lives)
+- Make a decision using the reference as support
+
+If they can't, the reference is missing the conceptual model or the facts aren't scannable enough.
 
 ## Socratic Gate
 
-After delivering a lesson, initiate a brief conversational exchange before progressing. The learner explains; you probe. This simulates the conversations they'll have at work.
+After delivering a lesson, have a conversation with the learner to help them think through what they've learned. The goal isn't evaluation — it's helping them build confidence that they can explain and apply the concepts.
 
-### The flow
+### How it works
 
-```
-Lesson delivered → Learner reads → You ask ONE probing question →
-Learner explains in their own words → You follow up once if needed →
-Understanding confirmed → Learning record written → Ready for next
-```
+Ask the learner to explain a core concept in their own words. Then help them think through it — ask follow-ups, offer worked examples, probe gently. Continue until they feel confident in their understanding.
 
-### Framing the question
+The conversation should feel like talking through an idea with a colleague, not like an oral exam.
 
-The gate question should simulate a real conversation from the learner's mission:
+### What to ask
 
-- Good: "If a data producer asks you why they can't just partition by date and let Glue crawl it, what would you tell them?"
-- Good: "Your architect asks: what guarantees do we get if two teams write simultaneously? Walk me through it."
-- Bad: "Name the five layers." (recall, not application)
-- Bad: "Define MVCC." (textbook, not conversational)
+Frame questions around the learner's actual mission — the conversations they'll have at work:
 
-Frame as: "[Person from their mission context] asks: [realistic question]. What do you tell them?"
+- "How would you explain [concept] to [person from their context]?"
+- "If someone asked you [realistic question], what would you say?"
+- "Walk me through what happens when [scenario relevant to their work]"
 
-### Dialog rules
+### What NOT to do
 
-- **2-3 exchanges max.** Not an interrogation.
-- **The learner explains, you probe.** Don't re-teach during the gate. Ask "what enables that?" or "what would break without it?"
-- **Follow-ups go deeper, not wider.** Drill into the answer given; don't pivot topics.
-- **If stuck after 2 attempts:** "Let's revisit [specific section] — the key thing is [one sentence pointer]." Don't re-explain from scratch.
-- **Graceful exit:** If the learner says "I want to move on" — accept it. Record what wasn't demonstrated. No guilt.
+- Don't ask recall questions ("name the five layers")
+- Don't grade or score
+- Don't block progression — if the learner wants to move on, let them
+- Don't re-teach the lesson — ask questions that help *them* articulate it
 
-### Learning record from the gate
+### After the conversation
 
-After the exchange, write a learning record capturing:
-- What was demonstrated (concepts the learner explained correctly)
-- What wasn't (gaps, partial understanding, skipped)
-- This feeds ZPD calculation for the next lesson
-
-### Example
-
-```
-You: "Before we move on — imagine your customer's data architect asks:
-     'Why do we need Iceberg? We already have Glue crawlers discovering
-     our partitions.' What's your answer?"
-
-Learner: "Because crawlers still list S3, which is slow at scale, and
-         there's no consistency guarantee during a crawl."
-
-You: "Good — listing and isolation. What does Iceberg use instead of
-     listing to find files?"
-
-Learner: "The manifest files track which data files exist, with stats
-         per file, so the engine reads manifests instead of listing."
-
-You: "That's the core insight. Ready for the next topic?"
-```
+Write a learning record capturing what the learner demonstrated understanding of, and any concepts they're still working through. This drives what gets taught next.
 
 ## `NOTES.md`
 
@@ -377,25 +339,22 @@ Quick sanity check after writing:
 
 ## It's Working If
 
-Observable indicators that this system is performing well:
-
-- First action in an empty workspace is a mission interview — not a lesson
-- RESOURCES.md populates before lessons — the agent researches, then teaches from what it found
-- Claims in lessons carry citations — a lesson with no links out is teaching from memory
-- Each lesson gives one tangible win tied to the mission — not abstract knowledge
-- The gate dialog feels like rehearsing a work conversation — not taking an exam
-- Learning records capture what was *demonstrated*, not just *covered* — later lessons build on that
-- Reference docs are useful standalone — the learner pulls one up in a meeting and it helps
-- Fresh sessions in the workspace continue where it left off — the folder is the continuity
-- The glossary annotates terms the learner doesn't know, skips ones they obviously do
-- Wisdom questions get pointed to a community or resource, not just answered
+- The first thing it does in an empty workspace is ask why the learner wants this — not produce a lesson
+- RESOURCES.md fills before lessons do, and each lesson names a primary source worth reading yourself
+- Claims in lessons carry links out. A lesson with no citations is teaching from memory.
+- A lesson takes one sitting and leaves the learner able to explain one thing they couldn't before
+- After the lesson, the learner can talk through the concepts in their own words — and feels ready to
+- Reference docs are useful at work — the learner pulls one up in a meeting and it helps
+- Opening a fresh session in the workspace continues the course, not restarts it
+- Learning records grow, and lessons stop re-teaching what's already been demonstrated
+- Lessons look like one course — they share a stylesheet and visual language
+- A question that needs real-world judgment gets a resource pointer, not just an answer
 
 ## It's NOT Working If
 
 - It produces a lesson before understanding why the learner cares
-- Lessons cite no sources — teaching from parametric memory
-- The learner can say "next lesson" without any conversational check
-- Reference docs are just shorter lessons (narrative) not scannable artifacts
-- The gate asks "what is X?" instead of "explain to [person] why..."
-- Every lesson re-explains concepts already demonstrated in learning records
+- Lessons cite no sources — the agent is teaching from memory
+- The learner reads lessons but never explains anything back
+- Reference docs read like shorter lessons instead of scannable lookup artifacts
+- Every lesson re-explains concepts from lesson 1 regardless of what's been demonstrated
 - The workspace accumulates files but the learner can't have better conversations at work
