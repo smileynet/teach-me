@@ -110,11 +110,11 @@ $ python tools/sr-analytics.py
 
 ```toml
 [tasks.sr]
-description = "Show SR status (what's due, health summary)"
+description = "Show SR status (what's due, health summary). Pass topic slug to filter."
 run = "python tools/sr-status.py"
 
 [tasks."sr:review"]
-description = "Start an interactive review session (surfaces due cards)"
+description = "Start a review session. Pass topic slug to narrow, or review all due."
 run = "python tools/review.py"
 
 [tasks."sr:stats"]
@@ -132,8 +132,12 @@ run = "python tools/sr-lifecycle.py"
 
 **Usage pattern:**
 - `mise run sr` — daily check at session start ("do I have reviews?")
-- `mise run sr:review` — do the actual review session
+- `mise run sr -- iceberg-on-aws` — status for one topic
+- `mise run sr -- --list` — show all topics with due counts
+- `mise run sr:review` — review all due cards (interleaved, recommended)
+- `mise run sr:review -- iceberg-on-aws` — review one topic only
 - `mise run sr:stats` — periodic health check
+- `mise run sr:stats -- iceberg-on-aws` — analytics for one topic
 - `mise run sr:check` — after writing a lesson (quality gate)
 - `mise run sr:lifecycle sync-lessons` — after editing a lesson
 
@@ -234,10 +238,73 @@ Trigger: "review", "what's due", "spaced repetition", "practice"
 | Priority | What | Why |
 |----------|------|-----|
 | 1 | `sr-status.py` + `mise run sr` | Cheapest high-value add — makes SR visible at session start |
-| 2 | `sr-check.py` + quality gate in teach skill | Prevents bad cards from entering rotation |
-| 3 | `sr-analytics.py` retrievability estimate | "What do I actually know right now?" |
-| 4 | `sr-lifecycle.py` suspend/retire/sync | Operational necessity once cards accumulate |
-| 5 | FSRS migration | After 50+ reviews accumulated, optimize parameters |
+| 2 | Topic filtering across all SR commands | Core UX: `--topic` narrows, no arg = all (research-backed) |
+| 3 | `sr-check.py` + quality gate in teach skill | Prevents bad cards from entering rotation |
+| 4 | `sr-analytics.py` retrievability estimate | "What do I actually know right now?" |
+| 5 | `sr-lifecycle.py` suspend/retire/sync | Operational necessity once cards accumulate |
+| 6 | FSRS migration | After 50+ reviews accumulated, optimize parameters |
+
+---
+
+## Topic/Category Filtering (research-backed design)
+
+### Principle: Interleaved by default, focused on request
+
+Research shows interleaved review (mixing topics) produces stronger long-term retention (d=0.83–1.05) than blocked review. Default to reviewing all due cards across all topics. Filtering is explicit opt-in.
+
+### CLI syntax (follows repeater/pytest/cargo convention)
+
+```bash
+# Default: review all due cards (interleaved across topics)
+mise run sr:review
+
+# Narrow to one topic (positional = scope narrowing)
+mise run sr:review -- iceberg-on-aws
+
+# Status for one topic
+mise run sr -- iceberg-on-aws
+
+# Stats for one topic
+mise run sr:stats -- iceberg-on-aws
+
+# List available topics with card counts
+mise run sr -- --list
+```
+
+### Implementation across all scripts
+
+Every SR script accepts an optional positional topic slug:
+
+```python
+# In review.py, sr-status.py, sr-analytics.py, etc.
+parser.add_argument("topic", nargs="?", default=None,
+                    help="Topic slug to filter (default: all topics)")
+parser.add_argument("--list", "-l", action="store_true",
+                    help="List topics with due/total counts")
+```
+
+Behavior:
+- **No argument** → operates on ALL topics (interleaved)
+- **Topic slug** → filters to that topic only
+- **`--list`** → shows available topics with counts, no review
+
+### Filtered reviews DO affect scheduling
+
+Following Anki's "reschedule" default: when you review a card via topic filter, it updates the card's SM-2 state and interval normally. This is the safe default — the alternative (Mochi's "cramming" mode where reviews don't count) is only needed for exam prep scenarios we don't have.
+
+### Why not tags?
+
+Our taxonomy is simple: one topic per teaching workspace (e.g., `iceberg-on-aws`). The topic slug IS the filename (`learning-records/questions/<slug>.jsonl`). Tags exist within cards for finer filtering later, but the primary axis is topic. This follows the filesystem-as-taxonomy pattern that CLI users already understand.
+
+### Future: tag-based sub-filtering
+
+If a learner wants to review only "query-planning" cards within iceberg-on-aws:
+
+```bash
+mise run sr:review -- iceberg-on-aws --tag query-planning
+```
+
+This is a later addition — topic filtering covers the primary JTBD.
 
 ---
 
