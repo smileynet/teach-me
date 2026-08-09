@@ -1,50 +1,48 @@
 ---
 id: "030"
-title: "Feature: 'it's working if' success criteria for teach skill"
+title: "Feature: 'it's working if' system performance criteria"
 status: open
 priority: high
 blocked_by: ["028", "029"]
 type: feature
 ---
 
-# Feature: "it's working if" success criteria
+# Feature: "it's working if" system performance criteria
 
-## What to build
+## What this is
 
-Add explicit success criteria to the teach skill — observable indicators that the system is functioning well, grounded in the JTBD: "I need to understand this well enough to do my job."
+Observable indicators that the teach-me system is performing well. Not evaluating the learner (the gate dialog does that) — evaluating whether the *system* is doing its job as a teaching tool.
 
-## The JTBD lens
-
-The learner isn't studying for a test. They're learning while delivering. Success = they can have the conversations at work, make the decisions, and advise the teams. The system should optimize for that.
+This is Pocock's pattern: success criteria for the skill itself. "You know this system is working if you observe these things. You know it's broken if you observe those things."
 
 ## Proposed criteria
 
 ### It's working if:
 
-- First action in an empty workspace is a mission interview — the agent won't teach without knowing WHY
-- RESOURCES.md fills before lessons — agent researches, then teaches from sources
-- Every lesson cites sources — no teaching from parametric memory
-- Lessons give one tangible win tied to the mission — not abstract knowledge for its own sake
-- The Socratic gate simulates conversations the learner will actually have at work
-- Learning records capture what was *demonstrated*, not just what was *covered*
-- Reference docs are scannable at work — a colleague could use one without context
-- The glossary defines terms the learner doesn't know (not ones they obviously do)
-- Sessions resume from workspace state — the folder is the continuity
-- After 3+ lessons, the agent adapts to demonstrated level (doesn't re-explain mastered concepts)
+- The first thing it does in an empty workspace is interview about mission, not produce a lesson
+- RESOURCES.md populates before lessons — it researches, then teaches from what it found
+- Claims in lessons carry citations. A lesson with no links is teaching from memory.
+- A lesson takes one sitting and leaves the learner able to explain one thing they couldn't before
+- The gate dialog feels like rehearsing a real work conversation, not taking an exam
+- Learning records grow, and later lessons build on demonstrated understanding rather than re-teaching
+- Reference docs are useful standalone — someone who never read the lesson can use one at their desk
+- Opening a fresh session in the workspace and saying "next lesson" continues where it left off
+- The glossary annotates terms the learner wouldn't know, and doesn't annotate obvious ones
+- A question that needs real-world judgment gets a resource pointer, not just an answer
 
 ### It's NOT working if:
 
-- The agent produces a lesson without being asked about the mission
-- Lessons teach from "what the model knows" without citing sources
-- The learner can say "next lesson" without any demonstration of understanding
-- Reference docs read like shorter lessons (narrative) instead of compressed lookup artifacts
-- The gate asks recall questions ("name the layers") instead of application questions ("explain to a skeptical engineer why...")
-- Every lesson re-explains concepts the learner has already demonstrated mastery of
-- The workspace accumulates files but the learner can't do their job any better
+- It produces a lesson before understanding why the learner cares
+- Lessons cite no sources — the agent is teaching from parametric memory
+- The learner can say "next lesson" without any conversational check
+- Reference docs are just shorter lessons (narrative) not scannable artifacts
+- The gate asks "what is X?" instead of "explain to [person from your mission] why..."
+- Every lesson re-explains concepts from lesson 1 regardless of learning records
+- The workspace accumulates files but the learner reports no improvement in their work conversations
 
 ## Acceptance criteria
 
 - [ ] "It's working if" section added to teach skill
-- [ ] Criteria grounded in JTBD, not in skill mechanics
+- [ ] Criteria evaluate the system, not the learner
+- [ ] Criteria are observable from workspace state + dialog patterns
 - [ ] "It's NOT working if" anti-patterns documented
-- [ ] Criteria are observable (you can tell from the workspace state and dialog)
