@@ -1,7 +1,7 @@
 ---
 id: "028"
 title: "Feature: reference docs generated alongside lessons"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: feature
@@ -57,15 +57,15 @@ reference/0001-iceberg-metadata-tree.html
 
 ## Validation
 
-- [ ] A colleague unfamiliar with the topic can use the reference doc to answer "what are the layers and where do they live?" without reading the lesson
-- [ ] The reference doc fits on one screen (no scrolling for the core content)
-- [ ] The teach skill generates both artifacts in one pass (not separate invocations)
-- [ ] Cross-links work in both directions
+- [x] A colleague unfamiliar with the topic can use the reference doc to answer "what are the layers and where do they live?" without reading the lesson
+- [x] The reference doc fits on one screen (no scrolling for the core content)
+- [x] The teach skill generates both artifacts in one pass (not separate invocations)
+- [x] Cross-links work in both directions
 
 ## Acceptance criteria
 
-- [ ] Teach skill documents reference doc generation as part of lesson authoring
-- [ ] Reference doc format defined with structure guidance
-- [ ] Lesson 1 gets a companion reference doc
-- [ ] Bidirectional cross-links between lesson and reference
-- [ ] Reference doc uses same stylesheet + theme (dark/light toggle works)
+- [x] Teach skill documents reference doc generation as part of lesson authoring
+- [x] Reference doc format defined with structure guidance
+- [x] Lesson 1 gets a companion reference doc
+- [x] Bidirectional cross-links between lesson and reference
+- [x] Reference doc uses same stylesheet + theme (dark/light toggle works)

@@ -1,7 +1,7 @@
 ---
 id: "029"
 title: "Feature: Socratic gate dialog before progression"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: feature
@@ -93,17 +93,17 @@ Agent: "That's the core insight. Ready for the next topic, or want to
 
 ## Validation
 
-- [ ] The gate question references people/scenarios from MISSION.md (not generic)
-- [ ] The learner demonstrates understanding in their own words (not parroting the lesson)
-- [ ] The exchange is ≤3 turns total (not an interrogation)
-- [ ] A learning record is produced after the exchange
-- [ ] If the learner opts out, it's recorded without penalty
+- [x] The gate question references people/scenarios from MISSION.md (not generic)
+- [x] The learner demonstrates understanding in their own words (not parroting the lesson)
+- [x] The exchange is ≤3 turns total (not an interrogation)
+- [x] A learning record is produced after the exchange
+- [x] If the learner opts out, it's recorded without penalty
 
 ## Acceptance criteria
 
-- [ ] Teach skill documents gate dialog as part of the lesson→next-lesson flow
-- [ ] Gate question framing guidance with good/bad examples
-- [ ] Dialog rules (2-3 max, probes deeper not wider, graceful exit)
-- [ ] Learning record format for gate outcomes
-- [ ] Example dialog showing the full exchange
-- [ ] The gate is conversational (Socratic), not evaluative (quiz)
+- [x] Teach skill documents gate dialog as part of the lesson→next-lesson flow
+- [x] Gate question framing guidance with good/bad examples
+- [x] Dialog rules (2-3 max, probes deeper not wider, graceful exit)
+- [x] Learning record format for gate outcomes
+- [x] Example dialog showing the full exchange
+- [x] The gate is conversational (Socratic), not evaluative (quiz)
