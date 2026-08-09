@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference: Iceberg Metadata Tree</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+</head>
+<body>
+
+<h1>Iceberg Metadata Tree</h1>
+<p class="lesson-meta">Reference · <a href="../lessons/0001-iceberg-metadata-tree.html">Full lesson →</a></p>
+
+<p><strong>One-liner:</strong> Iceberg is a file-tracking metadata tree on top of object storage — transactions, time travel, and schema evolution without a database, without rewriting data, without listing directories.</p>
+
+<h2>The Five Layers</h2>
+
+<table>
+  <tr><th>Layer</th><th>What it stores</th><th>Where it lives</th></tr>
+  <tr><td><strong>Catalog</strong></td><td>Pointer to current metadata file</td><td>AWS Glue Data Catalog</td></tr>
+  <tr><td><strong>Metadata file</strong></td><td>Schema, partition spec, snapshot history</td><td>JSON in S3 <code>metadata/</code></td></tr>
+  <tr><td><strong>Manifest list</strong></td><td>Which manifests belong to this snapshot</td><td>Avro in S3 <code>metadata/</code></td></tr>
+  <tr><td><strong>Manifest file</strong></td><td>Data file paths + per-file column stats</td><td>Avro in S3 <code>metadata/</code></td></tr>
+  <tr><td><strong>Data files</strong></td><td>Actual rows</td><td>Parquet in S3 <code>data/</code></td></tr>
+</table>
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 280" role="img" aria-labelledby="ref-diagram-title">
+<title id="ref-diagram-title">Iceberg metadata tree: catalog points to metadata, which points to manifests, which point to data files</title>
+<defs>
+<marker markerWidth="4.0" markerHeight="4.04" viewBox="-0.1 -0.51 1.0 1.01" orient="auto" id="arr">
+<path d="M-0.1,0.5 L-0.1,-0.5 L0.9,0 Z" fill="#374151" />
+</marker>
+</defs>
+<rect x="50" y="10" width="240" height="50" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5" />
+<text x="170" y="35" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">Catalog</text>
+<path d="M170,60 L170,80" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)" />
+<rect x="50" y="80" width="240" height="50" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" />
+<text x="170" y="105" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">Metadata File (JSON)</text>
+<path d="M170,130 L170,150" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)" />
+<rect x="50" y="150" width="240" height="50" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" />
+<text x="170" y="175" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">Manifest Files (Avro)</text>
+<path d="M170,200 L170,220" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)" />
+<rect x="50" y="220" width="240" height="50" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" />
+<text x="170" y="245" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">Data Files (Parquet)</text>
+</svg>
+
+<h2>Why This Design</h2>
+
+<table>
+  <tr><th>Problem</th><th>How Iceberg solves it</th></tr>
+  <tr><td>S3 listing is slow at scale</td><td>Manifests track files directly — no listing needed</td></tr>
+  <tr><td>No read isolation during writes</td><td>Snapshots give MVCC — readers see a frozen file set</td></tr>
+  <tr><td>Schema/partition changes require rewrites</td><td>Versioned specs — old files keep old schema, engine translates at read</td></tr>
+</table>
+
+<h2>Key Terms</h2>
+
+<table>
+  <tr><th>Term</th><th>Meaning</th></tr>
+  <tr><td>Snapshot</td><td>Frozen view of which files belong to the table at one point in time</td></tr>
+  <tr><td>Manifest-level pruning</td><td>Skipping data files whose column stats can't match the query predicate</td></tr>
+  <tr><td>Schema evolution</td><td>Changing columns without rewriting existing files — engine translates at read time</td></tr>
+  <tr><td>Partition spec</td><td>Versioned rule defining how data is split into partitions</td></tr>
+</table>
+
+<div class="next-steps">
+  <p><strong>Full lesson:</strong> <a href="../lessons/0001-iceberg-metadata-tree.html">The Iceberg Metadata Tree</a> — explains the why, the mechanics, and the AWS-specific mapping.</p>
+</div>
+
+<script src="../assets/theme-toggle.js"></script>
+</body>
+</html>

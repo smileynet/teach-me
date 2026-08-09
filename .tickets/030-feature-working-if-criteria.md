@@ -1,7 +1,7 @@
 ---
 id: "030"
 title: "Feature: 'it's working if' system performance criteria"
-status: open
+status: done
 priority: high
 blocked_by: ["028", "029"]
 type: feature
@@ -55,15 +55,15 @@ Add an "It's working if" section to the teach skill, followed by "It's NOT worki
 
 ## Validation
 
-- [ ] Each "working if" criterion is testable against the Iceberg workspace (our test fixture)
-- [ ] Criteria don't overlap with gate evaluation (system vs learner is a clean split)
-- [ ] Anti-patterns point to a specific fix (not just "it's bad")
-- [ ] A new contributor reading the criteria would know what quality looks like
+- [x] Each "working if" criterion is testable against the Iceberg workspace (our test fixture)
+- [x] Criteria don't overlap with gate evaluation (system vs learner is a clean split)
+- [x] Anti-patterns point to a specific fix (not just "it's bad")
+- [x] A new contributor reading the criteria would know what quality looks like
 
 ## Acceptance criteria
 
-- [ ] "It's working if" section added to teach skill (7-10 positive criteria)
-- [ ] "It's NOT working if" section added (5-7 anti-patterns)
-- [ ] Each criterion is observable without asking the learner to self-report
-- [ ] Each anti-pattern names what to fix
-- [ ] Reviewed against current Iceberg workspace to confirm: does lesson 1 pass these criteria?
+- [x] "It's working if" section added to teach skill (7-10 positive criteria)
+- [x] "It's NOT working if" section added (5-7 anti-patterns)
+- [x] Each criterion is observable without asking the learner to self-report
+- [x] Each anti-pattern names what to fix
+- [x] Reviewed against current Iceberg workspace to confirm: does lesson 1 pass these criteria?
