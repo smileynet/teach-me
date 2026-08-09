@@ -1,7 +1,7 @@
 ---
 id: "027"
 title: "Spike: scaffold withdrawal (reduce hand-holding over time)"
-status: discarded
+status: done
 priority: high
 blocked_by: ["022"]
 type: spike
@@ -34,10 +34,10 @@ Current teach skill treats every lesson independently. No mechanism to reduce ex
 
 ## Acceptance criteria
 
-- [ ] Teach skill documents the three stages (full → reminder → reference)
-- [ ] Mock example shows the progression across hypothetical lessons
-- [ ] Learning record integration described (how to count prior appearances)
-- [ ] Comparison presented
+- [x] Teach skill documents the three stages (full → reminder → reference)
+- [x] Mock example shows the progression across hypothetical lessons
+- [x] Learning record integration described (how to count prior appearances)
+- [x] Comparison presented
 
 ## Depends on
 

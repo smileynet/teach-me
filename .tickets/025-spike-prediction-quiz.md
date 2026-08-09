@@ -1,7 +1,7 @@
 ---
 id: "025"
 title: "Spike: prediction quiz (guess before reading)"
-status: discarded
+status: done
 priority: high
 blocked_by: []
 type: spike
@@ -32,8 +32,8 @@ Current quizzes appear at the end of lessons and test recall of material already
 
 ## Acceptance criteria
 
-- [ ] Prediction quiz demonstrated in lesson 1
-- [ ] Visually distinct from recall quizzes
-- [ ] Low-stakes framing ("take a guess, no wrong answers")
-- [ ] Teach skill documents when/where to place prediction questions
-- [ ] Before/after comparison presented
+- [x] Prediction quiz demonstrated in lesson 1
+- [x] Visually distinct from recall quizzes
+- [x] Low-stakes framing ("take a guess, no wrong answers")
+- [x] Teach skill documents when/where to place prediction questions
+- [x] Before/after comparison presented

@@ -37,3 +37,15 @@ _Avoid_: difficulty level
 **Storage strength**:
 Long-term retention — the real goal of teaching. Built through retrieval practice, spacing, interleaving.
 _Avoid_: fluency (that's in-the-moment recall, feels like mastery but isn't)
+
+**Reference doc**:
+A compressed, scannable companion to a lesson — what you pull up at work. Captures the conceptual model and key facts in lookup form. Generated alongside the lesson, not as a separate step.
+_Avoid_: summary, cheat sheet (though colloquially acceptable)
+
+**Socratic gate**:
+A brief conversation (via quiz-me) where the learner explains concepts in their own words before progressing. Tests understanding through dialog, not recall through quiz. Framed as work conversations from the mission.
+_Avoid_: exam, test, quiz (those imply scoring)
+
+**Jargon skill**:
+Post-authoring pass that annotates domain-specific terms with glossary tooltips. Three-gate filter: domain-specific, mental model wrong/absent, not explained inline.
+_Avoid_: glossary pass (the glossary is the component; jargon is the skill that populates it)

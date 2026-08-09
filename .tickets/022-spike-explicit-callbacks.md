@@ -27,4 +27,4 @@ That's it. No mock lessons, no expandable reminders (covered by 021 if needed), 
 - [x] ~~Teach skill documents callback pattern with examples~~ Simplified
 - [x] Teach skill says: restate prior concepts briefly on reuse
 - [x] One example in the skill showing good vs bad
-- [ ] ~~Mock lesson-2 opening~~ Removed — premature
+- [x] ~~Mock lesson-2 opening~~ Removed — premature
