@@ -70,6 +70,17 @@
   <tr><td>Partition spec</td><td>Versioned rule defining how data is split into partitions</td></tr>
 </table>
 
+<h2>When to Recommend Iceberg</h2>
+
+<table>
+  <tr><th>Recommend when</th><th>Don't recommend when</th></tr>
+  <tr><td>Multiple teams read/write the same tables</td><td>Single writer, append-only, never queried across partitions</td></tr>
+  <tr><td>Schema will evolve (new columns, type changes)</td><td>Schema is fixed forever and all consumers are controlled</td></tr>
+  <tr><td>Need query performance at scale (millions of files)</td><td>Small tables (&lt;1000 files) where listing is fine</td></tr>
+  <tr><td>Need time travel or audit trails</td><td>Storage cost is the primary concern and snapshots would bloat it</td></tr>
+  <tr><td>Multi-engine access (Athena + Spark + Trino)</td><td>Single engine, proprietary format is acceptable</td></tr>
+</table>
+
 <div class="next-steps">
   <p><strong>Full lesson:</strong> <a href="../lessons/0001-iceberg-metadata-tree.html">The Iceberg Metadata Tree</a> — explains the why, the mechanics, and the AWS-specific mapping.</p>
 </div>
