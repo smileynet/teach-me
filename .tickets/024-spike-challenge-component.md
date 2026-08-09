@@ -15,28 +15,21 @@ Challenges ("try it yourself" with progressive hints) build application skills t
 
 ## What to build
 
-1. Design the challenge HTML pattern (using `<details>` from ticket 021)
-2. Write a challenge for lesson 1: "Draw the manifest chain for a given query"
-3. Write a `challenge` skill that knows when and how to add challenges to lessons
-4. CSS for challenge blocks (distinct from quizzes — different visual treatment)
+A simple exercise pattern using `<details>` for optional practice. NOT required in every lesson — only added when the learner's mission involves *doing* (not just understanding).
 
-## Baseline
+1. HTML pattern: task description + progressive hints in `<details>` + solution in `<details>`
+2. Light CSS for exercise blocks (distinct from quiz — maybe a left border)
+3. Teach skill note: "Add a challenge when the mission involves application, not just comprehension"
 
-Currently lessons end with a quiz (recall-testing). No "apply this knowledge" exercises exist.
-
-## Compare against
-
-- Does the challenge feel achievable with just the lesson content?
-- Are progressive hints the right UX (vs just showing the answer)?
-- Does it feel distinct from quizzes or confusing alongside them?
+No separate `challenge` skill needed — it's a paragraph in the teach skill.
 
 ## Acceptance criteria
 
-- [ ] Challenge HTML pattern designed and demonstrated in lesson 1
-- [ ] Progressive hints work via `<details>` nesting
-- [ ] `challenge` skill created with guidance on when to use
-- [ ] Visual distinction between challenge blocks and quiz blocks
-- [ ] Before/after comparison presented
+- [ ] HTML pattern demonstrated in lesson 1 (one exercise)
+- [ ] Progressive hints via `<details>`
+- [ ] Teach skill documents when to include exercises (mission-dependent)
+- [ ] ~~`challenge` skill created~~ Not needed — covered in teach skill
+- [ ] ~~Visual distinction~~ Minimal — left border is enough
 
 ## Depends on
 

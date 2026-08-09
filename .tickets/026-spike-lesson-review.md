@@ -3,7 +3,7 @@ id: "026"
 title: "Spike: lesson-review checklist skill"
 status: open
 priority: high
-blocked_by: ["020", "021", "023"]
+blocked_by: ["021", "023"]
 type: spike
 ---
 
@@ -15,35 +15,24 @@ A post-authoring review skill that checks lessons against quality criteria catch
 
 ## What to build
 
-1. Create `lesson-review` skill that checks a written lesson against:
-   - [ ] Opens with problem/gap (not solution-first)
-   - [ ] End-state preview present
-   - [ ] At least one inline SVG diagram
-   - [ ] Sentence lengths within constraint (flag > 25 words)
-   - [ ] Callbacks to prior lessons where concepts recur
-   - [ ] Primary source linked
-   - [ ] "What's Next" section present
-   - [ ] Quiz or challenge present
-   - [ ] Glossary terms annotated (jargon skill ran)
-2. Run it against lesson 1 and report findings
+A lightweight post-authoring sanity check — not a bureaucratic process but a quick "did I miss anything obvious?" Probably just guidance in the teach skill rather than a separate skill.
 
-## Baseline
+Checks:
+- Brief context/orientation at the top (why this matters for the mission)
+- At least one diagram for architectural/conceptual content
+- Citations for factual claims
+- Jargon annotated (ran the jargon skill)
+- "What's Next" section present
 
-Currently there's no post-authoring quality gate. The teach skill has guidance but nothing verifies compliance.
-
-## Compare against
-
-- Does the checklist catch real issues?
-- Is it useful or just bureaucratic?
-- Should any checks be automated (reading level script) vs judgment calls?
+That's 5 items, not 10. Run mentally after writing, not as a formal tool invocation.
 
 ## Acceptance criteria
 
-- [ ] `lesson-review` skill created with the checklist
-- [ ] Run against lesson 1, findings reported
-- [ ] Clear distinction between automatable checks and judgment checks
-- [ ] Before/after: lesson 1 with vs without the review pass applied
+- [ ] Teach skill has a "Before publishing" checklist (5 items)
+- [ ] ~~Separate `lesson-review` skill~~ Not needed — it's a paragraph in teach
+- [ ] ~~Automated reading level script~~ Deferred unless proven needed
+- [ ] Run against lesson 1 to verify it passes
 
 ## Depends on
 
-Tickets 020, 021, 023 — the checklist references patterns from those spikes.
+Tickets 021, 023 — references patterns from those spikes.
