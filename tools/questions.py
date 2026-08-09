@@ -48,6 +48,9 @@ class Card:
     tags: list[str] = field(default_factory=list)
     suspended: bool = False
     mastered: bool = False  # graduated after interval > 180 days
+    # Rich content (optional)
+    prompt_code: dict | None = None   # {"language": "python", "content": "..."}
+    answer_code: dict | None = None   # {"language": "sql", "content": "..."}
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), ensure_ascii=False)

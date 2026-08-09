@@ -38,9 +38,10 @@ from sm2 import days_overdue, CardSchedule
 
 # Rich rendering (graceful fallback)
 try:
-    from rich.console import Console
+    from rich.console import Console, Group
     from rich.markdown import Markdown
     from rich.panel import Panel
+    from rich.syntax import Syntax
     from rich.table import Table
     from rich.text import Text
     RICH_AVAILABLE = True
@@ -60,12 +61,21 @@ def _render_card(card: Card, index: int, topic_slug: str, overdue: int) -> None:
     console = _console()
 
     if console and RICH_AVAILABLE:
-        # Rich rendering with markdown support
+        # Rich rendering with markdown + code support
         overdue_str = f"  [dim]({overdue}d overdue)[/dim]" if overdue > 0 else ""
         subtitle = f"[dim]{card.id[:8]}… · {topic_slug} · {card.question_type}[/dim]{overdue_str}"
 
+        # Build content: markdown prompt + optional code block
+        parts = [Markdown(card.prompt)]
+        if card.prompt_code:
+            lang = card.prompt_code.get("language", "text")
+            code = card.prompt_code.get("content", "")
+            parts.append(Syntax(code, lang, theme="ansi_dark", padding=(0, 1)))
+
+        content = Group(*parts) if len(parts) > 1 else parts[0]
+
         console.print(Panel(
-            Markdown(card.prompt),
+            content,
             title=f"[bold]{index}[/bold]",
             subtitle=subtitle,
             border_style="blue",
@@ -75,6 +85,11 @@ def _render_card(card: Card, index: int, topic_slug: str, overdue: int) -> None:
         # Plain text fallback
         overdue_str = f" ({overdue}d overdue)" if overdue > 0 else ""
         print(f"  {index}. [{card.question_type}] {card.prompt}")
+        if card.prompt_code:
+            print(f"     ```{card.prompt_code.get('language', '')}")
+            for line in card.prompt_code.get("content", "").split("\n"):
+                print(f"     {line}")
+            print(f"     ```")
         print(f"     id: {card.id}  topic: {topic_slug}{overdue_str}")
         print()
 
