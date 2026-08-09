@@ -89,7 +89,7 @@
 
   function showList() {
     var data = glossary();
-    var keys = Object.keys(data);
+    var keys = Object.keys(data).sort();
     if (!keys.length) return;
     openTray();
     var body = tray.querySelector('.glossary-tray-body');
