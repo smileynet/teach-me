@@ -9,43 +9,63 @@ type: feature
 
 # Feature: reference docs generated alongside lessons
 
+## Context
+
+The teach skill currently produces lessons (explanatory, narrative, teach-once artifacts) but no compressed reference docs (scannable, lookup-at-work artifacts). Pocock's teach skill defines both: lessons are rarely revisited, reference docs are. Our learner's JTBD is "understand well enough to architect and advise" — meaning they'll need quick-reference material during actual work (meetings, architecture reviews, writing docs for their customer).
+
+The gap: after reading lesson 1, the learner has no desk artifact to pull up when a colleague asks "wait, what are the five layers again?" They'd have to re-read the full lesson.
+
+## Intent
+
+Reference docs are the bridge between "I learned this" and "I can use this at work." They're generated *alongside* the lesson (not as a separate step) because they're a different *view* of the same knowledge — compressed, not expanded.
+
 ## What to build
 
-When the teach skill writes a lesson, it simultaneously generates a companion reference doc in `reference/`. The reference is not a post-processing step — it's part of the same authoring act.
+### 1. Update teach skill
 
-## Design
+Add to the lesson authoring flow: "When writing a lesson, also produce `reference/NNNN-slug.html`. The reference is a companion artifact — same stylesheet, different structure."
 
-The lesson teaches (narrative, explanation, diagrams, context). The reference doc is what you pull up at work (compressed, scannable, no narrative).
-
-### Reference doc structure
+### 2. Define reference doc format
 
 ```
 reference/0001-iceberg-metadata-tree.html
-├── One-liner summary
-├── Key table or diagram (same SVG from lesson, or a simplified version)
-├── Decision aids ("when to use / when not to")
-├── Quick-reference definitions (terms introduced in this lesson)
-└── Link back to full lesson
+├── One-liner summary (the "elevator pitch" for this concept)
+├── Key visual (same SVG or a simplified version)
+├── Facts table (layer → what it stores → where it lives)
+├── Decision aid ("when X, do Y" — if applicable)
+├── Terms introduced (short definitions, no tooltip needed)
+├── Link: "Full explanation → lesson 1"
 ```
 
-### What belongs in reference vs lesson
+### 3. Produce lesson 1's reference doc as the working example
+
+### 4. Cross-link
+
+- Lesson ends with: "Reference: [Iceberg Metadata Tree →](../reference/0001-...)"
+- Reference ends with: "Full lesson: [The Iceberg Metadata Tree →](../lessons/0001-...)"
+
+## What belongs in reference vs lesson
 
 | In the lesson | In the reference |
 |---------------|-----------------|
-| Why this matters | What it is (compressed) |
-| The problem it solves | The solution (table/diagram form) |
-| Explanation of mechanics | The facts (no explanation) |
-| Citations and sources | Just the result |
+| Why this matters for your mission | What it is (one sentence) |
+| The problem it solves | The solution (visual + table) |
+| Explanation of mechanics | The facts (no narrative) |
+| Citations and sources | Nothing — the lesson has them |
 | Exercises and gates | Nothing interactive |
+| Collapsible deep dives | Nothing optional — everything here is essential |
 
-### In the teach skill
+## Validation
 
-Add to lesson authoring: "When writing a lesson, also produce `reference/NNNN-slug.html` alongside it. The reference uses the same stylesheet but is structured for scanning, not reading."
+- [ ] A colleague unfamiliar with the topic can use the reference doc to answer "what are the layers and where do they live?" without reading the lesson
+- [ ] The reference doc fits on one screen (no scrolling for the core content)
+- [ ] The teach skill generates both artifacts in one pass (not separate invocations)
+- [ ] Cross-links work in both directions
 
 ## Acceptance criteria
 
 - [ ] Teach skill documents reference doc generation as part of lesson authoring
-- [ ] Reference doc format defined (scannable, compressed, links back to lesson)
-- [ ] Lesson 1 gets a companion reference doc as an example
-- [ ] Lessons link to their reference ("Reference: [cheat sheet]")
-- [ ] Reference links back to its lesson ("Full explanation: [lesson]")
+- [ ] Reference doc format defined with structure guidance
+- [ ] Lesson 1 gets a companion reference doc
+- [ ] Bidirectional cross-links between lesson and reference
+- [ ] Reference doc uses same stylesheet + theme (dark/light toggle works)
