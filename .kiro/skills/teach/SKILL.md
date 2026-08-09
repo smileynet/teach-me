@@ -56,32 +56,19 @@ The lesson should be short, and completable very quickly. Learners' working memo
 
 ### Lesson Opening Structure
 
-Every lesson follows this opening sequence:
+Every lesson starts with brief orientation, then gets to the content:
 
-1. **End-state preview** (immediately after lesson-meta): One sentence or key-concept box showing what the learner will be able to do/explain after this lesson. This is the destination. Write it AFTER the lesson content is complete, and verify the quiz/challenge at the end tests this exact claim.
+1. **End-state preview** (one sentence after lesson-meta): What the learner will be able to explain or do after this lesson. Keep it concrete and testable.
 
-2. **Problem opening**: Start with what's broken, missing, or painful — not the solution. Make the learner *feel* the gap with a concrete scenario before introducing the concept that fills it.
-   - Good: "Picture this: your query engine spends minutes listing directories before reading a single row..."
-   - Bad: "Apache Iceberg is a table format that solves three problems..."
-   - The problem should be visceral and specific, not abstract and enumerated.
+2. **Context** (1-3 sentences): Why this matters for their mission. State the problem this concept solves — not as a narrative, but as a direct "here's what breaks without this" framing. The learner already has motivation (their mission); they just need to know why THIS piece matters.
 
-3. **Solution introduction**: Only after the learner feels the pain, name the solution and state its core idea in one sentence.
+3. **Then teach.** Get to the mechanics quickly. The learner wants to understand and move on.
 
-The rest of the lesson teaches the mechanics. But without a problem opening, the learner has no *reason* to care about the mechanics.
+The tone is a knowledgeable colleague at a whiteboard — direct, assumes intelligence, doesn't over-explain motivation.
 
 ### Grounding Claims
 
-Before writing the problem opening or end-state preview, ground every factual assertion:
-
-1. Identify claims that assert specific facts (latency, scale, failure modes, percentages)
-2. Research each claim — search for official docs, benchmarks, case studies that quantify the problem
-3. For each claim, choose one:
-   - **Cited**: real number with source link (preferred) — "S3 LIST requests return max 1000 keys per call [AWS docs]"
-   - **Hypothetical**: frame without specific numbers — "Imagine a table with millions of files — listing alone dominates query time"
-   - **Mission-grounded**: draw from the learner's context — "Your customer's lakehouse likely has..."
-4. Never state a specific number as fact without a source
-
-**End-state preview must be testable:** the lesson's quiz or challenge should directly verify the claimed capability. If you can't quiz it, you overclaimed.
+When stating facts (latency, scale, failure modes): cite a source or frame as general ("at scale, listing becomes the bottleneck"). Don't invent specific numbers. End-state preview should be testable against the lesson's quiz or challenge.
 
 If possible, open the lesson file for the user by running a CLI command.
 

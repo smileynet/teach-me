@@ -16,16 +16,12 @@
 </div>
 
 <div class="key-concept">
-  <strong>After this lesson:</strong> You can name the five layers of the Iceberg metadata tree, explain what each stores, and describe why this design eliminates file listing, gives snapshot isolation, and enables schema evolution.
+  <strong>After this lesson:</strong> You can explain the five layers of the Iceberg metadata tree and why they eliminate file listing, give snapshot isolation, and enable schema evolution.
 </div>
 
 <h2>The Problem Iceberg Solves</h2>
 
-<p>Picture this: your customer's data lake has millions of Parquet files in S3. An analyst runs a query. Before reading a single row, the query engine must <em>list every directory</em> to discover which files exist. S3 returns only 1,000 keys per LIST call. <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html" class="citation">[AWS API docs]</a> With millions of files, that's thousands of sequential round trips — and the query hasn't even started.</p>
-
-<p>Now picture this: while that query is running, a producer writes new files to the same prefix. The analyst's scan picks up half the new data — rows that appeared mid-scan. The report is silently wrong. <a href="https://iceberglakehouse.com/apache-iceberg/" class="citation">[Iceberg Architecture]</a></p>
-
-<p>This is what Netflix hit at scale — and why they built Iceberg. <a href="https://textql.com/wiki/apache-iceberg" class="citation">[Origin]</a> A traditional data lake is just files in S3 with a schema bolted on top (think Hive metastore pointing at <code>s3://bucket/table/year=2024/month=01/</code>). It breaks in three specific ways:</p>
+<p>A traditional data lake is just files in S3 with a schema bolted on top (think Hive metastore pointing at <code>s3://bucket/table/year=2024/month=01/</code>). This breaks in three specific ways that matter for your customer:</p>
 
 <ul>
   <li><strong>Listing is the bottleneck.</strong> To plan a query, the engine must list directories to discover files. At scale (millions of files), listing is slow and eventually rate-limited by S3.</li>
