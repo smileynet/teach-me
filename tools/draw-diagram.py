@@ -12,6 +12,7 @@ Requires: pip install drawsvg
 """
 import argparse
 import json
+import re
 import sys
 
 import drawsvg as draw
@@ -320,6 +321,194 @@ DIAGRAM_TYPES = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Graphviz backend
+# ---------------------------------------------------------------------------
+
+def _check_graphviz():
+    """Verify graphviz Python package and system binary are available.
+
+    Returns (graphviz_module, version_string) or exits with helpful error.
+    """
+    try:
+        import graphviz as gv
+    except ImportError:
+        print("Error: graphviz Python package not installed.\n"
+              "  Install: uv pip install graphviz", file=sys.stderr)
+        sys.exit(2)
+
+    try:
+        ver = gv.version()
+        return gv, ".".join(str(v) for v in ver)
+    except gv.ExecutableNotFound:
+        print("Error: Graphviz system binary (dot) not found.\n"
+              "  Install: sudo apt-get install graphviz  (Linux)\n"
+              "           brew install graphviz            (macOS)", file=sys.stderr)
+        sys.exit(2)
+
+
+def _select_engine(data):
+    """Auto-select layout engine from graph properties.
+
+    Rules:
+    - Directed edges (default) + no groups → dot
+    - Directed + groups → dot (only dot/fdp handle clusters)
+    - Undirected + groups → fdp
+    - Undirected + no groups + ≤100 nodes → neato
+    - Undirected + no groups + >100 nodes → sfdp
+    - Explicit "engine" in data overrides everything
+    """
+    if "engine" in data:
+        return data["engine"]
+
+    directed = data.get("directed", True)
+    has_groups = bool(data.get("groups"))
+    node_count = len(data.get("nodes", []))
+
+    if directed:
+        return "dot"
+    elif has_groups:
+        return "fdp"
+    elif node_count > 100:
+        return "sfdp"
+    else:
+        return "neato"
+
+
+def _resolve_color(color_name):
+    """Resolve a color/preset name to (fill, stroke) tuple."""
+    if color_name in PRESETS:
+        color_name = PRESETS[color_name]
+    c = COLORS.get(color_name, COLORS["blue"])
+    return c["fill"], c["stroke"]
+
+
+def diagram_graphviz(data, title=None):
+    """Render a graph using Graphviz auto-layout.
+
+    data: {
+      "directed": true|false (default true),
+      "direction": "TB"|"LR"|"BT"|"RL" (default "TB"),
+      "engine": "dot"|"neato"|"fdp"|"sfdp"|"circo"|"twopi" (optional, auto-selected),
+      "nodes": [{"id": "x", "label": "...", "color"|"preset": "blue"}],
+      "edges": [{"from": "x", "to": "y", "label": "...", "color": "gray"}],
+      "groups": [{"label": "...", "color": "gray", "nodes": ["x", "y"]}]
+    }
+
+    Returns inline SVG string.
+    """
+    gv, version = _check_graphviz()
+    import graphviz
+
+    directed = data.get("directed", True)
+    direction = data.get("direction", "TB")
+    engine = _select_engine(data)
+
+    # Warn if clusters used with an engine that ignores them
+    if data.get("groups") and engine not in ("dot", "fdp"):
+        print(f"Warning: engine '{engine}' ignores cluster/group boundaries. "
+              f"Use dot or fdp for groups.", file=sys.stderr)
+
+    GraphClass = graphviz.Digraph if directed else graphviz.Graph
+
+    g = GraphClass(
+        engine=engine,
+        format="svg_inline",
+        graph_attr={
+            "rankdir": direction,
+            "bgcolor": "transparent",
+            "fontname": "system-ui, sans-serif",
+            "pad": "0.3",
+            "nodesep": "0.5",
+            "ranksep": "0.6",
+        },
+        node_attr={
+            "shape": "box",
+            "style": "filled,rounded",
+            "fontname": "system-ui, sans-serif",
+            "fontsize": "12",
+            "penwidth": "1.5",
+        },
+        edge_attr={
+            "fontname": "system-ui, sans-serif",
+            "fontsize": "10",
+            "color": ARROW_COLOR,
+            "penwidth": "1.5",
+        },
+    )
+
+    # Determinism for force-directed engines
+    if engine in ("neato", "fdp", "sfdp"):
+        g.attr(start="42")
+    if engine in ("neato", "fdp"):
+        g.attr(overlap="false", sep="+5")
+    if engine == "sfdp":
+        g.attr(overlap="prism")
+
+    # Build node lookup for groups
+    grouped_nodes = set()
+    for group in data.get("groups", []):
+        grouped_nodes.update(group.get("nodes", []))
+
+    # Draw groups as clusters
+    for i, group in enumerate(data.get("groups", [])):
+        group_color = group.get("color", "gray")
+        fill, stroke = _resolve_color(group_color)
+        with g.subgraph(name=f"cluster_{i}") as c:
+            c.attr(
+                style="filled,rounded",
+                color=stroke,
+                fillcolor=fill,
+                label=group.get("label", ""),
+                fontsize="11",
+                labeljust="l",
+            )
+            for nid in group.get("nodes", []):
+                # Find node data
+                node_data = next((n for n in data["nodes"] if n["id"] == nid), None)
+                if node_data:
+                    nfill, nstroke = _resolve_color(
+                        node_data.get("color", node_data.get("preset", "blue"))
+                    )
+                    c.node(nid, label=node_data["label"],
+                           fillcolor=nfill, color=nstroke)
+
+    # Draw ungrouped nodes
+    for node in data["nodes"]:
+        nid = node["id"]
+        if nid not in grouped_nodes:
+            fill, stroke = _resolve_color(node.get("color", node.get("preset", "blue")))
+            g.node(nid, label=node["label"], fillcolor=fill, color=stroke)
+
+    # Draw edges
+    for edge in data.get("edges", []):
+        sources = edge["from"] if isinstance(edge["from"], list) else [edge["from"]]
+        targets = edge["to"] if isinstance(edge["to"], list) else [edge["to"]]
+        label = edge.get("label", "")
+        edge_color = ARROW_COLOR
+        if "color" in edge:
+            _, edge_color = _resolve_color(edge["color"])
+        for s in sources:
+            for t in targets:
+                g.edge(s, t, label=label, color=edge_color, fontcolor="#6b7280")
+
+    # Render to SVG string
+    svg_str = g.pipe(encoding="utf-8")
+
+    # Strip comments
+    svg_str = re.sub(r'<!--[\s\S]*?-->\s*', '', svg_str)
+
+    return svg_str
+
+
+DIAGRAM_TYPES = {
+    "stack": diagram_stack,
+    "flow": diagram_flow,
+    "hub": diagram_hub,
+    "graph": diagram_graph,
+}
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate teaching diagrams as inline SVG")
     parser.add_argument("--type", required=True, choices=DIAGRAM_TYPES.keys(),
@@ -327,6 +516,11 @@ def main():
     parser.add_argument("--data", required=True, help="JSON data for the diagram")
     parser.add_argument("--title", default=None,
                         help="Accessible title for the SVG (used in <title> and aria-labelledby)")
+    parser.add_argument("--backend", choices=["builtin", "graphviz"], default="builtin",
+                        help="Layout backend: builtin (drawsvg) or graphviz (auto-layout)")
+    parser.add_argument("--engine", default=None,
+                        choices=["dot", "neato", "fdp", "sfdp", "circo", "twopi"],
+                        help="Graphviz engine override (only with --backend graphviz)")
     args = parser.parse_args()
 
     try:
@@ -335,14 +529,22 @@ def main():
         print(f"Error: invalid JSON in --data: {e}", file=sys.stderr)
         sys.exit(2)
 
-    diagram_fn = DIAGRAM_TYPES[args.type]
-    d = diagram_fn(data)
+    if args.engine and args.backend != "graphviz":
+        print("Warning: --engine is ignored without --backend graphviz", file=sys.stderr)
 
-    # Get the raw SVG and patch for accessibility + responsive scaling
-    svg_str = d.as_svg()
+    # Inject engine override into data
+    if args.engine:
+        data["engine"] = args.engine
 
+    if args.backend == "graphviz":
+        svg_str = diagram_graphviz(data, title=args.title)
+    else:
+        diagram_fn = DIAGRAM_TYPES[args.type]
+        d = diagram_fn(data)
+        svg_str = d.as_svg()
+
+    # Post-process SVG for accessibility + responsive scaling
     # Remove XML declaration if present
-    import re
     svg_str = re.sub(r'<\?xml[^?]*\?>\s*', '', svg_str)
 
     # Extract width/height from <svg> tag, convert to viewBox-only
@@ -354,13 +556,17 @@ def main():
         w = w_match.group(1) if w_match else '400'
         h = h_match.group(1) if h_match else '300'
 
+        # Graphviz uses pt units — convert to unitless for viewBox
+        w_val = w.replace('pt', '').strip()
+        h_val = h.replace('pt', '').strip()
+
         # Remove width, height, and any existing viewBox
         new_tag = re.sub(r'\s*width="[^"]*"', '', svg_tag)
         new_tag = re.sub(r'\s*height="[^"]*"', '', new_tag)
         new_tag = re.sub(r'\s*viewBox="[^"]*"', '', new_tag)
 
         # Build accessibility and scaling attributes
-        attrs = f'viewBox="0 0 {w} {h}" role="img"'
+        attrs = f'viewBox="0 0 {w_val} {h_val}" role="img"'
         if args.title:
             attrs += ' aria-labelledby="diagram-title"'
         attrs += ' style="display:block;margin:1.5rem auto;max-width:100%;height:auto"'
