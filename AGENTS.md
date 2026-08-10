@@ -36,7 +36,7 @@ assets/             — shared components (style.css, glossary, quiz, progressiv
 
 | Task | Command | What it does |
 |------|---------|-------------|
-| Install deps | `mise run setup` | drawsvg + graphviz + playwright via uv |
+| Install deps | `mise run setup` | drawsvg + graphviz + playwright + rich via uv |
 | Generate diagram | `mise run draw -- --type flow --data '{...}'` | SVG to stdout (builtin layout) |
 | Generate complex diagram | `mise run draw -- --type graph --backend graphviz --data '{...}'` | Auto-layout via Graphviz |
 | Render .mmd/.d2 | `mise run render-diagrams` | Batch render to assets/generated/ |

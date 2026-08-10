@@ -15,7 +15,16 @@ Templates the agent reads before generating a new page. Copy the scaffold, repla
 1. **Read the scaffold** before generating a page of that type
 2. **Copy the structure** — don't invent new HTML structure for the same page type
 3. **Replace placeholders** (`{{TITLE}}`, `{{TOPIC}}`, etc.) with content
-4. **Keep the asset links** — `style.css`, `glossary.css`, `theme-toggle.js` in correct relative paths
+4. **Set the correct asset path depth** — count directories from file to project root:
+
+| File location | Asset path prefix | Example |
+|---------------|-------------------|---------|
+| `lessons/` | `../assets/` | `<link href="../assets/style.css">` |
+| `reference/` | `../assets/` | Same depth as lessons |
+| `lessons/review/` | `../../assets/` | One deeper |
+| `examples/X/lessons/` | `../../../assets/` | Three levels to root |
+| `examples/X/reference/` | `../../../assets/` | Same as example lessons |
+
 5. **Use CSS variables** for any custom styling — never hardcoded hex colors
 6. **Add content** between the structural markers
 
