@@ -7,19 +7,19 @@
   <link rel="stylesheet" href="../assets/style.css">
   <style>
     .card {
-      border: 2px solid var(--border, #e5e7eb);
+      border: 2px solid var(--border);
       border-radius: 8px;
       padding: 1.5rem;
       margin: 1.5rem 0;
-      background: var(--card-bg, #ffffff);
+      background: var(--bg-elevated);
     }
     .card-prompt {
-      border-left: 4px solid #2563eb;
+      border-left: 4px solid var(--accent);
       padding-left: 1rem;
       margin-bottom: 1rem;
     }
     .card-answer {
-      border-left: 4px solid #16a34a;
+      border-left: 4px solid var(--success);
       padding-left: 1rem;
       display: none;
     }
@@ -28,7 +28,7 @@
     }
     .card-meta {
       font-size: 0.8rem;
-      color: #6b7280;
+      color: var(--text-muted);
       margin-top: 0.5rem;
     }
     .card-type {
@@ -37,12 +37,12 @@
       border-radius: 4px;
       font-size: 0.75rem;
       font-weight: 600;
-      background: #dbeafe;
-      color: #2563eb;
+      background: var(--bg-surface);
+      color: var(--accent);
     }
     .reveal-btn {
-      background: #2563eb;
-      color: white;
+      background: var(--accent);
+      color: var(--bg);
       border: none;
       padding: 0.5rem 1.2rem;
       border-radius: 6px;
@@ -50,10 +50,10 @@
       font-size: 0.9rem;
       margin-top: 0.5rem;
     }
-    .reveal-btn:hover { background: #1d4ed8; }
+    .reveal-btn:hover { opacity: 0.85; }
     pre {
-      background: #1e293b;
-      color: #e2e8f0;
+      background: var(--code-bg);
+      color: var(--text);
       padding: 1rem;
       border-radius: 6px;
       overflow-x: auto;
@@ -61,23 +61,24 @@
       line-height: 1.5;
     }
     pre code { background: none; color: inherit; }
-    .kw { color: #c084fc; }
-    .str { color: #86efac; }
-    .fn { color: #93c5fd; }
-    .op { color: #fbbf24; }
-    .cm { color: #6b7280; font-style: italic; }
+    .kw { color: var(--accent); }
+    .str { color: var(--success); }
+    .fn { color: var(--link); }
+    .op { color: var(--warning); }
+    .cm { color: var(--text-faint); font-style: italic; }
     .rating { margin-top: 1rem; display: none; }
     .rating.revealed { display: block; }
     .rating button {
       padding: 0.4rem 0.8rem;
       margin-right: 0.5rem;
-      border: 1px solid #d1d5db;
+      border: 1px solid var(--border);
       border-radius: 4px;
       cursor: pointer;
-      background: white;
+      background: var(--bg-surface);
+      color: var(--text);
     }
-    .rating button:hover { background: #f3f4f6; }
-    .rating button.selected { background: #dbeafe; border-color: #2563eb; }
+    .rating button:hover { background: var(--bg-elevated); border-color: var(--accent); }
+    .rating button.selected { background: var(--key-concept-bg); border-color: var(--accent); }
   </style>
 </head>
 <body>
