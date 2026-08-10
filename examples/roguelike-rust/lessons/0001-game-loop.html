@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1: The Game Loop — Getting @ On Screen</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../../assets/glossary.css">
+  <style>
+    pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; }
+    pre code { background: none; color: inherit; }
+  </style>
+</head>
+<body>
+
+<h1>The Game Loop — Getting @ On Screen</h1>
+<div class="lesson-meta">
+  Lesson 1 · Roguelikes in Rust · ~10 min read<br>
+  <strong>Win:</strong> You understand how a turn-based game loop works and why it's shaped differently from a real-time loop. You have a mental model of input → update → render.
+</div>
+
+<div class="key-concept">
+  <strong>After this lesson:</strong> You can explain why a roguelike's game loop waits for player input (unlike a real-time game that runs continuously), and you understand the render → input → update cycle that every roguelike shares.
+</div>
+
+<h2>Why Start Here?</h2>
+
+<p>The most common mistake new roguelike developers make is <strong>overengineering before they have a game</strong>. Experienced devs on <a href="https://www.reddit.com/r/roguelikedev/">r/roguelikedev</a> consistently say: get @ on screen first, make it move, then build from there. Architecture decisions (ECS, entity systems, component models) come later — after you have gameplay to organize. <a href="https://www.reddit.com/r/roguelikedev/wiki/faq/" class="citation">[r/roguelikedev FAQ]</a></p>
+
+<p>The game loop is the foundation everything else sits on. Get this right and the rest is incremental.</p>
+
+<h2>Real-Time vs Turn-Based</h2>
+
+<p>A real-time game loop runs as fast as possible:</p>
+
+<pre><code>loop {
+    process_input();    // check for keypresses
+    update(delta_time); // advance physics, AI, animations
+    render();           // draw the frame
+    // repeat immediately — 60+ times per second
+}</code></pre>
+
+<p>A roguelike loop is fundamentally different — <strong>nothing happens until the player acts</strong>:</p>
+
+<pre><code>loop {
+    render();           // show current state
+    let action = wait_for_input();  // BLOCK here until keypress
+    update(action);     // player moves, then world responds
+    // only loops when player does something
+}</code></pre>
+
+<p>This is called a <strong>player-centric loop</strong>. The world is frozen between turns. This is why roguelikes feel like puzzles — you have infinite time to think. <a href="https://gameprogrammingpatterns.com/game-loop.html" class="citation">[Game Programming Patterns: Game Loop]</a></p>
+
+<h2>Why This Matters</h2>
+
+<p>The loop structure determines everything downstream:</p>
+
+<ul>
+  <li><strong>No frame budget pressure.</strong> You don't need 16ms frames. Your update can take 100ms and nobody notices — the player is reading the screen.</li>
+  <li><strong>Simpler concurrency model.</strong> Nothing runs in parallel. Input → process → render, sequentially. This is why Rust's borrow checker is less painful for roguelikes than for real-time games.</li>
+  <li><strong>Monsters take turns after the player.</strong> The "update" phase processes player action, then each monster acts in sequence. No simultaneous resolution needed (yet — energy systems come later).</li>
+</ul>
+
+<details>
+<summary>What about animations?</summary>
+<p>Traditional ASCII roguelikes have no animations — the screen redraws instantly after each turn. If you want tile-based animations (attack flashes, movement tweening), you add a brief non-blocking render loop WITHIN the update phase. But that's polish — skip it for now.</p>
+</details>
+
+<h2>The Minimal Structure in Rust</h2>
+
+<p>Using <code>ratatui</code> + <code>crossterm</code> (the current recommended stack for terminal roguelikes — <code>bracket-lib</code> is unmaintained since 2022):</p>
+
+<pre><code>use crossterm::event::{self, Event, KeyCode};
+use ratatui::prelude::*;
+
+struct GameState {
+    player_x: i32,
+    player_y: i32,
+}
+
+fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    let mut terminal = ratatui::init();
+    let mut state = GameState { player_x: 40, player_y: 12 };
+
+    loop {
+        // RENDER: draw current state
+        terminal.draw(|frame| {
+            let area = frame.area();
+            let buf = frame.buffer_mut();
+            buf.set_string(
+                state.player_x as u16,
+                state.player_y as u16,
+                "@", Style::default().fg(Color::White),
+            );
+        })?;
+
+        // INPUT: block until keypress
+        if let Event::Key(key) = event::read()? {
+            match key.code {
+                KeyCode::Char('q') =&gt; break,
+                KeyCode::Up    =&gt; state.player_y -= 1,
+                KeyCode::Down  =&gt; state.player_y += 1,
+                KeyCode::Left  =&gt; state.player_x -= 1,
+                KeyCode::Right =&gt; state.player_x += 1,
+                _ =&gt; {}
+            }
+        }
+        // UPDATE: (trivial for now — just the position change above)
+    }
+
+    ratatui::restore();
+    Ok(())
+}</code></pre>
+
+<p>This is a complete, runnable roguelike skeleton. The @ appears, moves with arrow keys, and quits with 'q'. Everything else builds on this loop. <a href="https://ratatui.rs/tutorials/hello-world/" class="citation">[ratatui Tutorial]</a></p>
+
+<h2>What Comes Next (Not Now)</h2>
+
+<p>The temptation is to immediately add ECS, or a map, or monsters. Resist. The learning path that experienced roguelike devs recommend is:</p>
+
+<ol>
+  <li><strong>@ on screen + movement</strong> (this lesson) ✓</li>
+  <li>A generated map with walls (next lesson)</li>
+  <li>Field of view (can't see through walls)</li>
+  <li>Monsters that exist and block</li>
+  <li>Combat (hit things, things hit you, things die)</li>
+  <li>→ MVP. Only now consider architecture refactoring.</li>
+</ol>
+
+<p>At step 6, your code will be messy — and that's when you have the <em>information</em> to make architecture decisions. You'll know which entities need dynamic composition (ECS territory), which are simple (struct + enum), and which patterns keep appearing (extract them). Deciding architecture before you have gameplay is guessing. <a href="https://www.gridbugs.org/" class="citation">[gridbugs.org]</a></p>
+
+<h2>Primary Source</h2>
+
+<p>Read <a href="https://gameprogrammingpatterns.com/game-loop.html">Game Programming Patterns: Game Loop</a> — it covers all loop variants (fixed timestep, variable, turn-based) with clear diagrams. ~15 minutes. Then skim the <a href="https://ratatui.rs/tutorials/hello-world/">ratatui Hello World</a> to see the terminal setup you'll use.</p>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A colleague asks: "Why not just use a real-time game engine like Bevy for a roguelike?" Explain why a turn-based loop is simpler and what you'd lose by using a real-time engine.</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Think about what runs between frames in a real-time engine vs what happens between turns in a roguelike.</p>
+  </details>
+  <details>
+  <summary>Key points to hit</summary>
+  <p>A real-time engine runs systems every frame (60+ fps) whether anything happened or not. For a turn-based game, that's wasted work — nothing changes until the player presses a key. A blocking input loop is simpler (no delta-time, no frame budget, no concurrent access), and Rust's borrow checker is less painful when you process sequentially. Bevy works but adds compile time, API churn, and complexity you don't need for grid-based turns.</p>
+  </details>
+</div>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next lesson:</strong> Map generation — rooms, corridors, and walls using the random-rooms algorithm.</p>
+  <p><strong>Reference:</strong> <a href="../reference/0001-game-loop.html">Game Loop cheat sheet</a></p>
+  <p><strong>Questions?</strong> Ask me anything that's unclear.</p>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "game-loop": "The repeating cycle that drives a game: process input, update state, render. In roguelikes, it blocks on input — the world freezes between turns.",
+  "player-centric-loop": "A game loop variant where nothing advances until the player acts. Standard for traditional roguelikes. Contrast with real-time loops that run continuously.",
+  "turn": "One cycle of: player acts → world responds. In a player-centric loop, each keypress is one turn."
+}
+</script>
+<script src="../../assets/glossary.js"></script>
+
+</body>
+</html>
