@@ -49,3 +49,19 @@ _Avoid_: exam, test, quiz (those imply scoring)
 **Jargon skill**:
 Post-authoring pass that annotates domain-specific terms with glossary tooltips. Three-gate filter: domain-specific, mental model wrong/absent, not explained inline.
 _Avoid_: glossary pass (the glossary is the component; jargon is the skill that populates it)
+
+**Scaffold**:
+An HTML template in `assets/scaffolds/` that the agent reads before generating a page. Ensures consistent structure, theming, and asset links across all page types.
+_Avoid_: template (overloaded with SSG connotations)
+
+**Criteria-based answer**:
+The expected answer format for SR cards. States what the learner should mention, not exact wording to reproduce. Format: "Should mention: (1)... (2)... Bonus:..."
+_Avoid_: script, exact answer, model answer
+
+**Progressive overload**:
+The single mechanism behind all training adaptation — systematically increasing stimulus over time. Used as the workout example's core concept.
+_Avoid_: progressive difficulty (different concept in game design)
+
+**Research-first**:
+The hard gate requiring domain research before writing any lesson. Established by ADR 0002 after finding 8 factual errors in the Iceberg lesson and having the roguelike premise overturned entirely.
+_Avoid_: optional research step
