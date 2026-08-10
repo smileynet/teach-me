@@ -51,6 +51,10 @@ class Card:
     # Rich content (optional)
     prompt_code: dict | None = None   # {"language": "python", "content": "..."}
     answer_code: dict | None = None   # {"language": "sql", "content": "..."}
+    # Quick-check (multiple-choice) fields
+    options: list[str] | None = None      # 4 answer choices
+    correct_index: int | None = None      # 0-based index into options
+    explanation: str | None = None        # shown after answering
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), ensure_ascii=False)
