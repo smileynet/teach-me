@@ -5,86 +5,85 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reference: Iceberg Metadata Tree</title>
   <link rel="stylesheet" href="../assets/style.css">
-  <link rel="stylesheet" href="../assets/glossary.css">
 </head>
 <body>
 
 <h1>Iceberg Metadata Tree</h1>
-<p class="lesson-meta">Reference · <a href="../lessons/0001-iceberg-metadata-tree.html">Full lesson →</a></p>
+<p class="lesson-meta">Reference · Companion to <a href="../lessons/0001-iceberg-metadata-tree.html">Lesson 1</a></p>
 
-<div class="key-concept">
-  <strong>Core concept:</strong> Instead of listing files to discover what's in a table, Iceberg maintains a metadata tree that tracks exactly which files exist, with what schema, at each point in time. The tree replaces listing (manifests know the files), gives isolation (snapshots are immutable), and enables evolution (specs are versioned).
-</div>
+<h2>Core Concept</h2>
+<p><strong>Iceberg is a metadata tree stored alongside data in S3.</strong> Instead of listing directories to find files, query engines follow the tree: catalog → metadata file → manifest list → manifests → data files. The tree replaces listing (manifests know the files), gives isolation (snapshots are immutable), and enables evolution (specs are versioned).</p>
 
-<h2>How to Think About It</h2>
-
-<p>Every Iceberg table is a chain of pointers: the catalog says "the current state is here" → the metadata file says "these are the snapshots and schema versions" → the manifest list says "these manifest files describe this snapshot" → each manifest says "these specific data files exist, with these stats." A query follows the chain. A write creates a new snapshot and atomically swings the pointer.</p>
-
-<h2>The Five Layers</h2>
+<h2>The Metadata Tree (4 layers below catalog)</h2>
 
 <table>
-  <tr><th>Layer</th><th>What it stores</th><th>Where it lives</th></tr>
-  <tr><td><strong>Catalog</strong></td><td>Pointer to current metadata file</td><td>AWS Glue Data Catalog</td></tr>
-  <tr><td><strong>Metadata file</strong></td><td>Schema, partition spec, snapshot history</td><td>JSON in S3 <code>metadata/</code></td></tr>
-  <tr><td><strong>Manifest list</strong></td><td>Which manifests belong to this snapshot</td><td>Avro in S3 <code>metadata/</code></td></tr>
-  <tr><td><strong>Manifest file</strong></td><td>Data file paths + per-file column stats</td><td>Avro in S3 <code>metadata/</code></td></tr>
-  <tr><td><strong>Data files</strong></td><td>Actual rows</td><td>Parquet in S3 <code>data/</code></td></tr>
+  <tr><th>Layer</th><th>What it stores</th><th>Format / Location</th></tr>
+  <tr><td><strong>Catalog</strong> (external)</td><td>Pointer to current metadata file</td><td>AWS Glue / REST endpoint</td></tr>
+  <tr><td><strong>Table metadata file</strong></td><td>Schema history, partition specs, snapshots (each → manifest list)</td><td>JSON in S3 <code>metadata/</code></td></tr>
+  <tr><td><strong>Manifest list</strong></td><td>Which manifests are active for one snapshot</td><td>Avro in S3 <code>metadata/</code></td></tr>
+  <tr><td><strong>Manifest file</strong></td><td>Data file + delete file paths, per-file column stats</td><td>Avro in S3 <code>metadata/</code></td></tr>
+  <tr><td><strong>Data files</strong></td><td>Table rows</td><td>Parquet in S3 <code>data/</code></td></tr>
+  <tr><td><strong>Delete files</strong> (V2+)</td><td>Row-level deletes/updates (position, equality, or deletion vectors)</td><td>Parquet in S3 <code>data/</code></td></tr>
 </table>
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 280" role="img" aria-labelledby="ref-diagram-title">
-<title id="ref-diagram-title">Iceberg metadata tree: catalog points to metadata, which points to manifests, which point to data files</title>
-<defs>
-<marker markerWidth="4.0" markerHeight="4.04" viewBox="-0.1 -0.51 1.0 1.01" orient="auto" id="arr">
-<path d="M-0.1,0.5 L-0.1,-0.5 L0.9,0 Z" fill="#374151" />
-</marker>
-</defs>
-<rect x="50" y="10" width="240" height="50" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5" />
-<text x="170" y="35" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">Catalog</text>
-<path d="M170,60 L170,80" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)" />
-<rect x="50" y="80" width="240" height="50" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" />
-<text x="170" y="105" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">Metadata File (JSON)</text>
-<path d="M170,130 L170,150" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)" />
-<rect x="50" y="150" width="240" height="50" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" />
-<text x="170" y="175" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">Manifest Files (Avro)</text>
-<path d="M170,200 L170,220" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)" />
-<rect x="50" y="220" width="240" height="50" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" />
-<text x="170" y="245" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">Data Files (Parquet)</text>
-</svg>
+<p><strong>Key detail:</strong> Snapshots live INSIDE the metadata file (not a separate layer). Each snapshot = timestamp + sequence number + pointer to a manifest list.</p>
 
 <h2>Why This Design</h2>
 
 <table>
   <tr><th>Problem</th><th>How Iceberg solves it</th></tr>
-  <tr><td>S3 listing is slow at scale</td><td>Manifests track files directly — no listing needed</td></tr>
-  <tr><td>No read isolation during writes</td><td>Snapshots give MVCC — readers see a frozen file set</td></tr>
-  <tr><td>Schema/partition changes require rewrites</td><td>Versioned specs — old files keep old schema, engine translates at read</td></tr>
+  <tr><td>S3 listing is slow/rate-limited at scale</td><td>Manifests track files directly — no listing needed</td></tr>
+  <tr><td>No read isolation during writes</td><td>Snapshots = MVCC — readers see a frozen file set</td></tr>
+  <tr><td>Schema/partition changes require rewrites</td><td>Versioned specs — old files keep old schema, engine translates</td></tr>
+  <tr><td>Row-level deletes impossible on immutable files</td><td>Delete files mark rows as removed; applied at read time (V2+)</td></tr>
 </table>
+
+<h2>Mandatory Maintenance (5 operations, in order)</h2>
+
+<ol>
+  <li><strong>Expire snapshots</strong> — remove old snapshot references</li>
+  <li><strong>Remove orphan files</strong> — delete unreferenced files</li>
+  <li><strong>Rewrite manifests</strong> — merge small manifests</li>
+  <li><strong>Compact data files</strong> — merge small data files</li>
+  <li><strong>Remove delete files</strong> — apply and clean up deletes</li>
+</ol>
+
+<p>Skip these → metadata bloats → query planning slows → S3 costs climb.</p>
+
+<h2>AWS Limits</h2>
+
+<table>
+  <tr><th>Limit</th><th>Value</th><th>Implication</th></tr>
+  <tr><td>Write concurrency (Glue catalog)</td><td>~15 TPS</td><td>Design for fewer, larger commits</td></tr>
+  <tr><td>Athena update strategy</td><td>Merge-on-read only</td><td>No copy-on-write option</td></tr>
+  <tr><td>Firehose delivery</td><td>5 MiB/s per stream</td><td>Fan out for high throughput</td></tr>
+</table>
+
+<h2>Decision Aid</h2>
+
+<p><strong>"Should this table use Iceberg?"</strong></p>
+<ul>
+  <li>Multiple teams reading/writing concurrently → <strong>yes</strong></li>
+  <li>Schema will evolve over time → <strong>yes</strong></li>
+  <li>Millions of files, need fast scan planning → <strong>yes</strong></li>
+  <li>Need time travel / audit → <strong>yes</strong></li>
+  <li>Small table (<100 GB), single writer, append-only → <strong>no, plain Parquet is simpler</strong></li>
+  <li>Sub-second visibility needed → <strong>no, Iceberg is batch-atomic</strong></li>
+  <li>High-frequency keyed upserts → <strong>consider Hudi instead</strong></li>
+</ul>
 
 <h2>Key Terms</h2>
 
 <table>
   <tr><th>Term</th><th>Meaning</th></tr>
-  <tr><td>Snapshot</td><td>Frozen view of which files belong to the table at one point in time</td></tr>
-  <tr><td>Manifest-level pruning</td><td>Skipping data files whose column stats can't match the query predicate</td></tr>
-  <tr><td>Schema evolution</td><td>Changing columns without rewriting existing files — engine translates at read time</td></tr>
-  <tr><td>Partition spec</td><td>Versioned rule defining how data is split into partitions</td></tr>
+  <tr><td>Snapshot</td><td>JSON object in metadata file — frozen view of table state (pointer to manifest list)</td></tr>
+  <tr><td>Scan planning</td><td>Using manifest stats to skip files that can't match the query predicate</td></tr>
+  <tr><td>Schema evolution</td><td>Changing columns without rewriting files — engine translates at read time</td></tr>
+  <tr><td>Delete file</td><td>Marks rows as removed (position/equality/vector) — applied at read time, not modifying data files</td></tr>
+  <tr><td>OCC (optimistic concurrency)</td><td>Writers build metadata optimistically; commit fails if catalog changed since read — retry with backoff</td></tr>
 </table>
-
-<h2>When to Recommend Iceberg</h2>
-
-<table>
-  <tr><th>Recommend when</th><th>Don't recommend when</th></tr>
-  <tr><td>Multiple teams read/write the same tables</td><td>Single writer, append-only, never queried across partitions</td></tr>
-  <tr><td>Schema will evolve (new columns, type changes)</td><td>Schema is fixed forever and all consumers are controlled</td></tr>
-  <tr><td>Need query performance at scale (millions of files)</td><td>Small tables (&lt;1000 files) where listing is fine</td></tr>
-  <tr><td>Need time travel or audit trails</td><td>Storage cost is the primary concern and snapshots would bloat it</td></tr>
-  <tr><td>Multi-engine access (Athena + Spark + Trino)</td><td>Single engine, proprietary format is acceptable</td></tr>
-</table>
-
-<div class="next-steps">
-  <p><strong>Full lesson:</strong> <a href="../lessons/0001-iceberg-metadata-tree.html">The Iceberg Metadata Tree</a> — explains the why, the mechanics, and the AWS-specific mapping.</p>
-</div>
 
 <script src="../assets/theme-toggle.js"></script>
+
 </body>
 </html>
