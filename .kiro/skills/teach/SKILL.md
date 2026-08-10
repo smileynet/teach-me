@@ -237,6 +237,63 @@ The user may specify an exact thing they want to learn. If they don't, figure ou
 
 ## Knowledge
 
+**NEVER write a lesson from parametric memory.** All factual content must be grounded in researched sources. The research phase is mandatory, not optional.
+
+### Research Before Teaching (mandatory)
+
+Before writing any lesson, you must complete a research phase. This is not a suggestion — it's a hard gate. A lesson without sourced research is teaching from memory, which means teaching things that might be wrong, outdated, or missing blind spots.
+
+**Step 1: Identify subtopics.** For the concept you're about to teach, identify 3-6 related subtopics that a well-grounded explanation requires. Think: what would an expert consider before explaining this? What are the adjacent concerns a learner will hit next?
+
+Example for "ECS architecture for roguelikes":
+- Rust game dev ecosystem (is ECS the consensus? what are the alternatives?)
+- ECS in practice (tradeoffs, when it doesn't fit, common mistakes)
+- Roguelike design patterns (what experienced devs say newcomers get wrong)
+- bracket-lib / hecs / bevy_ecs (are these current? better options in 2026?)
+- Procedural generation fundamentals (what does the learner need next?)
+
+**Step 2: Dispatch research.** For each subtopic, dispatch a subagent (or search directly for simple lookups). Each research query should:
+- Search for the current state of the art (not 5-year-old blog posts)
+- Search for WARNINGS and pitfalls (what goes wrong with this approach)
+- Find 2+ independent sources before making claims
+- Look for practitioner perspectives (forums, conference talks, postmortems) — not just docs
+
+**Step 3: Populate RESOURCES.md.** Before writing the lesson, add verified sources to RESOURCES.md with trust levels and notes on what each covers. The lesson draws from these.
+
+**Step 4: Write the lesson grounded in findings.** Every claim in the lesson traces to a research finding. If you can't cite it, frame it as general ("many roguelike developers find that...") or cut it.
+
+### What to research for any new topic
+
+| Category | Questions to answer |
+|----------|-------------------|
+| **Domain fundamentals** | What are the core concepts? What's the accepted terminology? |
+| **Current best practices** | What does the community recommend today (not 3 years ago)? |
+| **Common mistakes** | What do practitioners warn newcomers about? |
+| **Ecosystem/tools** | What are the current options? Which are maintained? Which are deprecated? |
+| **Controversies/tradeoffs** | Where do experts disagree? What are the genuine tradeoffs? |
+| **Adjacent concerns** | What will the learner hit next? What prerequisites are assumed? |
+
+### The "look around corners" test
+
+Before writing, ask: "If an expert in this domain read my lesson, would they say 'yes, that's right and you're not missing anything important'?" If you're not confident the answer is yes, you haven't researched enough.
+
+### What counts as adequate research
+
+- 2+ independent sources per major claim
+- At least one practitioner source (not just official docs)
+- Explicit search for warnings/anti-patterns (not just "how to")
+- Sources are current (check dates — a 2020 Rust game dev post may be obsolete)
+- RESOURCES.md populated BEFORE the lesson is written
+
+### What does NOT count
+
+- Parametric memory ("I know ECS works this way")
+- A single blog post with no corroboration
+- Official docs alone without practitioner perspective
+- Research that only confirms what you already "know" (confirmation bias)
+
+---
+
 Lessons should be designed around a skill the user is going to learn. The knowledge in the lesson should be only what's required to acquire that skill. You teach the knowledge first, then get the user to practice the skills via an interactive feedback loop.
 
 Knowledge should first be gathered from trusted resources. Use `RESOURCES.md` to keep track of them. Lessons should be littered with citations - links to external resources to back up any claim made. This increases the trustworthiness of the lesson.
