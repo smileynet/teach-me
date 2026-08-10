@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson {{N}}: {{TITLE}}</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+</head>
+<body>
+
+<h1>{{TITLE}}</h1>
+<div class="lesson-meta">
+  Lesson {{N}} · {{TOPIC}} · ~{{TIME}} min read<br>
+  <strong>Win:</strong> {{ONE_SENTENCE_WIN}}
+</div>
+
+<div class="key-concept">
+  <strong>After this lesson:</strong> {{TESTABLE_OUTCOME}}
+</div>
+
+<!-- CONTENT SECTIONS HERE -->
+<!-- Each h2 is a major section. Use h3 for subsections. -->
+<!-- Every architectural/conceptual section MUST have a diagram. -->
+<!-- Cite sources inline: <a href="URL" class="citation">[Source Name]</a> -->
+
+<h2>Primary Source</h2>
+<p>Read <a href="{{PRIMARY_SOURCE_URL}}">{{PRIMARY_SOURCE_TITLE}}</a> — {{WHAT_IT_COVERS}}. ~{{READING_TIME}} minutes.</p>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> {{CONCEPTUAL_QUESTION_NOT_RECALL}}</p>
+  <details>
+  <summary>Hint</summary>
+  <p>{{HINT}}</p>
+  </details>
+  <details>
+  <summary>Key points to hit</summary>
+  <p>{{CRITERIA_BASED_ANSWER}}</p>
+  </details>
+</div>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next lesson:</strong> {{NEXT_LESSON_TOPIC}}</p>
+  <p><strong>Reference:</strong> <a href="../reference/{{NNNN}}-{{SLUG}}.html">{{TITLE}} cheat sheet</a></p>
+  <p><strong>Questions?</strong> Ask me anything that's unclear.</p>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "{{TERM}}": "{{DEFINITION}}"
+}
+</script>
+<script src="../assets/glossary.js"></script>
+<script src="../assets/theme-toggle.js"></script>
+
+</body>
+</html>
