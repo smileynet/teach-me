@@ -54,6 +54,38 @@ A lesson should be **beautiful** — clean, readable typography and layout — s
 
 The lesson should be short, and completable very quickly. Learners' working memory is very small, and we need to stay within it. But each lesson should give the user a single tangible win that they can build on. It should be directly tied to the mission, and should be in the user's zone of proximal development.
 
+### Theming Consistency (all generated pages)
+
+Every HTML page you generate — lessons, reference docs, review pages, quick-checks — MUST use the shared theme system. No hardcoded colors.
+
+**Required in every page:**
+1. `<link rel="stylesheet" href="../assets/style.css">` (or correct relative path)
+2. `<script src="../assets/theme-toggle.js"></script>` before `</body>`
+3. All custom styles use CSS variables from `style.css` — never hex colors
+
+**CSS variable reference (use these, not hex):**
+
+| Variable | Use for |
+|----------|---------|
+| `var(--bg)` | Page background |
+| `var(--bg-elevated)` | Card/panel backgrounds |
+| `var(--bg-surface)` | Buttons, tags, secondary surfaces |
+| `var(--text)` | Body text |
+| `var(--text-muted)` | Secondary text, metadata |
+| `var(--text-faint)` | Tertiary text, comments |
+| `var(--accent)` | Primary accent (purple in dark, violet in light) |
+| `var(--link)` | Links |
+| `var(--border)` | Borders, dividers |
+| `var(--code-bg)` | Code block backgrounds |
+| `var(--success)` | Positive state, correct answers |
+| `var(--warning)` | Caution, operational concerns |
+| `var(--error)` | Errors, problems |
+
+**Never:**
+- Hardcode hex colors in inline `<style>` blocks
+- Use `color: #2563eb` — use `color: var(--link)` instead
+- Skip the theme-toggle script (pages won't respect dark/light preference)
+
 ### Lesson Opening Structure
 
 Every lesson starts with brief orientation, then gets to the content:
