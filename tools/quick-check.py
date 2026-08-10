@@ -100,10 +100,14 @@ def render_page(cards: list[Card], topic_label: str) -> str:
 
     # Build explanation data for JS
     explanations = {}
+    sources_data = {}
     for i, card in enumerate(cards):
         explanations[f"card{i}"] = card.explanation or card.expected_answer or ""
+        if card.sources:
+            sources_data[f"card{i}"] = card.sources
 
     explanations_json = json.dumps(explanations, ensure_ascii=False)
+    sources_json = json.dumps(sources_data, ensure_ascii=False)
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -207,6 +211,27 @@ def render_page(cards: list[Card], topic_label: str) -> str:
     }}
     .summary.show {{ display: block; }}
     .summary .score {{ font-size: 1.5rem; font-weight: 700; }}
+    .qc-sources {{
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+    }}
+    .qc-sources-label {{
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }}
+    .qc-sources a {{
+      display: block;
+      color: var(--link);
+      text-decoration: none;
+      padding: 0.15rem 0;
+    }}
+    .qc-sources a:hover {{ text-decoration: underline; }}
+    .qc-sources .source-section {{
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }}
   </style>
 </head>
 <body>
@@ -223,6 +248,7 @@ def render_page(cards: list[Card], topic_label: str) -> str:
 
 <script>
 const explanations = {explanations_json};
+const sources = {sources_json};
 let total = {len(cards)}, answered = 0, correct = 0;
 
 function pick(cardId, selectedIdx, correctIdx) {{
@@ -240,6 +266,21 @@ function pick(cardId, selectedIdx, correctIdx) {{
   // Show feedback
   const prefix = isCorrect ? '✓ Correct. ' : '✗ Incorrect. ';
   feedback.textContent = prefix + (explanations[cardId] || '');
+
+  // Render source links if available
+  const cardSources = sources[cardId];
+  if (cardSources && cardSources.length) {{
+    const srcDiv = document.createElement('div');
+    srcDiv.className = 'qc-sources';
+    srcDiv.innerHTML = '<p class="qc-sources-label">📖 Go deeper:</p>' +
+      cardSources.map(s =>
+        '<a href="' + s.url + '" target="_blank" rel="noopener">' +
+        s.label + (s.section ? ' <span class="source-section">— ' + s.section + '</span>' : '') +
+        '</a>'
+      ).join('');
+    feedback.appendChild(srcDiv);
+  }}
+
   feedback.classList.add('show', isCorrect ? 'correct' : 'incorrect');
 
   answered++;
