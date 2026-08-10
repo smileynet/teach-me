@@ -134,6 +134,20 @@ Each lesson with an architectural or conceptual explanation **must include at le
 
 Lessons are built from reusable **components**, stored in `./assets/`: stylesheets, quiz widgets, simulators, diagram helpers — anything a second lesson could reuse.
 
+### Page Scaffolds
+
+Before generating ANY HTML page, read the matching scaffold from `./assets/scaffolds/`:
+
+| Page type | Scaffold | Output path |
+|-----------|----------|-------------|
+| Lesson | `assets/scaffolds/lesson.html` | `lessons/NNNN-slug.html` |
+| Reference doc | `assets/scaffolds/reference.html` | `reference/NNNN-slug.html` |
+| Quick-check review | `assets/scaffolds/quick-check.html` | `lessons/review/quick-check.html` |
+
+Copy the scaffold's structure, replace placeholders, fill with content. This ensures every page has correct asset links, theme support, and consistent structure.
+
+See `assets/scaffolds/README.md` for the full contract (required links, CSS variables, interactive components).
+
 Reuse is the default, not the exception. Before authoring a lesson, read `./assets/` and build from the components already there. When a lesson needs something new and reusable, write it as a component in `./assets/` and link to it — never inline code a future lesson would duplicate.
 
 A shared stylesheet is the first component every workspace earns: every lesson links it, so the lessons look like one consistent course rather than a pile of one-offs. As the workspace grows, so should the component library.

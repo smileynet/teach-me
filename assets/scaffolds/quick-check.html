@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SR Review — {{TOPIC}}</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    .card {
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      background: var(--bg-elevated);
+    }
+    .card-prompt {
+      border-left: 4px solid var(--accent);
+      padding-left: 1rem;
+      margin-bottom: 1rem;
+    }
+    .card-answer {
+      border-left: 4px solid var(--success);
+      padding-left: 1rem;
+      display: none;
+    }
+    .card-answer.revealed { display: block; }
+    .card-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+    .card-type {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: var(--bg-surface);
+      color: var(--accent);
+    }
+    .reveal-btn {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 0.5rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+    .reveal-btn:hover { opacity: 0.85; }
+    pre {
+      background: var(--code-bg);
+      color: var(--text);
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    pre code { background: none; color: inherit; }
+    .rating { margin-top: 1rem; display: none; }
+    .rating.revealed { display: block; }
+    .rating button {
+      padding: 0.4rem 0.8rem;
+      margin-right: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      background: var(--bg-surface);
+      color: var(--text);
+    }
+    .rating button:hover { background: var(--bg-elevated); border-color: var(--accent); }
+    .rating button.selected { background: var(--key-concept-bg); border-color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<h1>📚 SR Review</h1>
+<p class="lesson-meta">Topic: {{TOPIC}} · {{N}} cards due</p>
+
+<!-- CARDS: one .card div per due card -->
+<div class="card" id="card{{N}}">
+  <div class="card-prompt">
+    <span class="card-type">{{QUESTION_TYPE}}</span>
+    <p><strong>{{PROMPT}}</strong></p>
+    <!-- If prompt_code: -->
+    <!-- <pre><code>{{CODE}}</code></pre> -->
+  </div>
+  <button class="reveal-btn" onclick="reveal('card{{N}}')">Show Answer</button>
+  <div class="card-answer">
+    <!-- Render expected_answer as HTML (markdown converted) -->
+    <p>{{ANSWER_HTML}}</p>
+  </div>
+  <div class="rating" id="card{{N}}-rating">
+    <p>Could you explain this?</p>
+    <button onclick="rate('card{{N}}', 1)">No</button>
+    <button onclick="rate('card{{N}}', 3)">Sort of</button>
+    <button onclick="rate('card{{N}}', 5)">Yes</button>
+  </div>
+  <div class="card-meta">From: Lesson {{LESSON_N}} — {{SECTION}} · Tags: {{TAGS}}</div>
+</div>
+
+<script>
+function reveal(cardId) {
+  document.querySelector(`#${cardId} .card-answer`).classList.add('revealed');
+  document.querySelector(`#${cardId} .reveal-btn`).style.display = 'none';
+  document.querySelector(`#${cardId}-rating`).classList.add('revealed');
+}
+function rate(cardId, quality) {
+  const buttons = document.querySelectorAll(`#${cardId}-rating button`);
+  buttons.forEach(b => b.classList.remove('selected'));
+  event.target.classList.add('selected');
+  console.log(`Rated ${cardId}: quality=${quality}`);
+}
+</script>
+<script src="../assets/theme-toggle.js"></script>
+
+</body>
+</html>
