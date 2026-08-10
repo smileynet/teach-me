@@ -1,7 +1,7 @@
 ---
 id: "035"
 title: "Feature: multiple-choice quick-check review page"
-status: open
+status: done
 priority: medium
 blocked_by: []
 type: feature
