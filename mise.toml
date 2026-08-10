@@ -122,3 +122,8 @@ run = "python tools/sr-analytics.py"
 description = "Card lifecycle ops (suspend, retire, reset, sync-lessons)."
 depends = ["setup"]
 run = "python tools/sr-lifecycle.py"
+
+[tasks."sr:quick-check"]
+description = "Generate quick-check review page from due cards. Pass topic slug or --all."
+depends = ["setup"]
+run = "python tools/quick-check.py"

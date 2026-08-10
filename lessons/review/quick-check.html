@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SR Review — Iceberg on AWS</title>
+  <title>Quick Check — Iceberg On Aws</title>
   <link rel="stylesheet" href="../../assets/style.css">
   <style>
     .card {
@@ -18,19 +18,6 @@
       padding-left: 1rem;
       margin-bottom: 1rem;
     }
-    .card-answer {
-      border-left: 4px solid var(--success);
-      padding-left: 1rem;
-      display: none;
-    }
-    .card-answer.revealed {
-      display: block;
-    }
-    .card-meta {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 0.5rem;
-    }
     .card-type {
       display: inline-block;
       padding: 0.15rem 0.5rem;
@@ -40,17 +27,11 @@
       background: var(--bg-surface);
       color: var(--accent);
     }
-    .reveal-btn {
-      background: var(--accent);
-      color: var(--bg);
-      border: none;
-      padding: 0.5rem 1.2rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
+    .card-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
       margin-top: 0.5rem;
     }
-    .reveal-btn:hover { opacity: 0.85; }
     pre {
       background: var(--code-bg);
       color: var(--text);
@@ -61,117 +42,164 @@
       line-height: 1.5;
     }
     pre code { background: none; color: inherit; }
-    .kw { color: var(--accent); }
-    .str { color: var(--success); }
-    .fn { color: var(--link); }
-    .op { color: var(--warning); }
-    .cm { color: var(--text-faint); font-style: italic; }
-    .rating { margin-top: 1rem; display: none; }
-    .rating.revealed { display: block; }
-    .rating button {
-      padding: 0.4rem 0.8rem;
-      margin-right: 0.5rem;
+    .qc-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin: 0.5rem 0;
+    }
+    .qc-option {
+      text-align: left;
+      padding: 0.7rem 1rem;
       border: 1px solid var(--border);
-      border-radius: 4px;
-      cursor: pointer;
+      border-radius: 6px;
       background: var(--bg-surface);
       color: var(--text);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: border-color 0.15s, background 0.15s;
     }
-    .rating button:hover { background: var(--bg-elevated); border-color: var(--accent); }
-    .rating button.selected { background: var(--key-concept-bg); border-color: var(--accent); }
+    .qc-option:hover:not(:disabled) {
+      border-color: var(--accent);
+      background: var(--bg-elevated);
+    }
+    .qc-option:disabled { cursor: default; opacity: 0.85; }
+    .qc-option.correct {
+      border-color: var(--success);
+      background: color-mix(in srgb, var(--success) 12%, var(--bg-surface));
+    }
+    .qc-option.incorrect {
+      border-color: var(--error, #dc2626);
+      background: color-mix(in srgb, var(--error, #dc2626) 8%, var(--bg-surface));
+    }
+    .qc-feedback {
+      margin-top: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      display: none;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .qc-feedback.show { display: block; }
+    .qc-feedback.correct {
+      background: color-mix(in srgb, var(--success) 10%, var(--bg-surface));
+      border-left: 4px solid var(--success);
+    }
+    .qc-feedback.incorrect {
+      background: color-mix(in srgb, var(--error, #dc2626) 8%, var(--bg-surface));
+      border-left: 4px solid var(--error, #dc2626);
+    }
+    .summary {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      border-radius: 8px;
+      background: var(--bg-elevated);
+      border: 2px solid var(--border);
+      text-align: center;
+      display: none;
+    }
+    .summary.show { display: block; }
+    .summary .score { font-size: 1.5rem; font-weight: 700; }
   </style>
 </head>
 <body>
 
-<h1>📚 SR Review</h1>
-<p class="lesson-meta">Topic: Iceberg on AWS · 3 cards due</p>
+<h1>⚡ Quick Check</h1>
+<p class="lesson-meta">Topic: Iceberg On Aws · 3 questions</p>
 
-<div class="card" id="card1">
+<div class="card" id="card0" data-card-id="ice-qc-001">
   <div class="card-prompt">
-    <span class="card-type">explain</span>
-    <p><strong>Explain to a colleague why Iceberg uses a metadata tree instead of flat file listing.</strong></p>
+    <span class="card-type">quick-check</span>
+    <p><strong>Which layer of Iceberg&#x27;s metadata tree stores column-level statistics (min/max, null counts)?</strong></p>
   </div>
-  <button class="reveal-btn" onclick="reveal('card1')">Show Answer</button>
-  <div class="card-answer">
-    <p>A metadata tree enables <strong>atomic multi-file commits</strong> without locking the catalog. Each snapshot points to a manifest list → manifests → data files, so readers and writers never block each other.</p>
-    <p>Key benefits:</p>
-    <ul>
-      <li>No directory listing at query time</li>
-      <li>Snapshot isolation (MVCC)</li>
-      <li>Schema evolution without data rewrites</li>
-    </ul>
+  <div class="qc-options">
+      <button class="qc-option" data-idx="0" onclick="pick('card0', 0, 2)">Manifest list</button>
+      <button class="qc-option" data-idx="1" onclick="pick('card0', 1, 2)">Catalog entry</button>
+      <button class="qc-option" data-idx="2" onclick="pick('card0', 2, 2)">Manifest file</button>
+      <button class="qc-option" data-idx="3" onclick="pick('card0', 3, 2)">Metadata file</button>
   </div>
-  <div class="rating" id="card1-rating">
-    <p>Could you explain this?</p>
-    <button onclick="rate('card1', 1)">No</button>
-    <button onclick="rate('card1', 3)">Sort of</button>
-    <button onclick="rate('card1', 5)">Yes</button>
-  </div>
-  <div class="card-meta">From: Lesson 1 — Why a tree? · Tags: iceberg, metadata, architecture</div>
+  <div class="qc-feedback" id="card0-feedback"></div>
+  <div class="card-meta">From: 0001-iceberg-metadata-tree — The Metadata Tree · Tags: iceberg, manifests, query-planning</div>
 </div>
 
-<div class="card" id="card2">
+<div class="card" id="card1" data-card-id="ice-qc-002">
   <div class="card-prompt">
-    <span class="card-type">apply</span>
-    <p><strong>What's wrong with this query for reading an Iceberg table?</strong></p>
-    <pre><code><span class="kw">SELECT</span> *
-<span class="kw">FROM</span> iceberg_table
-<span class="kw">WHERE</span> year <span class="op">=</span> <span class="str">2024</span>
-  <span class="kw">AND</span> month <span class="kw">BETWEEN</span> <span class="str">1</span> <span class="kw">AND</span> <span class="str">6</span>;</code></pre>
+    <span class="card-type">quick-check</span>
+    <p><strong>What concurrency model does Iceberg use for multi-writer access?</strong></p>
   </div>
-  <button class="reveal-btn" onclick="reveal('card2')">Show Answer</button>
-  <div class="card-answer">
-    <p>Uses <strong>Hive-style partition predicates</strong> (<code>year</code>, <code>month</code>) but Iceberg uses hidden partitioning. Filter on the source column instead:</p>
-    <pre><code><span class="kw">SELECT</span> * <span class="kw">FROM</span> iceberg_table
-<span class="kw">WHERE</span> event_time <span class="op">>=</span> <span class="str">'2024-01-01'</span>
-  <span class="kw">AND</span> event_time <span class="op"><</span> <span class="str">'2024-07-01'</span>;</code></pre>
-    <p>Iceberg prunes automatically based on the partition spec — you don't reference partition columns directly.</p>
+  <div class="qc-options">
+      <button class="qc-option" data-idx="0" onclick="pick('card1', 0, 1)">Pessimistic locking via the catalog</button>
+      <button class="qc-option" data-idx="1" onclick="pick('card1', 1, 1)">Optimistic concurrency with compare-and-swap</button>
+      <button class="qc-option" data-idx="2" onclick="pick('card1', 2, 1)">Distributed lock manager (DLM)</button>
+      <button class="qc-option" data-idx="3" onclick="pick('card1', 3, 1)">Write-ahead log with two-phase commit</button>
   </div>
-  <div class="rating" id="card2-rating">
-    <p>Could you explain this?</p>
-    <button onclick="rate('card2', 1)">No</button>
-    <button onclick="rate('card2', 3)">Sort of</button>
-    <button onclick="rate('card2', 5)">Yes</button>
-  </div>
-  <div class="card-meta">From: Lesson 1 — Query Planning · Tags: iceberg, sql, partitioning</div>
+  <div class="qc-feedback" id="card1-feedback"></div>
+  <div class="card-meta">From: 0001-iceberg-metadata-tree — MVCC · Tags: iceberg, concurrency, mvcc</div>
 </div>
 
-<div class="card" id="card3">
+<div class="card" id="card2" data-card-id="ice-qc-003">
   <div class="card-prompt">
-    <span class="card-type">explain</span>
-    <p><strong>Explain what this function does and why it might fail under concurrent writes:</strong></p>
-    <pre><code><span class="kw">def</span> <span class="fn">commit_snapshot</span>(catalog, table, new_files):
-    current <span class="op">=</span> catalog.load_table_metadata(table)
-    manifest <span class="op">=</span> build_manifest(current.snapshot, new_files)
-    new_metadata <span class="op">=</span> current.with_snapshot(manifest)
-    catalog.update_metadata(table, new_metadata)</code></pre>
+    <span class="card-type">quick-check</span>
+    <p><strong>What happens to query planning latency if you skip compaction on a heavily-written Iceberg table?</strong></p>
   </div>
-  <button class="reveal-btn" onclick="reveal('card3')">Show Answer</button>
-  <div class="card-answer">
-    <p>This is an <strong>optimistic concurrency commit</strong> — reads current state, builds new metadata, writes back. It fails because there is <strong>no conflict check</strong>: between <code>load_table_metadata</code> and <code>update_metadata</code>, another writer could have committed.</p>
-    <p>Fix: compare-and-swap on the catalog pointer (check it hasn't changed since you read it).</p>
+  <div class="qc-options">
+      <button class="qc-option" data-idx="0" onclick="pick('card2', 0, 0)">Planning latency grows as manifests accumulate</button>
+      <button class="qc-option" data-idx="1" onclick="pick('card2', 1, 0)">The table becomes read-only until compacted</button>
+      <button class="qc-option" data-idx="2" onclick="pick('card2', 2, 0)">Queries fail with a timeout error</button>
+      <button class="qc-option" data-idx="3" onclick="pick('card2', 3, 0)">No effect — the catalog caches manifest metadata</button>
   </div>
-  <div class="rating" id="card3-rating">
-    <p>Could you explain this?</p>
-    <button onclick="rate('card3', 1)">No</button>
-    <button onclick="rate('card3', 3)">Sort of</button>
-    <button onclick="rate('card3', 5)">Yes</button>
-  </div>
-  <div class="card-meta">From: Lesson 1 — MVCC · Tags: iceberg, concurrency, python</div>
+  <div class="qc-feedback" id="card2-feedback"></div>
+  <div class="card-meta">From: 0001-iceberg-metadata-tree — Limitations Worth Knowing · Tags: iceberg, maintenance, compaction</div>
+</div>
+
+<div class="summary" id="summary">
+  <p class="score" id="score-text"></p>
+  <p id="score-msg"></p>
 </div>
 
 <script>
-function reveal(cardId) {
-  document.querySelector(`#${cardId} .card-answer`).classList.add('revealed');
-  document.querySelector(`#${cardId} .reveal-btn`).style.display = 'none';
-  document.querySelector(`#${cardId}-rating`).classList.add('revealed');
+const explanations = {"card0": "Manifest files store per-data-file statistics (min/max per column, row count, null counts) that enable partition pruning at query time.", "card1": "Iceberg uses optimistic concurrency — writers build their commit independently, then compare-and-swap the catalog pointer. If another writer committed first, the operation retries.", "card2": "Each write adds new manifest files. Without compaction, query planning must scan more manifests to discover which data files to read — latency grows linearly with manifest count."};
+let total = 3, answered = 0, correct = 0;
+
+function pick(cardId, selectedIdx, correctIdx) {
+  const card = document.getElementById(cardId);
+  const buttons = card.querySelectorAll('.qc-option');
+  const feedback = document.getElementById(cardId + '-feedback');
+
+  // Disable all buttons
+  buttons.forEach(b => b.disabled = true);
+
+  const isCorrect = selectedIdx === correctIdx;
+  buttons[correctIdx].classList.add('correct');
+  if (!isCorrect) buttons[selectedIdx].classList.add('incorrect');
+
+  // Show feedback
+  const prefix = isCorrect ? '✓ Correct. ' : '✗ Incorrect. ';
+  feedback.textContent = prefix + (explanations[cardId] || '');
+  feedback.classList.add('show', isCorrect ? 'correct' : 'incorrect');
+
+  answered++;
+  if (isCorrect) correct++;
+
+  // Log for potential future integration
+  console.log(JSON.stringify({
+    card_id: card.dataset.cardId,
+    correct: isCorrect,
+    timestamp: new Date().toISOString()
+  }));
+
+  if (answered === total) showSummary();
 }
-function rate(cardId, quality) {
-  const buttons = document.querySelectorAll(`#${cardId}-rating button`);
-  buttons.forEach(b => b.classList.remove('selected'));
-  event.target.classList.add('selected');
-  // In production: POST to review.py endpoint or store for batch commit
-  console.log(`Rated ${cardId}: quality=${quality}`);
+
+function showSummary() {
+  const el = document.getElementById('summary');
+  document.getElementById('score-text').textContent = correct + ' / ' + total;
+  const pct = Math.round(100 * correct / total);
+  document.getElementById('score-msg').textContent =
+    pct === 100 ? '🎯 Perfect!' :
+    pct >= 70 ? '👍 Solid understanding.' :
+    '📖 Some concepts need another look.';
+  el.classList.add('show');
 }
 </script>
 <script src="../../assets/theme-toggle.js"></script>
