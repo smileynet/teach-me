@@ -55,6 +55,8 @@ class Card:
     options: list[str] | None = None      # 4 answer choices
     correct_index: int | None = None      # 0-based index into options
     explanation: str | None = None        # shown after answering
+    # Source links (shown after answering, for "go deeper")
+    sources: list[dict] | None = None     # [{"url": "...", "label": "...", "section": "...", "anchor_type": "heading|text-fragment|prose"}]
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), ensure_ascii=False)

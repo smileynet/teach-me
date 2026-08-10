@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quick Check — Iceberg On Aws</title>
+  <title>Quick Check — All Topics</title>
   <link rel="stylesheet" href="../../assets/style.css">
   <style>
     .card {
@@ -100,12 +100,33 @@
     }
     .summary.show { display: block; }
     .summary .score { font-size: 1.5rem; font-weight: 700; }
+    .qc-sources {
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+    }
+    .qc-sources-label {
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+    .qc-sources a {
+      display: block;
+      color: var(--link);
+      text-decoration: none;
+      padding: 0.15rem 0;
+    }
+    .qc-sources a:hover { text-decoration: underline; }
+    .qc-sources .source-section {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
   </style>
 </head>
 <body>
 
 <h1>⚡ Quick Check</h1>
-<p class="lesson-meta">Topic: Iceberg On Aws · 3 questions</p>
+<p class="lesson-meta">Topic: All Topics · 3 questions</p>
 
 <div class="card" id="card0" data-card-id="ice-qc-001">
   <div class="card-prompt">
@@ -113,10 +134,10 @@
     <p><strong>Which layer of Iceberg&#x27;s metadata tree stores column-level statistics (min/max, null counts)?</strong></p>
   </div>
   <div class="qc-options">
-      <button class="qc-option" data-idx="0" onclick="pick('card0', 0, 2)">Manifest list</button>
-      <button class="qc-option" data-idx="1" onclick="pick('card0', 1, 2)">Catalog entry</button>
-      <button class="qc-option" data-idx="2" onclick="pick('card0', 2, 2)">Manifest file</button>
-      <button class="qc-option" data-idx="3" onclick="pick('card0', 3, 2)">Metadata file</button>
+      <button class="qc-option" data-idx="0" onclick="pick('card0', 0, 3)">Manifest list</button>
+      <button class="qc-option" data-idx="1" onclick="pick('card0', 1, 3)">Catalog entry</button>
+      <button class="qc-option" data-idx="2" onclick="pick('card0', 2, 3)">Metadata file</button>
+      <button class="qc-option" data-idx="3" onclick="pick('card0', 3, 3)">Manifest file</button>
   </div>
   <div class="qc-feedback" id="card0-feedback"></div>
   <div class="card-meta">From: 0001-iceberg-metadata-tree — The Metadata Tree · Tags: iceberg, manifests, query-planning</div>
@@ -128,10 +149,10 @@
     <p><strong>What concurrency model does Iceberg use for multi-writer access?</strong></p>
   </div>
   <div class="qc-options">
-      <button class="qc-option" data-idx="0" onclick="pick('card1', 0, 1)">Pessimistic locking via the catalog</button>
-      <button class="qc-option" data-idx="1" onclick="pick('card1', 1, 1)">Optimistic concurrency with compare-and-swap</button>
-      <button class="qc-option" data-idx="2" onclick="pick('card1', 2, 1)">Distributed lock manager (DLM)</button>
-      <button class="qc-option" data-idx="3" onclick="pick('card1', 3, 1)">Write-ahead log with two-phase commit</button>
+      <button class="qc-option" data-idx="0" onclick="pick('card1', 0, 2)">Pessimistic locking via the catalog</button>
+      <button class="qc-option" data-idx="1" onclick="pick('card1', 1, 2)">Write-ahead log with two-phase commit</button>
+      <button class="qc-option" data-idx="2" onclick="pick('card1', 2, 2)">Optimistic concurrency with compare-and-swap</button>
+      <button class="qc-option" data-idx="3" onclick="pick('card1', 3, 2)">Distributed lock manager (DLM)</button>
   </div>
   <div class="qc-feedback" id="card1-feedback"></div>
   <div class="card-meta">From: 0001-iceberg-metadata-tree — MVCC · Tags: iceberg, concurrency, mvcc</div>
@@ -143,10 +164,10 @@
     <p><strong>What happens to query planning latency if you skip compaction on a heavily-written Iceberg table?</strong></p>
   </div>
   <div class="qc-options">
-      <button class="qc-option" data-idx="0" onclick="pick('card2', 0, 0)">Planning latency grows as manifests accumulate</button>
-      <button class="qc-option" data-idx="1" onclick="pick('card2', 1, 0)">The table becomes read-only until compacted</button>
-      <button class="qc-option" data-idx="2" onclick="pick('card2', 2, 0)">Queries fail with a timeout error</button>
-      <button class="qc-option" data-idx="3" onclick="pick('card2', 3, 0)">No effect — the catalog caches manifest metadata</button>
+      <button class="qc-option" data-idx="0" onclick="pick('card2', 0, 3)">No effect — the catalog caches manifest metadata</button>
+      <button class="qc-option" data-idx="1" onclick="pick('card2', 1, 3)">Queries fail with a timeout error</button>
+      <button class="qc-option" data-idx="2" onclick="pick('card2', 2, 3)">The table becomes read-only until compacted</button>
+      <button class="qc-option" data-idx="3" onclick="pick('card2', 3, 3)">Planning latency grows as manifests accumulate</button>
   </div>
   <div class="qc-feedback" id="card2-feedback"></div>
   <div class="card-meta">From: 0001-iceberg-metadata-tree — Limitations Worth Knowing · Tags: iceberg, maintenance, compaction</div>
@@ -159,6 +180,7 @@
 
 <script>
 const explanations = {"card0": "Manifest files store per-data-file statistics (min/max per column, row count, null counts) that enable partition pruning at query time.", "card1": "Iceberg uses optimistic concurrency — writers build their commit independently, then compare-and-swap the catalog pointer. If another writer committed first, the operation retries.", "card2": "Each write adds new manifest files. Without compaction, query planning must scan more manifests to discover which data files to read — latency grows linearly with manifest count."};
+const sources = {"card0": [{"url": "https://iceberg.apache.org/spec/#field-level-metrics-and-statistics", "label": "Iceberg Spec", "section": "Field-level Metrics and Statistics", "anchor_type": "heading"}, {"url": "https://iceberg.apache.org/spec/#manifests", "label": "Iceberg Spec", "section": "Manifests — data_file struct with lower/upper bounds", "anchor_type": "heading"}], "card1": [{"url": "https://iceberg.apache.org/spec/#optimistic-concurrency", "label": "Iceberg Spec", "section": "Optimistic Concurrency", "anchor_type": "heading"}, {"url": "https://iceberg.apache.org/spec/#commit-conflict-resolution-and-retry", "label": "Iceberg Spec", "section": "Commit Conflict Resolution and Retry", "anchor_type": "heading"}], "card2": [{"url": "https://iceberg.apache.org/docs/latest/maintenance/#rewrite-manifests", "label": "Iceberg Docs", "section": "Rewrite Manifests — metadata compaction", "anchor_type": "heading"}, {"url": "https://iceberg.apache.org/spec/#scan-planning", "label": "Iceberg Spec", "section": "Scan Planning — how manifests are read during query planning", "anchor_type": "heading"}]};
 let total = 3, answered = 0, correct = 0;
 
 function pick(cardId, selectedIdx, correctIdx) {
@@ -176,6 +198,21 @@ function pick(cardId, selectedIdx, correctIdx) {
   // Show feedback
   const prefix = isCorrect ? '✓ Correct. ' : '✗ Incorrect. ';
   feedback.textContent = prefix + (explanations[cardId] || '');
+
+  // Render source links if available
+  const cardSources = sources[cardId];
+  if (cardSources && cardSources.length) {
+    const srcDiv = document.createElement('div');
+    srcDiv.className = 'qc-sources';
+    srcDiv.innerHTML = '<p class="qc-sources-label">📖 Go deeper:</p>' +
+      cardSources.map(s =>
+        '<a href="' + s.url + '" target="_blank" rel="noopener">' +
+        s.label + (s.section ? ' <span class="source-section">— ' + s.section + '</span>' : '') +
+        '</a>'
+      ).join('');
+    feedback.appendChild(srcDiv);
+  }
+
   feedback.classList.add('show', isCorrect ? 'correct' : 'incorrect');
 
   answered++;
