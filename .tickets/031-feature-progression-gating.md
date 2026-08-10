@@ -9,6 +9,10 @@ type: feature
 
 # Feature: soft-recommend review before new lessons
 
+## Current state
+
+The teach skill already has guidance to run `sr-status.py` at session start and surface due cards before new material (Socratic Gate section). The `sr-status.py` script exists and works. What remains is **verifying the behavior works end-to-end in a real teaching session** and potentially adding a helper that formats the recommendation message consistently.
+
 ## What to build
 
 When SR cards are due, the teach skill mentions it and recommends reviewing — but always provides new content if asked. Never block, never force an override. The posture is "provide if asked" — the learner is in charge of their schedule.

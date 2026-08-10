@@ -9,6 +9,10 @@ type: feature
 
 # Feature: multiple-choice quick-check review page
 
+## Current state
+
+A static prototype exists at `lessons/review/quick-check.html` with 3 hand-coded cards (explain + 2 code blocks), reveal/rating interaction, and full CSS variable theming. What remains is **dynamic generation from the JSONL question bank** — a script that reads due cards and produces the page.
+
 ## What to build
 
 A lightweight HTML review page (like the quiz component) that presents multiple-choice questions drawn from the SR question bank. Designed for fast validation — the learner clicks through 5-10 questions in 2-3 minutes. Complements the deeper Socratic gate with quick, low-friction knowledge checks.
