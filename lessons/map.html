@@ -6,6 +6,24 @@
   <title>Map: Modern Data Analytics Stacks</title>
   <link rel="stylesheet" href="../assets/style.css">
   <style>
+    html { scroll-behavior: smooth; }
+    .lesson-nav {
+      padding: 0.5rem 0;
+      margin-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .lesson-nav a {
+      color: var(--link);
+      text-decoration: none;
+    }
+    .lesson-nav a:hover { text-decoration: underline; }
+    .lesson-nav .nav-position {
+      color: var(--text-muted);
+    }
     .map-container {
       display: flex;
       flex-direction: column;
@@ -36,6 +54,12 @@
       padding: 1rem 1.25rem;
       margin: 0.75rem 0;
       background: var(--bg-elevated);
+      scroll-margin-top: 1rem;
+      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+    .topic-card:target {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
     }
     .topic-card h3 {
       margin: 0 0 0.25rem 0;
@@ -64,6 +88,20 @@
       margin-top: 0.5rem;
       color: var(--link);
       font-size: 0.9rem;
+    }
+    .topic-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin-top: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .quiz-link {
+      color: var(--success, #16a34a);
+    }
+    .quiz-gen {
+      border-color: var(--success, #16a34a);
+      color: var(--success, #16a34a);
     }
     .generate-btn {
       margin-top: 0.5rem;
@@ -158,6 +196,10 @@
 <body>
 
 <div class="map-container">
+  <nav class="lesson-nav">
+    <a href="../lessons/">← All Lessons</a>
+    <span class="nav-position">7 topics · 0 complete</span>
+  </nav>
   <h1>🗺️ Modern Data Analytics Stacks</h1>
   <p class="orientation">Every organization sits on operational data that only becomes useful when it flows through a deliberate pipeline: captured, stored in queryable formats, transformed into business concepts, orchestrated reliably, and served to the people making decisions. You'll understand each layer of this stack, the tradeoffs driving tool choices, and how they compose into a coherent platform — so you can evaluate architectures, not just memorize vendor names.</p>
 
@@ -178,7 +220,7 @@
 <!-- ingestion -->
 <g id="node1" class="node">
 <title>ingestion</title>
-<g id="a_node1"><a xlink:href="#generate-ingestion" xlink:title="Nothing downstream works until data reliably moves from source systems into your analytics layer">
+<g id="a_node1"><a xlink:href="#topic-ingestion" xlink:title="Nothing downstream works until data reliably moves from source systems into your analytics layer">
 <path fill="#f3f4f6" stroke="#6b7280" d="M520.45,-430.5C520.45,-430.5 301,-430.5 301,-430.5 295,-430.5 289,-424.5 289,-418.5 289,-418.5 289,-385.2 289,-385.2 289,-379.2 295,-373.2 301,-373.2 301,-373.2 520.45,-373.2 520.45,-373.2 526.45,-373.2 532.45,-379.2 532.45,-385.2 532.45,-385.2 532.45,-418.5 532.45,-418.5 532.45,-424.5 526.45,-430.5 520.45,-430.5"/>
 <text xml:space="preserve" text-anchor="middle" x="410.73" y="-404.7" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Data Ingestion &amp; Change Capture</text>
 <text xml:space="preserve" text-anchor="middle" x="410.73" y="-390.45" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">◐ substantial</text>
@@ -188,7 +230,7 @@
 <!-- storage&#45;and&#45;table&#45;formats -->
 <g id="node2" class="node">
 <title>storage&#45;and&#45;table&#45;formats</title>
-<g id="a_node2"><a xlink:href="#generate-storage-and-table-formats" xlink:title="Where and how data is stored determines query performance, cost, and what operations are even possible">
+<g id="a_node2"><a xlink:href="#topic-storage-and-table-formats" xlink:title="Where and how data is stored determines query performance, cost, and what operations are even possible">
 <path fill="#f3f4f6" stroke="#6b7280" d="M438.83,-337.2C438.83,-337.2 236.63,-337.2 236.63,-337.2 230.63,-337.2 224.63,-331.2 224.63,-325.2 224.63,-325.2 224.63,-291.9 224.63,-291.9 224.63,-285.9 230.63,-279.9 236.63,-279.9 236.63,-279.9 438.83,-279.9 438.83,-279.9 444.83,-279.9 450.83,-285.9 450.83,-291.9 450.83,-291.9 450.83,-325.2 450.83,-325.2 450.83,-331.2 444.83,-337.2 438.83,-337.2"/>
 <text xml:space="preserve" text-anchor="middle" x="337.73" y="-311.4" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Storage &amp; Open Table Formats</text>
 <text xml:space="preserve" text-anchor="middle" x="337.73" y="-297.15" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">● deep</text>
@@ -204,7 +246,7 @@
 <!-- orchestration -->
 <g id="node5" class="node">
 <title>orchestration</title>
-<g id="a_node5"><a xlink:href="#generate-orchestration" xlink:title="Pipelines fail, dependencies shift, schedules slip — orchestration is what makes the whole stack run without manual intervention">
+<g id="a_node5"><a xlink:href="#topic-orchestration" xlink:title="Pipelines fail, dependencies shift, schedules slip — orchestration is what makes the whole stack run without manual intervention">
 <path fill="#f3f4f6" stroke="#6b7280" d="M618.95,-150.6C618.95,-150.6 372.5,-150.6 372.5,-150.6 366.5,-150.6 360.5,-144.6 360.5,-138.6 360.5,-138.6 360.5,-105.3 360.5,-105.3 360.5,-99.3 366.5,-93.3 372.5,-93.3 372.5,-93.3 618.95,-93.3 618.95,-93.3 624.95,-93.3 630.95,-99.3 630.95,-105.3 630.95,-105.3 630.95,-138.6 630.95,-138.6 630.95,-144.6 624.95,-150.6 618.95,-150.6"/>
 <text xml:space="preserve" text-anchor="middle" x="495.73" y="-124.8" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Orchestration &amp; Pipeline Management</text>
 <text xml:space="preserve" text-anchor="middle" x="495.73" y="-110.55" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">◐ substantial</text>
@@ -220,7 +262,7 @@
 <!-- compute&#45;engines -->
 <g id="node3" class="node">
 <title>compute&#45;engines</title>
-<g id="a_node3"><a xlink:href="#generate-compute-engines" xlink:title="The engine you pick decides what workloads are fast, what&#39;s expensive, and how your storage is actually read">
+<g id="a_node3"><a xlink:href="#topic-compute-engines" xlink:title="The engine you pick decides what workloads are fast, what&#39;s expensive, and how your storage is actually read">
 <path fill="#f3f4f6" stroke="#6b7280" d="M189.45,-243.9C189.45,-243.9 12,-243.9 12,-243.9 6,-243.9 0,-237.9 0,-231.9 0,-231.9 0,-198.6 0,-198.6 0,-192.6 6,-186.6 12,-186.6 12,-186.6 189.45,-186.6 189.45,-186.6 195.45,-186.6 201.45,-192.6 201.45,-198.6 201.45,-198.6 201.45,-231.9 201.45,-231.9 201.45,-237.9 195.45,-243.9 189.45,-243.9"/>
 <text xml:space="preserve" text-anchor="middle" x="100.73" y="-218.1" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Compute &amp; Query Engines</text>
 <text xml:space="preserve" text-anchor="middle" x="100.73" y="-203.85" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">◐ substantial</text>
@@ -236,7 +278,7 @@
 <!-- transformation&#45;and&#45;modeling -->
 <g id="node4" class="node">
 <title>transformation&#45;and&#45;modeling</title>
-<g id="a_node4"><a xlink:href="#generate-transformation-and-modeling" xlink:title="Raw ingested data is unusable for analysis — transformation turns it into trusted, business&#45;meaningful tables">
+<g id="a_node4"><a xlink:href="#topic-transformation-and-modeling" xlink:title="Raw ingested data is unusable for analysis — transformation turns it into trusted, business&#45;meaningful tables">
 <path fill="#f3f4f6" stroke="#6b7280" d="M443.7,-243.9C443.7,-243.9 231.75,-243.9 231.75,-243.9 225.75,-243.9 219.75,-237.9 219.75,-231.9 219.75,-231.9 219.75,-198.6 219.75,-198.6 219.75,-192.6 225.75,-186.6 231.75,-186.6 231.75,-186.6 443.7,-186.6 443.7,-186.6 449.7,-186.6 455.7,-192.6 455.7,-198.6 455.7,-198.6 455.7,-231.9 455.7,-231.9 455.7,-237.9 449.7,-243.9 443.7,-243.9"/>
 <text xml:space="preserve" text-anchor="middle" x="337.73" y="-218.1" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Transformation &amp; Data Modeling</text>
 <text xml:space="preserve" text-anchor="middle" x="337.73" y="-203.85" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">◐ substantial</text>
@@ -258,7 +300,7 @@
 <!-- serving&#45;and&#45;bi -->
 <g id="node6" class="node">
 <title>serving&#45;and&#45;bi</title>
-<g id="a_node6"><a xlink:href="#generate-serving-and-bi" xlink:title="The entire stack exists to put trustworthy answers in front of decision&#45;makers — this is where value is realized">
+<g id="a_node6"><a xlink:href="#topic-serving-and-bi" xlink:title="The entire stack exists to put trustworthy answers in front of decision&#45;makers — this is where value is realized">
 <path fill="#f3f4f6" stroke="#6b7280" d="M292.33,-150.6C292.33,-150.6 75.12,-150.6 75.12,-150.6 69.12,-150.6 63.13,-144.6 63.13,-138.6 63.13,-138.6 63.13,-105.3 63.13,-105.3 63.13,-99.3 69.13,-93.3 75.13,-93.3 75.13,-93.3 292.33,-93.3 292.33,-93.3 298.33,-93.3 304.33,-99.3 304.33,-105.3 304.33,-105.3 304.33,-138.6 304.33,-138.6 304.33,-144.6 298.33,-150.6 292.33,-150.6"/>
 <text xml:space="preserve" text-anchor="middle" x="183.73" y="-124.8" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Serving, BI &amp; the Semantic Layer</text>
 <text xml:space="preserve" text-anchor="middle" x="183.73" y="-110.55" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">◐ substantial</text>
@@ -274,7 +316,7 @@
 <!-- governance&#45;and&#45;observability -->
 <g id="node7" class="node">
 <title>governance&#45;and&#45;observability</title>
-<g id="a_node7"><a xlink:href="#generate-governance-and-observability" xlink:title="Without quality checks, lineage, and access controls, your stack produces confident wrong answers — the most dangerous kind">
+<g id="a_node7"><a xlink:href="#topic-governance-and-observability" xlink:title="Without quality checks, lineage, and access controls, your stack produces confident wrong answers — the most dangerous kind">
 <path fill="#f3f4f6" stroke="#6b7280" d="M522.7,-57.3C522.7,-57.3 304.75,-57.3 304.75,-57.3 298.75,-57.3 292.75,-51.3 292.75,-45.3 292.75,-45.3 292.75,-12 292.75,-12 292.75,-6 298.75,0 304.75,0 304.75,0 522.7,0 522.7,0 528.7,0 534.7,-6 534.7,-12 534.7,-12 534.7,-45.3 534.7,-45.3 534.7,-51.3 528.7,-57.3 522.7,-57.3"/>
 <text xml:space="preserve" text-anchor="middle" x="413.73" y="-31.5" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Data Governance &amp; Observability</text>
 <text xml:space="preserve" text-anchor="middle" x="413.73" y="-17.25" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">◐ substantial</text>
@@ -303,43 +345,43 @@
       <h3>Data Ingestion & Change Capture <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Nothing downstream works until data reliably moves from source systems into your analytics layer</p>
       <p class="topic-scope">Scope: substantial · Prereqs: none</p>
-      <button class="generate-btn" onclick="offerGenerate('ingestion', 'Data Ingestion & Change Capture')">Generate this topic</button>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('ingestion', 'Data Ingestion & Change Capture')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('ingestion', 'Data Ingestion & Change Capture')">Generate quiz</button></div>
     </div>
     <div class="topic-card" id="topic-storage-and-table-formats">
       <h3>Storage & Open Table Formats <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Where and how data is stored determines query performance, cost, and what operations are even possible</p>
       <p class="topic-scope">Scope: deep · Prereqs: ingestion</p>
-      <button class="generate-btn" onclick="offerGenerate('storage-and-table-formats', 'Storage & Open Table Formats')">Generate this topic</button>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('storage-and-table-formats', 'Storage & Open Table Formats')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('storage-and-table-formats', 'Storage & Open Table Formats')">Generate quiz</button></div>
     </div>
     <div class="topic-card" id="topic-compute-engines">
       <h3>Compute & Query Engines <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">The engine you pick decides what workloads are fast, what's expensive, and how your storage is actually read</p>
       <p class="topic-scope">Scope: substantial · Prereqs: storage-and-table-formats</p>
-      <button class="generate-btn" onclick="offerGenerate('compute-engines', 'Compute & Query Engines')">Generate this topic</button>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('compute-engines', 'Compute & Query Engines')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('compute-engines', 'Compute & Query Engines')">Generate quiz</button></div>
     </div>
     <div class="topic-card" id="topic-transformation-and-modeling">
       <h3>Transformation & Data Modeling <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Raw ingested data is unusable for analysis — transformation turns it into trusted, business-meaningful tables</p>
       <p class="topic-scope">Scope: substantial · Prereqs: storage-and-table-formats</p>
-      <button class="generate-btn" onclick="offerGenerate('transformation-and-modeling', 'Transformation & Data Modeling')">Generate this topic</button>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('transformation-and-modeling', 'Transformation & Data Modeling')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('transformation-and-modeling', 'Transformation & Data Modeling')">Generate quiz</button></div>
     </div>
     <div class="topic-card" id="topic-orchestration">
       <h3>Orchestration & Pipeline Management <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Pipelines fail, dependencies shift, schedules slip — orchestration is what makes the whole stack run without manual intervention</p>
       <p class="topic-scope">Scope: substantial · Prereqs: ingestion, transformation-and-modeling</p>
-      <button class="generate-btn" onclick="offerGenerate('orchestration', 'Orchestration & Pipeline Management')">Generate this topic</button>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('orchestration', 'Orchestration & Pipeline Management')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('orchestration', 'Orchestration & Pipeline Management')">Generate quiz</button></div>
     </div>
     <div class="topic-card" id="topic-serving-and-bi">
       <h3>Serving, BI & the Semantic Layer <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">The entire stack exists to put trustworthy answers in front of decision-makers — this is where value is realized</p>
       <p class="topic-scope">Scope: substantial · Prereqs: transformation-and-modeling</p>
-      <button class="generate-btn" onclick="offerGenerate('serving-and-bi', 'Serving, BI & the Semantic Layer')">Generate this topic</button>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('serving-and-bi', 'Serving, BI & the Semantic Layer')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('serving-and-bi', 'Serving, BI & the Semantic Layer')">Generate quiz</button></div>
     </div>
     <div class="topic-card" id="topic-governance-and-observability">
       <h3>Data Governance & Observability <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Without quality checks, lineage, and access controls, your stack produces confident wrong answers — the most dangerous kind</p>
       <p class="topic-scope">Scope: substantial · Prereqs: transformation-and-modeling, orchestration</p>
-      <button class="generate-btn" onclick="offerGenerate('governance-and-observability', 'Data Governance & Observability')">Generate this topic</button>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('governance-and-observability', 'Data Governance & Observability')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('governance-and-observability', 'Data Governance & Observability')">Generate quiz</button></div>
     </div>
 
   
@@ -367,6 +409,12 @@
 function offerGenerate(slug, title) {
   document.getElementById('gen-title').textContent = 'Generate: ' + title;
   document.getElementById('gen-command').textContent = 'kiro-cli chat "teach me about ' + title + '"';
+  document.getElementById('gen-modal').classList.add('show');
+}
+
+function offerGenerateQuiz(slug, title) {
+  document.getElementById('gen-title').textContent = 'Generate Quiz: ' + title;
+  document.getElementById('gen-command').textContent = 'kiro-cli chat "generate quick-check questions for ' + title + '"';
   document.getElementById('gen-modal').classList.add('show');
 }
 

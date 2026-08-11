@@ -1,7 +1,7 @@
 ---
 id: "048"
 title: "Spike: SVG node click → scroll to topic card + highlight"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: spike

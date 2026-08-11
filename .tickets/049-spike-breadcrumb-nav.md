@@ -1,7 +1,7 @@
 ---
 id: "049"
 title: "Spike: breadcrumb navigation — '← Back to Map' on lesson pages"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: spike

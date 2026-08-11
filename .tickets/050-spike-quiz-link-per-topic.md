@@ -1,7 +1,7 @@
 ---
 id: "050"
 title: "Spike: quiz link per topic on map page — generate or browse"
-status: open
+status: done
 priority: medium
 blocked_by: []
 type: spike
