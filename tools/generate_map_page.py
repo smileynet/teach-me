@@ -134,14 +134,18 @@ def generate_dot(map_data: dict) -> str:
         # Add scope indicator
         scope_icon = {"lightweight": "○", "substantial": "◐", "deep": "●"}.get(topic["scope"], "◐")
 
+        # Escape quotes for DOT syntax
+        safe_label = label.replace('"', '\\"')
+        safe_why = topic["why"].replace('"', '\\"')
+
         lines.append(
             f'  "{topic["slug"]}" ['
-            f'label="{label}\\n{scope_icon} {topic["scope"]}", '
+            f'label="{safe_label}\\n{scope_icon} {topic["scope"]}", '
             f'fillcolor="{colors["fill"]}", '
             f'color="{colors["stroke"]}", '
             f'fontcolor="{colors["text"]}", '
             f'URL="{url}", '
-            f'tooltip="{topic["why"]}"'
+            f'tooltip="{safe_why}"'
             f'];'
         )
 
