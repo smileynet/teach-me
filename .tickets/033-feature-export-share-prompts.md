@@ -2,7 +2,7 @@
 id: "033"
 title: "Feature: export SR questions to Anki format"
 status: open
-priority: low
+priority: medium
 blocked_by: []
 type: feature
 ---
@@ -20,29 +20,65 @@ Anki has the largest flashcard ecosystem — exporting to `.apkg` lets learners:
 - Share decks with colleagues studying the same topic
 - Use Anki's superior mobile UX for quick daily reviews
 
-## Design sketch
+## Approved Design
+
+### Two Note Models
+
+1. **TeachMe — Explain** (for explain/compare/apply/predict cards)
+   - Front: prompt (+ code block if prompt_code)
+   - Back: expected_answer (+ code block if answer_code)
+   - Source: rendered HTML links from `sources` field
+   - Context: lesson_id, section_heading
+
+2. **TeachMe — QuickCheck** (for multiple-choice cards)
+   - Front: prompt (+ code block if prompt_code)
+   - Back: correct option highlighted + explanation
+   - Source: rendered HTML links from `sources` field
+   - Context: lesson_id, section_heading
+
+### Key Decisions
+
+- **Library**: `genanki` (only dependency)
+- **GUID strategy**: `genanki.guid_for(card.id)` — deterministic from our UUID, so re-exports update rather than duplicate
+- **Tags**: hierarchical — `topic::iceberg-on-aws`, `type::explain`, `tier::apply`, `lesson::0001-iceberg-metadata-tree`
+- **Sources**: rendered as `<a href>` links in Source field (answer side only)
+- **Scheduling**: NOT exported — Anki reschedules on import; we export content only
+- **Media**: v1 = text only; v2 = SVG diagrams as media files (deferred)
+- **No cloze conversion** — quick-check stays as explicit Q&A, not synthetic clozes
+
+### What NOT to do
+
+- No markdown parsing pipeline (genanki takes raw HTML)
+- No bidirectional sync with Anki
+- No custom JS/theme system
+- No AnkiConnect API integration
+- No scheduling data export (different algorithm, different intervals)
+
+### CLI
 
 ```bash
-python tools/sr-export.py <topic> --format anki --output deck.apkg
-python tools/sr-export.py <topic> --format anki --output deck.apkg --exclude-suspended
+mise run sr:export-anki                          # all topics
+mise run sr:export-anki -- iceberg-on-aws        # one topic
+mise run sr:export-anki -- --output ~/deck.apkg  # custom output path
+mise run sr:export-anki -- --exclude-suspended   # skip suspended cards
 ```
 
-Uses `genanki` Python library (well-maintained, MIT license):
-- Maps explain-to-colleague cards to "Basic (and reversed)" note type
-- Maps quick-check cards to cloze or multiple-choice note type
-- Tags from our cards → Anki tags
-- Provenance metadata in a "Source" field (lesson reference)
+### Implementation
 
-## Open questions
-
-- Include review history/scheduling in export, or just content? (Anki will reschedule anyway)
-- How to map our "explain to a colleague" format to Anki? (Front: prompt, Back: expected answer + explanation)
-- Should quick-check multiple-choice export as Anki's native cloze or a custom note type?
+~150 lines in `tools/export_anki.py`:
+1. Define two genanki Models with stable IDs and HTML templates
+2. Read cards from JSONL, map to notes
+3. Generate stable GUIDs
+4. Build deck, package, write .apkg
 
 ## Acceptance criteria
 
-- [ ] `sr-export.py` produces valid `.apkg` file via genanki
-- [ ] Cards preserve: prompt, expected answer, tags, source lesson
-- [ ] Exported deck importable into Anki desktop and AnkiDroid
+- [x] Design approved (proposal reviewed 2026-08-10)
+- [ ] `genanki` added as dependency
+- [ ] `tools/export_anki.py` produces valid `.apkg` file
+- [ ] Both note types work (Explain + QuickCheck)
+- [ ] Cards preserve: prompt, expected answer, tags, source links
+- [ ] Exported deck importable into Anki desktop
+- [ ] Re-export updates cards (stable GUIDs), not duplicates
 - [ ] Suspended/mastered cards optionally excluded
-- [ ] Provenance preserved in a "Source" field on each note
+- [ ] `mise run sr:export-anki` task wired up
