@@ -137,3 +137,8 @@ run = "python tools/export_anki.py"
 description = "Generate interactive map page from MAP.md. Pass path to MAP.md file."
 depends = ["setup"]
 run = "python tools/generate_map_page.py"
+
+[tasks."index:generate"]
+description = "Generate the All Lessons index page. Pass --scan-dir for custom location."
+depends = ["setup"]
+run = "python tools/generate_index_page.py"
