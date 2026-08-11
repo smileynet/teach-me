@@ -9,3 +9,4 @@
 
 # Playwright MCP session data
 .playwright-mcp/
+*.apkg

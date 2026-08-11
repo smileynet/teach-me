@@ -17,7 +17,7 @@ _.python.venv = { path = ".venv", create = true }
 
 [tasks.setup]
 description = "Install Python dependencies (fast, via uv)"
-run = "uv pip install drawsvg playwright graphviz rich"
+run = "uv pip install drawsvg playwright graphviz rich genanki"
 sources = ["mise.toml"]
 
 [tasks.draw]
@@ -127,3 +127,8 @@ run = "python tools/sr-lifecycle.py"
 description = "Generate quick-check review page from due cards. Pass topic slug or --all."
 depends = ["setup"]
 run = "python tools/quick-check.py"
+
+[tasks."sr:export-anki"]
+description = "Export cards to Anki .apkg. Pass topic slug, --output, --exclude-suspended."
+depends = ["setup"]
+run = "python tools/export_anki.py"
