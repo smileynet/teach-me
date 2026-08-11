@@ -124,7 +124,7 @@ def render_card(meta: dict) -> str:
     ring = progress_ring_svg(meta["complete"], meta["total"])
 
     # Map page link (relative from lessons/index.html)
-    map_page = "map.html"  # TODO: per-domain map pages when multiple exist
+    map_page = f"{meta['domain']}-map.html"
 
     status_text = []
     if meta["complete"] > 0:
