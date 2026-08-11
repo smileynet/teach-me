@@ -132,3 +132,8 @@ run = "python tools/quick-check.py"
 description = "Export cards to Anki .apkg. Pass topic slug, --output, --exclude-suspended."
 depends = ["setup"]
 run = "python tools/export_anki.py"
+
+[tasks."map:generate"]
+description = "Generate interactive map page from MAP.md. Pass path to MAP.md file."
+depends = ["setup"]
+run = "python tools/generate_map_page.py"
