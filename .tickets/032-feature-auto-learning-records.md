@@ -1,8 +1,8 @@
 ---
 id: "032"
 title: "Feature: open-ended knowledge and interests analysis from SR + dialog"
-status: open
-priority: medium
+status: closed
+priority: low
 blocked_by: []
 type: feature
 ---
@@ -65,3 +65,7 @@ This is a qualitative synthesis the agent writes, informed by (but not reduced t
 - [ ] Written as a learning record (not ephemeral)
 - [ ] teach skill reads snapshots when calculating ZPD for next lesson
 - [ ] Does not gate or block — purely informational for the agent and learner
+
+## Resolution (closed 2026-08-10)
+
+Shelved. teach-me is a casual learning/exploration tool, not a retention optimization system. Deep knowledge analysis (fragile card detection, curiosity inference, dialog-informed KC tracing) solves a problem the user doesn't have. The SR system reinforces things worth remembering — it doesn't need a meta-layer analyzing how well retention is working. If the use case shifts toward deliberate mastery, revisit Phase 1 (stability health + Bloom's gaps) from the proposal at `.scratch/proposals/032-knowledge-analysis-proposal.md`.
