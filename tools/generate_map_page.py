@@ -22,6 +22,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 LESSONS_DIR = PROJECT_ROOT / "lessons"
+QUESTIONS_DIR = PROJECT_ROOT / "learning-records" / "questions"
 
 # State → color mapping (teach-me color vocabulary)
 STATE_COLORS = {
@@ -90,6 +91,26 @@ def topic_has_lesson(slug: str) -> bool:
     return False
 
 
+def topic_has_questions(slug: str) -> int:
+    """Count quick-check questions for a topic slug. Checks all JSONL files for matching tags/lesson_id."""
+    import json
+    count = 0
+    for f in QUESTIONS_DIR.glob("*.jsonl"):
+        for line in open(f, encoding="utf-8"):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                card = json.loads(line)
+                if card.get("question_type") == "quick-check" and (
+                    slug in card.get("tags", []) or slug in card.get("lesson_id", "")
+                ):
+                    count += 1
+            except json.JSONDecodeError:
+                continue
+    return count
+
+
 def generate_dot(map_data: dict) -> str:
     """Generate Graphviz DOT from parsed map data."""
     topics = map_data["topics"]
@@ -106,11 +127,8 @@ def generate_dot(map_data: dict) -> str:
         colors = STATE_COLORS.get(topic["status"], STATE_COLORS["not-started"])
         has_lesson = topic_has_lesson(topic["slug"])
 
-        # URL: link to lesson if exists, otherwise to placeholder
-        if has_lesson:
-            url = f"#topic-{topic['slug']}"  # will be replaced with actual lesson URL
-        else:
-            url = f"#generate-{topic['slug']}"
+        # URL: always scroll to topic card on the map page
+        url = f"#topic-{topic['slug']}"
 
         label = topic["title"]
         # Add scope indicator
@@ -180,12 +198,19 @@ def generate_page(map_data: dict, svg: str) -> str:
         else:
             action = f'<button class="generate-btn" onclick="offerGenerate(\'{t["slug"]}\', \'{t["title"]}\')">Generate this topic</button>'
 
+        # Quiz link
+        q_count = topic_has_questions(t["slug"])
+        if q_count > 0:
+            quiz_action = f'<a href="review/quick-check.html" class="topic-link quiz-link">Quiz ({q_count}) →</a>'
+        else:
+            quiz_action = f'<button class="generate-btn quiz-gen" onclick="offerGenerateQuiz(\'{t["slug"]}\', \'{t["title"]}\')">Generate quiz</button>'
+
         topic_cards.append(f"""
     <div class="topic-card" id="topic-{t['slug']}">
       <h3>{t['title']} {status_badge}</h3>
       <p class="topic-why">{t['why']}</p>
       <p class="topic-scope">Scope: {t['scope']} · Prereqs: {', '.join(t['prereqs']) or 'none'}</p>
-      {action}
+      <div class="topic-actions">{action} {quiz_action}</div>
     </div>""")
 
     # Leads-to section
@@ -207,6 +232,24 @@ def generate_page(map_data: dict, svg: str) -> str:
   <title>Map: {title}</title>
   <link rel="stylesheet" href="../assets/style.css">
   <style>
+    html {{ scroll-behavior: smooth; }}
+    .lesson-nav {{
+      padding: 0.5rem 0;
+      margin-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }}
+    .lesson-nav a {{
+      color: var(--link);
+      text-decoration: none;
+    }}
+    .lesson-nav a:hover {{ text-decoration: underline; }}
+    .lesson-nav .nav-position {{
+      color: var(--text-muted);
+    }}
     .map-container {{
       display: flex;
       flex-direction: column;
@@ -237,6 +280,12 @@ def generate_page(map_data: dict, svg: str) -> str:
       padding: 1rem 1.25rem;
       margin: 0.75rem 0;
       background: var(--bg-elevated);
+      scroll-margin-top: 1rem;
+      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+    }}
+    .topic-card:target {{
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
     }}
     .topic-card h3 {{
       margin: 0 0 0.25rem 0;
@@ -265,6 +314,20 @@ def generate_page(map_data: dict, svg: str) -> str:
       margin-top: 0.5rem;
       color: var(--link);
       font-size: 0.9rem;
+    }}
+    .topic-actions {{
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin-top: 0.5rem;
+      flex-wrap: wrap;
+    }}
+    .quiz-link {{
+      color: var(--success, #16a34a);
+    }}
+    .quiz-gen {{
+      border-color: var(--success, #16a34a);
+      color: var(--success, #16a34a);
     }}
     .generate-btn {{
       margin-top: 0.5rem;
@@ -359,6 +422,10 @@ def generate_page(map_data: dict, svg: str) -> str:
 <body>
 
 <div class="map-container">
+  <nav class="lesson-nav">
+    <a href="../lessons/">← All Lessons</a>
+    <span class="nav-position">{len(map_data['topics'])} topics · {sum(1 for t in map_data['topics'] if t['status'] == 'complete')} complete</span>
+  </nav>
   <h1>🗺️ {title}</h1>
   <p class="orientation">{orientation}</p>
 
@@ -394,6 +461,12 @@ def generate_page(map_data: dict, svg: str) -> str:
 function offerGenerate(slug, title) {{
   document.getElementById('gen-title').textContent = 'Generate: ' + title;
   document.getElementById('gen-command').textContent = 'kiro-cli chat "teach me about ' + title + '"';
+  document.getElementById('gen-modal').classList.add('show');
+}}
+
+function offerGenerateQuiz(slug, title) {{
+  document.getElementById('gen-title').textContent = 'Generate Quiz: ' + title;
+  document.getElementById('gen-command').textContent = 'kiro-cli chat "generate quick-check questions for ' + title + '"';
   document.getElementById('gen-modal').classList.add('show');
 }}
 
