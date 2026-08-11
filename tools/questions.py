@@ -57,6 +57,9 @@ class Card:
     explanation: str | None = None        # shown after answering
     # Source links (shown after answering, for "go deeper")
     sources: list[dict] | None = None     # [{"url": "...", "label": "...", "section": "...", "anchor_type": "heading|text-fragment|prose"}]
+    # Diagram card fields
+    svg_ref: dict | None = None           # {"lesson_file": "...", "svg_index": 0, "description": "..."}
+    occluded_labels: list[str] | None = None  # text content of <text> elements to mask
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), ensure_ascii=False)

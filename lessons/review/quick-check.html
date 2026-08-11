@@ -121,12 +121,37 @@
       color: var(--text-muted);
       font-size: 0.75rem;
     }
+    .diagram-container {
+      display: flex;
+      justify-content: center;
+      margin: 0.5rem 0;
+    }
+    .diagram-container svg {
+      max-width: 100%;
+      height: auto;
+    }
+    .diagram-status {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 0.5rem 0;
+    }
+
+    .mask-group { cursor: pointer; }
+    .mask-group:hover .mask-rect { opacity: 0.7; }
+    .mask-group .mask-rect,
+    .mask-group .mask-text { transition: opacity 0.3s ease; }
+    .mask-group .label-text { transition: opacity 0.3s ease; opacity: 0; }
+    .mask-group.revealed .mask-rect,
+    .mask-group.revealed .mask-text { opacity: 0; pointer-events: none; }
+    .mask-group.revealed .label-text { opacity: 1; }
+    .mask-group.revealed { cursor: default; }
+
   </style>
 </head>
 <body>
 
 <h1>⚡ Quick Check</h1>
-<p class="lesson-meta">Topic: All Topics · 3 questions</p>
+<p class="lesson-meta">Topic: All Topics · 4 questions</p>
 
 <div class="card" id="card0" data-card-id="ice-qc-001">
   <div class="card-prompt">
@@ -134,10 +159,10 @@
     <p><strong>Which layer of Iceberg&#x27;s metadata tree stores column-level statistics (min/max, null counts)?</strong></p>
   </div>
   <div class="qc-options">
-      <button class="qc-option" data-idx="0" onclick="pick('card0', 0, 3)">Manifest list</button>
-      <button class="qc-option" data-idx="1" onclick="pick('card0', 1, 3)">Catalog entry</button>
-      <button class="qc-option" data-idx="2" onclick="pick('card0', 2, 3)">Metadata file</button>
-      <button class="qc-option" data-idx="3" onclick="pick('card0', 3, 3)">Manifest file</button>
+      <button class="qc-option" data-idx="0" onclick="pick('card0', 0, 1)">Metadata file</button>
+      <button class="qc-option" data-idx="1" onclick="pick('card0', 1, 1)">Manifest file</button>
+      <button class="qc-option" data-idx="2" onclick="pick('card0', 2, 1)">Catalog entry</button>
+      <button class="qc-option" data-idx="3" onclick="pick('card0', 3, 1)">Manifest list</button>
   </div>
   <div class="qc-feedback" id="card0-feedback"></div>
   <div class="card-meta">From: 0001-iceberg-metadata-tree — The Metadata Tree · Tags: iceberg, manifests, query-planning</div>
@@ -149,10 +174,10 @@
     <p><strong>What concurrency model does Iceberg use for multi-writer access?</strong></p>
   </div>
   <div class="qc-options">
-      <button class="qc-option" data-idx="0" onclick="pick('card1', 0, 2)">Pessimistic locking via the catalog</button>
-      <button class="qc-option" data-idx="1" onclick="pick('card1', 1, 2)">Write-ahead log with two-phase commit</button>
-      <button class="qc-option" data-idx="2" onclick="pick('card1', 2, 2)">Optimistic concurrency with compare-and-swap</button>
-      <button class="qc-option" data-idx="3" onclick="pick('card1', 3, 2)">Distributed lock manager (DLM)</button>
+      <button class="qc-option" data-idx="0" onclick="pick('card1', 0, 1)">Distributed lock manager (DLM)</button>
+      <button class="qc-option" data-idx="1" onclick="pick('card1', 1, 1)">Optimistic concurrency with compare-and-swap</button>
+      <button class="qc-option" data-idx="2" onclick="pick('card1', 2, 1)">Pessimistic locking via the catalog</button>
+      <button class="qc-option" data-idx="3" onclick="pick('card1', 3, 1)">Write-ahead log with two-phase commit</button>
   </div>
   <div class="qc-feedback" id="card1-feedback"></div>
   <div class="card-meta">From: 0001-iceberg-metadata-tree — MVCC · Tags: iceberg, concurrency, mvcc</div>
@@ -164,13 +189,52 @@
     <p><strong>What happens to query planning latency if you skip compaction on a heavily-written Iceberg table?</strong></p>
   </div>
   <div class="qc-options">
-      <button class="qc-option" data-idx="0" onclick="pick('card2', 0, 3)">No effect — the catalog caches manifest metadata</button>
-      <button class="qc-option" data-idx="1" onclick="pick('card2', 1, 3)">Queries fail with a timeout error</button>
-      <button class="qc-option" data-idx="2" onclick="pick('card2', 2, 3)">The table becomes read-only until compacted</button>
-      <button class="qc-option" data-idx="3" onclick="pick('card2', 3, 3)">Planning latency grows as manifests accumulate</button>
+      <button class="qc-option" data-idx="0" onclick="pick('card2', 0, 0)">Planning latency grows as manifests accumulate</button>
+      <button class="qc-option" data-idx="1" onclick="pick('card2', 1, 0)">No effect — the catalog caches manifest metadata</button>
+      <button class="qc-option" data-idx="2" onclick="pick('card2', 2, 0)">Queries fail with a timeout error</button>
+      <button class="qc-option" data-idx="3" onclick="pick('card2', 3, 0)">The table becomes read-only until compacted</button>
   </div>
   <div class="qc-feedback" id="card2-feedback"></div>
   <div class="card-meta">From: 0001-iceberg-metadata-tree — Limitations Worth Knowing · Tags: iceberg, maintenance, compaction</div>
+</div>
+
+<div class="card" id="card3" data-card-id="ice-diag-001">
+  <div class="card-prompt">
+    <span class="card-type">diagram</span>
+    <p><strong>Name the four layers of Iceberg&#x27;s metadata tree (top to bottom):</strong></p>
+  </div>
+  <div class="diagram-container">
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     viewBox="0 0 340 280" role="img" aria-labelledby="diagram-aws-layers">
+<title id="diagram-aws-layers">Iceberg metadata tree on AWS: four layers from Glue Catalog down to Parquet data files</title>
+<defs>
+<marker markerWidth="4.0" markerHeight="4.04" viewBox="-0.1 -0.51 1.0 1.01" orient="auto" id="arr">
+<path d="M-0.1,0.5 L-0.1,-0.5 L0.9,0 Z" fill="#374151" />
+</marker>
+</defs>
+<rect x="50" y="10" width="240" height="50" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5" />
+<g class="mask-group" onclick="revealOne(this)"><text class="label-text" x="170" y="29" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">AWS Glue Data Catalog</text><rect class="mask-rect" x="95" y="20" width="150" height="19" rx="3" fill="#585b70"/><text class="mask-text" x="170" y="29" font-size="12" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" fill="#cdd6f4" dominant-baseline="central">???</text></g>
+<text x="170" y="45" font-size="11" text-anchor="middle" font-family="system-ui, sans-serif" fill="#6b7280" dominant-baseline="central">pointer to current metadata</text>
+<path d="M170,60 L170,80" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)" />
+<text x="176" y="70" font-size="10" font-family="system-ui, sans-serif" fill="#6b7280" dominant-baseline="central">current version</text>
+<rect x="50" y="80" width="240" height="50" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" />
+<g class="mask-group" onclick="revealOne(this)"><text class="label-text" x="170" y="99" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">Metadata Files (JSON)</text><rect class="mask-rect" x="95" y="90" width="150" height="19" rx="3" fill="#585b70"/><text class="mask-text" x="170" y="99" font-size="12" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" fill="#cdd6f4" dominant-baseline="central">???</text></g>
+<text x="170" y="115" font-size="11" text-anchor="middle" font-family="system-ui, sans-serif" fill="#6b7280" dominant-baseline="central">schema, partitions, snapshots</text>
+<path d="M170,130 L170,150" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)" />
+<text x="176" y="140" font-size="10" font-family="system-ui, sans-serif" fill="#6b7280" dominant-baseline="central">snapshot manifests</text>
+<rect x="50" y="150" width="240" height="50" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" />
+<g class="mask-group" onclick="revealOne(this)"><text class="label-text" x="170" y="169" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">Manifest Files (Avro)</text><rect class="mask-rect" x="95" y="160" width="150" height="19" rx="3" fill="#585b70"/><text class="mask-text" x="170" y="169" font-size="12" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" fill="#cdd6f4" dominant-baseline="central">???</text></g>
+<text x="170" y="185" font-size="11" text-anchor="middle" font-family="system-ui, sans-serif" fill="#6b7280" dominant-baseline="central">file list + column stats</text>
+<path d="M170,200 L170,220" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)" />
+<text x="176" y="210" font-size="10" font-family="system-ui, sans-serif" fill="#6b7280" dominant-baseline="central">data file paths</text>
+<rect x="50" y="220" width="240" height="50" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" />
+<g class="mask-group" onclick="revealOne(this)"><text class="label-text" x="170" y="239" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">Data Files (Parquet)</text><rect class="mask-rect" x="98" y="230" width="143" height="19" rx="3" fill="#585b70"/><text class="mask-text" x="170" y="239" font-size="12" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" fill="#cdd6f4" dominant-baseline="central">???</text></g>
+<text x="170" y="255" font-size="11" text-anchor="middle" font-family="system-ui, sans-serif" fill="#6b7280" dominant-baseline="central">the actual table rows</text>
+</svg>
+  </div>
+  <p class="diagram-status">4 labels hidden — click each to reveal</p>
+  <div class="qc-feedback" id="card3-feedback"></div>
+  <div class="card-meta">From: 0001-iceberg-metadata-tree — The Metadata Tree · Tags: iceberg, metadata, architecture, diagram</div>
 </div>
 
 <div class="summary" id="summary">
@@ -179,9 +243,9 @@
 </div>
 
 <script>
-const explanations = {"card0": "Manifest files store per-data-file statistics (min/max per column, row count, null counts) that enable partition pruning at query time.", "card1": "Iceberg uses optimistic concurrency — writers build their commit independently, then compare-and-swap the catalog pointer. If another writer committed first, the operation retries.", "card2": "Each write adds new manifest files. Without compaction, query planning must scan more manifests to discover which data files to read — latency grows linearly with manifest count."};
-const sources = {"card0": [{"url": "https://iceberg.apache.org/spec/#field-level-metrics-and-statistics", "label": "Iceberg Spec", "section": "Field-level Metrics and Statistics", "anchor_type": "heading"}, {"url": "https://iceberg.apache.org/spec/#manifests", "label": "Iceberg Spec", "section": "Manifests — data_file struct with lower/upper bounds", "anchor_type": "heading"}], "card1": [{"url": "https://iceberg.apache.org/spec/#optimistic-concurrency", "label": "Iceberg Spec", "section": "Optimistic Concurrency", "anchor_type": "heading"}, {"url": "https://iceberg.apache.org/spec/#commit-conflict-resolution-and-retry", "label": "Iceberg Spec", "section": "Commit Conflict Resolution and Retry", "anchor_type": "heading"}], "card2": [{"url": "https://iceberg.apache.org/docs/latest/maintenance/#rewrite-manifests", "label": "Iceberg Docs", "section": "Rewrite Manifests — metadata compaction", "anchor_type": "heading"}, {"url": "https://iceberg.apache.org/spec/#scan-planning", "label": "Iceberg Spec", "section": "Scan Planning — how manifests are read during query planning", "anchor_type": "heading"}]};
-let total = 3, answered = 0, correct = 0;
+const explanations = {"card0": "Manifest files store per-data-file statistics (min/max per column, row count, null counts) that enable partition pruning at query time.", "card1": "Iceberg uses optimistic concurrency — writers build their commit independently, then compare-and-swap the catalog pointer. If another writer committed first, the operation retries.", "card2": "Each write adds new manifest files. Without compaction, query planning must scan more manifests to discover which data files to read — latency grows linearly with manifest count.", "card3": "The four layers form a tree: the catalog points to metadata files (JSON), which list manifest files (Avro) containing per-file statistics, which point to the actual data files (Parquet)."};
+const sources = {"card0": [{"url": "https://iceberg.apache.org/spec/#field-level-metrics-and-statistics", "label": "Iceberg Spec", "section": "Field-level Metrics and Statistics", "anchor_type": "heading"}, {"url": "https://iceberg.apache.org/spec/#manifests", "label": "Iceberg Spec", "section": "Manifests — data_file struct with lower/upper bounds", "anchor_type": "heading"}], "card1": [{"url": "https://iceberg.apache.org/spec/#optimistic-concurrency", "label": "Iceberg Spec", "section": "Optimistic Concurrency", "anchor_type": "heading"}, {"url": "https://iceberg.apache.org/spec/#commit-conflict-resolution-and-retry", "label": "Iceberg Spec", "section": "Commit Conflict Resolution and Retry", "anchor_type": "heading"}], "card2": [{"url": "https://iceberg.apache.org/docs/latest/maintenance/#rewrite-manifests", "label": "Iceberg Docs", "section": "Rewrite Manifests — metadata compaction", "anchor_type": "heading"}, {"url": "https://iceberg.apache.org/spec/#scan-planning", "label": "Iceberg Spec", "section": "Scan Planning — how manifests are read during query planning", "anchor_type": "heading"}], "card3": [{"url": "https://iceberg.apache.org/spec/#overview", "label": "Iceberg Spec", "section": "Overview — snapshot structure diagram", "anchor_type": "heading"}]};
+let total = 4, answered = 0, correct = 0;
 
 function pick(cardId, selectedIdx, correctIdx) {
   const card = document.getElementById(cardId);
@@ -227,6 +291,48 @@ function pick(cardId, selectedIdx, correctIdx) {
 
   if (answered === total) showSummary();
 }
+
+
+function revealOne(group) {
+  if (group.classList.contains('revealed')) return;
+  group.classList.add('revealed');
+  // Update card status if all masks in this SVG are revealed
+  const svg = group.closest('svg');
+  const remaining = svg.querySelectorAll('.mask-group:not(.revealed)').length;
+  const cardEl = svg.closest('.card');
+  const status = cardEl ? cardEl.querySelector('.diagram-status') : null;
+  if (status) {
+    if (remaining === 0) {
+      status.textContent = '✓ All labels revealed';
+      // Trigger card feedback if available
+      if (cardEl) {
+        const feedbackEl = document.getElementById(cardEl.id + '-feedback');
+        if (feedbackEl) {
+          feedbackEl.classList.add('show', 'correct');
+          feedbackEl.textContent = '✓ ' + (explanations[cardEl.id] || 'All labels identified correctly.');
+          const cardSources = sources[cardEl.id];
+          if (cardSources && cardSources.length) {
+            const srcDiv = document.createElement('div');
+            srcDiv.className = 'qc-sources';
+            srcDiv.innerHTML = '<p class="qc-sources-label">📖 Go deeper:</p>' +
+              cardSources.map(s =>
+                '<a href="' + s.url + '" target="_blank" rel="noopener">' +
+                s.label + (s.section ? ' <span class="source-section">— ' + s.section + '</span>' : '') +
+                '</a>'
+              ).join('');
+            feedbackEl.appendChild(srcDiv);
+          }
+        }
+      }
+      answered++;
+      correct++;
+      if (answered === total) showSummary();
+    } else {
+      status.textContent = remaining + ' label' + (remaining > 1 ? 's' : '') + ' remaining';
+    }
+  }
+}
+
 
 function showSummary() {
   const el = document.getElementById('summary');
