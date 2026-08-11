@@ -1,7 +1,7 @@
 ---
 id: "033"
 title: "Feature: export SR questions to Anki format"
-status: open
+status: done
 priority: medium
 blocked_by: []
 type: feature
