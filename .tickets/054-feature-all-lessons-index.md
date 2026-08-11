@@ -1,7 +1,7 @@
 ---
 id: "054"
 title: "Feature: All Lessons index page — card grid of all domains"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: feature

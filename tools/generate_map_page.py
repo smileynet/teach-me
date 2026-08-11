@@ -423,7 +423,7 @@ def generate_page(map_data: dict, svg: str) -> str:
 
 <div class="map-container">
   <nav class="lesson-nav">
-    <a href="../lessons/">← All Lessons</a>
+    <a href="index.html" class="back-to-map">← All Lessons</a>
     <span class="nav-position">{len(map_data['topics'])} topics · {sum(1 for t in map_data['topics'] if t['status'] == 'complete')} complete</span>
   </nav>
   <h1>🗺️ {title}</h1>
