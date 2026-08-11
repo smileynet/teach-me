@@ -1,7 +1,7 @@
 ---
 id: "031"
 title: "Feature: soft-recommend review before new lessons"
-status: open
+status: closed
 priority: medium
 blocked_by: []
 type: feature
@@ -50,3 +50,7 @@ If they say "new material" — give them new material, no friction. If they say 
 - [ ] If learner asks for new content: provide it without friction
 - [ ] Recommendation strength scales with decay (mild at 85% R, firmer at <70%)
 - [ ] Never uses language like "you must", "required", "before you can"
+
+## Resolution (closed 2026-08-10)
+
+Shelved. A session-start review nudge adds friction to a casual exploration tool. The user opens a session because they're curious about something new — a "you have cards due" prompt is noise they'll dismiss every time. SR review is pull-based (`mise run sr`, `mise run sr:review`) and the learner reaches for it when the mood strikes. The teach skill guidance already mentions due cards if asked "what should I do?" — that's sufficient without formalizing a recommendation flow.
