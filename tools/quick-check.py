@@ -21,6 +21,7 @@ from pathlib import Path
 # Add tools/ to path for sibling imports
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from questions import Card, get_all_due_cards, get_due_cards, read_cards, list_topics, QUESTIONS_DIR
+from diagram_mask import extract_svg, mask_svg, DIAGRAM_CARD_STYLES, DIAGRAM_CARD_JS
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = PROJECT_ROOT / "lessons" / "review"
@@ -43,7 +44,10 @@ def get_quick_check_cards(topic_slug: str | None = None, all_cards: bool = False
         else:
             cards = get_all_due_cards()
 
-    return [c for c in cards if c.question_type == "quick-check" and c.options and c.correct_index is not None]
+    return [c for c in cards if c.question_type == "quick-check" and (
+        (c.options and c.correct_index is not None) or
+        (c.svg_ref and c.occluded_labels)
+    )]
 
 
 def escape(text: str) -> str:
@@ -52,6 +56,44 @@ def escape(text: str) -> str:
 
 def render_card(card: Card, index: int) -> str:
     """Render a single quick-check card as HTML."""
+    if card.svg_ref and card.occluded_labels:
+        return render_diagram_card(card, index)
+    return render_mc_card(card, index)
+
+
+def render_diagram_card(card: Card, index: int) -> str:
+    """Render a diagram card with masked labels."""
+    card_id = f"card{index}"
+
+    # Extract SVG from lesson
+    svg_str = extract_svg(card.svg_ref.get("lesson_file", ""), card.svg_ref.get("svg_index", 0))
+    if not svg_str:
+        # Fallback to text-only if SVG not found
+        return render_mc_card(card, index) if card.options else ""
+
+    # Apply masking
+    masked_svg = mask_svg(svg_str, card.occluded_labels)
+
+    # Tags
+    tags = ", ".join(card.tags) if card.tags else ""
+    n_labels = len(card.occluded_labels)
+
+    return f"""<div class="card" id="{card_id}" data-card-id="{escape(card.id)}">
+  <div class="card-prompt">
+    <span class="card-type">diagram</span>
+    <p><strong>{escape(card.prompt)}</strong></p>
+  </div>
+  <div class="diagram-container">
+    {masked_svg}
+  </div>
+  <p class="diagram-status">{n_labels} label{"s" if n_labels != 1 else ""} hidden — click each to reveal</p>
+  <div class="qc-feedback" id="{card_id}-feedback"></div>
+  <div class="card-meta">From: {escape(card.lesson_id)} — {escape(card.section_heading)} · Tags: {tags}</div>
+</div>"""
+
+
+def render_mc_card(card: Card, index: int) -> str:
+    """Render a multiple-choice quick-check card as HTML."""
     card_id = f"card{index}"
 
     # Shuffle options while tracking the correct answer
@@ -232,6 +274,21 @@ def render_page(cards: list[Card], topic_label: str) -> str:
       color: var(--text-muted);
       font-size: 0.75rem;
     }}
+    .diagram-container {{
+      display: flex;
+      justify-content: center;
+      margin: 0.5rem 0;
+    }}
+    .diagram-container svg {{
+      max-width: 100%;
+      height: auto;
+    }}
+    .diagram-status {{
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 0.5rem 0;
+    }}
+{DIAGRAM_CARD_STYLES}
   </style>
 </head>
 <body>
@@ -295,6 +352,8 @@ function pick(cardId, selectedIdx, correctIdx) {{
 
   if (answered === total) showSummary();
 }}
+
+{DIAGRAM_CARD_JS}
 
 function showSummary() {{
   const el = document.getElementById('summary');

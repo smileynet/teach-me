@@ -1,57 +1,82 @@
 ---
 id: "038"
-title: "Spike: diagram reference cards — SVG in HTML, URL in terminal"
-status: open
-priority: low
-blocked_by: ["034"]
-type: spike
+title: "Feature: diagram cards with label masking"
+status: done
+priority: medium
+blocked_by: []
+type: feature
 ---
 
-# Spike: diagram reference cards
+# Feature: diagram cards with label masking
 
-## Question to answer
+## What to build
 
-Can SR cards reference inline SVG diagrams from lessons, displaying them in HTML review and gracefully degrading to a clickable URL in terminal?
+SR cards that present a lesson diagram with specific labels hidden (slate gray masks with "???"). The learner clicks each mask to reveal the answer. In terminal mode, the card degrades to a text prompt + URL.
 
-## What to try
+Proven by spike 040: CSS class toggle, `<g>` groups per mask, per-element click-to-reveal.
 
-1. Add `prompt_media` optional field to Card:
-   ```python
-   prompt_media: dict | None = None
-   # {"type": "svg_ref", "lesson": "0001-iceberg-metadata-tree",
-   #  "selector": "svg[aria-labelledby='diagram-commit-cycle']",
-   #  "url": "/lessons/0001-iceberg-metadata-tree.html#diagram-commit-cycle"}
-   ```
-2. In HTML review page: fetch the SVG from the lesson file and inline it (or use an `<object>` tag)
-3. In terminal: show clickable link with context:
-   ```python
-   from rich.panel import Panel
-   from rich.markdown import Markdown
-   console.print(Panel(
-       Markdown(f"{card.prompt}\n\n[See diagram]({card.prompt_media['url']})"),
-       title="Question", border_style="blue"
-   ))
-   ```
-4. Generate a test card: "What step comes after Conflict Check in this diagram?" referencing the commit cycle SVG
+## Design (from spike 040 v2)
 
-## Key question
+### Card Schema
 
-Does referencing a diagram in a card add enough value over a well-written text prompt? Most explain-to-colleague questions work fine without the diagram — the learner should carry the mental model, not rely on the visual.
+Two new optional fields on Card:
 
-**Likely outcome:** Diagram refs are useful only for "annotate this" or "what's missing" type questions — a narrow use case. Most cards are better as pure text.
+```python
+# Reference to an SVG in a lesson
+svg_ref: dict | None = None
+# {"lesson_file": "lessons/0001-iceberg-metadata-tree.html",
+#  "svg_index": 1,
+#  "description": "Iceberg metadata tree — four layers from catalog to data files"}
 
-## Dependencies
+# Labels to hide (matched against <text> content in the SVG)
+occluded_labels: list[str] | None = None
+# ["AWS Glue Data Catalog", "Metadata Files (JSON)", "Manifest Files (Avro)", "Data Files (Parquet)"]
+```
 
-- No new deps (rich already handles clickable links in OSC-8 terminals)
-- HTML path needs lesson file access (same server that hosts lessons)
+### Masking Function
 
-## Success criteria
+```python
+def mask_svg(svg_str: str, labels_to_hide: list[str]) -> str:
+    """Replace matching <text> elements with slate mask + ???.
+    
+    Wraps each match in a <g class="mask-group" onclick="revealOne(this)">
+    with the original text (class=label-text, opacity=0) and a mask rect + ??? overlay.
+    """
+```
 
-- [ ] HTML review page embeds the referenced SVG inline
-- [ ] Terminal review shows a usable link to the diagram
-- [ ] Card is answerable in both contexts (prompt text is sufficient without diagram, diagram adds context)
-- [ ] Evaluate: are diagram-reference cards actually useful, or does the text prompt suffice?
+- Identify `<text>` elements whose content matches `occluded_labels`
+- Get x, y, font-size from attributes to position the mask rect
+- Wrap in `<g class="mask-group">` with onclick handler
+- Mask color: `#585b70` (slate gray — neutral against all layer colors)
 
-## Time box
+### Rendering
 
-1 hour. The key question isn't "can we do it" but "should we" — does referencing a diagram in a card add enough value over a well-written text prompt?
+**Browser (quick-check.py):**
+- Extract SVG from lesson HTML by index
+- Apply masking function
+- Embed masked SVG in the card div
+- Include click-to-reveal JS + CSS (from spike v2)
+- After all masks revealed: show explanation + sources
+
+**Terminal (review.py):**
+- Show `svg_ref.description` as context
+- Render prompt as normal text
+- Append `file://` URL to the lesson for visual reference
+
+### What NOT to build
+
+- No SVG editor or mask drawing tool
+- No auto-detection of which labels to hide (teach skill decides at card-generation time)
+- No per-mask independent scheduling (all masks = one card)
+- No image occlusion regions (just text label replacement)
+- No ASCII art conversion
+
+## Acceptance criteria
+
+- [ ] `svg_ref` and `occluded_labels` fields added to Card schema
+- [ ] `mask_svg()` function extracts and masks SVG text elements
+- [ ] quick-check.py renders diagram cards with click-to-reveal masks
+- [ ] Mask color is slate gray (#585b70), hover darkens, click reveals with transition
+- [ ] Terminal review shows description + text prompt (answerable without diagram)
+- [ ] At least one diagram card exists in the Iceberg question bank
+- [ ] Card is answerable in both modes (text prompt is sufficient, diagram adds context)
