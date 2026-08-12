@@ -281,6 +281,30 @@ async def list_lessons() -> JSONResponse:
     return JSONResponse(files)
 
 
+@app.get("/api/questions")
+async def list_questions() -> JSONResponse:
+    """Return map of lesson_ids that have questions (for complete state detection)."""
+    import json as json_mod
+    questions_dir = PROJECT_ROOT / "learning-records" / "questions"
+    if not questions_dir.exists():
+        return JSONResponse({})
+    lesson_ids: dict[str, int] = {}
+    for f in questions_dir.iterdir():
+        if f.suffix != ".jsonl":
+            continue
+        for line in f.read_text().splitlines():
+            if not line.strip():
+                continue
+            try:
+                q = json_mod.loads(line)
+                lid = q.get("lesson_id", "")
+                if lid:
+                    lesson_ids[lid] = lesson_ids.get(lid, 0) + 1
+            except (json_mod.JSONDecodeError, KeyError):
+                continue
+    return JSONResponse(lesson_ids)
+
+
 # Mount static files LAST (catch-all)
 app.mount("/", StaticFiles(directory=str(PROJECT_ROOT), html=True), name="static")
 

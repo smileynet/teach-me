@@ -396,37 +396,43 @@ document.getElementById('gen-modal').addEventListener('click', function(e) {
 
 // --- On load: scan for existing lesson files and update topic status ---
 (async function detectLessons() {
-  let found = 0;
-  // First, get the lessons directory listing via a lightweight endpoint
-  let lessonFiles = [];
+  let withLessons = 0, complete = 0;
+  let lessonFiles = [], questionMap = {};
   try {
-    const res = await fetch('/api/lessons');
-    if (res.ok) lessonFiles = await res.json();
-  } catch (e) {
-    // Fallback: try HEAD requests for known patterns
-  }
+    const [lRes, qRes] = await Promise.all([fetch('/api/lessons'), fetch('/api/questions')]);
+    if (lRes.ok) lessonFiles = await lRes.json();
+    if (qRes.ok) questionMap = await qRes.json();
+  } catch (e) {}
 
   for (const [slug, topic] of Object.entries(TOPICS)) {
-    if (topic.lesson_file) { found++; continue; }
+    if (!topic.lesson_file) {
+      const slugParts = slug.split('-');
+      const match = lessonFiles.find(f =>
+        slugParts.every(part => f.includes(part)) || f.includes(slug)
+      );
+      if (match) { topic.lesson_file = match; topic.status = 'in-progress'; }
+    }
+    if (!topic.lesson_file) continue;
+    withLessons++;
 
-    // Match by slug substring in available lesson files
-    const slugParts = slug.split('-');
-    const match = lessonFiles.find(f =>
-      slugParts.every(part => f.includes(part)) ||
-      f.includes(slug)
+    // Check if questions exist (lesson_id = filename without .html)
+    const lessonId = topic.lesson_file.replace('.html', '');
+    const hasQuestions = Object.keys(questionMap).some(qid =>
+      qid === lessonId || qid.includes(slug) || slug.split('-').every(p => qid.includes(p))
     );
-    if (match) {
-      topic.lesson_file = match;
+
+    const node = document.querySelector(`.map-graph .node[data-slug="${slug}"] path`);
+    if (hasQuestions) {
+      topic.status = 'complete'; complete++;
+      if (node) { node.setAttribute('fill', '#dcfce7'); node.setAttribute('stroke', '#16a34a'); }
+    } else {
       topic.status = 'in-progress';
-      found++;
-      const node = document.querySelector(`.map-graph .node[data-slug="${slug}"] path`);
       if (node) { node.setAttribute('fill', '#dbeafe'); node.setAttribute('stroke', '#2563eb'); }
     }
   }
-  // Update nav counter
   const total = Object.keys(TOPICS).length;
   const navPos = document.querySelector('.nav-position');
-  if (navPos) navPos.textContent = `${total} topics · ${found} with lessons`;
+  if (navPos) navPos.textContent = `${total} topics · ${complete} complete · ${withLessons - complete} in progress`;
 })();
 </script>
 <script src="../assets/theme-toggle.js"></script>
