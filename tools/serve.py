@@ -258,6 +258,19 @@ async def cancel_generation(task_id: str) -> JSONResponse:
     return JSONResponse({"status": "cancelled"})
 
 
+@app.get("/api/lessons")
+async def list_lessons() -> JSONResponse:
+    """Return list of HTML files in lessons/ for dynamic status detection."""
+    lessons_dir = PROJECT_ROOT / "lessons"
+    if not lessons_dir.exists():
+        return JSONResponse([])
+    files = sorted(
+        f.name for f in lessons_dir.iterdir()
+        if f.suffix == ".html" and not f.name.startswith("index") and not f.name.endswith("-map.html")
+    )
+    return JSONResponse(files)
+
+
 # Mount static files LAST (catch-all)
 app.mount("/", StaticFiles(directory=str(PROJECT_ROOT), html=True), name="static")
 
