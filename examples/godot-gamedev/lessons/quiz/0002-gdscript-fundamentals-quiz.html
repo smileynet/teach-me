@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz: GDScript Fundamentals</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <style>
+    .quiz-container { max-width: 700px; margin: 0 auto; padding: 1rem; }
+    .quiz-nav { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    .quiz-nav a { color: var(--link); text-decoration: none; }
+    .quiz-nav a:hover { text-decoration: underline; }
+    .quiz-progress { color: var(--text-muted); }
+    .card { border: 2px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; background: var(--bg-elevated); }
+    .card-prompt { border-left: 4px solid var(--accent); padding-left: 1rem; margin-bottom: 1rem; }
+    .card-answer { border-left: 4px solid var(--success, #16a34a); padding-left: 1rem; display: none; }
+    .card-answer.revealed { display: block; }
+    .card-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; }
+    .card-type { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: var(--bg-surface); color: var(--accent); margin-bottom: 0.5rem; }
+    .reveal-btn { background: var(--accent); color: var(--bg); border: none; padding: 0.5rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+    .reveal-btn:hover { opacity: 0.85; }
+    .rating { margin-top: 1rem; display: none; }
+    .rating.revealed { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+    .rating p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+    .rating button { padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg-surface); color: var(--text); font-size: 0.8rem; }
+    .rating button:hover { background: var(--bg-elevated); border-color: var(--accent); }
+    .rating button.selected { background: color-mix(in srgb, var(--accent) 15%, var(--bg)); border-color: var(--accent); }
+    .quiz-done { margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); text-align: center; }
+    .quiz-done a { display: inline-block; margin: 0.5rem; padding: 0.6rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.9rem; border: 1px solid var(--accent); color: var(--accent); }
+    .quiz-done a:hover { background: var(--bg-surface); }
+  </style>
+</head>
+<body>
+<div class="quiz-container">
+  <nav class="quiz-nav">
+    <a href="../0002-gdscript-fundamentals.html">← Back to lesson</a>
+    <span class="quiz-progress">5 questions</span>
+    <a href="../godot-gamedev-map.html">← Back to map</a>
+  </nav>
+  <h1>Quiz: GDScript Fundamentals</h1>
+  <p style="color:var(--text-muted); margin-bottom:1.5rem;">Read each question, form your answer, then reveal to check.</p>
+
+  <div class="card" id="card1">
+    <div class="card-prompt"><span class="card-type">predict</span><p><strong>A beginner puts movement code (move_and_slide) in _process() instead of _physics_process(). When would this break?</strong></p></div>
+    <button class="reveal-btn" onclick="reveal('card1')">Show Answer</button>
+    <div class="card-answer"><p>Should mention: (1) _process runs at variable rate — movement becomes inconsistent across machines, (2) _physics_process is fixed (60/s) regardless of framerate, (3) collision detection expects consistent timing — variable rate causes tunneling on lag spikes. Key: move_and_slide() belongs in _physics_process.</p></div>
+    <div class="rating" id="card1-rating"><p>How well could you explain this?</p><button onclick="rate('card1', 1)">Not at all</button><button onclick="rate('card1', 3)">Roughly</button><button onclick="rate('card1', 5)">Confidently</button></div>
+    <div class="card-meta">Section: Lifecycle Callbacks · Tags: process, physics-process, framerate</div>
+  </div>
+
+  <div class="card" id="card2">
+    <div class="card-prompt"><span class="card-type">explain</span><p><strong>Why must you use @onready for node references instead of assigning them at the top of the script?</strong></p></div>
+    <button class="reveal-btn" onclick="reveal('card2')">Show Answer</button>
+    <div class="card-answer"><p>Should mention: (1) at parse time the node tree doesn't exist — $Path would fail, (2) @onready defers until _ready() when children are in tree, (3) equivalent to assigning in _ready() but keeps declarations at the top of the file.</p></div>
+    <div class="rating" id="card2-rating"><p>How well could you explain this?</p><button onclick="rate('card2', 1)">Not at all</button><button onclick="rate('card2', 3)">Roughly</button><button onclick="rate('card2', 5)">Confidently</button></div>
+    <div class="card-meta">Section: Variables · Tags: onready, node-references, lifecycle</div>
+  </div>
+
+  <div class="card" id="card3">
+    <div class="card-prompt"><span class="card-type">apply</span><p><strong>When would you use @export vs a regular variable? Give an example of each.</strong></p></div>
+    <button class="reveal-btn" onclick="reveal('card3')">Show Answer</button>
+    <div class="card-answer"><p>Should mention: (1) @export for designer-tunable values visible in Inspector (speed, health, scene references), (2) regular var for internal state (current velocity, state machine state). Example: @export var speed := 200.0 vs var current_dir := Vector2.ZERO.</p></div>
+    <div class="rating" id="card3-rating"><p>How well could you explain this?</p><button onclick="rate('card3', 1)">Not at all</button><button onclick="rate('card3', 3)">Roughly</button><button onclick="rate('card3', 5)">Confidently</button></div>
+    <div class="card-meta">Section: Variables · Tags: export, inspector, design</div>
+  </div>
+
+  <div class="card" id="card4">
+    <div class="card-prompt"><span class="card-type">explain</span><p><strong>Why use static typing (var x: float = 5.0) instead of dynamic (var x = 5) in GDScript?</strong></p></div>
+    <button class="reveal-btn" onclick="reveal('card4')">Show Answer</button>
+    <div class="card-answer"><p>Should mention: (1) catches type errors at write-time without running the game, (2) enables better editor autocomplete, (3) improves performance (optimized opcodes), (4) self-documenting code. Trade-off: slightly more verbose, but the safety and tooling benefits are worth it.</p></div>
+    <div class="rating" id="card4-rating"><p>How well could you explain this?</p><button onclick="rate('card4', 1)">Not at all</button><button onclick="rate('card4', 3)">Roughly</button><button onclick="rate('card4', 5)">Confidently</button></div>
+    <div class="card-meta">Section: Variables · Tags: typed-variables, static-typing, safety</div>
+  </div>
+
+  <div class="card" id="card5">
+    <div class="card-prompt"><span class="card-type">quick-check</span><p><strong>Name the 3 lifecycle callbacks, when each runs, and what belongs in each:</strong></p></div>
+    <button class="reveal-btn" onclick="reveal('card5')">Show Answer</button>
+    <div class="card-answer"><p>_ready(): once when node enters tree — init, references, signals. _process(delta): every frame — visuals, UI, non-physics. _physics_process(delta): fixed 60/s — movement, collision, raycasts. Always multiply by delta.</p></div>
+    <div class="rating" id="card5-rating"><p>How well could you explain this?</p><button onclick="rate('card5', 1)">Not at all</button><button onclick="rate('card5', 3)">Roughly</button><button onclick="rate('card5', 5)">Confidently</button></div>
+    <div class="card-meta">Section: Lifecycle · Tags: ready, process, physics-process</div>
+  </div>
+
+  <div class="quiz-done"><h3>Done!</h3><p>Review complete.</p><a href="../0002-gdscript-fundamentals.html">← Review the lesson</a><a href="../godot-gamedev-map.html">← Back to map</a></div>
+</div>
+<script>
+function reveal(cardId) { document.querySelector(`#${cardId} .card-answer`).classList.add('revealed'); document.querySelector(`#${cardId} .reveal-btn`).style.display = 'none'; document.querySelector(`#${cardId}-rating`).classList.add('revealed'); }
+function rate(cardId, quality) { const buttons = document.querySelectorAll(`#${cardId}-rating button`); buttons.forEach(b => b.classList.remove('selected')); event.target.classList.add('selected'); }
+</script>
+<script src="../../assets/theme-toggle.js"></script>
+</body>
+</html>

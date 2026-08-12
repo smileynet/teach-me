@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference: Nodes & Scenes</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<h1>Nodes & Scenes</h1>
+<p class="lesson-meta">Reference · Companion to <a href="../lessons/0001-nodes-and-scenes.html">Lesson 1</a></p>
+
+<h2>Core Concept</h2>
+<p><strong>Everything in Godot is a tree of nodes. Save a tree to disk and it's a reusable scene. Compose simple scenes to build complex objects — don't inherit.</strong></p>
+
+<h2>Common Node Types</h2>
+<table>
+  <tr><th>Node</th><th>Purpose</th><th>When to use</th></tr>
+  <tr><td>Node2D</td><td>Base for 2D objects</td><td>Any positioned 2D entity</td></tr>
+  <tr><td>CharacterBody2D</td><td>Player/NPC movement</td><td>Anything that moves + collides</td></tr>
+  <tr><td>RigidBody2D</td><td>Physics-driven object</td><td>Objects affected by gravity/forces</td></tr>
+  <tr><td>StaticBody2D</td><td>Immovable collision</td><td>Walls, floors, platforms</td></tr>
+  <tr><td>Area2D</td><td>Overlap detection</td><td>Triggers, pickups, damage zones</td></tr>
+  <tr><td>Sprite2D</td><td>Display texture</td><td>Any visible 2D image</td></tr>
+  <tr><td>AnimationPlayer</td><td>Animate any property</td><td>Sprite frames, movement, color</td></tr>
+  <tr><td>Timer</td><td>Countdown</td><td>Cooldowns, spawn intervals</td></tr>
+  <tr><td>Camera2D</td><td>Viewport camera</td><td>Following player, screen shake</td></tr>
+  <tr><td>Control</td><td>UI base</td><td>Buttons, labels, panels</td></tr>
+</table>
+
+<h2>Lifecycle Order</h2>
+<table>
+  <tr><th>Callback</th><th>When</th><th>Use for</th></tr>
+  <tr><td>_ready()</td><td>Once (children ready)</td><td>Init, references, signal connections</td></tr>
+  <tr><td>_process(delta)</td><td>Every frame</td><td>Visuals, input, non-physics</td></tr>
+  <tr><td>_physics_process(delta)</td><td>Fixed tick (60/s)</td><td>Movement, collision, raycasts</td></tr>
+</table>
+
+<h2>Communication Rule</h2>
+<ul>
+  <li><strong>Signal up:</strong> children emit signals (don't know who listens)</li>
+  <li><strong>Call down:</strong> parents call <code>$Child.method()</code></li>
+  <li><strong>Never:</strong> siblings talk directly (ancestor mediates)</li>
+</ul>
+
+<h2>Decision Aid</h2>
+<p><strong>"How should these two nodes communicate?"</strong></p>
+<ul>
+  <li>Child notifying parent → <strong>signal</strong></li>
+  <li>Parent telling child what to do → <strong>direct method call</strong></li>
+  <li>Two siblings need to interact → <strong>both signal to common ancestor</strong></li>
+  <li>Any node needs a global service → <strong>autoload singleton</strong></li>
+</ul>
+
+<p><strong>"Should I make a new scene?"</strong></p>
+<ul>
+  <li>Used more than once → <strong>yes</strong></li>
+  <li>Logically independent unit → <strong>yes</strong></li>
+  <li>Getting too complex to edit → <strong>yes, split it</strong></li>
+  <li>Only used in one place, 2-3 nodes → <strong>keep inline</strong></li>
+</ul>
+
+<script src="../assets/theme-toggle.js"></script>
+</body>
+</html>

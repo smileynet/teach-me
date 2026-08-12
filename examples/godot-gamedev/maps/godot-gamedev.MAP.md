@@ -25,6 +25,7 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **why:** Everything in Godot is a node in a tree — understanding this architecture is the foundation for every project
 - **scope:** substantial
 - **prereqs:** []
+- **lesson_file:** 0001-nodes-and-scenes.html
 - **leads_to:** [game-ai-and-behavior]
 - **status:** complete
 
@@ -33,7 +34,8 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **why:** GDScript is how you give nodes behavior — variables, functions, signals, and lifecycle callbacks make your game respond to the player
 - **scope:** substantial
 - **prereqs:** [nodes-and-scenes]
-- **status:** in-progress
+- **lesson_file:** 0002-gdscript-fundamentals.html
+- **status:** complete
 
 ### 2d-game-mechanics
 - **title:** 2D Game Mechanics

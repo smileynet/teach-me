@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1: Nodes, Scenes & the Scene Tree</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+</head>
+<body>
+
+<h1>Nodes, Scenes & the Scene Tree</h1>
+<div class="lesson-meta">
+  Lesson 1 · Game Development with Godot · ~10 min read<br>
+  <strong>Win:</strong> You can explain Godot's composition architecture — why everything is a tree of nodes, how scenes provide reuse, and why this matters for building games.
+</div>
+
+<div class="key-concept">
+  <strong>After this lesson:</strong> You understand that every object in a Godot game is a tree of nodes, that scenes are reusable node trees saved to disk, and that composition (combining simple nodes) beats inheritance (deep class hierarchies). You know the lifecycle order and the "signal up, call down" communication rule.
+</div>
+
+<h2>The Core Idea: Everything is a Tree</h2>
+
+<p>In Godot, every game object — a character, a bullet, a UI menu, an entire level — is a <strong>tree of nodes</strong>. A node is a small building block with one job: display a sprite, detect collisions, play audio, run a timer. You build complex behavior by composing simple nodes into trees. <a href="https://docs.godotengine.org/en/stable/getting_started/step_by_step/nodes_and_scenes.html" class="citation">[Godot Docs: Nodes and Scenes]</a></p>
+
+<svg role="img" aria-labelledby="node-tree-title" viewBox="0 0 460 240" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="node-tree-title">A Player scene tree: CharacterBody2D at root with Sprite2D, CollisionShape2D, and AnimationPlayer as children — each node has one job</title>
+  <!-- Root -->
+  <rect x="160" y="15" width="140" height="36" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="230" y="38" text-anchor="middle" font-size="12" font-weight="bold" fill="#1e40af">CharacterBody2D</text>
+  <!-- Children -->
+  <rect x="30" y="90" width="110" height="36" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="85" y="113" text-anchor="middle" font-size="11" fill="#166534">Sprite2D</text>
+  <rect x="175" y="90" width="130" height="36" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="240" y="113" text-anchor="middle" font-size="11" fill="#166534">CollisionShape2D</text>
+  <rect x="340" y="90" width="110" height="36" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="395" y="113" text-anchor="middle" font-size="11" fill="#166534">AnimationPlayer</text>
+  <!-- Lines -->
+  <line x1="230" y1="51" x2="85" y2="90" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="230" y1="51" x2="240" y2="90" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="230" y1="51" x2="395" y2="90" stroke="#94a3b8" stroke-width="1.5"/>
+  <!-- Labels -->
+  <text x="85" y="145" text-anchor="middle" font-size="9" fill="#6b7280">Draws the character</text>
+  <text x="240" y="145" text-anchor="middle" font-size="9" fill="#6b7280">Defines hit area</text>
+  <text x="395" y="145" text-anchor="middle" font-size="9" fill="#6b7280">Animates properties</text>
+  <!-- Note -->
+  <text x="230" y="185" text-anchor="middle" font-size="10" fill="#374151">Each node has ONE job. The tree IS the game object.</text>
+  <text x="230" y="200" text-anchor="middle" font-size="10" fill="#374151">Save this tree as a .tscn file → it's a reusable Scene.</text>
+</svg>
+
+<p>This is fundamentally different from engines where game objects are monolithic classes. In Godot, you don't have a "Player class with sprite, collision, and animation code." You have a <em>tree</em> of small, focused nodes — and that tree is your Player.</p>
+
+<h2>Scenes: Reusable Trees</h2>
+
+<p>When you save a node tree to disk (as a <code>.tscn</code> file), it becomes a <strong>scene</strong>. A scene is Godot's version of a prefab or component — a reusable blueprint you can instance anywhere:</p>
+
+<ul>
+  <li>Save the Player tree as <code>player.tscn</code> → instance it in every level</li>
+  <li>Save a Bullet tree → instance 100 of them during combat</li>
+  <li>Save the entire Level1 as a scene → load/unload it at runtime</li>
+</ul>
+
+<p>Scenes nest inside scenes. Your game's main scene might instance a Level scene, which instances Enemy scenes, which each instance a HealthBar scene. It's composition all the way down. <a href="https://docs.godotengine.org/en/stable/getting_started/step_by_step/instancing.html" class="citation">[Godot Docs: Instancing]</a></p>
+
+<div class="key-concept">
+<strong>Composition over inheritance:</strong> Build complex objects by combining simple scenes (Has-A), not by creating deep class hierarchies (Is-A). A character doesn't inherit from Damageable — it has a Health component scene as a child.
+</div>
+
+<h2>The Scene Tree & Lifecycle</h2>
+
+<p>The <strong>SceneTree</strong> is the global tree managing all active nodes. When a node enters the tree, it receives lifecycle callbacks in order:</p>
+
+<table>
+  <tr><th>Callback</th><th>When</th><th>Use for</th></tr>
+  <tr><td><code>_ready()</code></td><td>Node + all children are in tree (once)</td><td>Get references, connect signals, initialize state</td></tr>
+  <tr><td><code>_process(delta)</code></td><td>Every rendered frame (~60/s)</td><td>Visual updates, input, non-physics logic</td></tr>
+  <tr><td><code>_physics_process(delta)</code></td><td>Every physics tick (fixed 60/s)</td><td>Movement, collision, deterministic gameplay</td></tr>
+</table>
+
+<p>The <code>delta</code> parameter is time since last frame in seconds. Always multiply movement by <code>delta</code> — this makes speed consistent regardless of framerate.</p>
+
+<h2>Communication: Signal Up, Call Down</h2>
+
+<p>Nodes need to talk to each other. Godot has one architectural rule for this:</p>
+
+<ul>
+  <li><strong>Children signal up:</strong> A child emits a signal when something happens. It doesn't know or care who's listening. (Observer pattern)</li>
+  <li><strong>Parents call down:</strong> A parent directly calls methods on children it owns. (<code>$ChildName.method()</code>)</li>
+  <li><strong>Siblings don't talk directly:</strong> An ancestor mediates.</li>
+</ul>
+
+<p>This keeps scenes self-contained. A Health node emits <code>health_changed</code> — anyone can listen. The Player scene doesn't hardcode "tell the HUD to update." The HUD connects to the signal independently. <a href="https://docs.godotengine.org/en/stable/getting_started/step_by_step/signals.html" class="citation">[Godot Docs: Signals]</a></p>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> You're designing a chest that opens when the player walks near it, plays an animation, and drops loot. What nodes would you compose into this scene, and how would the chest communicate with the rest of the game?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Think about what each component needs to DO: detect proximity, display visuals, animate, and notify that loot should spawn. Each job = one node.</p>
+  </details>
+  <details>
+  <summary>Key points to hit</summary>
+  <p>Should mention: (1) Area2D to detect when the player enters proximity, (2) Sprite2D for the chest graphic, (3) AnimationPlayer for the opening animation, (4) the chest emits a signal (e.g., "opened") — the level or loot spawner listens. The chest doesn't spawn loot itself (that's not its job). Key insight: the chest scene is self-contained and reusable because it signals what happened rather than directly manipulating other objects.</p>
+  </details>
+</div>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next lesson:</strong> GDScript Fundamentals — giving nodes behavior with variables, functions, signals, and lifecycle callbacks.</p>
+  <p><strong>Reference:</strong> <a href="../reference/0001-nodes-and-scenes.html">Nodes & Scenes cheat sheet</a></p>
+  <p><strong>Questions?</strong> Ask me anything that's unclear.</p>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "node": "The atomic building block in Godot. Each node has one job (draw, collide, animate, play sound). You compose nodes into trees to build game objects.",
+  "scene": "A tree of nodes saved to disk (.tscn file). Acts as a reusable blueprint — instance it anywhere, as many times as needed. Godot's version of prefabs.",
+  "scene-tree": "The global tree of all active nodes in the running game. Nodes receive lifecycle callbacks (_ready, _process) only when they're part of this tree.",
+  "signal": "A message a node emits when something happens (area entered, health changed, button pressed). The emitter doesn't know who's listening — this is what keeps scenes decoupled.",
+  "composition": "Building complex objects by combining simple nodes/scenes (Has-A) rather than deep inheritance (Is-A). Godot's preferred architecture: each scene has one responsibility."
+}
+</script>
+<script src="../assets/glossary.js"></script>
+<script src="../assets/lesson-actions.js"
+  data-map-page="godot-gamedev-map.html"
+  data-domain="godot-gamedev"
+  data-topic-slug="nodes-and-scenes"></script>
+<script src="../assets/theme-toggle.js"></script>
+
+</body>
+</html>

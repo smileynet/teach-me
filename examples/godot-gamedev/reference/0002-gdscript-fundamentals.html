@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference: GDScript Fundamentals</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<h1>GDScript Fundamentals</h1>
+<p class="lesson-meta">Reference · Companion to <a href="../lessons/0002-gdscript-fundamentals.html">Lesson 2</a></p>
+
+<h2>Core Concept</h2>
+<p><strong>Attach a script to a node, extend its type, use lifecycle callbacks to give it behavior. @export for editor tweaks, @onready for node references, signals for communication.</strong></p>
+
+<h2>Variable Declarations</h2>
+<table>
+  <tr><th>Syntax</th><th>Type</th><th>When</th></tr>
+  <tr><td><code>var x = 5</code></td><td>Dynamic</td><td>Prototyping only</td></tr>
+  <tr><td><code>var x: int = 5</code></td><td>Static (explicit)</td><td>Preferred — catches errors</td></tr>
+  <tr><td><code>var x := 5</code></td><td>Static (inferred)</td><td>When type is obvious from value</td></tr>
+  <tr><td><code>@export var x: float = 5.0</code></td><td>Editor-visible</td><td>Designer-tunable values</td></tr>
+  <tr><td><code>@onready var n := $Path</code></td><td>Deferred init</td><td>Node references ($Path)</td></tr>
+  <tr><td><code>const X = 5</code></td><td>Constant</td><td>Never changes</td></tr>
+</table>
+
+<h2>Lifecycle Callbacks</h2>
+<table>
+  <tr><th>Callback</th><th>Rate</th><th>delta?</th><th>Use for</th></tr>
+  <tr><td><code>_ready()</code></td><td>Once</td><td>No</td><td>Init state, connect signals</td></tr>
+  <tr><td><code>_process(delta)</code></td><td>Variable (FPS)</td><td>Yes</td><td>Visuals, non-physics input</td></tr>
+  <tr><td><code>_physics_process(delta)</code></td><td>Fixed (60/s)</td><td>Yes</td><td>Movement, collision</td></tr>
+  <tr><td><code>_input(event)</code></td><td>On event</td><td>No</td><td>One-shot actions (jump, pause)</td></tr>
+</table>
+
+<h2>Signals Quick Reference</h2>
+<pre><code># Declare
+signal health_changed(old: int, new: int)
+
+# Emit
+health_changed.emit(old_val, new_val)
+
+# Connect (in listener's _ready)
+$Player.health_changed.connect(_on_health_changed)
+
+# Handler
+func _on_health_changed(old: int, new: int) -> void:
+    label.text = str(new)</code></pre>
+
+<h2>Common Patterns</h2>
+<pre><code># Movement (CharacterBody2D)
+func _physics_process(delta: float) -> void:
+    var dir := Input.get_vector("left", "right", "up", "down")
+    velocity = dir * speed
+    move_and_slide()
+
+# Flip sprite
+if dir.x != 0:
+    sprite.flip_h = dir.x < 0</code></pre>
+
+<h2>Decision Aid</h2>
+<p><strong>"_process or _physics_process?"</strong></p>
+<ul>
+  <li>Uses move_and_slide() or collision → <strong>_physics_process</strong></li>
+  <li>Visual-only (UI, particles, camera) → <strong>_process</strong></li>
+  <li>Needs deterministic timing → <strong>_physics_process</strong></li>
+  <li>One-shot action (not per-frame) → <strong>_input</strong></li>
+</ul>
+
+<p><strong>"@export or @onready?"</strong></p>
+<ul>
+  <li>Value set by designer in editor → <strong>@export</strong></li>
+  <li>Reference to a child node → <strong>@onready</strong></li>
+  <li>Never combine both on same variable (onready overwrites export)</li>
+</ul>
+
+<script src="../assets/theme-toggle.js"></script>
+</body>
+</html>

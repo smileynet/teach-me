@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2: GDScript Fundamentals</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+</head>
+<body>
+
+<h1>GDScript Fundamentals</h1>
+<div class="lesson-meta">
+  Lesson 2 · Game Development with Godot · ~12 min read<br>
+  <strong>Win:</strong> You can write a GDScript that makes a node respond to input, move across the screen, and emit signals — using typed variables, lifecycle callbacks, and @export annotations.
+</div>
+
+<div class="key-concept">
+  <strong>After this lesson:</strong> You know how to attach a script to a node, use _ready() and _process() to give it behavior, expose variables to the editor with @export, get references with @onready, and communicate between nodes with signals. You can read any beginner Godot tutorial without getting lost on syntax.
+</div>
+
+<h2>The Problem: Nodes Do Nothing Without Scripts</h2>
+
+<p>Lesson 1 showed that games are trees of nodes. But a CharacterBody2D with a Sprite2D just sits there — it has structure but no behavior. GDScript is how you make nodes DO things: respond to input, move, animate, communicate. Every script attaches to a node and extends its type. <a href="https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_basics.html" class="citation">[Godot Docs: GDScript Basics]</a></p>
+
+<h2>Script Structure: extends + Callbacks</h2>
+
+<p>Every GDScript file follows the same shape:</p>
+
+<svg role="img" aria-labelledby="script-structure-title" viewBox="0 0 500 200" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="script-structure-title">GDScript file structure: extends declaration, variables/exports, _ready for initialization, _process for per-frame logic</title>
+  <rect x="20" y="10" width="460" height="180" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1"/>
+  <!-- Sections -->
+  <rect x="35" y="22" width="430" height="26" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="50" y="40" font-size="11" font-family="monospace" fill="#1e40af">extends CharacterBody2D</text>
+  <text x="350" y="40" font-size="9" fill="#6b7280">← what node type this script is for</text>
+
+  <rect x="35" y="56" width="430" height="40" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="50" y="72" font-size="11" font-family="monospace" fill="#166534">@export var speed: float = 200.0</text>
+  <text x="50" y="88" font-size="11" font-family="monospace" fill="#166534">@onready var sprite := $Sprite2D</text>
+  <text x="350" y="80" font-size="9" fill="#6b7280">← state (visible in editor)</text>
+
+  <rect x="35" y="104" width="430" height="30" rx="4" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="50" y="124" font-size="11" font-family="monospace" fill="#92400e">func _ready() -> void:</text>
+  <text x="350" y="124" font-size="9" fill="#6b7280">← runs once when node enters tree</text>
+
+  <rect x="35" y="142" width="430" height="40" rx="4" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+  <text x="50" y="160" font-size="11" font-family="monospace" fill="#991b1b">func _process(delta: float) -> void:</text>
+  <text x="50" y="176" font-size="11" font-family="monospace" fill="#991b1b">    position.x += speed * delta</text>
+  <text x="350" y="168" font-size="9" fill="#6b7280">← runs every frame</text>
+</svg>
+
+<h2>Variables: Types, @export, @onready</h2>
+
+<p>GDScript is <strong>gradually typed</strong> — you can add type hints for safety and performance:</p>
+
+<pre><code># Dynamic (works but no editor help)
+var speed = 200
+
+# Typed (catches errors, better autocomplete, faster)
+var speed: float = 200.0
+
+# Inferred (type determined from the value)
+var speed := 200.0  # inferred as float</code></pre>
+
+<p><strong>Best practice:</strong> Use static typing everywhere. It catches bugs before you run the game and gives you autocomplete in the editor.</p>
+
+<p><code>@export</code> exposes a variable in Godot's Inspector panel — designers can tweak values without touching code:</p>
+
+<pre><code>@export var speed: float = 200.0        # slider in Inspector
+@export var max_health: int = 100
+@export var bullet_scene: PackedScene   # drag-and-drop a scene file
+@export_range(0, 100, 5) var volume: int = 80  # constrained range</code></pre>
+
+<p><code>@onready</code> defers a variable's initialization until <code>_ready()</code> runs (when the node tree is built):</p>
+
+<pre><code># This would fail at parse time (tree doesn't exist yet)
+# var sprite = $Sprite2D  ← ERROR
+
+# This works — waits until _ready()
+@onready var sprite: Sprite2D = $Sprite2D
+@onready var anim := $AnimationPlayer</code></pre>
+
+<h2>Lifecycle Callbacks: When Your Code Runs</h2>
+
+<table>
+  <tr><th>Callback</th><th>Runs</th><th>Use for</th></tr>
+  <tr><td><code>_ready()</code></td><td>Once (node + children in tree)</td><td>Get references, connect signals, set initial state</td></tr>
+  <tr><td><code>_process(delta)</code></td><td>Every rendered frame</td><td>Visual movement, input response, UI updates</td></tr>
+  <tr><td><code>_physics_process(delta)</code></td><td>Every physics tick (fixed rate)</td><td>Physics movement, collision, raycasts</td></tr>
+  <tr><td><code>_input(event)</code></td><td>On any input event</td><td>One-shot actions (jump, pause, fire)</td></tr>
+</table>
+
+<p><strong>delta</strong> = seconds since last frame. Always multiply movement by delta: <code>position.x += speed * delta</code>. This makes your game run at the same speed on 30fps and 144fps machines. <a href="https://docs.godotengine.org/en/stable/tutorials/scripting/idle_and_physics_processing.html" class="citation">[Godot Docs: Processing]</a></p>
+
+<h2>Signals: How Nodes Talk</h2>
+
+<p>Signals are GDScript's observer pattern — a node announces something happened without knowing who cares:</p>
+
+<pre><code># Declare a custom signal
+signal health_changed(old_value: int, new_value: int)
+signal died
+
+# Emit it when something happens
+func take_damage(amount: int) -> void:
+    var old := health
+    health -= amount
+    health_changed.emit(old, health)
+    if health <= 0:
+        died.emit()
+
+# Connect to it (in another node's _ready)
+func _ready() -> void:
+    $Player.health_changed.connect(_on_health_changed)
+
+func _on_health_changed(old: int, new: int) -> void:
+    health_bar.value = new</code></pre>
+
+<p>Signals keep scenes decoupled. The Player doesn't know a HUD exists. The HUD connects to the Player's signal independently. Either can be removed without breaking the other. <a href="https://docs.godotengine.org/en/stable/getting_started/step_by_step/signals.html" class="citation">[Godot Docs: Signals]</a></p>
+
+<h2>Putting It Together: A Moving Character</h2>
+
+<pre><code>extends CharacterBody2D
+
+@export var speed: float = 300.0
+@onready var sprite: Sprite2D = $Sprite2D
+
+func _physics_process(delta: float) -> void:
+    var direction := Input.get_vector("left", "right", "up", "down")
+    velocity = direction * speed
+    move_and_slide()
+
+    # Flip sprite based on direction
+    if direction.x != 0:
+        sprite.flip_h = direction.x < 0</code></pre>
+
+<p>This is a complete movement script: 10 lines, typed, uses @export (tunable speed), @onready (safe reference), _physics_process (deterministic movement), and the Input system. Attach it to a CharacterBody2D with a Sprite2D and CollisionShape2D — you have a moving character.</p>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A beginner puts their movement code in <code>_process()</code> instead of <code>_physics_process()</code>. The game seems to work in testing. When would this cause a bug, and why?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Think about what happens when the framerate drops (lag spike) or is very high (144hz monitor). What's different about the timing of _process vs _physics_process?</p>
+  </details>
+  <details>
+  <summary>Key points to hit</summary>
+  <p>Should mention: (1) _process runs at variable rate tied to framerate — movement becomes inconsistent across machines, (2) _physics_process runs at a fixed rate (default 60/s) regardless of rendering speed, (3) physics collision detection expects consistent timing — variable-rate movement can cause tunneling through walls on lag spikes. Key insight: anything involving move_and_slide() or collision belongs in _physics_process for deterministic behavior.</p>
+  </details>
+</div>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next lesson:</strong> 2D Game Mechanics — movement, collision, tilemaps, and your first playable prototype.</p>
+  <p><strong>Reference:</strong> <a href="../reference/0002-gdscript-fundamentals.html">GDScript cheat sheet</a></p>
+  <p><strong>Questions?</strong> Ask me anything that's unclear.</p>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "gdscript": "Godot's built-in scripting language. Python-like syntax, gradually typed, designed specifically for game development. Every script attaches to a node and extends its type.",
+  "export": "@export annotation. Exposes a variable in the Godot Inspector panel so designers can change values without editing code.",
+  "onready": "@onready annotation. Defers variable initialization until _ready() when the node tree exists. Use for $NodePath references.",
+  "delta": "Time since last frame in seconds. Always multiply movement by delta to make speed framerate-independent. Passed to _process() and _physics_process().",
+  "typed-variable": "A variable declared with a type hint (var x: float = 5.0). Catches errors at write-time, enables autocomplete, and improves performance."
+}
+</script>
+<script src="../assets/glossary.js"></script>
+<script src="../assets/lesson-actions.js"
+  data-map-page="godot-gamedev-map.html"
+  data-domain="godot-gamedev"
+  data-topic-slug="gdscript-fundamentals"></script>
+<script src="../assets/theme-toggle.js"></script>
+
+</body>
+</html>
