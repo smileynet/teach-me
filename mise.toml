@@ -17,7 +17,7 @@ _.python.venv = { path = ".venv", create = true }
 
 [tasks.setup]
 description = "Install Python dependencies (fast, via uv)"
-run = "uv pip install drawsvg playwright graphviz rich genanki"
+run = "uv pip install drawsvg playwright graphviz rich genanki fastapi uvicorn"
 sources = ["mise.toml"]
 
 [tasks.draw]
@@ -37,6 +37,11 @@ run = """
 latest=$(ls -1 lessons/*.html 2>/dev/null | sort | tail -1)
 if [ -n "$latest" ]; then xdg-open "$latest" 2>/dev/null || open "$latest"; else echo "No lessons found"; fi
 """
+
+[tasks.serve]
+description = "Start generation server (http://localhost:8787)"
+depends = ["setup"]
+run = "python tools/serve.py"
 
 [tasks.rehydrate]
 description = "Clone reference repos from REFERENCES.md"
