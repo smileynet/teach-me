@@ -41,14 +41,14 @@ def lint_lesson(path: Path, html: str) -> list[str]:
     """Lint a lesson page (NNNN-slug.html)."""
     errors = []
     checks = [
-        (lambda h: check_contains(h, 'href="../assets/style.css"', "style.css link"), None),
-        (lambda h: check_contains(h, 'lesson-actions.js"', "lesson-actions.js script"), None),
-        (lambda h: check_contains(h, 'theme-toggle.js"', "theme-toggle.js script"), None),
-        (lambda h: check_regex(h, r"<h1[^>]*>.+</h1>", "<h1> element"), None),
-        (lambda h: check_contains(h, 'id="glossary-data"', "glossary-data JSON block"), None),
-        (lambda h: check_contains(h, 'glossary.js"', "glossary.js script"), None),
+        lambda h: check_contains(h, 'href="../assets/style.css"', "style.css link"),
+        lambda h: check_contains(h, 'lesson-actions.js"', "lesson-actions.js script"),
+        lambda h: check_contains(h, 'theme-toggle.js"', "theme-toggle.js script"),
+        lambda h: check_regex(h, r"<h1[^>]*>.+</h1>", "<h1> element"),
+        lambda h: check_contains(h, 'id="glossary-data"', "glossary-data JSON block"),
+        lambda h: check_contains(h, 'glossary.js"', "glossary.js script"),
     ]
-    for check, _ in checks:
+    for check in checks:
         err = check(html)
         if err:
             errors.append(err)
@@ -59,14 +59,14 @@ def lint_map(path: Path, html: str) -> list[str]:
     """Lint a map page (*-map.html)."""
     errors = []
     checks = [
-        (lambda h: check_contains(h, 'href="../assets/style.css"', "style.css link"), None),
-        (lambda h: check_contains(h, 'theme-toggle.js"', "theme-toggle.js script"), None),
-        (lambda h: check_regex(h, r'class="map-graph"', "SVG with class='map-graph'"), None),
-        (lambda h: check_contains(h, 'id="gen-modal"', "generation modal"), None),
-        (lambda h: check_contains(h, 'id="detail-panel"', "detail panel"), None),
-        (lambda h: check_contains(h, '/api/lessons', "/api/lessons detection call"), None),
+        lambda h: check_contains(h, 'href="../assets/style.css"', "style.css link"),
+        lambda h: check_contains(h, 'theme-toggle.js"', "theme-toggle.js script"),
+        lambda h: check_regex(h, r'class="map-graph"', "SVG with class='map-graph'"),
+        lambda h: check_contains(h, 'id="gen-modal"', "generation modal"),
+        lambda h: check_contains(h, 'id="detail-panel"', "detail panel"),
+        lambda h: check_contains(h, '/api/lessons', "/api/lessons detection call"),
     ]
-    for check, _ in checks:
+    for check in checks:
         err = check(html)
         if err:
             errors.append(err)
@@ -77,11 +77,11 @@ def lint_index(path: Path, html: str) -> list[str]:
     """Lint the index page."""
     errors = []
     checks = [
-        (lambda h: check_contains(h, 'style.css"', "style.css link"), None),
-        (lambda h: check_contains(h, 'theme-toggle.js"', "theme-toggle.js script"), None),
-        (lambda h: check_regex(h, r"<h1[^>]*>.+</h1>", "<h1> element"), None),
+        lambda h: check_contains(h, 'style.css"', "style.css link"),
+        lambda h: check_contains(h, 'theme-toggle.js"', "theme-toggle.js script"),
+        lambda h: check_regex(h, r"<h1[^>]*>.+</h1>", "<h1> element"),
     ]
-    for check, _ in checks:
+    for check in checks:
         err = check(html)
         if err:
             errors.append(err)

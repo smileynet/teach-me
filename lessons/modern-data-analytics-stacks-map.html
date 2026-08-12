@@ -376,21 +376,20 @@ function finish(msg, success) {
   document.getElementById('gen-phase-text').textContent = success ? 'Complete' : 'Stopped';
 
   if (success) {
-    // Update MAP.md status
-    if (_genSlug && _genType === 'topic') {
-      fetch(`/api/map/${DOMAIN}/${_genSlug}/status`, {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({status: 'in-progress'})
-      }).catch(() => {});
-    }
-    // Auto-navigate: if we captured a created lesson file, go there; otherwise reload
-    setTimeout(() => {
-      if (_genCreatedFile) {
-        window.location.href = _genCreatedFile;
-      } else {
-        window.location.reload();
-      }
-    }, 1500);
+    // Update MAP.md status, THEN navigate
+    const statusUpdate = (_genSlug && _genType === 'topic')
+      ? fetch(`/api/map/${DOMAIN}/${_genSlug}/status`, {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({status: 'in-progress'})
+        }).catch(() => {})
+      : Promise.resolve();
+
+    statusUpdate.then(() => {
+      setTimeout(() => {
+        if (_genCreatedFile) window.location.href = _genCreatedFile;
+        else window.location.reload();
+      }, 800);
+    });
   }
 }
 
