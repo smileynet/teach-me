@@ -83,12 +83,13 @@ echo "=== References ==="
 """
 
 [tasks.verify]
-description = "Smoke-test the diagram tool + verify HTML asset links"
+description = "Smoke-test the diagram tool + verify HTML asset links + lint structure"
 depends = ["setup"]
 run = """
 python tools/draw-diagram.py --type flow --data '{"nodes":[{"label":"A","color":"blue"},{"label":"B","color":"green"}],"arrows":["test"]}' > /dev/null
 echo "✓ draw-diagram.py OK"
 python tools/verify-links.py
+python tools/lint-html.py
 """
 
 [tasks."visual-qa"]
