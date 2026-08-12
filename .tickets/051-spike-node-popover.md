@@ -3,7 +3,7 @@ id: "051"
 title: "Spike: SVG node hover popover — topic detail without scrolling"
 status: open
 priority: low
-blocked_by: ["048"]
+blocked_by: []
 type: spike
 ---
 

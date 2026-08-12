@@ -3,7 +3,7 @@ id: "042"
 title: "Spike: big-request detection — domain mode vs focused topic"
 status: open
 priority: medium
-blocked_by: ["041"]
+blocked_by: []
 type: spike
 ---
 
