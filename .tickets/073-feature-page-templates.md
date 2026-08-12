@@ -1,7 +1,7 @@
 ---
 id: "073"
 title: "Feature: standardize page templates — consistent nav, actions, and hierarchy"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: feature
@@ -60,12 +60,23 @@ Index (All Lessons)
 
 ## Acceptance criteria
 
-- [ ] Per-topic quiz page generates from JSONL and renders questions
-- [ ] "Take the quiz" on lesson page navigates to the quiz page
-- [ ] Quiz page has "← Back to lesson" and "← Back to map" nav
-- [ ] Map page JS extracted to shared map-actions.js
-- [ ] Index page shows live progress from API
-- [ ] `mise run verify` passes (lint-html updated for quiz page rules)
+- [x] Per-topic quiz page generates from JSONL and renders questions
+- [x] "Take the quiz" on lesson page navigates to the quiz page
+- [x] Quiz page has "← Back to lesson" and "← Back to map" nav
+- [ ] Map page JS extracted to shared map-actions.js (deferred to 071 repo cleanup)
+- [ ] Index page shows live progress from API (deferred — separate small ticket)
+- [x] `mise run verify` passes (lint-html updated for quiz page rules)
+
+## Resolution (2026-08-12)
+
+- `tools/generate-quiz-page.py`: reads JSONL, produces standalone quiz HTML
+- Quiz pages generated for both existing topics (9 + 8 questions)
+- `lesson-actions.js` → "Take the quiz" navigates to `quiz/{id}-quiz.html`
+- Quiz page template: nav (← lesson, ← map), cards with reveal+rating, done section
+- `lint-html.py` updated with quiz page rules (style, theme, nav, cards)
+- Verified: `mise run verify` (8 files, 0 errors) + Playwright (lesson → quiz → back)
+
+Deferred: map-actions.js extraction and live index progress (small follow-ups in 071).
 
 ## Validation
 

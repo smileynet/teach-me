@@ -88,6 +88,24 @@ def lint_index(path: Path, html: str) -> list[str]:
     return errors
 
 
+def lint_quiz(path: Path, html: str) -> list[str]:
+    """Lint a quiz page (lessons/quiz/*-quiz.html)."""
+    errors = []
+    checks = [
+        lambda h: check_contains(h, 'style.css"', "style.css link"),
+        lambda h: check_contains(h, 'theme-toggle.js"', "theme-toggle.js script"),
+        lambda h: check_regex(h, r"<h1[^>]*>.+</h1>", "<h1> element"),
+        lambda h: check_contains(h, 'Back to lesson', "← Back to lesson nav link"),
+        lambda h: check_contains(h, 'Back to map', "← Back to map nav link"),
+        lambda h: check_contains(h, 'class="card"', "at least one question card"),
+    ]
+    for check in checks:
+        err = check(html)
+        if err:
+            errors.append(err)
+    return errors
+
+
 def classify_and_lint(path: Path) -> list[str]:
     """Classify a file by type and run appropriate linter."""
     name = path.name
@@ -101,6 +119,8 @@ def classify_and_lint(path: Path) -> list[str]:
         return lint_index(path, html)
     elif name.endswith("-map.html"):
         return lint_map(path, html)
+    elif name.endswith("-quiz.html"):
+        return lint_quiz(path, html)
     elif re.match(r"\d{4}-.+\.html$", name):
         return lint_lesson(path, html)
     else:
@@ -112,6 +132,10 @@ def main():
         files = [Path(a) for a in sys.argv[1:]]
     else:
         files = sorted(LESSONS_DIR.glob("*.html"))
+        # Also scan quiz subdirectory
+        quiz_dir = LESSONS_DIR / "quiz"
+        if quiz_dir.exists():
+            files += sorted(quiz_dir.glob("*.html"))
 
     total_errors = 0
     checked = 0

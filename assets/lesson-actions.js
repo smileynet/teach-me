@@ -262,20 +262,7 @@
   };
 
   window._startQuiz = function() {
-    if (confirm(`Start a quick-check review for "${topicTitle}"?`)) {
-      fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: `run quick-check review for ${topicTitle}`, mock: false }),
-      }).then(r => r.json()).then(d => {
-        const es = new EventSource(d.stream_url);
-        es.addEventListener('done', (e) => {
-          es.close();
-          const result = JSON.parse(e.data);
-          if (result.exit_code === 0) { alert('Quiz generated!'); location.reload(); }
-        });
-      }).catch(() => alert('Server not running — use: mise run serve'));
-    }
+    window.location.href = 'quiz/' + lessonId + '-quiz.html';
   };
 
   window._generateQuiz = function() {
