@@ -12,3 +12,4 @@
 *.apkg
 workspace/
 test-results/
+*.png
