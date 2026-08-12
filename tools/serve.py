@@ -341,7 +341,7 @@ async def get_map(domain: str) -> JSONResponse:
         "description": m.description,
         "depth": m.depth,
         "parent": m.parent,
-        "leads_to": m.leads_to,
+        "leads_to": [{"slug": lt.slug, "why": lt.why} for lt in m.leads_to],
         "topic_count": len(m.topics),
         "topics": [
             {"slug": t.slug, "title": t.title, "status": t.status,
