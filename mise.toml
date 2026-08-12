@@ -48,6 +48,11 @@ description = "Start server with auto-reload on code changes"
 depends = ["setup"]
 run = "uvicorn tools.serve:app --host 127.0.0.1 --port 8787 --reload --reload-dir tools"
 
+[tasks."serve:lan"]
+description = "Start server accessible on LAN (192.168.x.x:8787)"
+depends = ["setup"]
+run = "python tools/serve.py --lan"
+
 [tasks.init-workspace]
 description = "Create a fresh learning workspace (workspace/)"
 run = "bash tools/init-workspace.sh"
