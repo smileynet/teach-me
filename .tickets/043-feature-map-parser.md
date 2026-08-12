@@ -2,7 +2,7 @@
 id: "043"
 title: "Feature: MAP.md parser and data model"
 status: open
-priority: medium
+priority: high
 blocked_by: []
 type: feature
 ---
