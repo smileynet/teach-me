@@ -1,7 +1,7 @@
 ---
 id: "083"
 title: "Fix: workout quiz pages — add questions to meet 5+ minimum and 3+ types"
-status: open
+status: done
 blocked_by: []
 priority: medium
 ---
@@ -27,7 +27,11 @@ For each quiz page:
 
 ## Acceptance criteria
 
-- [ ] Each quiz page has 5+ questions
-- [ ] Each quiz page uses 3+ distinct question types
-- [ ] New questions also added to `learning-records/questions/workout-fundamentals.jsonl`
-- [ ] `mise run verify` passes
+- [x] Each quiz page has 5+ questions
+- [x] Each quiz page uses 3+ distinct question types
+- [x] New questions also added to `learning-records/questions/workout-fundamentals.jsonl`
+- [x] `mise run verify` passes
+
+## Resolution (2026-08-12)
+
+TBD
