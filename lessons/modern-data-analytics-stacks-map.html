@@ -100,6 +100,12 @@
     <span class="legend-item"><span class="legend-swatch" style="background:#e2e8f0;border-color:#64748b"></span> Not started</span>
   </div>
 
+  <!-- Suggestion banner (populated on load via /api/map) -->
+  <div id="suggestion-banner" style="display:none; margin:1rem 0; padding:0.75rem 1rem; border-radius:6px; border:1px solid var(--accent); background:color-mix(in srgb, var(--accent) 8%, var(--bg)); display:flex; align-items:center; gap:0.75rem;">
+    <span id="suggestion-text" style="font-size:0.9rem;"></span>
+    <button id="suggestion-btn" class="btn btn-primary" style="padding:0.4rem 0.75rem; font-size:0.8rem; border-radius:4px; border:none; background:var(--accent); color:var(--bg); cursor:pointer; white-space:nowrap;"></button>
+  </div>
+
   <!-- Graph: nodes colored by STATUS, clickable to show detail panel -->
   <svg class="map-graph" viewBox="0.00 0.00 639.00 439.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
   <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 434.5)">
@@ -281,10 +287,12 @@ let _genTaskId = null;
 let _genES = null;
 let _genType = 'topic';
 let _genTitle = '';
+let _genSlug = '';
 let _genCreatedFile = null;
+const DOMAIN = 'data-analytics';
 
 function offerGenerate(slug, title) {
-  _genTitle = title; _genType = 'topic';
+  _genSlug = slug; _genTitle = title; _genType = 'topic';
   document.getElementById('gen-title').textContent = 'Generate: ' + title;
   resetModal();
   document.getElementById('gen-modal').classList.add('show');
@@ -368,6 +376,13 @@ function finish(msg, success) {
   document.getElementById('gen-phase-text').textContent = success ? 'Complete' : 'Stopped';
 
   if (success) {
+    // Update MAP.md status
+    if (_genSlug && _genType === 'topic') {
+      fetch(`/api/map/${DOMAIN}/${_genSlug}/status`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({status: 'in-progress'})
+      }).catch(() => {});
+    }
     // Auto-navigate: if we captured a created lesson file, go there; otherwise reload
     setTimeout(() => {
       if (_genCreatedFile) {
@@ -433,6 +448,29 @@ document.getElementById('gen-modal').addEventListener('click', function(e) {
   const total = Object.keys(TOPICS).length;
   const navPos = document.querySelector('.nav-position');
   if (navPos) navPos.textContent = `${total} topics · ${complete} complete · ${withLessons - complete} in progress`;
+
+  // Suggestion banner
+  const banner = document.getElementById('suggestion-banner');
+  const bannerText = document.getElementById('suggestion-text');
+  const bannerBtn = document.getElementById('suggestion-btn');
+  try {
+    const mapRes = await fetch(`/api/map/${DOMAIN}`);
+    if (mapRes.ok) {
+      const mapData = await mapRes.json();
+      if (mapData.next_suggestion) {
+        const sugTopic = TOPICS[mapData.next_suggestion];
+        const title = sugTopic ? sugTopic.title : mapData.next_suggestion;
+        if (withLessons === 0) {
+          bannerText.textContent = 'Start here:';
+        } else {
+          bannerText.textContent = 'Suggested next:';
+        }
+        bannerBtn.textContent = title + ' →';
+        bannerBtn.onclick = () => selectTopic(mapData.next_suggestion);
+        banner.style.display = 'flex';
+      }
+    }
+  } catch(e) {}
 })();
 
 // --- Detect existing domain maps for leads-to linking ---

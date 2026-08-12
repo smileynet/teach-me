@@ -354,6 +354,30 @@ async def get_map(domain: str) -> JSONResponse:
     })
 
 
+class StatusUpdateRequest(BaseModel):
+    status: str  # not-started | in-progress | complete
+
+
+@app.post("/api/map/{domain}/{slug}/status")
+async def update_topic_status(domain: str, slug: str, req: StatusUpdateRequest) -> JSONResponse:
+    """Update a topic's status in its MAP.md file."""
+    import sys as _sys
+    _sys.path.insert(0, str(PROJECT_ROOT / "tools"))
+    from map_parser import update_status
+
+    maps_dir = PROJECT_ROOT / "examples" / "maps"
+    candidates = list(maps_dir.glob(f"*{domain}*MAP.md")) + list(maps_dir.glob(f"{domain}*"))
+    if not candidates:
+        raise HTTPException(status_code=404, detail=f"No MAP.md found for domain '{domain}'")
+
+    try:
+        update_status(candidates[0], slug, req.status)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return JSONResponse({"ok": True, "domain": domain, "slug": slug, "status": req.status})
+
+
 # Mount static files LAST (catch-all)
 app.mount("/", StaticFiles(directory=str(PROJECT_ROOT), html=True), name="static")
 
