@@ -1,7 +1,7 @@
 ---
 id: "061"
 title: "Feature: generation completion flow — auto-update map cards"
-status: open
+status: done
 priority: medium
 blocked_by: ["059", "060"]
 type: feature
@@ -51,3 +51,7 @@ Request permission on first "Start Generation" click (not on page load — avoid
 - [ ] Browser notification fires when tab is backgrounded
 - [ ] Error state shows meaningful message + retry
 - [ ] Works with both topic and quiz generation
+
+## Resolution (2026-08-12)
+
+**Superseded by 068.** Auto-update of MAP.md status after generation is handled as part of the cohesive map flow (068), alongside the suggestion banner and status API endpoint.

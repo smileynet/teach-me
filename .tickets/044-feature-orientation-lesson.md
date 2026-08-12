@@ -1,7 +1,7 @@
 ---
 id: "044"
 title: "Feature: orientation lesson generated from MAP.md"
-status: open
+status: done
 priority: medium
 blocked_by: ["043"]
 type: feature
@@ -49,3 +49,7 @@ Color vocabulary: blue = available now, gray = has unmet prereqs, green = comple
 - **Unit:** `python tools/map_parser.py` parses the source MAP.md without errors
 - **Integration:** Generated HTML loads in Playwright with zero console errors
 - **E2E:** Start `mise run serve`, navigate to generated orientation lesson, verify diagram renders (SVG present), topic cards visible, theme toggle works, suggestion matches `get_next_suggestion()` output
+
+## Resolution (2026-08-12)
+
+**Superseded by 068.** The map page IS the orientation — a separate lesson page is redundant. The value (guide the user to start) is delivered via a suggestion banner on the map page instead of a separate HTML file.
