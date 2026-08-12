@@ -305,6 +305,19 @@ async def list_questions() -> JSONResponse:
     return JSONResponse(lesson_ids)
 
 
+@app.get("/api/maps")
+async def list_maps() -> JSONResponse:
+    """Return list of existing domain map pages (for leads-to linking)."""
+    lessons_dir = PROJECT_ROOT / "lessons"
+    if not lessons_dir.exists():
+        return JSONResponse([])
+    maps = sorted(
+        f.name for f in lessons_dir.iterdir()
+        if f.name.endswith("-map.html")
+    )
+    return JSONResponse(maps)
+
+
 # Mount static files LAST (catch-all)
 app.mount("/", StaticFiles(directory=str(PROJECT_ROOT), html=True), name="static")
 
