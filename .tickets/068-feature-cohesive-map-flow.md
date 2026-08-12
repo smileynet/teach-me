@@ -1,7 +1,7 @@
 ---
 id: "068"
 title: "Feature: cohesive map flow — suggestion banner, status sync on generation"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: feature
@@ -30,10 +30,17 @@ Three changes that close the loop between generation, navigation, and status:
 
 ## Acceptance criteria
 
-- [ ] Map page shows suggestion banner with correct topic name
-- [ ] Clicking suggestion opens the detail panel or starts generation
-- [ ] After generation completes, MAP.md file shows updated status
-- [ ] Returning to map page after generation: node is blue AND MAP.md is consistent
+- [x] Map page shows suggestion banner with correct topic name
+- [x] Clicking suggestion opens the detail panel or starts generation
+- [x] After generation completes, MAP.md file shows updated status
+- [x] Returning to map page after generation: node is blue AND MAP.md is consistent
+
+## Resolution (2026-08-12)
+
+- POST `/api/map/{domain}/{slug}/status` endpoint added
+- Suggestion banner reads from `/api/map/{domain}` (get_next_suggestion)
+- finish() POSTs status update before auto-navigating
+- Validated: curl + Playwright, zero errors, mise run verify passes
 
 ## Validation
 
