@@ -110,17 +110,26 @@ MOCK_CMD = [
     '&& echo " ▸ Time: 8s"',
 ]
 
+LONG_MOCK_CMD = [
+    "bash",
+    "-c",
+    'for i in $(seq 1 13); do echo "[STEP:$i/13] Working... ($((i * 10))s elapsed)"; sleep 10; done && echo " ▸ Time: 130s"',
+]
+
 
 class GenerateRequest(BaseModel):
     prompt: str = ""
     mock: bool = True  # Use mock command for testing
+    long_mock: bool = False  # Use 130s mock for SSE stability testing
 
 
 @app.post("/api/generate", status_code=202)
 async def start_generation(req: GenerateRequest) -> JSONResponse:
     task_id = uuid.uuid4().hex[:12]
 
-    if req.mock:
+    if req.long_mock:
+        cmd = LONG_MOCK_CMD
+    elif req.mock:
         cmd = MOCK_CMD
     else:
         cmd = [

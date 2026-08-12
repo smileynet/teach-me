@@ -1,7 +1,7 @@
 ---
 id: "062"
 title: "Research: browser generation prerequisites — buffering, SSE stability, cancellation"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: research
@@ -53,3 +53,21 @@ These questions block confident implementation. Each should be answered with a s
 ## Deliverable
 
 A single research file `.scratch/research/generation-prerequisites.md` answering all "must investigate" questions with evidence (command output, timestamps, file locations).
+
+## Resolution (2026-08-11)
+
+All 5 questions answered with experimental evidence:
+
+| # | Question | Answer | Source |
+|---|----------|--------|--------|
+| 1 | Buffering | BURST output (not line-by-line). Internal to kiro-cli. `stdbuf` doesn't help. | Spike 058 |
+| 2 | NO_COLOR | Does NOT suppress ANSI. Always strip with regex. | Spike 058 |
+| 3 | SIGTERM | Kill `kiro-cli-chat` (worker), not `kiro-cli` (wrapper). Use `start_new_session=True` + `os.killpg`. | Spike 058 |
+| 4 | SSE stability | Native `StreamingResponse` in FastAPI+uvicorn holds 2+ min (tested 130s, 14 events, no drops). No need for `sse-starlette`. | Ticket 062 test |
+| 5 | cwd file output | `subprocess.Popen(cwd=project_root)` works — relative paths in prompts resolve correctly. | Ticket 062 test |
+
+**Verdict:** No blockers found. All prerequisites satisfied for confident implementation.
+
+Detailed findings:
+- `.scratch/research/kiro-cli-output-characterization.md` (spike 058)
+- `.memory/kiro-cli-process-management.md` (promoted reference)
