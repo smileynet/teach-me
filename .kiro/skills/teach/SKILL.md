@@ -78,6 +78,10 @@ Produce alongside every lesson. The reference is what the learner pulls up at wo
 - Learning records grow; lessons stop re-teaching demonstrated knowledge
 - Lessons look like one course (shared theme, consistent visual language)
 
+## Complete Topic Generation
+
+For the full pipeline (research → lesson → jargon → quiz → reference → verify), use the `generate-topic` skill. It wraps this skill with parallel subagent dispatch for research and verification, ensuring all post-processing steps happen automatically. Use `generate-topic` when you want guaranteed completeness; use `teach` directly for quick drafts or interactive teaching sessions.
+
 ## It's NOT Working If
 
 - Lessons cite no sources (teaching from memory)
