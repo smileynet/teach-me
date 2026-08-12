@@ -1,7 +1,7 @@
 ---
 id: "076"
 title: "Fix: highlight selected node on map graph when detail panel shows"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: feature

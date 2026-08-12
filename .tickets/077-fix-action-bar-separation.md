@@ -1,7 +1,7 @@
 ---
 id: "077"
 title: "Fix: lesson action bar needs stronger visual separation from content"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: feature

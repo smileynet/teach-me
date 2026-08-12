@@ -51,8 +51,9 @@
     bar.innerHTML = `
       <style>
         .lesson-action-bar {
-          margin-top: 2rem; padding: 1.25rem; border-radius: 8px;
+          margin-top: 3rem; padding: 1.25rem; border-radius: 8px;
           background: var(--bg-elevated); border: 1px solid var(--border);
+          border-top: 3px solid var(--accent);
         }
         .lesson-action-bar h3 { margin: 0 0 0.75rem; font-size: 1rem; }
         .lesson-action-bar .actions { display: flex; flex-direction: column; gap: 0.6rem; }
