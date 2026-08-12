@@ -173,7 +173,7 @@
   <div class="leads-to">
     <h3>🚀 Where This Leads</h3>
     <p>After this domain, these become accessible:</p>
-    <ul>
+    <ul id="leads-to-list">
       <li><button class="btn btn-secondary" onclick="offerGenerate('streaming-architectures', 'Streaming Architectures')">Streaming Architectures</button></li>
       <li><button class="btn btn-secondary" onclick="offerGenerate('data-governance-at-scale', 'Data Governance At Scale')">Data Governance At Scale</button></li>
       <li><button class="btn btn-secondary" onclick="offerGenerate('platform-engineering', 'Platform Engineering')">Platform Engineering</button></li>
@@ -433,6 +433,27 @@ document.getElementById('gen-modal').addEventListener('click', function(e) {
   const total = Object.keys(TOPICS).length;
   const navPos = document.querySelector('.nav-position');
   if (navPos) navPos.textContent = `${total} topics · ${complete} complete · ${withLessons - complete} in progress`;
+})();
+
+// --- Detect existing domain maps for leads-to linking ---
+(async function detectMaps() {
+  let maps = [];
+  try { const r = await fetch('/api/maps'); if (r.ok) maps = await r.json(); } catch(e) {}
+  if (!maps.length) return;
+  document.querySelectorAll('#leads-to-list button').forEach(btn => {
+    const title = btn.textContent;
+    // Match: button slug parts appear in a map filename
+    const slugParts = title.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/);
+    const match = maps.find(m => slugParts.filter(p => p.length > 2).every(p => m.includes(p)));
+    if (match) {
+      const link = document.createElement('a');
+      link.href = match;
+      link.className = 'btn btn-primary';
+      link.textContent = title + ' →';
+      link.style.cssText = btn.style.cssText;
+      btn.replaceWith(link);
+    }
+  });
 })();
 </script>
 <script src="../assets/theme-toggle.js"></script>
