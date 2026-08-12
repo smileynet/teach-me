@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz: Progressive Overload</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <style>
+    .quiz-container { max-width: 700px; margin: 0 auto; padding: 1rem; }
+    .quiz-nav { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    .quiz-nav a { color: var(--link); text-decoration: none; }
+    .quiz-nav a:hover { text-decoration: underline; }
+    .quiz-progress { color: var(--text-muted); }
+    .card { border: 2px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; background: var(--bg-elevated); }
+    .card-prompt { border-left: 4px solid var(--accent); padding-left: 1rem; margin-bottom: 1rem; }
+    .card-answer { border-left: 4px solid var(--success, #16a34a); padding-left: 1rem; display: none; }
+    .card-answer.revealed { display: block; }
+    .card-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; }
+    .card-type { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: var(--bg-surface); color: var(--accent); margin-bottom: 0.5rem; }
+    .reveal-btn { background: var(--accent); color: var(--bg); border: none; padding: 0.5rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+    .reveal-btn:hover { opacity: 0.85; }
+    .rating { margin-top: 1rem; display: none; }
+    .rating.revealed { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+    .rating p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+    .rating button { padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg-surface); color: var(--text); font-size: 0.8rem; }
+    .rating button:hover { background: var(--bg-elevated); border-color: var(--accent); }
+    .rating button.selected { background: color-mix(in srgb, var(--accent) 15%, var(--bg)); border-color: var(--accent); }
+    .quiz-done { margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); text-align: center; }
+    .quiz-done a { display: inline-block; margin: 0.5rem; padding: 0.6rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.9rem; border: 1px solid var(--accent); color: var(--accent); }
+    .quiz-done a:hover { background: var(--bg-surface); }
+  </style>
+</head>
+<body>
+<div class="quiz-container">
+  <nav class="quiz-nav">
+    <a href="../0001-progressive-overload.html">← Back to lesson</a>
+    <span class="quiz-progress">4 questions</span>
+    <a href="../../maps/workout-fundamentals.MAP.md">← Back to map</a>
+  </nav>
+  <h1>Quiz: Progressive Overload</h1>
+  <p style="color:var(--text-muted); margin-bottom:1.5rem;">Read each question, form your answer, then reveal to check.</p>
+
+  <div class="card" id="card1">
+    <div class="card-prompt"><span class="card-type">explain</span><p><strong>Why does doing the same workout every week eventually stop producing results?</strong></p></div>
+    <button class="reveal-btn" onclick="reveal('card1')">Show Answer</button>
+    <div class="card-answer"><p>Should mention: (1) the body adapts to match the demand (accommodation), (2) without increasing stimulus, there's no signal to continue adapting. It's biology working as designed — not a failure of effort.</p></div>
+    <div class="rating" id="card1-rating"><p>How well could you explain this?</p><button onclick="rate('card1', 1)">Not at all</button><button onclick="rate('card1', 3)">Roughly</button><button onclick="rate('card1', 5)">Confidently</button></div>
+    <div class="card-meta">Section: The Problem · Tags: progressive-overload, adaptation, accommodation</div>
+  </div>
+
+  <div class="card" id="card2">
+    <div class="card-prompt"><span class="card-type">apply</span><p><strong>A friend says they've been going to the gym for 6 months but aren't getting stronger. What's the most likely explanation?</strong></p></div>
+    <button class="reveal-btn" onclick="reveal('card2')">Show Answer</button>
+    <div class="card-answer"><p>Should mention: (1) they're probably not increasing the demand — same weights, same reps every session, (2) without overload, the body has no reason to adapt further. The diagnostic question: "Are you lifting more than 3 months ago?" If no, that's the problem.</p></div>
+    <div class="rating" id="card2-rating"><p>How well could you explain this?</p><button onclick="rate('card2', 1)">Not at all</button><button onclick="rate('card2', 3)">Roughly</button><button onclick="rate('card2', 5)">Confidently</button></div>
+    <div class="card-meta">Section: How to Apply It · Tags: progressive-overload, troubleshooting, stalling</div>
+  </div>
+
+  <div class="card" id="card3">
+    <div class="card-prompt"><span class="card-type">apply</span><p><strong>Someone recommends a specific exercise, exact rest times, and a supplement stack. How would you evaluate whether any of it matters?</strong></p></div>
+    <button class="reveal-btn" onclick="reveal('card3')">Show Answer</button>
+    <div class="card-answer"><p>Should mention: (1) ask "does this help me progressively overload over time?", (2) if it doesn't affect the overload trajectory, it's likely noise. The fitness industry sells complexity because simple doesn't generate content.</p></div>
+    <div class="rating" id="card3-rating"><p>How well could you explain this?</p><button onclick="rate('card3', 1)">Not at all</button><button onclick="rate('card3', 3)">Roughly</button><button onclick="rate('card3', 5)">Confidently</button></div>
+    <div class="card-meta">Section: Why Most Gym Advice is Noise · Tags: progressive-overload, critical-thinking, noise-vs-signal</div>
+  </div>
+
+  <div class="card" id="card4">
+    <div class="card-prompt"><span class="card-type">explain</span><p><strong>Why can't a text-based learning system fully replace a coach for learning to squat?</strong></p></div>
+    <button class="reveal-btn" onclick="reveal('card4')">Show Answer</button>
+    <div class="card-answer"><p>Should mention: (1) squatting is procedural knowledge — motor patterns requiring physical practice and proprioceptive feedback, (2) complex movements benefit from real-time form correction. Text teaches the WHY; the body learns the HOW through repetition with feedback.</p></div>
+    <div class="rating" id="card4-rating"><p>How well could you explain this?</p><button onclick="rate('card4', 1)">Not at all</button><button onclick="rate('card4', 3)">Roughly</button><button onclick="rate('card4', 5)">Confidently</button></div>
+    <div class="card-meta">Section: What This System Cannot Teach · Tags: teaching-boundary, declarative-vs-procedural</div>
+  </div>
+
+  <div class="quiz-done"><h3>Done!</h3><p>Review complete.</p><a href="../0001-progressive-overload.html">← Review the lesson</a><a href="../../maps/workout-fundamentals.MAP.md">← Back to map</a></div>
+</div>
+<script>
+function reveal(cardId) { document.querySelector(`#${cardId} .card-answer`).classList.add('revealed'); document.querySelector(`#${cardId} .reveal-btn`).style.display = 'none'; document.querySelector(`#${cardId}-rating`).classList.add('revealed'); }
+function rate(cardId, quality) { const buttons = document.querySelectorAll(`#${cardId}-rating button`); buttons.forEach(b => b.classList.remove('selected')); event.target.classList.add('selected'); }
+</script>
+<script src="../../assets/theme-toggle.js"></script>
+</body>
+</html>
