@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference: OIDC Auth Flows</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<h1>OIDC Auth Flows</h1>
+<p class="lesson-meta">Reference · Companion to <a href="../lessons/0001-oidc-auth-flows.html">Lesson 1</a></p>
+
+<h2>Core Concept</h2>
+<p><strong>User authenticates at the IdP, your app gets a signed proof of identity.</strong> Your app never sees the user's password. The authorization code flow keeps tokens off the browser entirely — exchanged server-to-server.</p>
+
+<h2>The Flow (8 Steps)</h2>
+
+<ol>
+  <li>User clicks "Login" → your app builds the auth URL</li>
+  <li>Redirect to IdP (with client_id, scope=openid, state, code_challenge)</li>
+  <li>User authenticates at IdP (enters credentials)</li>
+  <li>IdP redirects back with <code>?code=xxx&amp;state=yyy</code></li>
+  <li>Browser hits your callback endpoint</li>
+  <li>Your server POSTs code + code_verifier to token endpoint</li>
+  <li>IdP returns {id_token, access_token, refresh_token}</li>
+  <li>Validate ID token → user is logged in</li>
+</ol>
+
+<h2>What Your Rust Code Does at Each Step</h2>
+
+<table>
+  <tr><th>Step</th><th>Code responsibility</th></tr>
+  <tr><td>1-2</td><td>Generate state + nonce + code_verifier. Build URL. Store state/nonce in session. Return 302.</td></tr>
+  <tr><td>5</td><td>Callback handler: verify state matches stored value</td></tr>
+  <tr><td>6</td><td>POST to token_endpoint: code, redirect_uri, client_id, code_verifier</td></tr>
+  <tr><td>7-8</td><td>Parse response, validate ID token (signature + claims)</td></tr>
+</table>
+
+<h2>PKCE (Proof Key for Code Exchange)</h2>
+
+<table>
+  <tr><th>Step</th><th>What</th></tr>
+  <tr><td>Before auth</td><td><code>code_verifier</code> = 43-128 random URL-safe chars</td></tr>
+  <tr><td>Compute</td><td><code>code_challenge = BASE64URL(SHA256(code_verifier))</code></td></tr>
+  <tr><td>Auth request</td><td>Send <code>code_challenge</code> + <code>code_challenge_method=S256</code></td></tr>
+  <tr><td>Token exchange</td><td>Send <code>code_verifier</code> (the original)</td></tr>
+  <tr><td>Server checks</td><td>Hash verifier → compare to stored challenge</td></tr>
+</table>
+
+<p><strong>Why:</strong> An interceptor who captures the code from the redirect can't exchange it without the code_verifier (never sent via browser).</p>
+
+<h2>Security Mechanisms</h2>
+
+<table>
+  <tr><th>Mechanism</th><th>Prevents</th></tr>
+  <tr><td><code>state</code></td><td>CSRF (login as attacker)</td></tr>
+  <tr><td><code>nonce</code></td><td>Replay (reuse old ID token)</td></tr>
+  <tr><td>PKCE</td><td>Code interception</td></tr>
+  <tr><td>Server-to-server exchange</td><td>Token exposure in browser</td></tr>
+  <tr><td>Signature verification</td><td>Token forgery</td></tr>
+</table>
+
+<h2>Discovery</h2>
+
+<p>All provider URLs come from one endpoint:</p>
+<pre><code>GET https://&lt;issuer&gt;/.well-known/openid-configuration</code></pre>
+
+<p>Returns: authorization_endpoint, token_endpoint, jwks_uri, supported scopes/algorithms.</p>
+
+<p><strong>Rust:</strong></p>
+<pre><code>CoreProviderMetadata::discover_async(issuer_url, http_client).await?</code></pre>
+
+<h2>Quick Decision</h2>
+
+<ul>
+  <li><strong>Web app login?</strong> → Authorization Code + PKCE (always)</li>
+  <li><strong>Native/CLI app?</strong> → Authorization Code + PKCE + localhost redirect</li>
+  <li><strong>API validating tokens?</strong> → You don't do the flow — just validate incoming tokens (Lesson 2)</li>
+  <li><strong>Implicit flow?</strong> → Deprecated. Don't use it.</li>
+</ul>
+
+<script src="../assets/theme-toggle.js"></script>
+
+</body>
+</html>

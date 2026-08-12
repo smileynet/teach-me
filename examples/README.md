@@ -7,9 +7,8 @@ Each subdirectory is a **workspace** — a self-contained learning project with 
 | Example | Status | Demonstrates |
 |---------|--------|-------------|
 | `iceberg-workspace/` | Full (2 lessons, quizzes, reference) | Complete workspace with all artifact types |
+| `oidc-rust/` | Full (2 lessons, quizzes, reference) | Technical domain: protocol flows + Rust implementation |
 | `godot-gamedev/` | MAP only (no lessons generated) | Starting point: just a MISSION + domain map |
-| `web-security/` | MAP only (no lessons generated) | Starting point: just a MISSION + domain map |
-| `roguelike-rust/` | Minimal (1 lesson) | Early-stage workspace with one topic done |
 | `workout-fundamentals/` | Minimal (1 lesson) | Boundary example: physical skills vs knowledge |
 
 ## Workspace structure
@@ -37,4 +36,4 @@ workspace-name/
 5. User marks topics complete as they go
 6. Adjacent domains appear in "From here, you could explore"
 
-The `iceberg-workspace/` example shows steps 1–5 completed for two topics.
+The `iceberg-workspace/` and `oidc-rust/` examples show steps 1–5 completed for two topics each.

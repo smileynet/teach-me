@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2: Token Anatomy — ID Tokens, Access Tokens & Validation</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+</head>
+<body>
+
+<h1>Token Anatomy — ID Tokens, Access Tokens & Validation</h1>
+<div class="lesson-meta">
+  Lesson 2 · OIDC in Rust · ~12 min read<br>
+  <strong>Win:</strong> You can decode a JWT by hand, explain what each standard claim does, and walk through the 8-step validation checklist your Rust middleware must perform.
+</div>
+
+<div class="key-concept">
+  <strong>After this lesson:</strong> You know the difference between ID tokens and access tokens (and which goes where), the structure of a JWT, what every standard claim means, and exactly what your Rust code must verify before trusting a token. When validation fails in production, you'll know which step broke.
+</div>
+
+<h2>Two Tokens, Two Audiences</h2>
+
+<p>After the authorization code exchange (Lesson 1), your app receives multiple tokens. The critical distinction:</p>
+
+<table>
+  <tr><th>Token</th><th>Purpose</th><th>Audience</th><th>Format</th></tr>
+  <tr><td><strong>ID token</strong></td><td>Proves who logged in</td><td>Your client app</td><td>Always JWT</td></tr>
+  <tr><td><strong>Access token</strong></td><td>Authorizes API calls</td><td>Resource server (API)</td><td>Opaque or JWT</td></tr>
+  <tr><td><strong>Refresh token</strong></td><td>Gets new access tokens</td><td>Authorization server only</td><td>Opaque</td></tr>
+</table>
+
+<div class="key-concept">
+<strong>The rule:</strong> ID tokens prove identity TO YOUR APP. Access tokens prove authorization TO AN API. Never send an ID token to an API as a bearer token. Never use an access token to determine who a user is.
+</div>
+
+<p>This matters in Rust because you'll build two different pieces: (1) a login flow that receives and validates ID tokens, and (2) middleware that validates access tokens on API endpoints. Same JWT format, different validation rules, different trust model. <a href="https://openid.net/specs/openid-connect-core-1_0.html" class="citation">[OIDC Core 1.0 §2]</a></p>
+
+<h2>JWT Structure: Three Parts, Dot-Separated</h2>
+
+<p>A JWT is three base64url-encoded segments separated by dots:</p>
+
+<svg role="img" aria-labelledby="jwt-structure-title" viewBox="0 0 700 120" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="jwt-structure-title">JWT structure: header (algorithm + key ID), payload (claims about the user), and signature (cryptographic proof)</title>
+  <!-- Header -->
+  <rect x="10" y="20" width="200" height="60" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="110" y="45" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e40af">Header</text>
+  <text x="110" y="65" text-anchor="middle" font-size="10" fill="#374151">alg: RS256, kid: "key-1"</text>
+  <!-- Dot 1 -->
+  <text x="222" y="55" font-size="24" fill="#6b7280">.</text>
+  <!-- Payload -->
+  <rect x="240" y="20" width="220" height="60" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="350" y="45" text-anchor="middle" font-size="13" font-weight="bold" fill="#166534">Payload (Claims)</text>
+  <text x="350" y="65" text-anchor="middle" font-size="10" fill="#374151">iss, sub, aud, exp, nonce...</text>
+  <!-- Dot 2 -->
+  <text x="472" y="55" font-size="24" fill="#6b7280">.</text>
+  <!-- Signature -->
+  <rect x="490" y="20" width="200" height="60" rx="6" fill="#f3f4f6" stroke="#6b7280" stroke-width="2"/>
+  <text x="590" y="45" text-anchor="middle" font-size="13" font-weight="bold" fill="#374151">Signature</text>
+  <text x="590" y="65" text-anchor="middle" font-size="10" fill="#374151">RSA/ECDSA over header.payload</text>
+  <!-- Bottom label -->
+  <text x="350" y="108" text-anchor="middle" font-size="11" fill="#6b7280">base64url(header) . base64url(payload) . base64url(signature)</text>
+</svg>
+
+<p>The header says HOW it's signed (algorithm + key ID). The payload contains the CLAIMS (facts about the user and token). The signature proves it hasn't been tampered with — created using the IdP's private key, verified with their public key.</p>
+
+<h2>The Standard Claims (What Each One Means)</h2>
+
+<p>An ID token's payload contains claims. Some are required by the OIDC spec, others are optional but common:</p>
+
+<table>
+  <tr><th>Claim</th><th>Full name</th><th>What it is</th><th>Why it matters</th></tr>
+  <tr><td><code>iss</code></td><td>Issuer</td><td>URL of the IdP that created this token</td><td>Reject tokens from unknown issuers</td></tr>
+  <tr><td><code>sub</code></td><td>Subject</td><td>Unique identifier for the user (at this IdP)</td><td>This is the user's stable ID — not their email</td></tr>
+  <tr><td><code>aud</code></td><td>Audience</td><td>Who this token is intended for (your client_id)</td><td>Reject tokens meant for a different app</td></tr>
+  <tr><td><code>exp</code></td><td>Expiration</td><td>Unix timestamp — token invalid after this time</td><td>Reject expired tokens (allow ~30s clock skew)</td></tr>
+  <tr><td><code>iat</code></td><td>Issued At</td><td>When the token was created</td><td>Detect unreasonably old tokens</td></tr>
+  <tr><td><code>nonce</code></td><td>Nonce</td><td>Random value YOU sent in the auth request</td><td>Replay protection — proves freshness</td></tr>
+  <tr><td><code>auth_time</code></td><td>Auth Time</td><td>When the user actually entered credentials</td><td>Enforce max session age if needed</td></tr>
+  <tr><td><code>at_hash</code></td><td>Access Token Hash</td><td>Hash of the access token</td><td>Binds the ID token to its companion access token</td></tr>
+</table>
+
+<p>Beyond the standard claims, providers add profile data based on what scopes you requested:</p>
+
+<ul>
+  <li><code>openid</code> → always gives you <code>sub</code></li>
+  <li><code>profile</code> → adds <code>name</code>, <code>given_name</code>, <code>family_name</code>, <code>picture</code></li>
+  <li><code>email</code> → adds <code>email</code>, <code>email_verified</code></li>
+</ul>
+
+<h2>The 8-Step Validation Checklist</h2>
+
+<p>This is what your Rust code MUST do before trusting a token. Miss any step and you have a security hole:</p>
+
+<ol>
+  <li><strong>Decode the header</strong> — find the <code>kid</code> (key ID) and <code>alg</code> (algorithm)</li>
+  <li><strong>Fetch the provider's public keys</strong> — from the <code>jwks_uri</code> in the discovery document</li>
+  <li><strong>Verify the signature</strong> — using the key that matches the token's <code>kid</code></li>
+  <li><strong>Check <code>iss</code></strong> — must exactly match your configured issuer URL</li>
+  <li><strong>Check <code>aud</code></strong> — must contain your <code>client_id</code></li>
+  <li><strong>Check <code>exp</code></strong> — must be in the future (allow ≤60s clock skew)</li>
+  <li><strong>Check <code>nonce</code></strong> — must match what you stored when starting the auth flow</li>
+  <li><strong>Optionally check <code>iat</code></strong> — reject tokens issued unreasonably long ago</li>
+</ol>
+
+<p>In Rust with the <code>openidconnect</code> crate, steps 1-6 happen automatically when you call the token verifier. You supply the nonce for step 7. The crate's type system makes it hard to skip steps — verification returns a typed <code>IdTokenClaims</code> only after all checks pass. <a href="https://openid.net/specs/openid-connect-core-1_0.html" class="citation">[OIDC Core 1.0 §3.1.3.7]</a></p>
+
+<h2>JWKS: Where the Public Keys Live</h2>
+
+<p>The IdP signs tokens with a private key. Your app verifies them with the corresponding public key. But the IdP rotates keys — so you can't hardcode a key. Instead, you fetch them from the <strong>JWKS (JSON Web Key Set) endpoint</strong>:</p>
+
+<pre><code>GET https://accounts.google.com/.well-known/jwks.json
+
+{
+  "keys": [
+    {
+      "kty": "RSA",
+      "kid": "abc123",          // matches the kid in token headers
+      "use": "sig",
+      "n": "0vx7agoebGc...",   // RSA modulus
+      "e": "AQAB"              // RSA exponent
+    }
+  ]
+}</code></pre>
+
+<p>Your validation logic: decode the JWT header → find <code>kid</code> → look up the matching key in the JWKS → verify the signature. If the <code>kid</code> isn't in your cached JWKS, refetch — the IdP probably rotated keys.</p>
+
+<h2>Token Validation in Rust (Two Approaches)</h2>
+
+<h3>For login flows: openidconnect crate</h3>
+
+<p>The <code>openidconnect</code> crate validates ID tokens as part of the token exchange — you don't manually fetch JWKS or check claims:</p>
+
+<pre><code>// The crate handles discovery, JWKS fetch, and all 8 checks
+let id_token_claims = id_token
+    .claims(&amp;verifier, &amp;nonce)  // verifier has the IdP's keys
+    .map_err(|e| format!("ID token validation failed: {}", e))?;
+
+// If we get here, the token is valid — extract user info
+let subject = id_token_claims.subject().to_string();
+let email = id_token_claims.email().map(|e| e.to_string());</code></pre>
+
+<h3>For API middleware: jsonwebtoken + JWKS fetch</h3>
+
+<p>For resource servers validating access tokens on every request, you want lower-level control (and caching):</p>
+
+<pre><code>use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
+
+// Cache JWKS at startup, refresh when kid not found
+let key = jwks.find(&amp;token_kid)
+    .ok_or("Unknown key ID — possible key rotation")?;
+let decoding_key = DecodingKey::from_jwk(key)?;
+
+let mut validation = Validation::new(Algorithm::RS256);
+validation.set_issuer(&amp;["https://accounts.google.com"]);
+validation.set_audience(&amp;["my-api-audience"]);
+
+let token_data = decode::&lt;Claims&gt;(&amp;bearer_token, &amp;decoding_key, &amp;validation)?;</code></pre>
+
+<p>Or use the <code>jwtk</code> crate which handles JWKS fetching and caching for you:</p>
+
+<pre><code>let verifier = jwtk::RemoteJwksVerifier::new(jwks_uri);
+let claims = verifier.verify::&lt;MyClaims&gt;(&amp;token).await?;</code></pre>
+
+<h2>The Production Gotchas</h2>
+
+<p>Token validation that works in development breaks in production for predictable reasons:</p>
+
+<table>
+  <tr><th>Problem</th><th>Symptom</th><th>Fix</th></tr>
+  <tr><td>Key rotation</td><td>Signature verification fails for new tokens</td><td>Refetch JWKS when <code>kid</code> not found in cache</td></tr>
+  <tr><td>Clock skew</td><td><code>exp</code> check rejects valid tokens</td><td>Allow 30-60s leeway in expiration checks</td></tr>
+  <tr><td>Stale JWKS cache</td><td>All tokens fail after IdP rotates</td><td>Cache with TTL (1h) + force-refresh on miss</td></tr>
+  <tr><td>Wrong audience</td><td>Tokens from another app accepted</td><td>Always validate <code>aud</code> — never skip this check</td></tr>
+  <tr><td>Multi-tenant confusion</td><td>Tokens from wrong tenant accepted</td><td>Validate <code>iss</code> matches expected issuer exactly</td></tr>
+</table>
+
+<h2>What's Next</h2>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> Your API returns 401 Unauthorized for a token that was working 5 minutes ago. The user hasn't logged out. What's your debugging checklist? (Think about which of the 8 steps could have broken.)</p>
+  <details>
+  <summary>Key points to hit</summary>
+  <p>Most likely causes in order: (1) token expired — check <code>exp</code> claim vs current time, (2) key rotation — the <code>kid</code> in the token no longer matches your cached JWKS, refetch and retry, (3) clock skew — your server's clock drifted more than the leeway allows. Less likely: issuer URL changed (IdP config update), audience changed (client registration modified). The fix for most production issues is: add JWKS cache refresh on miss + generous clock skew tolerance (60s).</p>
+  </details>
+</div>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next lesson:</strong> Building an OIDC Client with openidconnect-rs — wiring up discovery, the auth flow, and token exchange in a real axum app.</p>
+  <p><strong>Reference:</strong> <a href="../reference/0002-token-anatomy.html">Token Anatomy cheat sheet</a></p>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "jwt": "JSON Web Token. A three-part (header.payload.signature) format for carrying signed claims between parties. Base64url-encoded, dot-separated.",
+  "claims": "Key-value facts inside a JWT payload — who issued it (iss), who it's for (aud), when it expires (exp), and who the user is (sub).",
+  "jwks": "JSON Web Key Set. The public keys published by an IdP for verifying token signatures. Fetched from the jwks_uri in the discovery document. Rotated periodically.",
+  "kid": "Key ID. A string in the JWT header identifying which key from the JWKS was used to sign this token. Your validation code uses it to look up the right public key.",
+  "access-token": "A credential authorizing API calls. Sent as a Bearer token in the Authorization header. Audience is the API, not your app. May be opaque (not a JWT) depending on provider.",
+  "clock-skew": "The difference between your server's clock and the IdP's clock. Even small drift (seconds) can cause exp/iat checks to fail. Allow 30-60s leeway in production."
+}
+</script>
+<script src="../assets/glossary.js"></script>
+<script src="../assets/theme-toggle.js"></script>
+
+</body>
+</html>

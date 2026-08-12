@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1: OIDC Authorization Code Flow & PKCE</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+</head>
+<body>
+
+<h1>OIDC Authorization Code Flow & PKCE</h1>
+<div class="lesson-meta">
+  Lesson 1 · OIDC in Rust · ~10 min read<br>
+  <strong>Win:</strong> You can draw the authorization code flow on a whiteboard, explain what PKCE prevents, and describe what your Rust code does at each step.
+</div>
+
+<div class="key-concept">
+  <strong>After this lesson:</strong> You understand the redirect dance between your app, the browser, and the identity provider — and why every step exists. You know what a "code" is, why it's exchanged server-to-server, and how PKCE prevents interception attacks.
+</div>
+
+<h2>The Problem: Your App Doesn't Know Who the User Is</h2>
+
+<p>Your Rust web service handles requests, but it has no idea who's making them. You could build your own login system — password hashing, email verification, session management, password reset, MFA — or you could delegate identity to someone who already solved it (Google, Microsoft, your company's Keycloak). <a href="https://openid.net/specs/openid-connect-core-1_0.html" class="citation">[OIDC Core 1.0]</a></p>
+
+<p>OpenID Connect (OIDC) is the protocol that makes this delegation work. When a user clicks "Sign in with Google," OIDC is what's happening underneath — a carefully choreographed redirect sequence that ends with your app holding a cryptographically signed proof of who the user is.</p>
+
+<h2>The Two Layers: OAuth2 + OIDC</h2>
+
+<div class="key-concept">
+<strong>OAuth 2.0</strong> answers "what is this app allowed to do?" <br>
+<strong>OIDC</strong> adds "who is the user?" — it's an identity layer ON TOP of OAuth 2.0.
+</div>
+
+<p>Every OIDC flow is also an OAuth2 flow. OIDC adds three things to OAuth2:</p>
+
+<ul>
+  <li>The <code>openid</code> scope (signals "I want identity, not just authorization")</li>
+  <li>The <strong>ID token</strong> — a signed JWT proving who logged in</li>
+  <li>The <strong>UserInfo endpoint</strong> — for fetching additional user claims</li>
+</ul>
+
+<p>In practice: you request the <code>openid</code> scope, and you get back an ID token along with the access token. The ID token is for YOUR app (identity). The access token is for calling APIs (authorization).</p>
+
+<h2>The Authorization Code Flow (Step by Step)</h2>
+
+<p>This is the standard flow for web apps and the one you'll implement in Rust. The key insight: the user's credentials never touch your app. They authenticate directly with the identity provider.</p>
+
+<svg role="img" aria-labelledby="auth-flow-title" viewBox="0 0 720 400" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="auth-flow-title">Authorization code flow: browser redirects to IdP, returns code to your app, app exchanges code for tokens server-to-server</title>
+  <!-- Actors -->
+  <rect x="30" y="20" width="120" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="90" y="45" text-anchor="middle" font-size="13" fill="#1e40af">User (Browser)</text>
+  <rect x="290" y="20" width="120" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="350" y="45" text-anchor="middle" font-size="13" fill="#1e40af">Your App (Rust)</text>
+  <rect x="560" y="20" width="130" height="40" rx="4" fill="#f3f4f6" stroke="#6b7280" stroke-width="2"/>
+  <text x="625" y="45" text-anchor="middle" font-size="13" fill="#374151">Identity Provider</text>
+  <!-- Lifelines -->
+  <line x1="90" y1="60" x2="90" y2="380" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4"/>
+  <line x1="350" y1="60" x2="350" y2="380" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4"/>
+  <line x1="625" y1="60" x2="625" y2="380" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4"/>
+  <!-- Step 1 -->
+  <line x1="90" y1="90" x2="350" y2="90" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="220" y="83" text-anchor="middle" font-size="11" fill="#374151">1. Click "Login"</text>
+  <!-- Step 2 -->
+  <line x1="350" y1="120" x2="90" y2="120" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="220" y="113" text-anchor="middle" font-size="11" fill="#374151">2. Redirect → IdP</text>
+  <text x="220" y="135" text-anchor="middle" font-size="9" fill="#6b7280">(client_id, scope=openid, state, code_challenge)</text>
+  <!-- Step 3 -->
+  <line x1="90" y1="160" x2="625" y2="160" stroke="#6b7280" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="357" y="153" text-anchor="middle" font-size="11" fill="#374151">3. User authenticates at IdP</text>
+  <!-- Step 4 -->
+  <line x1="625" y1="195" x2="90" y2="195" stroke="#6b7280" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="357" y="188" text-anchor="middle" font-size="11" fill="#374151">4. Redirect back with ?code=xxx&state=yyy</text>
+  <!-- Step 5 (browser to app) -->
+  <line x1="90" y1="225" x2="350" y2="225" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="220" y="218" text-anchor="middle" font-size="11" fill="#374151">5. Browser hits callback</text>
+  <!-- Step 6 (server to server) -->
+  <line x1="350" y1="260" x2="625" y2="260" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="487" y="253" text-anchor="middle" font-size="11" fill="#374151">6. Exchange code + code_verifier</text>
+  <text x="487" y="275" text-anchor="middle" font-size="9" fill="#16a34a">(server-to-server, not via browser)</text>
+  <!-- Step 7 (tokens back) -->
+  <line x1="625" y1="300" x2="350" y2="300" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="487" y="293" text-anchor="middle" font-size="11" fill="#374151">7. {id_token, access_token, refresh_token}</text>
+  <!-- Step 8 -->
+  <line x1="350" y1="340" x2="350" y2="340" stroke="none"/>
+  <text x="350" y="340" text-anchor="middle" font-size="11" fill="#374151">8. Validate ID token → user is logged in</text>
+  <!-- Arrow marker -->
+  <defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="currentColor" stroke-width="1.5"/></marker></defs>
+</svg>
+
+<p>Notice the split: steps 1-5 happen through the browser (redirects). Steps 6-7 happen server-to-server — your Rust code talks directly to the IdP's token endpoint. This is crucial: <strong>tokens never transit through the browser URL bar</strong>.</p>
+
+<h2>What Each Step Does for Your Rust Code</h2>
+
+<table>
+  <tr><th>Step</th><th>What happens</th><th>Your Rust code</th></tr>
+  <tr><td>1-2</td><td>Build auth URL with params, redirect user</td><td>Generate <code>state</code>, <code>nonce</code>, <code>code_verifier</code>; construct URL; return 302</td></tr>
+  <tr><td>3</td><td>User enters credentials at IdP</td><td>Nothing — your app is waiting for the callback</td></tr>
+  <tr><td>4-5</td><td>IdP redirects back with <code>code</code> and <code>state</code></td><td>Your callback handler receives the code; verify <code>state</code> matches what you stored</td></tr>
+  <tr><td>6</td><td>Exchange code for tokens</td><td>POST to token endpoint with <code>code</code>, <code>redirect_uri</code>, <code>code_verifier</code></td></tr>
+  <tr><td>7</td><td>Receive tokens</td><td>Parse the JSON response containing ID token, access token, refresh token</td></tr>
+  <tr><td>8</td><td>Validate ID token</td><td>Verify JWT signature, check <code>iss</code>, <code>aud</code>, <code>exp</code>, <code>nonce</code></td></tr>
+</table>
+
+<h2>PKCE: Why the Code Alone Isn't Enough</h2>
+
+<p>The authorization code travels through the browser (in the redirect URL). If something intercepts it — a malicious browser extension, a compromised redirect, a rogue app registered with the same custom scheme — they could exchange it for tokens.</p>
+
+<div class="key-concept">
+<strong>PKCE</strong> (Proof Key for Code Exchange) ties the code to whoever started the flow. An interceptor has the code but can't prove they're the original requester.
+</div>
+
+<p>How it works:</p>
+
+<ol>
+  <li><strong>Before the auth request:</strong> Generate a random <code>code_verifier</code> (43-128 chars, URL-safe). Store it in your session.</li>
+  <li><strong>Compute the challenge:</strong> <code>code_challenge = BASE64URL(SHA256(code_verifier))</code></li>
+  <li><strong>Send in auth request:</strong> Include <code>code_challenge</code> and <code>code_challenge_method=S256</code></li>
+  <li><strong>At token exchange:</strong> Send the original <code>code_verifier</code></li>
+  <li><strong>Server verifies:</strong> Hashes the verifier, confirms it matches the challenge from step 3</li>
+</ol>
+
+<p>An attacker who intercepts the code from the redirect cannot exchange it — they never saw the <code>code_verifier</code> (it was generated and stored on your server, never sent through the browser). <a href="https://datatracker.ietf.org/doc/html/rfc7636" class="citation">[RFC 7636]</a></p>
+
+<p><strong>PKCE is now recommended for ALL clients</strong>, not just native apps. The OAuth 2.1 draft makes it mandatory. The <code>oauth2</code> Rust crate supports PKCE natively — you generate it with one function call.</p>
+
+<h2>The Discovery Shortcut</h2>
+
+<p>You might have noticed the flow needs several URLs (authorization endpoint, token endpoint, JWKS URI). You don't hardcode these. Every OIDC provider publishes everything you need at a single URL:</p>
+
+<pre><code>https://accounts.google.com/.well-known/openid-configuration</code></pre>
+
+<p>This JSON document contains all the metadata your client needs: endpoints, supported scopes, signing algorithms, PKCE methods. In Rust, the <code>openidconnect</code> crate fetches and parses this with one async call:</p>
+
+<pre><code>let metadata = CoreProviderMetadata::discover_async(
+    IssuerUrl::new("https://accounts.google.com".to_string())?,
+    async_http_client,
+).await?;</code></pre>
+
+<p>Fetch once at startup, cache it, use the endpoints for all subsequent requests. If your IdP changes its token endpoint URL, your app picks it up automatically on next restart. <a href="https://openid.net/specs/openid-connect-discovery-1_0.html" class="citation">[OIDC Discovery 1.0]</a></p>
+
+<h2>The Critical Security Properties</h2>
+
+<p>Why does the flow have so many steps? Each one prevents a specific attack:</p>
+
+<table>
+  <tr><th>Mechanism</th><th>What it prevents</th></tr>
+  <tr><td><code>state</code> parameter</td><td>CSRF — someone tricking a user into logging in as the attacker</td></tr>
+  <tr><td><code>nonce</code> in ID token</td><td>Replay — using an old ID token to impersonate someone</td></tr>
+  <tr><td>PKCE</td><td>Code interception — stealing the authorization code from the redirect</td></tr>
+  <tr><td>Server-to-server token exchange</td><td>Token exposure — tokens never appear in browser history or logs</td></tr>
+  <tr><td>ID token signature verification</td><td>Forgery — someone crafting a fake ID token claiming to be a user</td></tr>
+</table>
+
+<p>If you skip any of these, you have a security vulnerability. The <code>openidconnect</code> crate enforces most of them at the type level — you literally can't forget to verify the nonce because the compiler won't let you extract claims without providing it.</p>
+
+<h2>What's Next</h2>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A colleague proposes sending tokens directly back in the redirect URL (the "implicit flow") instead of exchanging a code. What's wrong with this for a server-rendered Rust app?</p>
+  <details>
+  <summary>Key points to hit</summary>
+  <p>Tokens in the URL fragment are exposed in browser history, can be leaked via Referer headers, and there's no PKCE protection. The authorization code flow keeps tokens off the browser entirely — they're exchanged server-to-server. The implicit flow was designed for JS-only apps that couldn't make back-channel requests, and even those should use code+PKCE now.</p>
+  </details>
+</div>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next lesson:</strong> Token Anatomy — what's inside an ID token, what each claim means, and the 8-step validation your code must perform.</p>
+  <p><strong>Reference:</strong> <a href="../reference/0001-oidc-auth-flows.html">OIDC Auth Flows cheat sheet</a></p>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "authorization-code-flow": "The standard OIDC login sequence: redirect to IdP → user authenticates → redirect back with code → exchange code for tokens server-to-server. Keeps tokens off the browser.",
+  "pkce": "Proof Key for Code Exchange. A per-request proof (code_verifier + code_challenge) that binds the token exchange to whoever started the auth flow. Prevents authorization code interception.",
+  "id-token": "A signed JWT from the identity provider that proves who logged in. For YOUR app only — never send it to an API as a bearer token.",
+  "discovery-document": "A JSON document at .well-known/openid-configuration that lists all the provider's endpoints, supported features, and signing algorithms. Auto-configures your client.",
+  "state-parameter": "A random value sent in the auth request and verified on callback. Prevents CSRF attacks where someone tricks a user into authenticating on an attacker-controlled session."
+}
+</script>
+<script src="../assets/glossary.js"></script>
+<script src="../assets/theme-toggle.js"></script>
+
+</body>
+</html>
