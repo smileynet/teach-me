@@ -252,26 +252,25 @@ const TOPICS = {
 function selectTopic(slug) {
   const t = TOPICS[slug];
   if (!t) return;
+
+  // Topics with lessons: navigate directly
+  if (t.lesson_file) {
+    window.location.href = t.lesson_file;
+    return;
+  }
+
+  // Ungenerated topics: show detail panel with generate option
   const panel = document.getElementById('detail-panel');
   document.getElementById('detail-title').textContent = t.title;
   document.getElementById('detail-why').textContent = t.why;
   document.getElementById('detail-meta').textContent = `Scope: ${t.scope} · Prereqs: ${t.prereqs}`;
 
   const actions = document.getElementById('detail-actions');
-  actions.innerHTML = '';
-
-  if (t.lesson_file) {
-    actions.innerHTML = `<a href="${t.lesson_file}" class="btn btn-primary">Open lesson →</a>` +
-      `<button class="btn btn-secondary" onclick="offerGenerateQuiz('${slug}', '${t.title.replace(/'/g,"\\'")}')">Generate quiz</button>`;
-  } else {
-    actions.innerHTML = `<button class="btn btn-primary" onclick="offerGenerate('${slug}', '${t.title.replace(/'/g,"\\'")}')">▶ Generate this topic</button>` +
-      `<button class="btn btn-secondary" onclick="offerGenerateQuiz('${slug}', '${t.title.replace(/'/g,"\\'")}')">Generate quiz</button>`;
-  }
+  actions.innerHTML = `<button class="btn btn-primary" onclick="offerGenerate('${slug}', '${t.title.replace(/'/g,"\\'")}')">▶ Generate this topic</button>`;
 
   panel.classList.add('visible');
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-  // Highlight active node
   document.querySelectorAll('.map-graph .node').forEach(n => n.classList.remove('selected'));
   const node = document.querySelector(`.map-graph .node[data-slug="${slug}"]`);
   if (node) node.classList.add('selected');

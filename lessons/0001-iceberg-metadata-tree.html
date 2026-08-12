@@ -298,7 +298,35 @@ Iceberg is a <strong>file-tracking metadata tree on top of object storage</stron
   <p><strong>Reference:</strong> <a href="../reference/0001-iceberg-metadata-tree.html">Iceberg Metadata Tree cheat sheet</a> — the compressed version for quick lookup.</p>
   <p><strong>Go deeper:</strong> See <a href="../RESOURCES.md">RESOURCES.md</a> for the full curated reading list. For questions beyond this lesson, the <a href="https://join.slack.com/t/apache-iceberg/shared_invite/zt-1znv1lak0-cEcAFQlh~OI3qPIZhTy1Pw">Apache Iceberg Slack</a> and <a href="https://www.reddit.com/r/dataengineering/">r/dataengineering</a> are good communities.</p>
   <p><strong>Questions?</strong> Ask me anything that's unclear. I'm your teacher here — no question is too basic.</p>
+  <p id="quiz-link"><strong>Test yourself:</strong> <span style="color:var(--text-muted)">checking...</span></p>
 </div>
+
+<script>
+(async function() {
+  const el = document.getElementById('quiz-link');
+  try {
+    const res = await fetch('/api/questions');
+    if (res.ok) {
+      const data = await res.json();
+      const count = data['0001-iceberg-metadata-tree'] || 0;
+      if (count > 0) {
+        el.innerHTML = `<strong>Test yourself:</strong> <a href="modern-data-analytics-stacks-map.html">Take the quiz (${count} questions) →</a>`;
+      } else {
+        el.innerHTML = `<strong>Test yourself:</strong> <a href="javascript:void(0)" onclick="offerQuiz()">Generate quiz →</a>`;
+      }
+    }
+  } catch(e) {
+    el.innerHTML = `<strong>Test yourself:</strong> <em>Start the server for quizzes (mise run serve)</em>`;
+  }
+})();
+
+function offerQuiz() {
+  if (!confirm('Generate quiz questions for this topic?')) return;
+  fetch('/api/generate', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:'generate quick-check questions for Iceberg Metadata Tree', mock:false})})
+    .then(r => r.json()).then(d => { const es = new EventSource(d.stream_url); es.addEventListener('done', () => { es.close(); location.reload(); }); })
+    .catch(() => alert('Server not running — use: mise run serve'));
+}
+</script>
 
 <script type="application/json" id="glossary-data">
 {
