@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz: {{TITLE}}</title>
+  <!-- REQUIRED: style.css (note: depth is 2 — quiz/ is inside lessons/) -->
+  <link rel="stylesheet" href="../../assets/style.css">
+  <!-- REQUIRED: Inline styles for quiz card layout.
+       Uses CSS variables from style.css — never hardcoded colors. -->
+  <style>
+    .quiz-container { max-width: 700px; margin: 0 auto; padding: 1rem; }
+    .quiz-nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.5rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .quiz-nav a { color: var(--link); text-decoration: none; }
+    .quiz-nav a:hover { text-decoration: underline; }
+    .quiz-progress { color: var(--text-muted); }
+    .card {
+      border: 2px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 1.5rem 0; background: var(--bg-elevated);
+    }
+    .card-prompt {
+      border-left: 4px solid var(--accent); padding-left: 1rem; margin-bottom: 1rem;
+    }
+    .card-answer {
+      border-left: 4px solid var(--success, #16a34a); padding-left: 1rem;
+      display: none;
+    }
+    .card-answer.revealed { display: block; }
+    .card-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; }
+    .card-type {
+      display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px;
+      font-size: 0.75rem; font-weight: 600; background: var(--bg-surface); color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+    .reveal-btn {
+      background: var(--accent); color: var(--bg); border: none;
+      padding: 0.5rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem;
+    }
+    .reveal-btn:hover { opacity: 0.85; }
+    .rating { margin-top: 1rem; display: none; }
+    .rating.revealed { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+    .rating p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+    .rating button {
+      padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 4px;
+      cursor: pointer; background: var(--bg-surface); color: var(--text); font-size: 0.8rem;
+    }
+    .rating button:hover { background: var(--bg-elevated); border-color: var(--accent); }
+    .rating button.selected { background: color-mix(in srgb, var(--accent) 15%, var(--bg)); border-color: var(--accent); }
+    .quiz-done {
+      margin-top: 2rem; padding: 1.25rem; border-radius: 8px;
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      text-align: center;
+    }
+    .quiz-done a {
+      display: inline-block; margin: 0.5rem; padding: 0.6rem 1rem;
+      border-radius: 6px; text-decoration: none; font-size: 0.9rem;
+      border: 1px solid var(--accent); color: var(--accent);
+    }
+    .quiz-done a:hover { background: var(--bg-surface); }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <!-- REQUIRED: Navigation bar with three elements:
+       - Left: link back to the companion lesson
+       - Center: question count
+       - Right: link back to the domain map page -->
+  <nav class="quiz-nav">
+    <a href="../{{NNNN-SLUG}}.html">← Back to lesson</a>
+    <span class="quiz-progress">{{N}} questions</span>
+    <a href="../../maps/{{DOMAIN}}.MAP.md">← Back to map</a>
+  </nav>
+
+  <!-- REQUIRED: Title matching the lesson topic -->
+  <h1>Quiz: {{TITLE}}</h1>
+
+  <!-- REQUIRED: Brief instruction line -->
+  <p style="color:var(--text-muted); margin-bottom:1.5rem;">Read each question, form your answer, then reveal to check. Rate your confidence honestly.</p>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       QUESTION CARDS
+       ═══════════════════════════════════════════════════════════════
+
+       REQUIRED: 5-9 questions per quiz page
+       REQUIRED: At least 3 different question types from:
+         - explain: "Why does X work this way?"
+         - apply: "Given scenario Y, what would you do?"
+         - predict: "What would happen if Z?"
+         - quick-check: "Name/list the key elements of..."
+
+       REQUIRED: Questions come from the SR JSONL for this topic
+       REQUIRED: Criteria-based answers ("Should mention: (1)... (2)...")
+       DO NOT: Ask pure recall ("What is the definition of X?")
+       DO NOT: Ask yes/no questions
+  -->
+
+    <div class="card" id="card1">
+      <div class="card-prompt">
+        <!-- REQUIRED: card-type badge showing the question type -->
+        <span class="card-type">{{QUESTION_TYPE: explain|apply|predict|quick-check}}</span>
+        <p><strong>{{QUESTION_PROMPT}}</strong></p>
+        <!-- OPTIONAL: Code block if the question involves code -->
+        <!-- <pre><code>{{CODE_CONTEXT}}</code></pre> -->
+      </div>
+      <!-- REQUIRED: Reveal button (hidden after click) -->
+      <button class="reveal-btn" onclick="reveal('card1')">Show Answer</button>
+      <!-- REQUIRED: Answer in criteria format -->
+      <div class="card-answer">
+        <p>{{CRITERIA_ANSWER — "Should mention: (1)... (2)... Key insight:..."}}</p>
+      </div>
+      <!-- REQUIRED: Self-rating (3 levels mapped to SR quality) -->
+      <div class="rating" id="card1-rating">
+        <p>How well could you explain this?</p>
+        <button onclick="rate('card1', 1)">Not at all</button>
+        <button onclick="rate('card1', 3)">Roughly</button>
+        <button onclick="rate('card1', 5)">Confidently</button>
+      </div>
+      <!-- REQUIRED: Metadata showing source section and tags -->
+      <div class="card-meta">Section: {{LESSON_SECTION}} · Tags: {{COMMA_SEPARATED_TAGS}}</div>
+    </div>
+
+    <!-- Repeat .card blocks for each question -->
+
+  <!-- REQUIRED: Done section with navigation links -->
+  <div class="quiz-done">
+    <h3>Done!</h3>
+    <p>Review complete. How did you do?</p>
+    <a href="../{{NNNN-SLUG}}.html">← Review the lesson</a>
+    <a href="../../maps/{{DOMAIN}}.MAP.md">← Back to map</a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCRIPTS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<!-- REQUIRED: Reveal and rate functions -->
+<script>
+function reveal(cardId) {
+  document.querySelector(`#${cardId} .card-answer`).classList.add('revealed');
+  document.querySelector(`#${cardId} .reveal-btn`).style.display = 'none';
+  document.querySelector(`#${cardId}-rating`).classList.add('revealed');
+}
+function rate(cardId, quality) {
+  const buttons = document.querySelectorAll(`#${cardId}-rating button`);
+  buttons.forEach(b => b.classList.remove('selected'));
+  event.target.classList.add('selected');
+}
+</script>
+
+<!-- REQUIRED: theme-toggle.js (note depth: ../../assets/) -->
+<script src="../../assets/theme-toggle.js"></script>
+
+</body>
+</html>
