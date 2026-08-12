@@ -31,6 +31,8 @@
     .map-graph .node a { cursor: pointer; }
     .map-graph .node:hover polygon,
     .map-graph .node:hover path { filter: brightness(1.15); }
+    .map-graph .node.selected path { filter: brightness(1.2); stroke-width: 3 !important; box-shadow: 0 0 8px var(--accent); }
+    .map-graph .node.selected polygon { filter: brightness(1.2); stroke-width: 3 !important; }
 
     /* Detail panel — appears below graph on node click */
     .detail-panel {

@@ -1,7 +1,7 @@
 ---
 id: "075"
 title: "Fix: index page progress rings — read live data from /api/map"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: feature
