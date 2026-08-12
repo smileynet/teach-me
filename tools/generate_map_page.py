@@ -65,6 +65,7 @@ def parse_map_md(path: Path) -> dict:
         topic["why"] = _extract_field(block, "why") or ""
         topic["scope"] = _extract_field(block, "scope") or "substantial"
         topic["status"] = _extract_field(block, "status") or "not-started"
+        topic["lesson_file"] = _extract_field(block, "lesson_file") or ""
         # Parse prereqs list
         prereqs_str = _extract_field(block, "prereqs") or "[]"
         topic["prereqs"] = [p.strip() for p in prereqs_str.strip("[]").split(",") if p.strip()]
@@ -83,12 +84,19 @@ def _extract_field(block: str, field: str) -> str | None:
     return match.group(1).strip() if match else None
 
 
-def topic_has_lesson(slug: str) -> bool:
-    """Check if any lesson file exists for this topic slug."""
-    for f in LESSONS_DIR.glob("*.html"):
+def topic_has_lesson(slug: str) -> str | None:
+    """Find the lesson file for a topic slug. Returns relative path or None.
+    
+    Matches by: slug in filename, or slug appears in file content (lesson-id, heading).
+    """
+    for f in sorted(LESSONS_DIR.glob("*.html")):
+        # Skip map pages, index, and review pages
+        if f.stem.endswith("-map") or f.stem == "index":
+            continue
+        # Direct slug match in filename
         if slug in f.stem:
-            return True
-    return False
+            return f.name
+    return None
 
 
 def topic_has_questions(slug: str) -> int:
@@ -124,8 +132,12 @@ def generate_dot(map_data: dict) -> str:
     ]
 
     for topic in topics:
-        colors = STATE_COLORS.get(topic["status"], STATE_COLORS["not-started"])
-        has_lesson = topic_has_lesson(topic["slug"])
+        # Determine effective status (if lesson exists but status says not-started, show in-progress)
+        lesson_path = topic.get("lesson_file") or topic_has_lesson(topic["slug"])
+        effective_status = topic["status"]
+        if lesson_path and effective_status == "not-started":
+            effective_status = "in-progress"
+        colors = STATE_COLORS.get(effective_status, STATE_COLORS["not-started"])
 
         # URL: always scroll to topic card on the map page
         url = f"#topic-{topic['slug']}"
@@ -190,15 +202,16 @@ def generate_page(map_data: dict, svg: str) -> str:
     # Build topic cards for the sidebar/details
     topic_cards = []
     for t in topics:
-        has_lesson = topic_has_lesson(t["slug"])
+        # Find lesson: explicit lesson_file field, or slug-based detection
+        lesson_path = t.get("lesson_file") or topic_has_lesson(t["slug"])
         status_badge = {
             "complete": '<span class="badge complete">✓ complete</span>',
             "in-progress": '<span class="badge in-progress">◐ in progress</span>',
             "not-started": '<span class="badge not-started">○ not started</span>',
         }.get(t["status"], "")
 
-        if has_lesson:
-            action = f'<a href="../lessons/{t["slug"]}.html" class="topic-link">Open lesson →</a>'
+        if lesson_path:
+            action = f'<a href="{lesson_path}" class="topic-link">Open lesson →</a>'
         else:
             action = f'<button class="generate-btn" onclick="offerGenerate(\'{t["slug"]}\', \'{t["title"]}\')">Generate this topic</button>'
 
