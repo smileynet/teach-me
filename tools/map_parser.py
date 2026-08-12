@@ -314,23 +314,29 @@ def get_next_suggestion(domain_map: DomainMap) -> Topic | None:
 # Mutation
 # ---------------------------------------------------------------------------
 
+import threading
+_write_lock = threading.Lock()
+
+
 def update_status(path: str | Path, topic_slug: str, new_status: str) -> None:
     """Update a topic's status in the MAP.md file without clobbering other content."""
     path = Path(path)
-    text = path.read_text(encoding="utf-8")
 
     valid = {"not-started", "in-progress", "complete"}
     if new_status not in valid:
         raise ValueError(f"Invalid status '{new_status}', must be one of {valid}")
 
-    # Find the topic section and replace its status line
-    # Pattern: after "### {slug}" find "- **status:** ..."
-    pattern = re.compile(
-        rf"(### {re.escape(topic_slug)}\b.*?- \*\*status:\*\*\s*)\S+",
-        re.DOTALL,
-    )
-    new_text, count = pattern.subn(rf"\g<1>{new_status}", text, count=1)
-    if count == 0:
-        raise ValueError(f"Topic '{topic_slug}' not found in {path}")
+    with _write_lock:
+        text = path.read_text(encoding="utf-8")
 
-    path.write_text(new_text, encoding="utf-8")
+        # Find the topic section and replace its status line
+        # Pattern: after "### {slug}" find "- **status:** ..."
+        pattern = re.compile(
+            rf"(### {re.escape(topic_slug)}\b.*?- \*\*status:\*\*\s*)\S+",
+            re.DOTALL,
+        )
+        new_text, count = pattern.subn(rf"\g<1>{new_status}", text, count=1)
+        if count == 0:
+            raise ValueError(f"Topic '{topic_slug}' not found in {path}")
+
+        path.write_text(new_text, encoding="utf-8")

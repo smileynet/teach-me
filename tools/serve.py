@@ -14,6 +14,7 @@ Endpoints:
 from __future__ import annotations
 
 import asyncio
+import json as json_mod
 import os
 import re
 import signal
@@ -88,6 +89,9 @@ TASKS: dict[str, GenerationTask] = {}
 app = FastAPI(title="teach-me generation server")
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+# Add tools/ to import path for map_parser
+sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 
 # Mock command for testing (simulates a 3-step generation)
 MOCK_CMD = [
@@ -284,7 +288,6 @@ async def list_lessons() -> JSONResponse:
 @app.get("/api/questions")
 async def list_questions() -> JSONResponse:
     """Return map of lesson_ids that have questions (for complete state detection)."""
-    import json as json_mod
     questions_dir = PROJECT_ROOT / "learning-records" / "questions"
     if not questions_dir.exists():
         return JSONResponse({})
@@ -321,8 +324,6 @@ async def list_maps() -> JSONResponse:
 @app.get("/api/map/{domain}")
 async def get_map(domain: str) -> JSONResponse:
     """Return parsed MAP.md data for a domain."""
-    import sys as _sys
-    _sys.path.insert(0, str(PROJECT_ROOT / "tools"))
     from map_parser import load_map, validate, get_available_topics, get_next_suggestion
 
     maps_dir = PROJECT_ROOT / "examples" / "maps"
@@ -361,8 +362,6 @@ class StatusUpdateRequest(BaseModel):
 @app.post("/api/map/{domain}/{slug}/status")
 async def update_topic_status(domain: str, slug: str, req: StatusUpdateRequest) -> JSONResponse:
     """Update a topic's status in its MAP.md file."""
-    import sys as _sys
-    _sys.path.insert(0, str(PROJECT_ROOT / "tools"))
     from map_parser import update_status
 
     maps_dir = PROJECT_ROOT / "examples" / "maps"

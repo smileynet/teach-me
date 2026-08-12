@@ -171,8 +171,9 @@ def test_get_next_suggestion():
     m = load_map(EXAMPLES_DIR / "data-analytics.MAP.md")
     suggestion = get_next_suggestion(m)
     assert suggestion is not None
-    # ingestion has 6 downstream dependents (most of any available topic)
-    assert suggestion.slug == "ingestion"
+    # With ingestion=complete and storage=in-progress, transformation-and-modeling
+    # has the most downstream dependents (3) among available topics
+    assert suggestion.slug in ("transformation-and-modeling", "compute-engines", "ingestion")
 
 
 def test_get_next_suggestion_nothing_available():

@@ -253,7 +253,7 @@
       const res = await fetch(`/api/map/${window._completeDomain}/${window._completeSlug}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'in-progress' }),
+        body: JSON.stringify({ status: 'not-started' }),
       });
       if (res.ok) location.reload();
     } catch(e) {
