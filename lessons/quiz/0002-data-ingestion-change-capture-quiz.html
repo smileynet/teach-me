@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz: Data Ingestion &amp; Change Capture</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <style>
+    .quiz-container { max-width: 700px; margin: 0 auto; padding: 1rem; }
+    .quiz-nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.5rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .quiz-nav a { color: var(--link); text-decoration: none; }
+    .quiz-nav a:hover { text-decoration: underline; }
+    .quiz-progress { color: var(--text-muted); }
+    .card {
+      border: 2px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 1.5rem 0; background: var(--bg-elevated);
+    }
+    .card-prompt {
+      border-left: 4px solid var(--accent); padding-left: 1rem; margin-bottom: 1rem;
+    }
+    .card-answer {
+      border-left: 4px solid var(--success, #16a34a); padding-left: 1rem;
+      display: none;
+    }
+    .card-answer.revealed { display: block; }
+    .card-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; }
+    .card-type {
+      display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px;
+      font-size: 0.75rem; font-weight: 600; background: var(--bg-surface); color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+    .reveal-btn {
+      background: var(--accent); color: var(--bg); border: none;
+      padding: 0.5rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem;
+    }
+    .reveal-btn:hover { opacity: 0.85; }
+    .rating { margin-top: 1rem; display: none; }
+    .rating.revealed { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+    .rating p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+    .rating button {
+      padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 4px;
+      cursor: pointer; background: var(--bg-surface); color: var(--text); font-size: 0.8rem;
+    }
+    .rating button:hover { background: var(--bg-elevated); border-color: var(--accent); }
+    .rating button.selected { background: color-mix(in srgb, var(--accent) 15%, var(--bg)); border-color: var(--accent); }
+    .quiz-done {
+      margin-top: 2rem; padding: 1.25rem; border-radius: 8px;
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      text-align: center;
+    }
+    .quiz-done a {
+      display: inline-block; margin: 0.5rem; padding: 0.6rem 1rem;
+      border-radius: 6px; text-decoration: none; font-size: 0.9rem;
+      border: 1px solid var(--accent); color: var(--accent);
+    }
+    .quiz-done a:hover { background: var(--bg-surface); }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <nav class="quiz-nav">
+    <a href="../0002-data-ingestion-change-capture.html">← Back to lesson</a>
+    <span class="quiz-progress">8 questions</span>
+    <a href="../modern-data-analytics-stacks-map.html">← Back to map</a>
+  </nav>
+
+  <h1>Quiz: Data Ingestion &amp; Change Capture</h1>
+  <p style="color:var(--text-muted); margin-bottom:1.5rem;">Read each question, form your answer, then reveal to check. Rate your confidence honestly.</p>
+
+
+    <div class="card" id="card1">
+      <div class="card-prompt">
+        <span class="card-type">predict</span>
+        <p><strong>Your customer&#x27;s streaming Flink job checkpoints every 30 seconds into an Iceberg table with 50 partitions. What operational problem will emerge within days, and what&#x27;s the fix?</strong></p>
+      </div>
+      <button class="reveal-btn" onclick="reveal('card1')">Show Answer</button>
+      <div class="card-answer">
+        <p>Should mention: (1) small files accumulate — each checkpoint creates at least one file per active partition = 100 files/minute = 144,000/day, most far under Iceberg&#x27;s 128-512 MB target, (2) query planning slows as manifests grow, S3 GET costs rise, (3) fix is scheduled compaction (rewrite_data_files) — compact hourly for hot partitions, daily for warm. Bonus: could also increase checkpoint interval to reduce commit frequency.</p>
+      </div>
+      <div class="rating" id="card1-rating">
+        <p>How well could you explain this?</p>
+        <button onclick="rate('card1', 1)">Not at all</button>
+        <button onclick="rate('card1', 3)">Roughly</button>
+        <button onclick="rate('card1', 5)">Confidently</button>
+      </div>
+      <div class="card-meta">Section: The Small Files Problem · Tags: iceberg, streaming, small-files, compaction, flink</div>
+    </div>
+    <div class="card" id="card2">
+      <div class="card-prompt">
+        <span class="card-type">explain</span>
+        <p><strong>Explain the tradeoff between copy-on-write and merge-on-read to a data engineer who&#x27;s deciding how to handle CDC merges into their Iceberg table.</strong></p>
+      </div>
+      <button class="reveal-btn" onclick="reveal('card2')">Show Answer</button>
+      <div class="card-answer">
+        <p>Should mention: (1) COW rewrites entire data files on update/delete — expensive writes but readers see clean files, (2) MOR writes small delete files — fast writes but readers pay reconciliation cost at scan time, (3) for CDC: if MERGE runs hourly with large batches, COW is fine (amortized over many changes). If MERGE runs every few minutes, MOR avoids rewriting files repeatedly. Key: the choice depends on read/write ratio and merge frequency.</p>
+      </div>
+      <div class="rating" id="card2-rating">
+        <p>How well could you explain this?</p>
+        <button onclick="rate('card2', 1)">Not at all</button>
+        <button onclick="rate('card2', 3)">Roughly</button>
+        <button onclick="rate('card2', 5)">Confidently</button>
+      </div>
+      <div class="card-meta">Section: Write Mechanics: COW vs MOR · Tags: iceberg, cow, mor, cdc, write-mechanics</div>
+    </div>
+    <div class="card" id="card3">
+      <div class="card-prompt">
+        <span class="card-type">apply</span>
+        <p><strong>Your customer wants sub-minute data freshness from their PostgreSQL orders database into the Iceberg lakehouse. They&#x27;re considering DMS → S3 → Glue MERGE every 5 minutes. What problems will they hit, and what&#x27;s a better architecture?</strong></p>
+      </div>
+      <button class="reveal-btn" onclick="reveal('card3')">Show Answer</button>
+      <div class="card-answer">
+        <p>Should mention: (1) 5-minute MERGE produces small files that need aggressive compaction, (2) high commit frequency eats into the 15 TPS catalog budget, (3) COW MERGE every 5 min rewrites files repeatedly (wasteful). Better: DMS → Kinesis/MSK → Flink with Iceberg upsert sink using MOR mode. Flink handles the streaming merge continuously with configurable checkpoint intervals. Still needs compaction but avoids repeated batch MERGE overhead.</p>
+      </div>
+      <div class="rating" id="card3-rating">
+        <p>How well could you explain this?</p>
+        <button onclick="rate('card3', 1)">Not at all</button>
+        <button onclick="rate('card3', 3)">Roughly</button>
+        <button onclick="rate('card3', 5)">Confidently</button>
+      </div>
+      <div class="card-meta">Section: Change Data Capture (CDC) · Tags: iceberg, cdc, latency, architecture, flink, dms</div>
+    </div>
+    <div class="card" id="card4">
+      <div class="card-prompt">
+        <span class="card-type">explain</span>
+        <p><strong>Why can&#x27;t 50 independent microservices each write directly to the same Iceberg table at 1-second intervals? What&#x27;s the architectural fix?</strong></p>
+      </div>
+      <button class="reveal-btn" onclick="reveal('card4')">Show Answer</button>
+      <div class="card-answer">
+        <p>Should mention: (1) the Glue Catalog pointer update is serialized via OCC — ~15 TPS limit, (2) 50 writers at 1/sec = 50 TPS → massive commit conflicts, retries, failures, (3) fix: funnel producers through a single writer (Flink job or Kafka → Glue batch). The writer consolidates many small records into fewer, larger commits. Key insight: Iceberg&#x27;s commit model is designed for few large commits, not many small ones.</p>
+      </div>
+      <div class="rating" id="card4-rating">
+        <p>How well could you explain this?</p>
+        <button onclick="rate('card4', 1)">Not at all</button>
+        <button onclick="rate('card4', 3)">Roughly</button>
+        <button onclick="rate('card4', 5)">Confidently</button>
+      </div>
+      <div class="card-meta">Section: Streaming Ingestion · Tags: iceberg, concurrency, commit-budget, architecture, streaming</div>
+    </div>
+    <div class="card" id="card5">
+      <div class="card-prompt">
+        <span class="card-type">apply</span>
+        <p><strong>Your customer uses Athena as their primary query engine. They&#x27;re planning CDC ingestion with frequent updates. What constraint should you warn them about?</strong></p>
+      </div>
+      <button class="reveal-btn" onclick="reveal('card5')">Show Answer</button>
+      <div class="card-answer">
+        <p>Should mention: (1) Athena supports merge-on-read ONLY — no COW option, (2) this means every query that touches updated rows pays the read-time merge cost (reconciling delete files against data files), (3) implication: if the table has heavy updates and heavy read workloads, Athena queries will be slower than they would with COW on EMR/Glue. May need to run compaction (remove_delete_files) more aggressively to keep read performance acceptable.</p>
+      </div>
+      <div class="rating" id="card5-rating">
+        <p>How well could you explain this?</p>
+        <button onclick="rate('card5', 1)">Not at all</button>
+        <button onclick="rate('card5', 3)">Roughly</button>
+        <button onclick="rate('card5', 5)">Confidently</button>
+      </div>
+      <div class="card-meta">Section: Write Mechanics: COW vs MOR · Tags: iceberg, athena, mor, cdc, performance</div>
+    </div>
+    <div class="card" id="card6">
+      <div class="card-prompt">
+        <span class="card-type">quick-check</span>
+        <p><strong>What is the throughput cap for Amazon Data Firehose delivering to an Iceberg table?</strong></p>
+      </div>
+      <button class="reveal-btn" onclick="reveal('card6')">Show Answer</button>
+      <div class="card-answer">
+        <p>5 MiB/s per delivery stream.</p>
+      </div>
+      <div class="rating" id="card6-rating">
+        <p>How well could you explain this?</p>
+        <button onclick="rate('card6', 1)">Not at all</button>
+        <button onclick="rate('card6', 3)">Roughly</button>
+        <button onclick="rate('card6', 5)">Confidently</button>
+      </div>
+      <div class="card-meta">Section: Streaming Ingestion · Tags: iceberg, firehose, streaming, limits</div>
+    </div>
+    <div class="card" id="card7">
+      <div class="card-prompt">
+        <span class="card-type">quick-check</span>
+        <p><strong>In merge-on-read mode, what happens at query time when a reader encounters rows that were updated?</strong></p>
+      </div>
+      <button class="reveal-btn" onclick="reveal('card7')">Show Answer</button>
+      <div class="card-answer">
+        <p>The reader must reconcile delete files against data files — merging them at scan time to exclude deleted/updated rows.</p>
+      </div>
+      <div class="rating" id="card7-rating">
+        <p>How well could you explain this?</p>
+        <button onclick="rate('card7', 1)">Not at all</button>
+        <button onclick="rate('card7', 3)">Roughly</button>
+        <button onclick="rate('card7', 5)">Confidently</button>
+      </div>
+      <div class="card-meta">Section: Write Mechanics: COW vs MOR · Tags: iceberg, mor, read-performance, delete-files</div>
+    </div>
+    <div class="card" id="card8">
+      <div class="card-prompt">
+        <span class="card-type">quick-check</span>
+        <p><strong>Which ingestion pattern naturally produces well-sized Iceberg data files (128-512 MB) WITHOUT requiring compaction?</strong></p>
+      </div>
+      <button class="reveal-btn" onclick="reveal('card8')">Show Answer</button>
+      <div class="card-answer">
+        <p>Batch ingestion — because it accumulates data over time before writing, producing large files per commit.</p>
+      </div>
+      <div class="rating" id="card8-rating">
+        <p>How well could you explain this?</p>
+        <button onclick="rate('card8', 1)">Not at all</button>
+        <button onclick="rate('card8', 3)">Roughly</button>
+        <button onclick="rate('card8', 5)">Confidently</button>
+      </div>
+      <div class="card-meta">Section: Batch Ingestion · Tags: iceberg, batch, file-sizing, ingestion</div>
+    </div>
+
+  <div class="quiz-done">
+    <h3>Done!</h3>
+    <p>Review complete. How did you do?</p>
+    <a href="../0002-data-ingestion-change-capture.html">← Review the lesson</a>
+    <a href="../modern-data-analytics-stacks-map.html">← Back to map</a>
+  </div>
+</div>
+
+<script>
+function reveal(cardId) {
+  document.querySelector(`#${cardId} .card-answer`).classList.add('revealed');
+  document.querySelector(`#${cardId} .reveal-btn`).style.display = 'none';
+  document.querySelector(`#${cardId}-rating`).classList.add('revealed');
+}
+function rate(cardId, quality) {
+  const buttons = document.querySelectorAll(`#${cardId}-rating button`);
+  buttons.forEach(b => b.classList.remove('selected'));
+  event.target.classList.add('selected');
+}
+</script>
+<script src="../../assets/theme-toggle.js"></script>
+
+</body>
+</html>
