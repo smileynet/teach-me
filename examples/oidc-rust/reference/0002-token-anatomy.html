@@ -11,6 +11,9 @@
 <h1>Token Anatomy</h1>
 <p class="lesson-meta">Reference · Companion to <a href="../lessons/0002-token-anatomy.html">Lesson 2</a></p>
 
+<h2>Core Concept</h2>
+<p><strong>ID tokens prove identity to YOUR app; access tokens authorize API calls to resource servers. Never cross them. Validate every token with the 8-step checklist before trusting it.</strong></p>
+
 <h2>Token Types</h2>
 
 <table>
@@ -90,15 +93,25 @@
   <tr><td>Multi-tenant cross-contamination</td><td>Validate iss exactly matches expected</td></tr>
 </table>
 
-<h2>Debugging 401s</h2>
+<h2>Decision Aid</h2>
 
-<ol>
-  <li>Decode token (jwt.io or <code>base64 -d</code>) — check <code>exp</code></li>
-  <li>Compare <code>kid</code> in token header to your JWKS cache</li>
-  <li>Check server clock: <code>date -u</code> vs token's <code>iat</code></li>
-  <li>Verify <code>aud</code> matches your configured client_id/audience</li>
-  <li>Check <code>iss</code> matches (trailing slashes matter)</li>
-</ol>
+<p><strong>"Token validation is failing — what do I check?"</strong></p>
+<ul>
+  <li>Token just stopped working → <strong>check <code>exp</code> claim</strong> (probably expired)</li>
+  <li>All tokens failing after working fine → <strong>refetch JWKS</strong> (key rotation)</li>
+  <li>Intermittent failures → <strong>check server clock</strong> (skew beyond leeway)</li>
+  <li>Works for app A but not app B → <strong>check <code>aud</code></strong> (wrong audience)</li>
+  <li>Works on one environment but not another → <strong>check <code>iss</code></strong> (trailing slashes, http vs https)</li>
+</ul>
+
+<p><strong>"Which crate do I use?"</strong></p>
+<ul>
+  <li>Building a login flow (web app) → <strong><code>openidconnect</code></strong></li>
+  <li>Validating bearer tokens on API endpoints → <strong><code>jsonwebtoken</code> + manual JWKS</strong></li>
+  <li>Same as above but want auto JWKS caching → <strong><code>jwtk</code></strong></li>
+  <li>Axum middleware (production, caching) → <strong><code>axum-oidc-layer</code></strong></li>
+  <li>Axum middleware (simple/lightweight) → <strong><code>axum-jwt-oidc</code></strong></li>
+</ul>
 
 <script src="../assets/theme-toggle.js"></script>
 
