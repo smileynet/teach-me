@@ -509,17 +509,47 @@ document.getElementById('gen-modal').addEventListener('click', function(e) {{
 </html>"""
 
 
+def find_all_maps() -> list[Path]:
+    """Auto-discover depth-0 MAP.md files in the project."""
+    maps = []
+    # Root MAP.md
+    root = PROJECT_ROOT / "MAP.md"
+    if root.exists():
+        maps.append(root)
+    # Named *.MAP.md at root (not sub-maps with --)
+    for f in sorted(PROJECT_ROOT.glob("*.MAP.md")):
+        if "--" not in f.stem:
+            maps.append(f)
+    return maps
+
+
 def main() -> None:
     args = sys.argv[1:]
-    if not args:
-        print("Usage: python tools/generate_map_page.py <MAP.md> [--output <path>]")
-        sys.exit(1)
 
+    # Auto-discover mode: no args = generate all maps
+    if not args or args == []:
+        maps = find_all_maps()
+        if not maps:
+            print("No MAP.md files found at project root. Pass a path explicitly.")
+            sys.exit(0)
+        for map_path in maps:
+            map_data = parse_map_md(map_path)
+            domain = map_data["frontmatter"].get("domain", map_path.stem)
+            output_path = PROJECT_ROOT / "lessons" / f"{domain}-map.html"
+            dot = generate_dot(map_data)
+            svg = render_svg(dot)
+            html = generate_page(map_data, svg)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(html, encoding="utf-8")
+            print(f"✓ Generated {output_path.relative_to(PROJECT_ROOT)} ({len(map_data['topics'])} topics)")
+        return
+
+    # Explicit path mode
     map_path = Path(args[0])
     if not map_path.is_absolute():
         map_path = PROJECT_ROOT / map_path
 
-    output_path = PROJECT_ROOT / "lessons" / "map.html"
+    output_path = None
     if "--output" in args:
         idx = args.index("--output")
         if idx + 1 < len(args):
@@ -532,6 +562,11 @@ def main() -> None:
         sys.exit(1)
 
     map_data = parse_map_md(map_path)
+    domain = map_data["frontmatter"].get("domain", map_path.stem)
+
+    if output_path is None:
+        output_path = PROJECT_ROOT / "lessons" / f"{domain}-map.html"
+
     dot = generate_dot(map_data)
     svg = render_svg(dot)
     html = generate_page(map_data, svg)

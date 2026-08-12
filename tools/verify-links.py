@@ -67,6 +67,34 @@ def check_file(html_path: Path) -> list[tuple[str, str]]:
     return failures
 
 
+# Pattern for navigation links (a[href]) in HTML body
+NAV_LINK_PATTERN = re.compile(r'<a[^>]+href="([^"]+)"', re.IGNORECASE)
+
+
+def check_duplicate_links(html_path: Path) -> list[tuple[str, str]]:
+    """Check for multiple navigation elements linking to the same target.
+    
+    Flags when 3+ distinct <a href> elements point to the same URL
+    (suggests a hardcoded link that should vary per item).
+    """
+    failures = []
+    content = html_path.read_text(encoding="utf-8")
+
+    hrefs = [m.group(1) for m in NAV_LINK_PATTERN.finditer(content)]
+    # Filter to relative links only (skip external, anchors, assets)
+    nav_hrefs = [h for h in hrefs if not h.startswith(("http://", "https://", "#", "data:", "//"))
+                 and not h.endswith((".css", ".js"))]
+
+    # Count occurrences
+    from collections import Counter
+    counts = Counter(nav_hrefs)
+    for href, count in counts.items():
+        if count >= 3:
+            failures.append((href, f"appears {count} times — likely a hardcoded link that should vary per item"))
+
+    return failures
+
+
 def check_source_links() -> tuple[int, int, int]:
     """Check source URLs in JSONL question files.
 
@@ -155,6 +183,14 @@ def main():
                 print(f"  ✗ {rel_path}: {href}")
                 print(f"    → {reason}")
             total_failures += len(failures)
+
+        # Check for duplicate navigation links (hardcoded link bug)
+        dup_failures = check_duplicate_links(html_path)
+        if dup_failures:
+            for href, reason in dup_failures:
+                print(f"  ⚠ {rel_path}: {href}")
+                print(f"    → {reason}")
+            total_failures += len(dup_failures)
 
     # Check source links in JSONL files (skip if checking a specific file)
     src_checked, src_failures, src_skipped = 0, 0, 0
