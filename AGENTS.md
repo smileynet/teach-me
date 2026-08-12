@@ -52,7 +52,8 @@ examples/           — test fixtures and example workspaces (MAP.md samples, to
 | Smoke test | `mise run verify` | Quick draw-diagram test |
 | Clone references | `mise run rehydrate` | Clone repos from REFERENCES.md |
 | Open lesson | `mise run open-lesson` | Open latest lesson in browser |
-| Quick-check page | `mise run sr:quick-check -- [topic] [--all]` | Generate quick-check review HTML from due cards |
+| Quick-check page | `mise run sr:quick-check -- [topic] [--all]` | Generate quick-check review HTML from due SR cards |
+| Topic quiz page | `python tools/generate-quiz-page.py --lesson-id ID --title T --lesson-file F --map-page M` | Generate standalone quiz page for a topic (all questions, not just due) |
 | Export to Anki | `mise run sr:export-anki -- [topic] [--output path]` | Export cards to .apkg |
 | Generate map page | `mise run map:generate -- <MAP.md> [--output path]` | Interactive map HTML from MAP.md |
 | Generate index | `mise run index:generate -- [--scan-dir path]` | All Lessons dashboard from MAP.md files |
@@ -90,6 +91,7 @@ examples/           — test fixtures and example workspaces (MAP.md samples, to
 | Don't invent specific numbers | Cite or frame as general |
 | Don't ask recall questions in gates | Ask "explain to [person] why..." |
 | Don't omit lesson-actions.js | Every lesson includes `<script src="../assets/lesson-actions.js">` — provides consistent nav + quiz buttons |
+| Don't ship silent buttons | Interactive buttons must have visible hover state + click feedback (animation, color change, or navigation) |
 
 ## Environment
 
