@@ -134,7 +134,7 @@ depends = ["setup"]
 run = "python tools/export_anki.py"
 
 [tasks."map:generate"]
-description = "Generate interactive map page from MAP.md. Pass path to MAP.md file."
+description = "Generate map pages. Auto-discovers MAP.md files, or pass a specific path."
 depends = ["setup"]
 run = "python tools/generate_map_page.py"
 
