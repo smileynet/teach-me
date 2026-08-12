@@ -1,6 +1,6 @@
 # Page Scaffolds
 
-Templates the agent reads before generating a new page. Copy the scaffold, replace `{{PLACEHOLDERS}}`, and fill with content.
+Templates the agent reads before generating a new page. Each scaffold is both a **copyable skeleton** and a **feature checklist** — HTML comments document what's required, optional, and why.
 
 ## Available Scaffolds
 
@@ -8,6 +8,7 @@ Templates the agent reads before generating a new page. Copy the scaffold, repla
 |----------|-----------|-------------|
 | `lesson.html` | `lessons/NNNN-slug.html` | Every new lesson |
 | `reference.html` | `reference/NNNN-slug.html` | Companion to each lesson |
+| `quiz.html` | `lessons/quiz/NNNN-slug-quiz.html` | Per-topic quiz page |
 | `quick-check.html` | `lessons/review/quick-check.html` | SR review page with due cards |
 
 ## How to Use (agent instructions)
@@ -15,37 +16,65 @@ Templates the agent reads before generating a new page. Copy the scaffold, repla
 1. **Read the scaffold** before generating a page of that type
 2. **Copy the structure** — don't invent new HTML structure for the same page type
 3. **Replace placeholders** (`{{TITLE}}`, `{{TOPIC}}`, etc.) with content
-4. **Set the correct asset path depth** — count directories from file to project root:
+4. **Check every `REQUIRED` comment** — those features must be present in the final page
+5. **Include `RECOMMENDED` features** unless there's a specific reason to omit
+6. **Omit `OPTIONAL` features** if they don't apply to this specific page
 
-| File location | Asset path prefix | Example |
-|---------------|-------------------|---------|
-| `lessons/` | `../assets/` | `<link href="../assets/style.css">` |
-| `reference/` | `../assets/` | Same depth as lessons |
-| `lessons/review/` | `../../assets/` | One deeper |
-| `examples/X/lessons/` | `../../../assets/` | Three levels to root |
-| `examples/X/reference/` | `../../../assets/` | Same as example lessons |
+## Asset Path Depth
 
-5. **Use CSS variables** for any custom styling — never hardcoded hex colors
-6. **Add content** between the structural markers
+Count directories from the file to the workspace root (where the `assets` symlink lives):
 
-## Contract
+| File location | Depth | Asset prefix |
+|---------------|-------|--------------|
+| `lessons/*.html` | 1 | `../assets/` |
+| `reference/*.html` | 1 | `../assets/` |
+| `lessons/quiz/*.html` | 2 | `../../assets/` |
+| `lessons/review/*.html` | 2 | `../../assets/` |
 
-All pages MUST:
-- Link `../assets/style.css` (adjust relative path for depth)
-- Include `../assets/theme-toggle.js` before `</body>`
-- Use CSS variables for all colors (see `style.css` `:root` block)
-- Include `lang="en"` on `<html>`
-- Include viewport meta tag
+**Note:** Example workspaces (`examples/X/`) have their own `assets` symlink pointing to `../../assets`, so the depth is relative to the workspace root, not the project root.
 
-Interactive pages additionally include:
-- `../assets/glossary.css` + `glossary.js` (if using term tooltips)
-- `../assets/progressive-reveal.js` (if using step-through diagrams)
-- `../assets/quiz.js` (if using multiple-choice quizzes)
+## Universal Contract (ALL pages)
+
+Every page MUST have:
+- `lang="en"` on `<html>`
+- Viewport meta tag
+- Link to `style.css` (correct depth)
+- `theme-toggle.js` before `</body>`
+- CSS variables for all colors — never hardcoded hex
+
+## Feature Expectations by Page Type
+
+### Lesson Page
+- **Structure:** h1 title, lesson-meta, key-concept intro, h2 sections, next-steps footer
+- **Diagrams:** At least one inline SVG for the core concept (accessible: role, title, aria-labelledby)
+- **Citations:** Every factual claim links to a source
+- **Glossary:** JSON block + glossary.js for domain terms
+- **Actions:** lesson-actions.js with data attributes (quiz link, mark-complete, back-to-map)
+- **Self-check:** One conceptual exercise with hint + criteria-based answer (not recall)
+
+### Reference Page
+- **Structure:** h1 title, lesson-meta link to companion lesson, tables for facts, decision aids
+- **Content model:** Scannable lookup — tables, lists, short answers. NOT prose.
+- **No glossary needed** (the lesson handles term introduction)
+- **No diagrams required** (keep it text-scannable), but optional if they aid lookup
+
+### Quiz Page
+- **Structure:** nav bar (← lesson, progress count, ← map), cards, done section
+- **Question types:** Mix of explain, apply, predict, quick-check (at least 3 types per quiz)
+- **Interaction:** Reveal button → shows answer + rating buttons. No correct/incorrect judgment.
+- **Self-rating:** 3-level confidence (Not at all / Roughly / Confidently)
+- **Metadata:** Each card shows section + tags
+- **Navigation:** Done section links back to lesson AND map
+
+### Quick-Check (SR Review)
+- **Structure:** Topic heading, due count, card stack, rating buttons
+- **Cards:** Due cards only (filtered by schedule)
+- **Rating:** Maps to SR quality (1/3/5)
 
 ## Adding a New Page Type
 
-When a new page type is needed (e.g., a progress dashboard, an index page):
-1. Create a new scaffold here: `assets/scaffolds/<type>.html`
-2. Include all required contract elements
-3. Document it in this README
-4. Use CSS variables for all custom styling
+1. Create `assets/scaffolds/<type>.html`
+2. Include all universal contract elements
+3. Annotate with `<!-- REQUIRED: ... -->` and `<!-- OPTIONAL: ... -->` comments
+4. Add to this table
+5. Update `tools/lint-html.py` if the new type has structural requirements

@@ -4,33 +4,74 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reference: {{TITLE}}</title>
+  <!-- REQUIRED: style.css only — reference pages are text-scannable, no interactive widgets -->
   <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
 
+<!-- REQUIRED: h1 = topic title (same as lesson, no "Reference:" prefix — that goes in lesson-meta) -->
 <h1>{{TITLE}}</h1>
-<p class="lesson-meta">Reference · Companion to <a href="../lessons/{{NNNN}}-{{SLUG}}.html">Lesson {{N}}</a></p>
 
+<!-- REQUIRED: lesson-meta with link back to companion lesson -->
+<p class="lesson-meta">Reference · Companion to <a href="../lessons/{{NNNN-SLUG}}.html">Lesson {{N}}</a></p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CONTENT RULES:
+     - This is a LOOKUP document, not a teaching document
+     - Use tables, lists, and short answers — NOT prose paragraphs
+     - Someone pulls this up at work to check a fact or make a decision
+     - Every section should be findable by scanning headings
+     ═══════════════════════════════════════════════════════════════ -->
+
+<!-- REQUIRED: Core concept — one bold sentence summarizing the mental model -->
 <h2>Core Concept</h2>
-<p><strong>{{ONE_SENTENCE_MENTAL_MODEL}}</strong></p>
+<p><strong>{{ONE_SENTENCE_MENTAL_MODEL — the insight that makes everything else click}}</strong></p>
 
-<!-- KEY VISUAL: the diagram that makes the concept stick -->
+<!-- OPTIONAL: Key diagram — ONLY if it aids lookup (not for teaching).
+     Prefer the same diagram from the lesson (repeated for convenience)
+     or a simplified version. Skip if text tables are clearer for lookup. -->
 
-<!-- FACTS IN LOOKUP FORM: tables, not paragraphs -->
-<h2>{{SECTION}}</h2>
+<!-- REQUIRED: At least one factual table — the "cheat sheet" content.
+     Columns should answer: what is it / when to use / example or gotcha -->
+<h2>{{SECTION_TITLE}}</h2>
 <table>
-  <tr><th>{{COL1}}</th><th>{{COL2}}</th><th>{{COL3}}</th></tr>
+  <tr><th>{{WHAT}}</th><th>{{WHEN}}</th><th>{{EXAMPLE_OR_NOTE}}</th></tr>
   <tr><td>{{DATA}}</td><td>{{DATA}}</td><td>{{DATA}}</td></tr>
 </table>
 
-<!-- DECISION AIDS: "when X, do Y" -->
+<!-- RECOMMENDED: Additional fact tables for other aspects of the topic.
+     Typical sections:
+     - How to do it (steps or commands)
+     - What doesn't matter much (common distractions)
+     - Key distinctions (X vs Y)
+     - Error/symptom → fix table
+-->
+<h2>{{SECTION_TITLE}}</h2>
+
+<!-- REQUIRED: Decision aid — "when I'm in situation X, what do I do?"
+     Format: common question as heading, then conditional answers -->
 <h2>Decision Aid</h2>
-<p><strong>"{{COMMON_QUESTION}}?"</strong></p>
+<p><strong>"{{COMMON_QUESTION_A_PRACTITIONER_WOULD_ASK}}?"</strong></p>
 <ul>
-  <li>If {{CONDITION}} → {{ACTION}}</li>
-  <li>If {{CONDITION}} → {{ACTION}}</li>
+  <li>If {{CONDITION}} → <strong>{{ACTION}}</strong></li>
+  <li>If {{CONDITION}} → <strong>{{ACTION}}</strong></li>
+  <li>If {{CONDITION}} → <strong>{{ACTION}}</strong></li>
 </ul>
 
+<!-- OPTIONAL: Additional decision aids for other common questions -->
+
+<!-- OPTIONAL: "When NOT to use this" — helps avoid over-application -->
+
+<!-- OPTIONAL: Quick command/code reference (if the topic involves tooling) -->
+<!-- <h2>Commands</h2>
+<pre><code>{{COMMAND}}</code></pre> -->
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCRIPTS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<!-- REQUIRED: theme-toggle.js — dark/light mode support -->
+<!-- NOTE: No glossary.js, no lesson-actions.js — reference pages are passive lookup -->
 <script src="../assets/theme-toggle.js"></script>
 
 </body>
