@@ -67,6 +67,7 @@ examples/           — test fixtures and example workspaces (MAP.md samples, to
 | Before progression | quiz-me for Socratic dialog (learner explains, agent probes) |
 | Reviewing retention | `mise run sr:review` (all topics) or `mise run sr:review -- topic-slug` |
 | Leaving a ticket | Ticket is DONE (all AC checked) or OPEN with an update note. No partial closes. No moving on with unchecked boxes. |
+| Validating work | Validate from the user's perspective (Playwright click-through, curl the endpoint, load the page). Prefer linters, syntax checkers, and templates over formal test suites. Only write maintained tests for libraries with multiple consumers (e.g., map_parser.py). |
 | Session start | `mise run sr` to check if cards are due before new material |
 | After writing questions | `mise run sr:check` as quality gate |
 | Checking knowledge health | `mise run sr:analytics` for decay alerts and load forecast |
