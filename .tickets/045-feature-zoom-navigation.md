@@ -3,7 +3,7 @@ id: "045"
 title: "Feature: zoom in/out — recursive subtopic navigation"
 status: open
 priority: medium
-blocked_by: ["043"]
+blocked_by: []
 type: feature
 ---
 

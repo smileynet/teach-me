@@ -3,7 +3,7 @@ id: "072"
 title: "Feature: publishing prep — LICENSE, CHANGELOG, CONTRIBUTING, CI"
 status: open
 priority: high
-blocked_by: ["071"]
+blocked_by: ["079", "080", "081"]
 type: feature
 ---
 

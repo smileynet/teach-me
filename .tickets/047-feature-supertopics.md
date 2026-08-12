@@ -3,7 +3,7 @@ id: "047"
 title: "Feature: supertopics — 'where does this lead?' discovery"
 status: open
 priority: low
-blocked_by: ["043"]
+blocked_by: []
 type: feature
 ---
 
