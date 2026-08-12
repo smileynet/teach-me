@@ -40,7 +40,7 @@ def find_html_files(target: str | None = None) -> list[Path]:
         return [p] if p.exists() else []
 
     files = []
-    for pattern in ["lessons/**/*.html", "reference/**/*.html", "examples/**/*.html"]:
+    for pattern in ["examples/iceberg-workspace/lessons/**/*.html", "examples/iceberg-workspace/reference/**/*.html", "examples/**/*.html"]:
         files.extend(PROJECT_ROOT.glob(pattern))
     return sorted(files)
 

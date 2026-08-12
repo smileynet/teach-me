@@ -93,6 +93,13 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 # Add tools/ to import path for map_parser
 sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 
+# Workspace: serve from workspace/ if it exists, else examples/iceberg-workspace/ for demo
+WORKSPACE = PROJECT_ROOT / "workspace"
+if not WORKSPACE.exists():
+    WORKSPACE = PROJECT_ROOT / "examples" / "iceberg-workspace"
+
+MAPS_DIR = PROJECT_ROOT / "examples" / "maps"
+
 # Mock command for testing (simulates a 3-step generation)
 MOCK_CMD = [
     "bash",
@@ -161,7 +168,7 @@ async def start_generation(req: GenerateRequest) -> JSONResponse:
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        cwd=str(PROJECT_ROOT),
+        cwd=str(WORKSPACE),
         env=env,
         start_new_session=True,
     )
@@ -275,7 +282,7 @@ async def cancel_generation(task_id: str) -> JSONResponse:
 @app.get("/api/lessons")
 async def list_lessons() -> JSONResponse:
     """Return list of HTML files in lessons/ for dynamic status detection."""
-    lessons_dir = PROJECT_ROOT / "lessons"
+    lessons_dir = WORKSPACE / "lessons"
     if not lessons_dir.exists():
         return JSONResponse([])
     files = sorted(
@@ -288,7 +295,7 @@ async def list_lessons() -> JSONResponse:
 @app.get("/api/questions")
 async def list_questions() -> JSONResponse:
     """Return map of lesson_ids that have questions (for complete state detection)."""
-    questions_dir = PROJECT_ROOT / "learning-records" / "questions"
+    questions_dir = WORKSPACE / "learning-records" / "questions"
     if not questions_dir.exists():
         return JSONResponse({})
     lesson_ids: dict[str, int] = {}
@@ -311,7 +318,7 @@ async def list_questions() -> JSONResponse:
 @app.get("/api/maps")
 async def list_maps() -> JSONResponse:
     """Return list of existing domain map pages (for leads-to linking)."""
-    lessons_dir = PROJECT_ROOT / "lessons"
+    lessons_dir = WORKSPACE / "lessons"
     if not lessons_dir.exists():
         return JSONResponse([])
     maps = sorted(
@@ -326,9 +333,7 @@ async def get_map(domain: str) -> JSONResponse:
     """Return parsed MAP.md data for a domain."""
     from map_parser import load_map, validate, get_available_topics, get_next_suggestion
 
-    maps_dir = PROJECT_ROOT / "examples" / "maps"
-    # Find matching MAP.md file
-    candidates = list(maps_dir.glob(f"*{domain}*MAP.md")) + list(maps_dir.glob(f"{domain}*"))
+    candidates = list(MAPS_DIR.glob(f"*{domain}*MAP.md")) + list(MAPS_DIR.glob(f"{domain}*"))
     if not candidates:
         raise HTTPException(status_code=404, detail=f"No MAP.md found for domain '{domain}'")
 
@@ -364,8 +369,7 @@ async def update_topic_status(domain: str, slug: str, req: StatusUpdateRequest) 
     """Update a topic's status in its MAP.md file."""
     from map_parser import update_status
 
-    maps_dir = PROJECT_ROOT / "examples" / "maps"
-    candidates = list(maps_dir.glob(f"*{domain}*MAP.md")) + list(maps_dir.glob(f"{domain}*"))
+    candidates = list(MAPS_DIR.glob(f"*{domain}*MAP.md")) + list(MAPS_DIR.glob(f"{domain}*"))
     if not candidates:
         raise HTTPException(status_code=404, detail=f"No MAP.md found for domain '{domain}'")
 
@@ -377,8 +381,10 @@ async def update_topic_status(domain: str, slug: str, req: StatusUpdateRequest) 
     return JSONResponse({"ok": True, "domain": domain, "slug": slug, "status": req.status})
 
 
-# Mount static files LAST (catch-all)
-app.mount("/", StaticFiles(directory=str(PROJECT_ROOT), html=True), name="static")
+# Mount static files: workspace content + project assets
+# Serve workspace (lessons, quiz, etc.) and assets from project root
+app.mount("/assets", StaticFiles(directory=str(PROJECT_ROOT / "assets")), name="assets")
+app.mount("/", StaticFiles(directory=str(WORKSPACE), html=True), name="workspace")
 
 # ---------------------------------------------------------------------------
 # Entry point

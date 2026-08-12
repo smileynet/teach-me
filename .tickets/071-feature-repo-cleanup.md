@@ -1,7 +1,7 @@
 ---
 id: "071"
 title: "Feature: repo cleanup — workspace separation, examples reorganization"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: feature
