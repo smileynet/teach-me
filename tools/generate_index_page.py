@@ -31,9 +31,13 @@ def find_maps(scan_dirs: list[Path] | None = None) -> list[Path]:
         root_map = d / "MAP.md"
         if root_map.exists():
             maps.append(root_map)
-        # Named *.MAP.md files (not sub-maps with -- separator)
+        # Named *.MAP.md files directly in this dir (not sub-maps with -- separator)
         for f in sorted(d.glob("*.MAP.md")):
             if "--" not in f.stem:  # skip depth 2+ sub-maps
+                maps.append(f)
+        # Recursive: find *.MAP.md in subdirectories (e.g., examples/*/maps/)
+        for f in sorted(d.rglob("*.MAP.md")):
+            if "--" not in f.stem and f not in maps:
                 maps.append(f)
     return maps
 
@@ -123,8 +127,19 @@ def render_card(meta: dict) -> str:
     """Render a single domain card."""
     ring = progress_ring_svg(meta["complete"], meta["total"])
 
-    # Map page link (relative from lessons/index.html)
-    map_page = f"{meta['domain']}-map.html"
+    # Map page link — find the generated map HTML relative to the index page
+    # The map page is at: {workspace}/lessons/{domain}-map.html
+    # The index is at: lessons/index.html (project root)
+    # So link is relative from OUTPUT's parent to the map page
+    map_page_path = meta["path"].parent.parent / "lessons" / f"{meta['domain']}-map.html"
+    if map_page_path.exists():
+        try:
+            map_page = str(map_page_path.relative_to(OUTPUT.parent))
+        except ValueError:
+            # If they're not under a common parent, use absolute-style relative
+            map_page = str(Path("..") / map_page_path.relative_to(PROJECT_ROOT))
+    else:
+        map_page = f"{meta['domain']}-map.html"
 
     status_text = []
     if meta["complete"] > 0:
@@ -271,6 +286,14 @@ def main() -> None:
                 custom = PROJECT_ROOT / custom
             scan_dirs = [custom]
 
+    output = OUTPUT
+    if "--output" in args:
+        idx = args.index("--output")
+        if idx + 1 < len(args):
+            output = Path(args[idx + 1])
+            if not output.is_absolute():
+                output = PROJECT_ROOT / output
+
     maps = find_maps(scan_dirs)
     domains = []
     for m in maps:
@@ -281,18 +304,18 @@ def main() -> None:
     if not domains:
         print("No depth-0 MAP.md files found.")
         # Still generate the page with empty state
-        OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-        OUTPUT.write_text(generate_page([]), encoding="utf-8")
-        print(f"✓ Generated {OUTPUT.relative_to(PROJECT_ROOT)} (empty state)")
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(generate_page([]), encoding="utf-8")
+        print(f"✓ Generated {output.relative_to(PROJECT_ROOT)} (empty state)")
         return
 
     # Sort by title
     domains.sort(key=lambda d: d["title"])
 
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    output.parent.mkdir(parents=True, exist_ok=True)
     page = generate_page(domains)
-    OUTPUT.write_text(page, encoding="utf-8")
-    print(f"✓ Generated {OUTPUT.relative_to(PROJECT_ROOT)} ({len(domains)} domains)")
+    output.write_text(page, encoding="utf-8")
+    print(f"✓ Generated {output.relative_to(PROJECT_ROOT)} ({len(domains)} domains)")
 
 
 if __name__ == "__main__":
