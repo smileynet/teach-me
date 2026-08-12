@@ -13,13 +13,19 @@ When creating lessons with diagrams or visual aids, follow these evidence-based 
 
 ## Color Vocabulary
 
-| Color | Meaning | Hex |
-|-------|---------|-----|
-| Blue | Primary component, input, the thing being discussed | #2563eb / fill #dbeafe |
-| Green | Success, output, healthy state | #16a34a / fill #dcfce7 |
-| Amber | Warning, caution, operational concern | #d97706 / fill #fef3c7 |
-| Red | Error, anti-pattern, problem | #dc2626 / fill #fef2f2 |
-| Gray | Infrastructure, neutral, supporting | #6b7280 / fill #f3f4f6 |
+Colors are defined as CSS custom properties in `assets/style.css` (light + dark variants). Use `var(--svg-*)` in inline SVGs — never hardcode hex.
+
+| Color | Meaning | Variable (stroke) | Variable (fill) | Variable (text) |
+|-------|---------|-------------------|-----------------|-----------------|
+| Blue | Primary component, input, the thing being discussed | `--svg-primary` | `--svg-primary-fill` | `--svg-primary-text` |
+| Green | Success, output, healthy state | `--svg-success` | `--svg-success-fill` | `--svg-success-text` |
+| Amber | Warning, caution, operational concern | `--svg-warning` | `--svg-warning-fill` | `--svg-warning-text` |
+| Red | Error, anti-pattern, problem | `--svg-error` | `--svg-error-fill` | `--svg-error-text` |
+| Gray | Infrastructure, neutral, supporting | `--svg-neutral` | `--svg-neutral-fill` | `--svg-neutral-text` |
+
+Additional variables: `--svg-line` (connector lines), `--svg-text` (general text).
+
+Light mode resolves to the original hex values (blue=#2563eb, green=#16a34a, etc.). Dark mode resolves to lighter/desaturated variants appropriate for dark backgrounds.
 
 ## Diagram Selection
 

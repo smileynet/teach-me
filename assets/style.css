@@ -19,6 +19,25 @@
   --callout-border: #89B4FA;
   --key-concept-bg: #1E1B2E;
   --key-concept-border: #CBA6F7;
+
+  /* SVG diagram palette — dark mode */
+  --svg-primary: #60a5fa;
+  --svg-primary-fill: #1e3a5f;
+  --svg-primary-text: #bfdbfe;
+  --svg-success: #86efac;
+  --svg-success-fill: #14352a;
+  --svg-success-text: #bbf7d0;
+  --svg-warning: #fcd34d;
+  --svg-warning-fill: #3d2e08;
+  --svg-warning-text: #fef3c7;
+  --svg-error: #fca5a5;
+  --svg-error-fill: #3b1318;
+  --svg-error-text: #fecaca;
+  --svg-neutral: #9ca3af;
+  --svg-neutral-fill: #252340;
+  --svg-neutral-text: #d1d5db;
+  --svg-line: #6b7280;
+  --svg-text: #CDD6F4;
 }
 
 /* --- Light mode --- */
@@ -40,6 +59,25 @@
   --callout-border: #2563eb;
   --key-concept-bg: #fef3c7;
   --key-concept-border: #f59e0b;
+
+  /* SVG diagram palette — light mode */
+  --svg-primary: #2563eb;
+  --svg-primary-fill: #dbeafe;
+  --svg-primary-text: #1e40af;
+  --svg-success: #16a34a;
+  --svg-success-fill: #dcfce7;
+  --svg-success-text: #166534;
+  --svg-warning: #d97706;
+  --svg-warning-fill: #fef3c7;
+  --svg-warning-text: #92400e;
+  --svg-error: #dc2626;
+  --svg-error-fill: #fef2f2;
+  --svg-error-text: #991b1b;
+  --svg-neutral: #6b7280;
+  --svg-neutral-fill: #f3f4f6;
+  --svg-neutral-text: #374151;
+  --svg-line: #94a3b8;
+  --svg-text: #374151;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

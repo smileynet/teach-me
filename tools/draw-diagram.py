@@ -17,14 +17,18 @@ import sys
 
 import drawsvg as draw
 
-# Color vocabulary (matches .kiro/steering/visual-teaching.md)
+# Color vocabulary — uses CSS custom properties for theme support.
+# These resolve to the hex values from style.css at render time.
+# Note: var() works in inline SVG attributes because our SVGs are always inline HTML.
 COLORS = {
-    "blue":  {"fill": "#dbeafe", "stroke": "#2563eb"},
-    "green": {"fill": "#dcfce7", "stroke": "#16a34a"},
-    "amber": {"fill": "#fef3c7", "stroke": "#d97706"},
-    "red":   {"fill": "#fef2f2", "stroke": "#dc2626"},
-    "gray":  {"fill": "#f3f4f6", "stroke": "#6b7280"},
+    "blue":  {"fill": "var(--svg-primary-fill)", "stroke": "var(--svg-primary)", "text": "var(--svg-primary-text)"},
+    "green": {"fill": "var(--svg-success-fill)", "stroke": "var(--svg-success)", "text": "var(--svg-success-text)"},
+    "amber": {"fill": "var(--svg-warning-fill)", "stroke": "var(--svg-warning)", "text": "var(--svg-warning-text)"},
+    "red":   {"fill": "var(--svg-error-fill)", "stroke": "var(--svg-error)", "text": "var(--svg-error-text)"},
+    "gray":  {"fill": "var(--svg-neutral-fill)", "stroke": "var(--svg-neutral)", "text": "var(--svg-neutral-text)"},
 }
+TEXT_COLOR = "var(--svg-text)"
+LINE_COLOR = "var(--svg-line)"
 
 # Teaching presets (inspired by C4 domain vocabulary pattern from mingrammer/diagrams)
 PRESETS = {
@@ -36,7 +40,7 @@ PRESETS = {
 }
 
 FONT = "system-ui, sans-serif"
-ARROW_COLOR = "#374151"
+ARROW_COLOR = "var(--svg-text)"
 
 
 def _make_arrow(drawing):
@@ -58,7 +62,7 @@ def labeled_box(d, x, y, w, h, label, color="blue", subtitle=None):
                        font_family=FONT, font_weight='600', dominant_baseline='central'))
     if subtitle:
         d.append(draw.Text(subtitle, 11, x + w / 2, ty + 16, text_anchor='middle',
-                           font_family=FONT, fill='#6b7280', dominant_baseline='central'))
+                           font_family=FONT, fill='var(--svg-text)', dominant_baseline='central'))
 
 
 def arrow_down(d, x, y1, y2, arrow_marker, label=None):
@@ -66,7 +70,7 @@ def arrow_down(d, x, y1, y2, arrow_marker, label=None):
     d.append(draw.Line(x, y1, x, y2, stroke=ARROW_COLOR, stroke_width=1.5, marker_end=arrow_marker))
     if label:
         d.append(draw.Text(label, 10, x + 6, (y1 + y2) / 2, font_family=FONT,
-                           fill='#6b7280', dominant_baseline='central'))
+                           fill='var(--svg-text)', dominant_baseline='central'))
 
 
 def arrow_right(d, x1, x2, y, arrow_marker, label=None):
@@ -74,7 +78,7 @@ def arrow_right(d, x1, x2, y, arrow_marker, label=None):
     d.append(draw.Line(x1, y, x2, y, stroke=ARROW_COLOR, stroke_width=1.5, marker_end=arrow_marker))
     if label:
         d.append(draw.Text(label, 10, (x1 + x2) / 2, y - 8, text_anchor='middle',
-                           font_family=FONT, fill='#6b7280'))
+                           font_family=FONT, fill='var(--svg-text)'))
 
 
 def diagram_stack(data):
@@ -267,7 +271,7 @@ def diagram_graph(data):
         d.append(draw.Rectangle(gx, gy, gw, gh, rx=8, fill='#f9fafb',
                                 stroke='#d1d5db', stroke_width=1, stroke_dasharray='4'))
         d.append(draw.Text(group.get("label", ""), 10, gx + 8, gy + 12,
-                           font_family=FONT, fill='#6b7280'))
+                           font_family=FONT, fill='var(--svg-text)'))
 
     # Draw nodes
     for nid, node in nodes.items():
@@ -308,7 +312,7 @@ def diagram_graph(data):
                     lx = (sx + tx) / 2 + box_w / 2
                     ly = (sy + box_h + ty) / 2 - 4
                 d.append(draw.Text(label, 10, lx, ly, text_anchor='middle',
-                                   font_family=FONT, fill='#6b7280'))
+                                   font_family=FONT, fill='var(--svg-text)'))
 
     return d
 
@@ -490,7 +494,7 @@ def diagram_graphviz(data, title=None):
             _, edge_color = _resolve_color(edge["color"])
         for s in sources:
             for t in targets:
-                g.edge(s, t, label=label, color=edge_color, fontcolor="#6b7280")
+                g.edge(s, t, label=label, color=edge_color, fontcolor="var(--svg-text)")
 
     # Render to SVG string
     svg_str = g.pipe(encoding="utf-8")
