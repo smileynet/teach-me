@@ -24,6 +24,13 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 LESSONS_DIR = PROJECT_ROOT / "lessons"
 QUESTIONS_DIR = PROJECT_ROOT / "learning-records" / "questions"
 
+
+def set_workspace(workspace_path: Path) -> None:
+    """Override LESSONS_DIR and QUESTIONS_DIR to point at a workspace."""
+    global LESSONS_DIR, QUESTIONS_DIR
+    LESSONS_DIR = workspace_path / "lessons"
+    QUESTIONS_DIR = workspace_path / "learning-records" / "questions"
+
 # State → color mapping (teach-me color vocabulary)
 STATE_COLORS = {
     "complete": {"fill": "#dcfce7", "stroke": "#16a34a", "text": "#166534"},
@@ -526,6 +533,16 @@ def find_all_maps() -> list[Path]:
 def main() -> None:
     args = sys.argv[1:]
 
+    # Handle --workspace flag (repoints lessons/questions directories)
+    if "--workspace" in args:
+        idx = args.index("--workspace")
+        if idx + 1 < len(args):
+            ws = Path(args[idx + 1])
+            if not ws.is_absolute():
+                ws = PROJECT_ROOT / ws
+            set_workspace(ws)
+            args = args[:idx] + args[idx + 2:]  # remove flag from args
+
     # Auto-discover mode: no args = generate all maps
     if not args or args == []:
         maps = find_all_maps()
@@ -541,7 +558,11 @@ def main() -> None:
             html = generate_page(map_data, svg)
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_text(html, encoding="utf-8")
-            print(f"✓ Generated {output_path.relative_to(PROJECT_ROOT)} ({len(map_data['topics'])} topics)")
+            try:
+                display_path = output_path.relative_to(PROJECT_ROOT)
+            except ValueError:
+                display_path = output_path
+            print(f"✓ Generated {display_path} ({len(map_data['topics'])} topics)")
         return
 
     # Explicit path mode
@@ -573,7 +594,11 @@ def main() -> None:
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(html, encoding="utf-8")
-    print(f"✓ Generated {output_path.relative_to(PROJECT_ROOT)} ({len(map_data['topics'])} topics)")
+    try:
+        display_path = output_path.relative_to(PROJECT_ROOT)
+    except ValueError:
+        display_path = output_path
+    print(f"✓ Generated {display_path} ({len(map_data['topics'])} topics)")
 
 
 if __name__ == "__main__":

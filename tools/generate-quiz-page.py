@@ -25,12 +25,13 @@ QUESTIONS_DIR = PROJECT_ROOT / "learning-records" / "questions"
 OUTPUT_DIR = PROJECT_ROOT / "lessons" / "quiz"
 
 
-def find_questions(lesson_id: str) -> list[dict]:
+def find_questions(lesson_id: str, questions_dir: Path | None = None) -> list[dict]:
     """Find all questions matching a lesson_id across all JSONL files."""
+    search_dir = questions_dir or QUESTIONS_DIR
     questions = []
-    if not QUESTIONS_DIR.exists():
+    if not search_dir.exists():
         return questions
-    for f in QUESTIONS_DIR.iterdir():
+    for f in search_dir.iterdir():
         if f.suffix != ".jsonl":
             continue
         for line in f.read_text().splitlines():
@@ -183,14 +184,28 @@ def main():
     parser.add_argument("--lesson-file", required=True, help="Filename of the lesson (for back-link)")
     parser.add_argument("--map-page", required=True, help="Filename of the parent map page")
     parser.add_argument("--output", help="Output path (default: lessons/quiz/{lesson-id}-quiz.html)")
+    parser.add_argument("--workspace", help="Workspace root directory (overrides default project root for finding questions)")
     args = parser.parse_args()
 
-    questions = find_questions(args.lesson_id)
+    # Determine questions directory
+    if args.workspace:
+        workspace = Path(args.workspace)
+        if not workspace.is_absolute():
+            workspace = PROJECT_ROOT / workspace
+        questions_dir = workspace / "learning-records" / "questions"
+        default_output_dir = workspace / "lessons" / "quiz"
+    else:
+        questions_dir = QUESTIONS_DIR
+        default_output_dir = OUTPUT_DIR
+
+    questions = find_questions(args.lesson_id, questions_dir)
     if not questions:
         print(f"No questions found for lesson_id '{args.lesson_id}'")
         raise SystemExit(1)
 
-    output_path = Path(args.output) if args.output else OUTPUT_DIR / f"{args.lesson_id}-quiz.html"
+    output_path = Path(args.output) if args.output else default_output_dir / f"{args.lesson_id}-quiz.html"
+    if not output_path.is_absolute():
+        output_path = PROJECT_ROOT / output_path
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     page_html = generate_page(questions, args.title, args.lesson_file, args.map_page)
