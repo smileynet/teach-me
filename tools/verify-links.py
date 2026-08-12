@@ -82,7 +82,7 @@ def check_duplicate_links(html_path: Path) -> list[tuple[str, str]]:
 
     hrefs = [m.group(1) for m in NAV_LINK_PATTERN.finditer(content)]
     # Filter to relative links only (skip external, anchors, assets)
-    nav_hrefs = [h for h in hrefs if not h.startswith(("http://", "https://", "#", "data:", "//"))
+    nav_hrefs = [h for h in hrefs if not h.startswith(("http://", "https://", "#", "data:", "//", "javascript:"))
                  and not h.endswith((".css", ".js"))]
 
     # Count occurrences
