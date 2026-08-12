@@ -1,7 +1,7 @@
 ---
 id: "052"
 title: "Spike: auto-regenerate map page when lessons/questions are added"
-status: open
+status: done
 priority: low
 blocked_by: []
 type: spike
@@ -34,17 +34,16 @@ The teach skill updates `status: in-progress` in MAP.md, then regenerates. This 
 ## Success criteria
 
 - [x] After creating a lesson file, the map page shows that topic's node in blue (in-progress) — done via dynamic /api/lessons detection on page load (no regeneration needed)
-- [ ] After completing a quiz, the node turns green (complete)
+- [x] After completing a quiz, the node turns green (complete) — done via /api/questions detection on page load
 - [x] The regeneration is triggered by a clear, documented mechanism — page load triggers detection; no regeneration needed for status
-- [ ] No manual step beyond what the teach skill already does
+- [x] No manual step beyond what the teach skill already does — page load auto-detects
 
-## Partial resolution (2026-08-11)
+## Resolution (2026-08-12)
 
-Dynamic lesson detection on page load (via `/api/lessons` endpoint) makes the first and third criteria moot — the map page doesn't need regeneration to show status changes. Nodes turn blue when a matching lesson file is found. This means auto-regeneration is only needed for the SVG graph layout itself (adding/removing nodes), not for status updates.
+Full status lifecycle works without regeneration:
+- Gray (not-started): no lesson file detected
+- Blue (in-progress): lesson exists, no questions yet
+- Green (complete): lesson + questions both exist
 
-Remaining: green state (quiz complete) detection. Likely needs `/api/questions` endpoint or similar.
-
-## Validation (remaining work)
-
-- **Integration:** `/api/questions/{slug}` endpoint checks if SR questions exist for a topic. Map page JS calls it to determine complete vs in-progress.
-- **E2E (Playwright):** Create a lesson file + questions file for a topic → reload map page → verify node turns green (not just blue). Remove questions file → verify node stays blue (lesson exists but not complete).
+Implementation: `/api/lessons` + `/api/questions` endpoints called on page load.
+Nav counter updates dynamically. Validated via Playwright.
