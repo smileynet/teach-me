@@ -1,7 +1,7 @@
 ---
 id: "087"
 title: "Fix: add Core Concept and Decision Aid sections to oidc-rust reference 0002"
-status: open
+status: done
 blocked_by: []
 priority: low
 ---
@@ -19,6 +19,10 @@ The reference page for Token Anatomy (`examples/oidc-rust/reference/0002-token-a
 
 ## Acceptance criteria
 
-- [ ] Page has `<h2>Core Concept</h2>` with a bold summary sentence
-- [ ] Page has a decision aid section with conditional actions
-- [ ] `mise run verify` passes
+- [x] Page has `<h2>Core Concept</h2>` with a bold summary sentence
+- [x] Page has a decision aid section with conditional actions
+- [x] `mise run verify` passes
+
+## Resolution (2026-08-12)
+
+TBD
