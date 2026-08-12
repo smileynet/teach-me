@@ -3,13 +3,24 @@ id: "059"
 title: "Feature: tools/serve.py — generation server with SSE streaming"
 status: open
 priority: medium
-blocked_by: ["057", "058"]
+blocked_by: []
 type: feature
 ---
 
 # Feature: generation server (tools/serve.py)
 
-## What to build
+## Foundation (from spikes 057 + 058)
+
+`tools/serve.py` already exists with the proven core: POST /api/generate, GET /stream (SSE),
+POST /cancel. This ticket extends it to production quality.
+
+Key findings baked in:
+- Output is burst-buffered (phase-level progress, not token streaming)
+- NO_COLOR=1 doesn't work — ANSI always stripped
+- SIGTERM must target `kiro-cli-chat` (or use `start_new_session=True` + process group kill)
+- 9 matchable output patterns for phase detection (see `.scratch/research/kiro-cli-output-characterization.md`)
+
+## What to build (remaining work)
 
 A FastAPI server that replaces `python -m http.server` and adds generation trigger + progress streaming capabilities.
 
@@ -70,10 +81,13 @@ data: {"exit_code": 0, "duration_s": 142}
 
 ## Acceptance criteria
 
-- [ ] `mise run serve` starts the server on port 8080
-- [ ] Static files served correctly (replaces python -m http.server)
-- [ ] POST /api/generate spawns kiro-cli subprocess
-- [ ] GET /stream delivers stdout as SSE events in real-time
-- [ ] DELETE cancels with SIGTERM
+- [ ] `mise run serve` starts the server on port 8787
+- [x] Static files served correctly (replaces python -m http.server) — done in spike
+- [x] POST /api/generate spawns subprocess and returns 202 — done in spike
+- [x] GET /stream delivers stdout as SSE events in real-time — done in spike
+- [x] Cancel kills process group cleanly — done in spike
+- [ ] Real kiro-cli integration (topic + quiz generation from slug/title)
 - [ ] Command allowlist prevents arbitrary execution
+- [ ] Slug/title validated against safe regex
 - [ ] Binds to 127.0.0.1 only
+- [ ] SSE events use structured format (phase, artifact path, duration)
