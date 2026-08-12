@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz: Recovery & Adaptation</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <style>
+    .quiz-container { max-width: 700px; margin: 0 auto; padding: 1rem; }
+    .quiz-nav { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    .quiz-nav a { color: var(--link); text-decoration: none; }
+    .quiz-nav a:hover { text-decoration: underline; }
+    .quiz-progress { color: var(--text-muted); }
+    .card { border: 2px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; background: var(--bg-elevated); }
+    .card-prompt { border-left: 4px solid var(--accent); padding-left: 1rem; margin-bottom: 1rem; }
+    .card-answer { border-left: 4px solid var(--success, #16a34a); padding-left: 1rem; display: none; }
+    .card-answer.revealed { display: block; }
+    .card-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; }
+    .card-type { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: var(--bg-surface); color: var(--accent); margin-bottom: 0.5rem; }
+    .reveal-btn { background: var(--accent); color: var(--bg); border: none; padding: 0.5rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+    .reveal-btn:hover { opacity: 0.85; }
+    .rating { margin-top: 1rem; display: none; }
+    .rating.revealed { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+    .rating p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+    .rating button { padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg-surface); color: var(--text); font-size: 0.8rem; }
+    .rating button:hover { background: var(--bg-elevated); border-color: var(--accent); }
+    .rating button.selected { background: color-mix(in srgb, var(--accent) 15%, var(--bg)); border-color: var(--accent); }
+    .quiz-done { margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); text-align: center; }
+    .quiz-done a { display: inline-block; margin: 0.5rem; padding: 0.6rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.9rem; border: 1px solid var(--accent); color: var(--accent); }
+    .quiz-done a:hover { background: var(--bg-surface); }
+  </style>
+</head>
+<body>
+<div class="quiz-container">
+  <nav class="quiz-nav">
+    <a href="../0002-recovery-and-adaptation.html">← Back to lesson</a>
+    <span class="quiz-progress">4 questions</span>
+    <a href="../../maps/workout-fundamentals.MAP.md">← Back to map</a>
+  </nav>
+  <h1>Quiz: Recovery & Adaptation</h1>
+  <p style="color:var(--text-muted); margin-bottom:1.5rem;">Read each question, form your answer, then reveal to check.</p>
+
+  <div class="card" id="card1">
+    <div class="card-prompt"><span class="card-type">apply</span><p><strong>Your training partner says they're sore so they're skipping today. What's the right question to ask?</strong></p></div>
+    <button class="reveal-btn" onclick="reveal('card1')">Show Answer</button>
+    <div class="card-answer"><p>Should mention: (1) ask whether it's localized soreness (DOMS) or systemic fatigue (everything heavy, poor sleep, motivation gone), (2) mild DOMS is fine to train through — active movement helps, (3) systemic fatigue might warrant a deload.</p></div>
+    <div class="rating" id="card1-rating"><p>How well could you explain this?</p><button onclick="rate('card1', 1)">Not at all</button><button onclick="rate('card1', 3)">Roughly</button><button onclick="rate('card1', 5)">Confidently</button></div>
+    <div class="card-meta">Section: Soreness vs Fatigue · Tags: doms, fatigue, recovery</div>
+  </div>
+
+  <div class="card" id="card2">
+    <div class="card-prompt"><span class="card-type">explain</span><p><strong>Why is sleep the single highest-leverage recovery factor?</strong></p></div>
+    <button class="reveal-btn" onclick="reveal('card2')">Show Answer</button>
+    <div class="card-answer"><p>Should mention: (1) ~70% of daily growth hormone secretion happens during deep sleep, (2) sleep deprivation reduces testosterone, impairs muscle protein synthesis, increases cortisol. No supplement compensates for bad sleep.</p></div>
+    <div class="rating" id="card2-rating"><p>How well could you explain this?</p><button onclick="rate('card2', 1)">Not at all</button><button onclick="rate('card2', 3)">Roughly</button><button onclick="rate('card2', 5)">Confidently</button></div>
+    <div class="card-meta">Section: Sleep · Tags: sleep, growth-hormone, recovery</div>
+  </div>
+
+  <div class="card" id="card3">
+    <div class="card-prompt"><span class="card-type">apply</span><p><strong>Your lifts have stalled for 2 weeks and you feel sluggish. A gym buddy says "push harder." What's actually happening?</strong></p></div>
+    <button class="reveal-btn" onclick="reveal('card3')">Show Answer</button>
+    <div class="card-answer"><p>Should mention: (1) likely overreaching — accumulated fatigue exceeding recovery, (2) "push harder" is the exact wrong response, (3) correct: deload week (reduce volume 40-60%, keep moderate intensity, 5-7 days). Doing LESS produces better results because fatigue dissipates.</p></div>
+    <div class="rating" id="card3-rating"><p>How well could you explain this?</p><button onclick="rate('card3', 1)">Not at all</button><button onclick="rate('card3', 3)">Roughly</button><button onclick="rate('card3', 5)">Confidently</button></div>
+    <div class="card-meta">Section: When to Back Off · Tags: overreaching, deload, stalling</div>
+  </div>
+
+  <div class="card" id="card4">
+    <div class="card-prompt"><span class="card-type">explain</span><p><strong>Explain the supercompensation cycle and why training timing matters.</strong></p></div>
+    <button class="reveal-btn" onclick="reveal('card4')">Show Answer</button>
+    <div class="card-answer"><p>Should mention: (1) four phases: baseline → training drops capacity → recovery → overshoot past baseline, (2) train in the supercompensation window = stack gains, (3) too soon = fatigue, too late = back to baseline. For beginners: ~48-72h per muscle group → 3×/week full-body.</p></div>
+    <div class="rating" id="card4-rating"><p>How well could you explain this?</p><button onclick="rate('card4', 1)">Not at all</button><button onclick="rate('card4', 3)">Roughly</button><button onclick="rate('card4', 5)">Confidently</button></div>
+    <div class="card-meta">Section: Supercompensation · Tags: supercompensation, timing, adaptation</div>
+  </div>
+
+  <div class="quiz-done"><h3>Done!</h3><p>Review complete.</p><a href="../0002-recovery-and-adaptation.html">← Review the lesson</a><a href="../../maps/workout-fundamentals.MAP.md">← Back to map</a></div>
+</div>
+<script>
+function reveal(cardId) { document.querySelector(`#${cardId} .card-answer`).classList.add('revealed'); document.querySelector(`#${cardId} .reveal-btn`).style.display = 'none'; document.querySelector(`#${cardId}-rating`).classList.add('revealed'); }
+function rate(cardId, quality) { const buttons = document.querySelectorAll(`#${cardId}-rating button`); buttons.forEach(b => b.classList.remove('selected')); event.target.classList.add('selected'); }
+</script>
+<script src="../../assets/theme-toggle.js"></script>
+</body>
+</html>
