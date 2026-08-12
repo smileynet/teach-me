@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2: Data Ingestion &amp; Change Capture</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+</head>
+<body>
+
+<h1>Data Ingestion &amp; Change Capture</h1>
+<div class="lesson-meta">
+  Lesson 2 · Apache Iceberg on AWS · ~12 min read<br>
+  <strong>Win:</strong> You can explain how data enters an Iceberg lakehouse, what drives the choice of ingestion tool, and why write mechanics (COW vs MOR) shape your customer's architecture.
+</div>
+
+<div class="key-concept">
+  <strong>After this lesson:</strong> You can map your customer's data sources to the right AWS ingestion service, explain why streaming into Iceberg is harder than batch, and advise on CDC patterns that keep the lakehouse in sync with operational databases.
+</div>
+
+<h2>The Ingestion Landscape</h2>
+
+<p>Data enters an Iceberg table via one of three patterns. Each has different latency, complexity, and operational characteristics:</p>
+
+<p>Three ingestion patterns — batch, streaming, and CDC — differ in latency, commit frequency, and file-sizing behavior.</p>
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 260" role="img" aria-labelledby="diagram-ingestion-landscape">
+<title id="diagram-ingestion-landscape">Three ingestion patterns into Iceberg: batch (scheduled), streaming (continuous), and CDC (event-driven from databases)</title>
+<defs>
+<marker id="arr" markerWidth="4" markerHeight="4" viewBox="-0.1 -0.5 1 1" orient="auto">
+<path d="M-0.1,0.5 L-0.1,-0.5 L0.9,0 Z" fill="#374151"/>
+</marker>
+</defs>
+
+<!-- Batch source -->
+<rect x="10" y="20" width="140" height="55" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+<text x="80" y="42" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600">Batch</text>
+<text x="80" y="58" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#6b7280">S3 files, APIs, exports</text>
+
+<!-- Streaming source -->
+<rect x="10" y="100" width="140" height="55" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+<text x="80" y="122" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600">Streaming</text>
+<text x="80" y="138" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#6b7280">Kafka, Kinesis, events</text>
+
+<!-- CDC source -->
+<rect x="10" y="180" width="140" height="55" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+<text x="80" y="202" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600">CDC</text>
+<text x="80" y="218" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#6b7280">DB logs, DMS, Debezium</text>
+
+<!-- Arrows to middle -->
+<path d="M150,47 L220,47" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+<path d="M150,127 L220,127" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+<path d="M150,207 L220,207" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+
+<!-- Processing layer -->
+<rect x="225" y="20" width="160" height="55" rx="6" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+<text x="305" y="42" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">Glue / EMR Spark</text>
+<text x="305" y="58" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#6b7280">large files, few commits</text>
+
+<rect x="225" y="100" width="160" height="55" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+<text x="305" y="122" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">Flink / Firehose</text>
+<text x="305" y="138" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#6b7280">small files, many commits ⚠️</text>
+
+<rect x="225" y="180" width="160" height="55" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+<text x="305" y="202" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">DMS → Glue / Flink</text>
+<text x="305" y="218" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#6b7280">upserts need COW or MOR</text>
+
+<!-- Arrows to Iceberg -->
+<path d="M385,47 L450,127" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+<path d="M385,127 L450,127" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+<path d="M385,207 L450,127" stroke="#374151" stroke-width="1.5" marker-end="url(#arr)"/>
+
+<!-- Iceberg table -->
+<rect x="455" y="95" width="130" height="65" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+<text x="520" y="120" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600">Iceberg Table</text>
+<text x="520" y="138" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#6b7280">S3 + Glue Catalog</text>
+</svg>
+
+<table>
+  <tr><th>Pattern</th><th>Latency</th><th>Complexity</th><th>File sizing</th><th>Best for</th></tr>
+  <tr>
+    <td><strong>Batch</strong></td>
+    <td>Minutes to hours</td>
+    <td>Low</td>
+    <td>Large, well-sized files</td>
+    <td>Scheduled loads, historical backfills</td>
+  </tr>
+  <tr>
+    <td><strong>Streaming</strong></td>
+    <td>Seconds to minutes</td>
+    <td>High</td>
+    <td>Small files (needs compaction)</td>
+    <td>Near-real-time analytics, event streams</td>
+  </tr>
+  <tr>
+    <td><strong>CDC</strong></td>
+    <td>Minutes (micro-batch)</td>
+    <td>Medium-high</td>
+    <td>Depends on approach</td>
+    <td>Keeping lakehouse in sync with operational DBs</td>
+  </tr>
+</table>
+
+<h2>Write Mechanics: COW vs MOR</h2>
+
+<p>Before talking about specific services, you need to understand <strong>how</strong> Iceberg handles writes — because this determines which ingestion patterns work well and which create pain.</p>
+
+<div class="key-concept">
+<strong>Every write to Iceberg creates new files.</strong> Iceberg never modifies data in place. For appends, this is simple — write a new Parquet file, add it to the manifest, commit. For updates and deletes, there are two strategies.
+</div>
+
+<h3><span class="term" data-term="copy-on-write">Copy-on-Write</span> (COW)</h3>
+
+<p>When you update or delete a row, the engine rewrites the <em>entire data file</em> containing that row — producing a new file without the deleted rows (or with the updated values). The old file is removed from the manifest.</p>
+
+<ul>
+  <li><strong>Read performance:</strong> Excellent — readers see clean files with no extra work</li>
+  <li><strong>Write cost:</strong> High — changing one row means rewriting potentially millions of rows in that file</li>
+  <li><strong>When to use:</strong> Tables where reads vastly outnumber writes, or where updates touch whole partitions (e.g., daily dimension table refresh)</li>
+</ul>
+
+<h3><span class="term" data-term="merge-on-read">Merge-on-Read</span> (MOR)</h3>
+
+<p>Instead of rewriting data files, the engine writes a small <span class="term" data-term="delete-file">delete file</span> that says "these rows in that data file are gone." Readers merge the delete file with the data file at read time. <a href="https://iceberg.apache.org/spec/#delete-formats" class="citation">[Iceberg Spec §Delete Formats]</a></p>
+
+<ul>
+  <li><strong>Write performance:</strong> Fast — small delete files are cheap to produce</li>
+  <li><strong>Read cost:</strong> Higher — every scan must reconcile delete files against data files</li>
+  <li><strong>When to use:</strong> High-frequency updates where write speed matters more than read speed (streaming CDC, frequent upserts)</li>
+</ul>
+
+<p>The COW vs MOR comparison shows why this choice shapes your ingestion architecture.</p>
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 180" role="img" aria-labelledby="diagram-cow-mor">
+<title id="diagram-cow-mor">Copy-on-Write rewrites full files at write time; Merge-on-Read writes small delete files and reconciles at read time</title>
+
+<!-- COW side -->
+<rect x="10" y="10" width="250" height="160" rx="6" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4"/>
+<text x="135" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#2563eb" font-weight="600">COPY-ON-WRITE</text>
+
+<rect x="30" y="45" width="90" height="35" rx="4" fill="#fef2f2" stroke="#dc2626" stroke-width="1"/>
+<text x="75" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11">Old file (1M rows)</text>
+
+<text x="135" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16">→</text>
+
+<rect x="150" y="45" width="95" height="35" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1"/>
+<text x="197" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11">New file (999K)</text>
+
+<text x="135" y="100" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#6b7280">Write: Rewrite entire file</text>
+<text x="135" y="115" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#16a34a">Read: Fast (clean files)</text>
+<text x="135" y="145" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#6b7280">Best: read-heavy tables</text>
+
+<!-- MOR side -->
+<rect x="280" y="10" width="250" height="160" rx="6" fill="none" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4"/>
+<text x="405" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#d97706" font-weight="600">MERGE-ON-READ</text>
+
+<rect x="300" y="45" width="90" height="35" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/>
+<text x="345" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11">Data file (kept)</text>
+
+<text x="400" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14">+</text>
+
+<rect x="415" y="45" width="95" height="35" rx="4" fill="#fef3c7" stroke="#d97706" stroke-width="1"/>
+<text x="462" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11">Delete file (tiny)</text>
+
+<text x="405" y="100" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#16a34a">Write: Fast (small file)</text>
+<text x="405" y="115" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#6b7280">Read: Merge at scan time</text>
+<text x="405" y="145" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#6b7280">Best: write-heavy tables</text>
+</svg>
+
+<div class="callout">
+<strong>AWS-specific:</strong> Athena supports <strong>merge-on-read only</strong> for updates and deletes. If your customer queries with Athena, they can't choose COW — and they'll pay the read-time merge cost on every query that touches updated rows. EMR Spark and Glue support both modes. <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/introduction.html" class="citation">[AWS Prescriptive Guidance]</a>
+</div>
+
+<h3>Iceberg V3: Deletion Vectors</h3>
+
+<p>Iceberg V3 (supported on AWS since Nov 2025 in EMR 7.12, Glue, and SageMaker) introduces <span class="term" data-term="deletion-vector">deletion vectors</span> — a bitmap-based delete format that's faster than position delete files. Instead of listing row positions in a separate file, a deletion vector is a compact bitmap attached to a data file. Reads check one bitmap instead of joining against a delete file. <a href="https://iceberg.apache.org/spec/" class="citation">[Iceberg Spec V3]</a></p>
+
+<h2>Batch Ingestion</h2>
+
+<p>Batch is the simplest and most common pattern. Scheduled jobs process accumulated data and write well-sized files to Iceberg.</p>
+
+<h3>AWS Glue ETL</h3>
+
+<p>Glue is the default choice for batch Iceberg writes on AWS. A Glue job reads from any source (S3, JDBC, Kafka), transforms data with Spark, and writes to an Iceberg table registered in the Glue Data Catalog.</p>
+
+<ul>
+  <li>Native Iceberg connector (no custom JARs needed since Glue 4.0+)</li>
+  <li>Supports both COW and MOR write modes</li>
+  <li>Can handle schema evolution during writes</li>
+  <li>Write-audit-publish pattern: write to a staging snapshot, validate, then commit</li>
+</ul>
+
+<details>
+<summary>Why batch produces well-sized files</summary>
+<p>A batch job accumulates data (minutes to hours of events), then writes all at once. This naturally produces large data files (128-512 MB — Iceberg's sweet spot) because there's enough data per partition to fill a file. Contrast with streaming, where you must commit frequently and each commit may contain very little data per partition.</p>
+</details>
+
+<h3>EMR Spark</h3>
+
+<p>For larger workloads or when you need full Spark control, EMR gives you the same Iceberg Spark integration with more tuning knobs: custom Spark configurations, cluster sizing, and Spark's native conflict resolution for concurrent writes.</p>
+
+<h3>Athena CTAS / INSERT INTO</h3>
+
+<p>For ad-hoc or simple transformations, Athena can write to Iceberg directly:</p>
+<ul>
+  <li><code>CREATE TABLE ... AS SELECT</code> (CTAS) — creates a new Iceberg table from a query</li>
+  <li><code>INSERT INTO</code> — appends to an existing table</li>
+  <li><code>MERGE INTO</code> — upserts (merge-on-read only)</li>
+</ul>
+<p>Good for light workloads and prototyping. Not suitable for heavy ETL — Athena's serverless model charges per-scan and gives you no control over file sizing.</p>
+
+<h2>Streaming Ingestion</h2>
+
+<p>Streaming is where Iceberg gets harder. The fundamental tension: <strong>stream processing wants to commit frequently</strong> (for low latency), but <strong>Iceberg wants large, infrequent commits</strong> (for file sizing and catalog TPS).</p>
+
+<div class="key-concept">
+<strong>The streaming paradox:</strong> Every Iceberg commit creates at least one data file per partition. Commit every 30 seconds across 100 partitions = 2,880 files/hour = mandatory compaction or your table drowns in small files.
+</div>
+
+<h3>Amazon Data Firehose (direct Iceberg delivery)</h3>
+
+<p>Firehose can deliver directly to Iceberg tables — no Spark/Flink needed. It buffers records and writes Parquet files to S3, then commits to the Iceberg catalog.</p>
+
+<ul>
+  <li><strong>Throughput cap: 5 MiB/s per delivery stream</strong> — not suitable for high-volume without fan-out <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/introduction.html" class="citation">[AWS Prescriptive Guidance]</a></li>
+  <li>Buffers by size (minimum 64 MB) or time (minimum 60s) before committing</li>
+  <li>Append-only — no updates or deletes</li>
+  <li>Lowest operational complexity for moderate-volume append streams</li>
+</ul>
+
+<details>
+<summary>When Firehose fits your customer's use case</summary>
+<p>If the source is under 5 MiB/s and only needs appends (event logs, clickstream, telemetry), Firehose is the simplest streaming path. No clusters to manage, automatic retry, dead-letter queue for failures. The 60-second minimum buffer helps with file sizing — you won't get the tiny-file problem as badly as with Flink checkpointing every 10 seconds.</p>
+</details>
+
+<h3>Apache Flink on Amazon MSK / Kinesis</h3>
+
+<p>For higher throughput or when you need transformations on the stream, Flink (via Amazon Managed Service for Apache Flink, or self-managed on EMR) is the standard choice. Flink's Iceberg sink commits on every checkpoint.</p>
+
+<ul>
+  <li>Full transformation capability (joins, windowing, dedup)</li>
+  <li>Checkpoint interval = commit frequency (typically 30s–5min)</li>
+  <li>Produces small files that <strong>require aggressive compaction</strong></li>
+  <li>Can handle updates/deletes via the Iceberg sink's upsert mode</li>
+</ul>
+
+<h3>The commit budget</h3>
+
+<p>Remember from Lesson 1: the Glue Catalog caps at roughly <strong>15 commits per second</strong>. Every streaming job that commits to the same table shares that budget. Three Flink jobs checkpointing every 30 seconds to the same table = 6 commits/minute — well within budget. But 50 microservices each writing independently at 1-second intervals = conflict storm. <a href="https://docs.aws.amazon.com/sagemaker-lakehouse-architecture/latest/userguide/lakehouse-iceberg.html" class="citation">[SageMaker Lakehouse]</a></p>
+
+<div class="callout">
+<strong>Design rule:</strong> Funnel multiple producers through a single writer (a Flink job or Glue job) rather than having each producer commit directly. This consolidates commits and produces better-sized files.
+</div>
+
+<h2>Change Data Capture (CDC)</h2>
+
+<p>CDC keeps your lakehouse in sync with operational databases. A row changes in PostgreSQL or MySQL — that change flows to Iceberg as an insert, update, or delete.</p>
+
+<h3>The CDC pipeline</h3>
+
+<p>The standard CDC flow into Iceberg on AWS — DMS captures changes, a staging layer buffers them, and a merge job applies them to the Iceberg table.</p>
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 100" role="img" aria-labelledby="diagram-cdc-pipeline">
+<title id="diagram-cdc-pipeline">CDC pipeline: Source DB → DMS → S3 staging → Glue/EMR MERGE → Iceberg table</title>
+<defs>
+<marker id="arr2" markerWidth="4" markerHeight="4" viewBox="-0.1 -0.5 1 1" orient="auto">
+<path d="M-0.1,0.5 L-0.1,-0.5 L0.9,0 Z" fill="#374151"/>
+</marker>
+</defs>
+
+<rect x="10" y="25" width="90" height="50" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+<text x="55" y="47" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">Source DB</text>
+<text x="55" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">Postgres/MySQL</text>
+
+<path d="M100,50 L130,50" stroke="#374151" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+<rect x="135" y="25" width="80" height="50" rx="6" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+<text x="175" y="47" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">DMS</text>
+<text x="175" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">captures WAL</text>
+
+<path d="M215,50 L245,50" stroke="#374151" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+<rect x="250" y="25" width="95" height="50" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+<text x="297" y="47" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">S3 Staging</text>
+<text x="297" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">CDC records</text>
+
+<path d="M345,50 L375,50" stroke="#374151" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+<rect x="380" y="25" width="95" height="50" rx="6" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+<text x="427" y="47" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">Glue MERGE</text>
+<text x="427" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">apply changes</text>
+
+<path d="M475,50 L505,50" stroke="#374151" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+<rect x="510" y="25" width="80" height="50" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+<text x="550" y="47" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">Iceberg</text>
+<text x="550" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">updated table</text>
+</svg>
+
+<h3>AWS DMS (Database Migration Service)</h3>
+
+<p>DMS reads the database's write-ahead log (WAL/binlog) and emits change records. On AWS, DMS can target S3 directly (as Parquet or CSV), which then feeds a Glue/EMR job that applies the changes to Iceberg.</p>
+
+<ul>
+  <li><strong>Full load + CDC:</strong> Initial snapshot of the entire table, then ongoing changes</li>
+  <li><strong>Change records include:</strong> operation type (INSERT/UPDATE/DELETE), before/after values, transaction timestamp</li>
+  <li>DMS does NOT write to Iceberg directly — it lands changes to S3 or Kinesis, and a downstream job applies them</li>
+</ul>
+
+<h3>The MERGE pattern</h3>
+
+<p>The downstream job that applies CDC records to Iceberg typically uses <code>MERGE INTO</code>:</p>
+
+<pre><code>MERGE INTO target_table t
+USING staged_changes s
+ON t.id = s.id
+WHEN MATCHED AND s.op = 'D' THEN DELETE
+WHEN MATCHED AND s.op = 'U' THEN UPDATE SET *
+WHEN NOT MATCHED AND s.op = 'I' THEN INSERT *</code></pre>
+
+<p>This is where COW vs MOR matters most. A MERGE touching 1,000 rows in a million-row partition:</p>
+<ul>
+  <li><strong>COW:</strong> Rewrites the entire file (expensive but readers are fast later)</li>
+  <li><strong>MOR:</strong> Writes a small delete file + new data file (fast but readers pay at scan time)</li>
+</ul>
+
+<details>
+<summary>Alternative: Debezium → Kafka → Flink → Iceberg</summary>
+<p>For teams already running Kafka (MSK), Debezium can replace DMS as the change capture engine. Debezium reads the database WAL and publishes change events to Kafka topics. A Flink job then consumes these topics and writes to Iceberg using the Flink Iceberg sink's upsert mode. This eliminates the S3 staging layer but adds Kafka operational overhead. Better for teams that already have Kafka infrastructure and want sub-minute latency.</p>
+</details>
+
+<h3>CDC frequency tradeoff</h3>
+
+<p>How often you run the MERGE job is a latency-vs-cost decision:</p>
+
+<table>
+  <tr><th>Frequency</th><th>Latency</th><th>Cost</th><th>File impact</th></tr>
+  <tr><td>Every 5 min</td><td>~5 min</td><td>High (many small commits)</td><td>Small files accumulate fast</td></tr>
+  <tr><td>Every hour</td><td>~1 hour</td><td>Medium</td><td>Reasonable file sizes</td></tr>
+  <tr><td>Every 6 hours</td><td>~6 hours</td><td>Low</td><td>Well-sized files</td></tr>
+</table>
+
+<p>For most PoC lakehouse designs, <strong>hourly CDC is the sweet spot</strong> — fresh enough for analytics, infrequent enough to avoid the small-file tax.</p>
+
+<h2>The Small Files Problem</h2>
+
+<p>This is the single biggest operational concern with streaming and frequent CDC ingestion into Iceberg.</p>
+
+<div class="key-concept">
+<strong>Why small files hurt:</strong> (1) More manifests to read during query planning → slower planning. (2) More files to open during scans → higher S3 GET costs and latency. (3) More metadata in the metadata tree → bigger snapshots. The cure is compaction (<code>rewrite_data_files</code>), but compaction itself consumes compute.
+</div>
+
+<p>Iceberg's target file size is typically 128–512 MB. A streaming job checkpointing every minute with 10 partitions writes 600 files/hour — most far smaller than 128 MB unless volume is extremely high. After a day: 14,400 files that should have been ~100.</p>
+
+<div class="callout">
+<strong>Design rule for your customer:</strong> Budget for compaction as a first-class part of the architecture, not an afterthought. If you're streaming into Iceberg, plan a scheduled compaction job (Glue or EMR) that runs frequently enough to keep the file count under control. A common pattern: compact hourly for hot partitions, daily for warm ones.
+</div>
+
+<h2>Choosing an Ingestion Strategy</h2>
+
+<p>Here's the decision framework for your customer's PoC:</p>
+
+<table>
+  <tr><th>Source type</th><th>Latency need</th><th>Recommended path</th><th>Why</th></tr>
+  <tr>
+    <td>Operational DB (Postgres, MySQL)</td>
+    <td>Hourly is fine</td>
+    <td>DMS → S3 → Glue MERGE</td>
+    <td>Simple, well-sized files, manageable commits</td>
+  </tr>
+  <tr>
+    <td>Operational DB</td>
+    <td>Minutes</td>
+    <td>DMS → Kinesis → Flink MERGE</td>
+    <td>Near-real-time CDC, but needs compaction budget</td>
+  </tr>
+  <tr>
+    <td>Event stream (moderate, &lt;5 MiB/s)</td>
+    <td>Minutes</td>
+    <td>Firehose → Iceberg</td>
+    <td>Zero-ops streaming, automatic buffering</td>
+  </tr>
+  <tr>
+    <td>Event stream (high volume)</td>
+    <td>Seconds–minutes</td>
+    <td>MSK → Flink → Iceberg</td>
+    <td>Full control, needs compaction + monitoring</td>
+  </tr>
+  <tr>
+    <td>Periodic data exports</td>
+    <td>Hours</td>
+    <td>Glue batch ETL</td>
+    <td>Simplest path, best file sizing, lowest cost</td>
+  </tr>
+  <tr>
+    <td>Backfill / migration</td>
+    <td>One-time</td>
+    <td>EMR Spark</td>
+    <td>Full control over parallelism and file sizing</td>
+  </tr>
+</table>
+
+<h2>The One-Liner to Remember</h2>
+
+<div class="key-concept">
+<strong>Getting data INTO Iceberg is easy. Getting it in at the right size, frequency, and cost is the architecture problem.</strong> Every ingestion choice is a tradeoff between latency (how fresh?), file sizing (how many small files?), and commit frequency (how close to the 15 TPS ceiling?).
+</div>
+
+<h2>Primary Sources</h2>
+
+<ul>
+  <li><a href="https://iceberg.apache.org/spec/#delete-formats">Iceberg Spec — Delete Formats</a> (COW vs MOR mechanics)</li>
+  <li><a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/introduction.html">AWS Prescriptive Guidance — Iceberg on AWS</a> (service integration, limits)</li>
+  <li><a href="https://iceberg.apache.org/docs/latest/flink/">Iceberg Docs — Flink Integration</a> (streaming sink configuration)</li>
+  <li><a href="https://docs.aws.amazon.com/sagemaker-lakehouse-architecture/latest/userguide/lakehouse-iceberg.html">SageMaker Lakehouse — Iceberg</a> (Glue Catalog limits, REST API)</li>
+</ul>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> Your customer has three data sources: (1) a PostgreSQL orders database that needs hourly freshness in the lakehouse, (2) a clickstream at ~2 MiB/s that needs minute-level freshness, and (3) a daily vendor data dump in CSV. Design the ingestion architecture — which service for each source, and what maintenance do you need?</p>
+  <details>
+  <summary>Key points to hit</summary>
+  <p>(1) DMS → S3 → hourly Glue MERGE job for the orders DB. COW is fine at hourly frequency since you're only merging once per hour. (2) Firehose → Iceberg for clickstream — under 5 MiB/s, append-only, 60s buffer gives reasonable file sizes. (3) Glue batch ETL for the CSV dump — simplest path, daily schedule. Maintenance: scheduled compaction for the Firehose table (most small-file risk), less critical for the others since they produce fewer, larger files.</p>
+  </details>
+</div>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next lesson:</strong> Query Patterns &amp; Performance — how Athena, Spark, and Trino read from Iceberg, partition pruning, and why your metadata tree design from Lesson 1 directly impacts query speed.</p>
+  <p><strong>Go deeper:</strong> The <a href="https://iceberg.apache.org/docs/latest/flink/">Iceberg Flink docs</a> cover checkpoint tuning and write distribution modes. The <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/introduction.html">AWS Prescriptive Guidance</a> has architecture diagrams for each ingestion pattern.</p>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "copy-on-write": "Write strategy where updates/deletes rewrite entire data files. Readers see clean files (fast reads) but writes are expensive. Best for read-heavy tables with infrequent updates.",
+  "merge-on-read": "Write strategy where updates/deletes produce small delete files instead of rewriting data. Writes are fast but readers must reconcile deletes at scan time. Best for write-heavy tables.",
+  "delete-file": "A file that records which rows have been removed or updated. Three types: position deletes (by file+row), equality deletes (by value match), and deletion vectors (V3, bitmap-based). Applied at read time.",
+  "deletion-vector": "An Iceberg V3 delete format using compact bitmaps to mark deleted rows within a data file. Faster than position delete files because readers check one bitmap instead of joining against a separate file.",
+  "cdc": "Change Data Capture — the pattern of detecting and propagating row-level changes (inserts, updates, deletes) from an operational database to another system. Typically reads the database's write-ahead log.",
+  "wal": "Write-Ahead Log — the append-only log a database writes before applying changes to its main storage. CDC tools (DMS, Debezium) read this log to capture changes without impacting the source database's performance.",
+  "small-files-problem": "The operational issue where frequent commits to Iceberg produce many undersized data files. Degrades query planning (more manifests), scan performance (more S3 GETs), and increases metadata overhead. Fixed by compaction.",
+  "compaction": "The maintenance operation that merges many small data files into fewer large ones (target: 128-512 MB). Iceberg calls this rewrite_data_files. Essential for tables receiving streaming or frequent CDC writes."
+}
+</script>
+<script src="../assets/glossary.js"></script>
+<script src="../assets/theme-toggle.js"></script>
+
+</body>
+</html>
