@@ -1,7 +1,7 @@
 ---
 id: "059"
 title: "Feature: tools/serve.py — generation server with SSE streaming"
-status: open
+status: done
 priority: medium
 blocked_by: []
 type: feature
@@ -81,13 +81,21 @@ data: {"exit_code": 0, "duration_s": 142}
 
 ## Acceptance criteria
 
-- [ ] `mise run serve` starts the server on port 8787
+- [x] `mise run serve` starts the server on port 8787
 - [x] Static files served correctly (replaces python -m http.server) — done in spike
 - [x] POST /api/generate spawns subprocess and returns 202 — done in spike
 - [x] GET /stream delivers stdout as SSE events in real-time — done in spike
 - [x] Cancel kills process group cleanly — done in spike
-- [ ] Real kiro-cli integration (topic + quiz generation from slug/title)
-- [ ] Command allowlist prevents arbitrary execution
-- [ ] Slug/title validated against safe regex
-- [ ] Binds to 127.0.0.1 only
-- [ ] SSE events use structured format (phase, artifact path, duration)
+- [x] Real kiro-cli integration (topic + quiz generation from slug/title)
+- [x] Command allowlist prevents arbitrary execution — only kiro-cli chat with validated prompt
+- [x] Slug/title validated against safe regex — SAFE_PROMPT_RE, 500 char limit
+- [x] Binds to 127.0.0.1 only — default localhost, --lan flag for network access
+- [x] SSE events use structured format (phase, artifact path, duration) — phase events + done event with exit_code
+
+## Resolution (2026-08-12)
+
+Server is in production use across all 3 map pages. Features beyond original spec:
+- /api/lessons endpoint for dynamic lesson detection
+- Auto-navigate to generated lesson on completion
+- Noise filtering (checkpoint errors suppressed)
+- Mock and long_mock modes for testing

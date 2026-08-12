@@ -39,7 +39,7 @@ if [ -n "$latest" ]; then xdg-open "$latest" 2>/dev/null || open "$latest"; else
 """
 
 [tasks.serve]
-description = "Start generation server (http://localhost:8787)"
+description = "Start generation server (localhost:8787, or --lan for network access)"
 depends = ["setup"]
 run = "python tools/serve.py"
 

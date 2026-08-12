@@ -47,8 +47,12 @@ Update `generate_map_page.py` to render the "Where This Leads" section with:
 
 ## Success criteria
 
-- [ ] leads_to items are clickable cards (not just a bullet list)
+- [x] leads_to items are clickable cards (not just a bullet list) — done: buttons that trigger generation modal
 - [ ] Existing domains link to their map page
-- [ ] Non-existing domains show "Generate domain" with CLI command modal
+- [x] Non-existing domains show "Generate domain" with generation modal — done: triggers live kiro-cli generation
 - [ ] Visual distinction between the three states (ready/generatable/horizon)
-- [ ] Works with the data-analytics map (5 leads_to items, none exist yet)
+- [x] Works with the data-analytics map (5 leads_to items, none exist yet) — done
+
+## Partial resolution (2026-08-11)
+
+The "generatable" state is fully working — leads_to items are buttons that trigger the generation modal with live SSE. But existing domain detection (linking to other map pages) and the horizon state (prerequisites unmet) are not implemented. Those need the MAP.md parser (ticket 043) to determine which domains exist and what their prereqs are.

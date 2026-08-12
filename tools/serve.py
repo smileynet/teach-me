@@ -123,6 +123,11 @@ class GenerateRequest(BaseModel):
     long_mock: bool = False  # Use 130s mock for SSE stability testing
 
 
+# Input validation
+SAFE_PROMPT_RE = re.compile(r"^[\w\s&:,.'/()\-–—]+$", re.UNICODE)
+MAX_PROMPT_LEN = 500
+
+
 @app.post("/api/generate", status_code=202)
 async def start_generation(req: GenerateRequest) -> JSONResponse:
     task_id = uuid.uuid4().hex[:12]
@@ -132,6 +137,11 @@ async def start_generation(req: GenerateRequest) -> JSONResponse:
     elif req.mock:
         cmd = MOCK_CMD
     else:
+        # Validate prompt
+        if not req.prompt or len(req.prompt) > MAX_PROMPT_LEN:
+            raise HTTPException(status_code=400, detail="Prompt required (max 500 chars)")
+        if not SAFE_PROMPT_RE.match(req.prompt):
+            raise HTTPException(status_code=400, detail="Prompt contains invalid characters")
         cmd = [
             "kiro-cli",
             "chat",
@@ -282,5 +292,6 @@ if __name__ == "__main__":
     import uvicorn
 
     port = int(sys.argv[sys.argv.index("--port") + 1]) if "--port" in sys.argv else 8787
-    print(f"Serving teach-me at http://localhost:{port}")
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
+    host = "0.0.0.0" if "--lan" in sys.argv else "127.0.0.1"
+    print(f"Serving teach-me at http://{host}:{port}")
+    uvicorn.run(app, host=host, port=port, log_level="info")
