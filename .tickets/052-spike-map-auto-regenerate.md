@@ -43,3 +43,8 @@ The teach skill updates `status: in-progress` in MAP.md, then regenerates. This 
 Dynamic lesson detection on page load (via `/api/lessons` endpoint) makes the first and third criteria moot — the map page doesn't need regeneration to show status changes. Nodes turn blue when a matching lesson file is found. This means auto-regeneration is only needed for the SVG graph layout itself (adding/removing nodes), not for status updates.
 
 Remaining: green state (quiz complete) detection. Likely needs `/api/questions` endpoint or similar.
+
+## Validation (remaining work)
+
+- **Integration:** `/api/questions/{slug}` endpoint checks if SR questions exist for a topic. Map page JS calls it to determine complete vs in-progress.
+- **E2E (Playwright):** Create a lesson file + questions file for a topic → reload map page → verify node turns green (not just blue). Remove questions file → verify node stays blue (lesson exists but not complete).

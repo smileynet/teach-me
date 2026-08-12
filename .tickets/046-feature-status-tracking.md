@@ -39,3 +39,9 @@ Suggest continuing the one with most recent activity, or offer to switch.
 - [ ] Suggests the topic that unblocks the most downstream content
 - [ ] Handles "all done" (triggers leads_to presentation)
 - [ ] Handles "everything available" (offers choice, doesn't force)
+
+## Validation
+
+- **Unit:** `update_status` + `load_map` round-trip: update a topic, reload, verify status persisted and other fields intact. `get_next_suggestion` with various status combos returns correct picks.
+- **Integration:** `/api/map/{domain}` endpoint returns current topic statuses from MAP.md. POST to `/api/map/{domain}/{slug}/status` updates MAP.md. Verify with GET after POST.
+- **E2E (Playwright):** Generate a topic → map page reloads → node is blue → click node → detail panel shows "Open lesson" (not generate). Set all topics to complete → verify "Where This Leads" section is highlighted/promoted.

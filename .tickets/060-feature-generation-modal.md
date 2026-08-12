@@ -89,3 +89,8 @@ const STEP_PATTERNS = [
 - [ ] On completion: "Open Lesson →" button appears
 - [ ] On error: error message + retry button
 - [ ] Cancel button sends DELETE and shows cancelled state
+
+## Validation
+
+- **Integration:** Start `mise run serve`, POST to `/api/generate` with mock=true, verify SSE events have correct structure for each checklist step
+- **E2E (Playwright):** Navigate to map page → click generate on a topic → verify modal appears → click confirm → verify timer starts, status updates (mock completes in 8s) → verify "Open Lesson" button appears → click it → verify navigation. Repeat with cancel mid-mock.

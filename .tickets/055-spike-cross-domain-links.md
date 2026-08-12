@@ -60,3 +60,9 @@ mise run map:connections
 - [ ] Produces < 5 connections across 3 test domains (sparse, not spammy)
 - [ ] Evaluate: are the detected connections actually useful to a learner?
 - [ ] Decision: should these surface in the UI, or just inform the teach skill's conversation?
+
+## Validation
+
+- **Unit:** Run detection script on all 3 example MAP.md files → verify output is a JSON list of `{from_domain, from_topic, to_domain, to_topic, reason}` objects. Verify count < 5.
+- **Integration:** If UI-surfaced: map page JS fetches cross-links and renders them. Playwright verifies they appear as subtle annotations (not primary navigation).
+- **Human review:** Present the detected links to the user and ask: "Are these useful?" Decision recorded in ticket resolution.

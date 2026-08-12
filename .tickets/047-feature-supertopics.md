@@ -51,3 +51,9 @@ Learner: "start data-governance" → agent generates a new root MAP.md for that 
 - [ ] "where does this lead?" works mid-domain too
 - [ ] Learner can start a leads_to domain (generates new MAP.md)
 - [ ] Never framed as obligation — always opportunity language
+
+## Validation
+
+- **Unit:** `load_map` returns correct `leads_to` list from frontmatter. Parser handles empty leads_to gracefully.
+- **Integration:** `/api/map/{domain}` response includes `leads_to` field. POST to generate a leads_to domain creates a new MAP.md file detectable by `load_map`.
+- **E2E (Playwright):** Navigate to map page → scroll to "Where This Leads" → click a domain → verify generation modal appears → after mock generation → verify new map page loads. Verify language uses "accessible" / "becomes possible" not "you should" / "required".
