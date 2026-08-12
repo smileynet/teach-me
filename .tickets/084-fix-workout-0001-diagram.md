@@ -1,7 +1,7 @@
 ---
 id: "084"
 title: "Fix: add inline SVG diagram to workout lesson 0001"
-status: open
+status: done
 blocked_by: []
 priority: medium
 ---
@@ -23,7 +23,11 @@ Must include: `role="img"`, `<title>`, `aria-labelledby`, `viewBox` (no fixed wi
 
 ## Acceptance criteria
 
-- [ ] Lesson 0001 has at least one inline SVG with accessibility attributes
-- [ ] Diagram illustrates progressive overload concept
-- [ ] Uses the project color vocabulary (blue for primary, green for success)
-- [ ] `mise run verify` passes
+- [x] Lesson 0001 has at least one inline SVG with accessibility attributes
+- [x] Diagram illustrates progressive overload concept
+- [x] Uses the project color vocabulary (blue for primary, green for success)
+- [x] `mise run verify` passes
+
+## Resolution (2026-08-12)
+
+TBD
