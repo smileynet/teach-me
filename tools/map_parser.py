@@ -27,12 +27,18 @@ class Topic:
 
 
 @dataclass
+class LeadsTo:
+    slug: str
+    why: str = ""
+
+
+@dataclass
 class DomainMap:
     domain: str
     description: str
     depth: int
     parent: str | None
-    leads_to: list[str]
+    leads_to: list[LeadsTo]
     orientation: str
     topics: list[Topic]
 
@@ -73,15 +79,40 @@ def _parse_frontmatter(text: str) -> dict:
     result = {}
     current_key = None
     current_list = None
+    current_obj = None
 
     for line in text.split("\n"):
-        # List continuation
-        if line.startswith("  - ") and current_key:
-            if current_list is None:
-                current_list = []
-            current_list.append(line[4:].strip())
+        # Nested object key (4 spaces or 2 spaces + key: value under a list item)
+        if current_obj is not None and line.startswith("    ") and ":" in line:
+            k, _, v = line.strip().partition(":")
+            current_obj[k.strip()] = _parse_yaml_value(v.strip())
             continue
-        elif current_key and current_list is not None:
+
+        # List item that starts an object (- key: value)
+        if line.startswith("  - ") and current_key:
+            rest = line[4:].strip()
+            if ":" in rest and not rest.startswith('"') and not rest.startswith("'"):
+                # Object item: - slug: value
+                if current_obj is not None:
+                    current_list.append(current_obj)
+                current_obj = {}
+                k, _, v = rest.partition(":")
+                current_obj[k.strip()] = _parse_yaml_value(v.strip())
+            else:
+                # Simple string item
+                if current_obj is not None:
+                    current_list.append(current_obj)
+                    current_obj = None
+                if current_list is None:
+                    current_list = []
+                current_list.append(rest)
+            continue
+
+        # Flush pending object/list on new top-level key
+        if current_key and (current_list is not None or current_obj is not None):
+            if current_obj is not None:
+                current_list.append(current_obj)
+                current_obj = None
             result[current_key] = current_list
             current_list = None
             current_key = None
@@ -92,15 +123,17 @@ def _parse_frontmatter(text: str) -> dict:
             key = key.strip()
             val = val.strip()
             if not val:
-                # Could be start of a list
+                # Start of a list
                 current_key = key
                 current_list = []
             else:
                 result[key] = _parse_yaml_value(val)
                 current_key = None
 
-    # Flush trailing list
-    if current_key and current_list is not None:
+    # Flush trailing list/object
+    if current_key and (current_list is not None or current_obj is not None):
+        if current_obj is not None:
+            current_list.append(current_obj)
         result[current_key] = current_list
 
     return result
@@ -169,12 +202,21 @@ def load_map(path: str | Path) -> DomainMap:
             lesson_file=fields.get("lesson_file"),
         ))
 
+    # Normalize leads_to: can be list of strings or list of dicts
+    raw_leads = fm.get("leads_to", [])
+    leads_to = []
+    for item in raw_leads:
+        if isinstance(item, str):
+            leads_to.append(LeadsTo(slug=item))
+        elif isinstance(item, dict):
+            leads_to.append(LeadsTo(slug=item.get("slug", ""), why=item.get("why", "")))
+
     return DomainMap(
         domain=fm.get("domain", ""),
         description=fm.get("description", ""),
         depth=fm.get("depth", 0),
         parent=fm.get("parent"),
-        leads_to=fm.get("leads_to", []),
+        leads_to=leads_to,
         orientation=orientation,
         topics=topics,
     )

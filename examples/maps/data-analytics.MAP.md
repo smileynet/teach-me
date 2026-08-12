@@ -5,11 +5,16 @@ generated: 2026-08-11
 depth: 0
 parent: null
 leads_to:
-  - streaming-architectures
-  - data-governance-at-scale
-  - platform-engineering
-  - ml-feature-engineering
-  - data-mesh-organizational-patterns
+  - slug: streaming-architectures
+    why: "Real-time version of batch ingestion — same concepts, tighter latency constraints"
+  - slug: data-governance-at-scale
+    why: "The observability topic here, expanded to org-wide policy and compliance"
+  - slug: platform-engineering
+    why: "Who builds, operates, and abstracts the stack you just learned"
+  - slug: ml-feature-engineering
+    why: "Uses the same storage and transformation layers to feed ML models"
+  - slug: data-mesh-organizational-patterns
+    why: "Decentralizes ownership of the pipeline you learned as a single team's concern"
 ---
 
 # Modern Data Analytics Stacks

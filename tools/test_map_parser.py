@@ -23,8 +23,11 @@ def test_load_data_analytics():
     assert m.domain == "modern-data-analytics-stacks"
     assert m.depth == 0
     assert m.parent is None
-    assert "streaming-architectures" in m.leads_to
+    assert any(lt.slug == "streaming-architectures" for lt in m.leads_to)
     assert len(m.leads_to) == 5
+    # Check that why is populated (new format)
+    sa = next(lt for lt in m.leads_to if lt.slug == "streaming-architectures")
+    assert "real-time" in sa.why.lower() or "Real-time" in sa.why
     assert "deliberate pipeline" in m.orientation
     assert len(m.topics) == 7
 
