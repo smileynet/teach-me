@@ -174,6 +174,9 @@ def _read_output(task: GenerationTask) -> None:
         clean = strip_ansi(raw_line.rstrip("\n"))
         if not clean:
             continue
+        # Filter kiro-cli noise
+        if "Checkpoint operation failed" in clean:
+            continue
         phase = detect_phase(clean)
         if phase:
             task.phase = phase
