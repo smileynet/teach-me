@@ -57,8 +57,9 @@
       margin-top: 2rem; padding: 1.25rem; border-radius: 8px;
       background: var(--bg-elevated); border: 1px solid var(--border);
     }
-    .leads-to ul { padding-left: 1.5rem; margin: 0.5rem 0 0; }
-    .leads-to li { color: var(--text-muted); margin: 0.25rem 0; }
+    .leads-to ul { list-style: none; padding: 0; margin: 0.75rem 0 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .leads-to li { margin: 0; }
+    .leads-to .btn { font-size: 0.8rem; padding: 0.4rem 0.75rem; }
 
     /* Modal */
     .modal-overlay {
@@ -172,7 +173,13 @@
   <div class="leads-to">
     <h3>🚀 Where This Leads</h3>
     <p>After this domain, these become accessible:</p>
-    <ul><li>Streaming Architectures</li><li>Data Governance At Scale</li><li>Platform Engineering</li><li>ML Feature Engineering</li><li>Data Mesh Organizational Patterns</li></ul>
+    <ul>
+      <li><button class="btn btn-secondary" onclick="offerGenerate('streaming-architectures', 'Streaming Architectures')">Streaming Architectures</button></li>
+      <li><button class="btn btn-secondary" onclick="offerGenerate('data-governance-at-scale', 'Data Governance At Scale')">Data Governance At Scale</button></li>
+      <li><button class="btn btn-secondary" onclick="offerGenerate('platform-engineering', 'Platform Engineering')">Platform Engineering</button></li>
+      <li><button class="btn btn-secondary" onclick="offerGenerate('ml-feature-engineering', 'ML Feature Engineering')">ML Feature Engineering</button></li>
+      <li><button class="btn btn-secondary" onclick="offerGenerate('data-mesh-patterns', 'Data Mesh Organizational Patterns')">Data Mesh Organizational Patterns</button></li>
+    </ul>
   </div>
 </div>
 
@@ -274,6 +281,7 @@ let _genTaskId = null;
 let _genES = null;
 let _genType = 'topic';
 let _genTitle = '';
+let _genCreatedFile = null;
 
 function offerGenerate(slug, title) {
   _genTitle = title; _genType = 'topic';
@@ -295,6 +303,7 @@ function resetModal() {
   document.getElementById('gen-run-btn').style.display = '';
   document.getElementById('gen-cancel-btn').style.display = 'none';
   document.getElementById('gen-desc').textContent = "This topic hasn't been created yet.";
+  _genCreatedFile = null;
 }
 
 async function runGenerate() {
@@ -329,13 +338,19 @@ async function runGenerate() {
       };
       const label = labels[e.data];
       if (label) setPhase(label);
-      else if (e.data.startsWith('creating:')) setPhase('Saving: ' + e.data.slice(9));
+      else if (e.data.startsWith('creating:')) {
+        const path = e.data.slice(9);
+        if (path.includes('lessons/') && path.endsWith('.html')) {
+          _genCreatedFile = path.split('lessons/').pop();
+        }
+        setPhase('Saving: ' + path);
+      }
       else if (!labels.hasOwnProperty(e.data)) setPhase(e.data);
     });
     _genES.addEventListener('done', (e) => {
       const result = JSON.parse(e.data);
       _genES.close(); _genES = null;
-      if (result.exit_code === 0) finish('✅ Done! Reload the page to see your new content.', true);
+      if (result.exit_code === 0) finish('✅ Done! Opening...', true);
       else finish('⚠️ Generation exited with code ' + result.exit_code, false);
     });
     _genES.onerror = () => finish('❌ Connection lost', false);
@@ -351,6 +366,17 @@ function finish(msg, success) {
   document.getElementById('gen-cancel-btn').style.display = 'none';
   document.getElementById('gen-spinner').style.display = 'none';
   document.getElementById('gen-phase-text').textContent = success ? 'Complete' : 'Stopped';
+
+  if (success) {
+    // Auto-navigate: if we captured a created lesson file, go there; otherwise reload
+    setTimeout(() => {
+      if (_genCreatedFile) {
+        window.location.href = _genCreatedFile;
+      } else {
+        window.location.reload();
+      }
+    }, 1500);
+  }
 }
 
 async function cancelGenerate() {
@@ -367,6 +393,41 @@ function closeModal() {
 document.getElementById('gen-modal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
+
+// --- On load: scan for existing lesson files and update topic status ---
+(async function detectLessons() {
+  let found = 0;
+  // First, get the lessons directory listing via a lightweight endpoint
+  let lessonFiles = [];
+  try {
+    const res = await fetch('/api/lessons');
+    if (res.ok) lessonFiles = await res.json();
+  } catch (e) {
+    // Fallback: try HEAD requests for known patterns
+  }
+
+  for (const [slug, topic] of Object.entries(TOPICS)) {
+    if (topic.lesson_file) { found++; continue; }
+
+    // Match by slug substring in available lesson files
+    const slugParts = slug.split('-');
+    const match = lessonFiles.find(f =>
+      slugParts.every(part => f.includes(part)) ||
+      f.includes(slug)
+    );
+    if (match) {
+      topic.lesson_file = match;
+      topic.status = 'in-progress';
+      found++;
+      const node = document.querySelector(`.map-graph .node[data-slug="${slug}"] path`);
+      if (node) { node.setAttribute('fill', '#dbeafe'); node.setAttribute('stroke', '#2563eb'); }
+    }
+  }
+  // Update nav counter
+  const total = Object.keys(TOPICS).length;
+  const navPos = document.querySelector('.nav-position');
+  if (navPos) navPos.textContent = `${total} topics · ${found} with lessons`;
+})();
 </script>
 <script src="../assets/theme-toggle.js"></script>
 </body>
