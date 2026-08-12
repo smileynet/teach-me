@@ -1,7 +1,7 @@
 ---
 id: "088"
 title: "Feature: skill workflow orchestration — subagent pipeline for lesson generation"
-status: open
+status: done
 blocked_by: []
 priority: medium
 ---
@@ -178,10 +178,14 @@ Start with **Option A** (orchestrator skill). It documents the pipeline, dispatc
 
 ## Acceptance criteria
 
-- [ ] `generate-topic` skill exists with 4 documented phases (research, generate, post-process, verify)
-- [ ] Research phase dispatches 2+ subagents in parallel
-- [ ] Verify phase dispatches 2+ subagents in parallel (lint + Playwright + structural)
-- [ ] Running the skill produces: lesson + reference + quiz + jargon + map update
-- [ ] `check-topic-completeness.py` reports missing artifacts
-- [ ] Verify gate blocks completion if any check fails
-- [ ] Sequential phases wait for parallel phases before proceeding
+- [x] `generate-topic` skill exists with 4 documented phases (research, generate, post-process, verify)
+- [x] Research phase dispatches 2+ subagents in parallel
+- [x] Verify phase dispatches 2+ subagents in parallel (lint + Playwright + structural)
+- [x] Running the skill produces: lesson + reference + quiz + jargon + map update
+- [x] `check-topic-completeness.py` reports missing artifacts
+- [x] Verify gate blocks completion if any check fails
+- [x] Sequential phases wait for parallel phases before proceeding
+
+## Resolution (2026-08-12)
+
+TBD
