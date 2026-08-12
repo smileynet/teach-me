@@ -3,7 +3,7 @@ id: "052"
 title: "Spike: auto-regenerate map page when lessons/questions are added"
 status: open
 priority: low
-blocked_by: ["048"]
+blocked_by: []
 type: spike
 ---
 

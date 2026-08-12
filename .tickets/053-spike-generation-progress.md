@@ -1,7 +1,7 @@
 ---
 id: "053"
 title: "Spike: generation progress checklist — live feedback during topic creation"
-status: open
+status: closed
 priority: low
 blocked_by: []
 type: spike
@@ -50,3 +50,6 @@ Test approach 1 (file polling) since we already have `python -m http.server` run
 - [ ] Status updates within 2-3 seconds of agent writing the file
 - [ ] Final state: all steps ✓, topic card updates to "Open lesson →"
 - [ ] Evaluate: is this actually better than watching the terminal?
+## Resolution (closed 2026-08-11)
+
+Superseded by tickets 057-061 (browser-triggered generation with SSE streaming). Those tickets cover the same scope with a more complete design.

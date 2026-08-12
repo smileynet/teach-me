@@ -17,6 +17,7 @@ reference/          — compressed reference docs (scannable work artifacts, alo
 learning-records/   — what the learner has demonstrated understanding of
 assets/             — shared components (style.css, glossary, quiz, progressive-reveal, theme-toggle)
 .tickets/           — local ticket tracking
+examples/           — test fixtures and example workspaces (MAP.md samples, topic examples)
 ```
 
 ## Skills

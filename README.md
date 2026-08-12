@@ -47,11 +47,15 @@ assets/             — shared CSS, JS components, scaffolds
 ```bash
 mise run sr              # what's due for review
 mise run sr:review       # review due cards (or: mise run sr:review -- topic-slug)
+mise run sr:quick-check  # generate quick-check review page (MC + diagram cards)
+mise run sr:export-anki  # export cards to Anki .apkg
 mise run sr:check        # validate question quality
 mise run sr:analytics    # knowledge state + what's decaying
+mise run map:generate    # generate interactive map pages from MAP.md files
+mise run index:generate  # regenerate the All Lessons dashboard
 mise run draw -- --type graph --backend graphviz --data '{...}'  # complex diagrams
 mise run visual-qa       # exercise all UI components
-mise run verify          # smoke test + link verification
+mise run verify          # smoke test + link verification + source URL check
 ```
 
 ## Design Decisions
@@ -59,6 +63,7 @@ mise run verify          # smoke test + link verification
 - **Research-first** (ADR 0002): Every lesson requires domain research before writing. Prevents teaching from memory.
 - **Agent-complete pages** (ADR 0003): No build step. HTML pages with shared CSS variables for theming.
 - **Informal posture** (ADR 0001): Knowledgeable colleague at a whiteboard, not course instructor.
+- **MAP.md domain scaffolding** (ADR 0004): Big topics decompose into 5-9 subtopic maps with soft prerequisites.
 
 ## Skills
 
