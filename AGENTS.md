@@ -25,6 +25,7 @@ examples/           — test fixtures and example workspaces (MAP.md samples, to
 | Skill | Trigger | What it does |
 |-------|---------|-------------|
 | teach | `/teach`, "teach me", "next lesson" | Multi-session learning with stateful workspace |
+| generate-topic | `/generate-topic`, "generate lesson", "complete topic" | Full pipeline: research → lesson → post-process → verify (parallel subagents) |
 | quiz-me | `/quiz-me`, "test me" | Socratic dialog — learner explains, agent probes |
 | wait-what | `/wait-what`, "I don't understand" | Re-explain when comprehension fails |
 | jargon | `/jargon`, "annotate terms" | Post-authoring: annotate domain jargon with tooltips |
