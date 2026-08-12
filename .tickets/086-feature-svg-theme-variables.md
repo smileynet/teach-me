@@ -1,7 +1,7 @@
 ---
 id: "086"
 title: "Feature: SVG diagrams use CSS custom properties for theme-aligned colors"
-status: open
+status: done
 blocked_by: []
 priority: medium
 ---
@@ -69,9 +69,13 @@ Define SVG-specific CSS custom properties that:
 
 ## Acceptance criteria
 
-- [ ] `style.css` defines `--svg-*` variables for light and dark themes
-- [ ] `draw-diagram.py` outputs SVGs using `var(--svg-*)` references
-- [ ] At least one example lesson's SVG uses the new variables (proof of concept)
-- [ ] Diagrams render correctly in both light and dark mode
-- [ ] `svg-patterns.md` updated with new variable names
-- [ ] `mise run verify` passes
+- [x] `style.css` defines `--svg-*` variables for light and dark themes
+- [x] `draw-diagram.py` outputs SVGs using `var(--svg-*)` references
+- [x] At least one example lesson's SVG uses the new variables (proof of concept)
+- [x] Diagrams render correctly in both light and dark mode
+- [x] `svg-patterns.md` updated with new variable names
+- [x] `mise run verify` passes
+
+## Resolution (2026-08-12)
+
+TBD
