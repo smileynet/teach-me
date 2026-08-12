@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-LESSONS_DIR = PROJECT_ROOT / "lessons"
+LESSONS_DIR = PROJECT_ROOT / "examples" / "iceberg-workspace" / "lessons"
 
 
 def check_contains(html: str, pattern: str, description: str) -> str | None:

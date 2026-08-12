@@ -30,7 +30,7 @@ Every organization sits on operational data that only becomes useful when it flo
 - **why:** Nothing downstream works until data reliably moves from source systems into your analytics layer
 - **scope:** substantial
 - **prereqs:** []
-- **status:** not-started
+- **status:** complete
 
 ### storage-and-table-formats
 - **title:** Storage & Open Table Formats
@@ -38,14 +38,14 @@ Every organization sits on operational data that only becomes useful when it flo
 - **scope:** deep
 - **prereqs:** [ingestion]
 - **lesson_file:** 0001-iceberg-metadata-tree.html
-- **status:** in-progress
+- **status:** complete
 
 ### compute-engines
 - **title:** Compute & Query Engines
 - **why:** The engine you pick decides what workloads are fast, what's expensive, and how your storage is actually read
 - **scope:** substantial
 - **prereqs:** [storage-and-table-formats]
-- **status:** not-started
+- **status:** in-progress
 
 ### transformation-and-modeling
 - **title:** Transformation & Data Modeling
