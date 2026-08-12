@@ -1,7 +1,7 @@
 ---
 id: "082"
 title: "Fix: add lesson-actions.js to all example lessons"
-status: open
+status: done
 blocked_by: []
 priority: high
 ---
@@ -33,6 +33,10 @@ Add before `</body>` in each lesson (after glossary.js, before theme-toggle.js):
 
 ## Acceptance criteria
 
-- [ ] All 5 lessons include lesson-actions.js with correct data attributes
-- [ ] `mise run verify` passes
-- [ ] Bottom nav bar renders in browser (← map, quiz, mark complete)
+- [x] All 5 lessons include lesson-actions.js with correct data attributes
+- [x] `mise run verify` passes
+- [x] Bottom nav bar renders in browser (← map, quiz, mark complete)
+
+## Resolution (2026-08-12)
+
+TBD
