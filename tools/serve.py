@@ -318,6 +318,42 @@ async def list_maps() -> JSONResponse:
     return JSONResponse(maps)
 
 
+@app.get("/api/map/{domain}")
+async def get_map(domain: str) -> JSONResponse:
+    """Return parsed MAP.md data for a domain."""
+    import sys as _sys
+    _sys.path.insert(0, str(PROJECT_ROOT / "tools"))
+    from map_parser import load_map, validate, get_available_topics, get_next_suggestion
+
+    maps_dir = PROJECT_ROOT / "examples" / "maps"
+    # Find matching MAP.md file
+    candidates = list(maps_dir.glob(f"*{domain}*MAP.md")) + list(maps_dir.glob(f"{domain}*"))
+    if not candidates:
+        raise HTTPException(status_code=404, detail=f"No MAP.md found for domain '{domain}'")
+
+    m = load_map(candidates[0])
+    errors = validate(m)
+    available = get_available_topics(m)
+    suggestion = get_next_suggestion(m)
+
+    return JSONResponse({
+        "domain": m.domain,
+        "description": m.description,
+        "depth": m.depth,
+        "parent": m.parent,
+        "leads_to": m.leads_to,
+        "topic_count": len(m.topics),
+        "topics": [
+            {"slug": t.slug, "title": t.title, "status": t.status,
+             "scope": t.scope, "prereqs": t.prereqs, "lesson_file": t.lesson_file}
+            for t in m.topics
+        ],
+        "validation_errors": errors,
+        "available_topics": [t.slug for t in available],
+        "next_suggestion": suggestion.slug if suggestion else None,
+    })
+
+
 # Mount static files LAST (catch-all)
 app.mount("/", StaticFiles(directory=str(PROJECT_ROOT), html=True), name="static")
 
