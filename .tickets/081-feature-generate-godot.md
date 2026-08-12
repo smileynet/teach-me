@@ -1,7 +1,7 @@
 ---
 id: "081"
 title: "Feature: generate godot-gamedev example — 2 topics + quizzes"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: feature
@@ -36,3 +36,7 @@ examples/godot-gamedev/
 
 - `mise run verify` passes
 - Playwright: lessons load, quiz pages have questions, nav works
+
+## Resolution (2026-08-12)
+
+TBD
