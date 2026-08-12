@@ -26,7 +26,7 @@
 <table>
   <tr><th>Token</th><th>Purpose</th><th>Audience</th><th>Format</th></tr>
   <tr><td><strong>ID token</strong></td><td>Proves who logged in</td><td>Your client app</td><td>Always JWT</td></tr>
-  <tr><td><strong>Access token</strong></td><td>Authorizes API calls</td><td>Resource server (API)</td><td>Opaque or JWT</td></tr>
+  <tr><td><strong><span class="term" data-term="access-token">Access token</span></strong></td><td>Authorizes API calls</td><td>Resource server (API)</td><td>Opaque or JWT</td></tr>
   <tr><td><strong>Refresh token</strong></td><td>Gets new access tokens</td><td>Authorization server only</td><td>Opaque</td></tr>
 </table>
 
@@ -38,31 +38,31 @@
 
 <h2>JWT Structure: Three Parts, Dot-Separated</h2>
 
-<p>A JWT is three base64url-encoded segments separated by dots:</p>
+<p>A <span class="term" data-term="jwt">JWT</span> is three base64url-encoded segments separated by dots:</p>
 
 <svg role="img" aria-labelledby="jwt-structure-title" viewBox="0 0 700 120" style="max-width:100%; height:auto; margin: 1.5rem 0;">
   <title id="jwt-structure-title">JWT structure: header (algorithm + key ID), payload (claims about the user), and signature (cryptographic proof)</title>
   <!-- Header -->
-  <rect x="10" y="20" width="200" height="60" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
-  <text x="110" y="45" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e40af">Header</text>
-  <text x="110" y="65" text-anchor="middle" font-size="10" fill="#374151">alg: RS256, kid: "key-1"</text>
+  <rect x="10" y="20" width="200" height="60" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="110" y="45" text-anchor="middle" font-size="13" font-weight="bold" fill="var(--svg-primary-text)">Header</text>
+  <text x="110" y="65" text-anchor="middle" font-size="10" fill="var(--svg-text)">alg: RS256, kid: "key-1"</text>
   <!-- Dot 1 -->
-  <text x="222" y="55" font-size="24" fill="#6b7280">.</text>
+  <text x="222" y="55" font-size="24" fill="var(--svg-neutral)">.</text>
   <!-- Payload -->
-  <rect x="240" y="20" width="220" height="60" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-  <text x="350" y="45" text-anchor="middle" font-size="13" font-weight="bold" fill="#166534">Payload (Claims)</text>
-  <text x="350" y="65" text-anchor="middle" font-size="10" fill="#374151">iss, sub, aud, exp, nonce...</text>
+  <rect x="240" y="20" width="220" height="60" rx="6" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="2"/>
+  <text x="350" y="45" text-anchor="middle" font-size="13" font-weight="bold" fill="var(--svg-success-text)">Payload (Claims)</text>
+  <text x="350" y="65" text-anchor="middle" font-size="10" fill="var(--svg-text)">iss, sub, aud, exp, nonce...</text>
   <!-- Dot 2 -->
-  <text x="472" y="55" font-size="24" fill="#6b7280">.</text>
+  <text x="472" y="55" font-size="24" fill="var(--svg-neutral)">.</text>
   <!-- Signature -->
-  <rect x="490" y="20" width="200" height="60" rx="6" fill="#f3f4f6" stroke="#6b7280" stroke-width="2"/>
-  <text x="590" y="45" text-anchor="middle" font-size="13" font-weight="bold" fill="#374151">Signature</text>
-  <text x="590" y="65" text-anchor="middle" font-size="10" fill="#374151">RSA/ECDSA over header.payload</text>
+  <rect x="490" y="20" width="200" height="60" rx="6" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="2"/>
+  <text x="590" y="45" text-anchor="middle" font-size="13" font-weight="bold" fill="var(--svg-text)">Signature</text>
+  <text x="590" y="65" text-anchor="middle" font-size="10" fill="var(--svg-text)">RSA/ECDSA over header.payload</text>
   <!-- Bottom label -->
-  <text x="350" y="108" text-anchor="middle" font-size="11" fill="#6b7280">base64url(header) . base64url(payload) . base64url(signature)</text>
+  <text x="350" y="108" text-anchor="middle" font-size="11" fill="var(--svg-neutral)">base64url(header) . base64url(payload) . base64url(signature)</text>
 </svg>
 
-<p>The header says HOW it's signed (algorithm + key ID). The payload contains the CLAIMS (facts about the user and token). The signature proves it hasn't been tampered with — created using the IdP's private key, verified with their public key.</p>
+<p>The header says HOW it's signed (algorithm + key ID). The payload contains the <span class="term" data-term="claims">CLAIMS</span> (facts about the user and token). The signature proves it hasn't been tampered with — created using the IdP's private key, verified with their public key.</p>
 
 <h2>The Standard Claims (What Each One Means)</h2>
 
@@ -93,7 +93,7 @@
 <p>This is what your Rust code MUST do before trusting a token. Miss any step and you have a security hole:</p>
 
 <ol>
-  <li><strong>Decode the header</strong> — find the <code>kid</code> (key ID) and <code>alg</code> (algorithm)</li>
+  <li><strong>Decode the header</strong> — find the <code><span class="term" data-term="kid">kid</span></code> (key ID) and <code>alg</code> (algorithm)</li>
   <li><strong>Fetch the provider's public keys</strong> — from the <code>jwks_uri</code> in the discovery document</li>
   <li><strong>Verify the signature</strong> — using the key that matches the token's <code>kid</code></li>
   <li><strong>Check <code>iss</code></strong> — must exactly match your configured issuer URL</li>
@@ -107,7 +107,7 @@
 
 <h2>JWKS: Where the Public Keys Live</h2>
 
-<p>The IdP signs tokens with a private key. Your app verifies them with the corresponding public key. But the IdP rotates keys — so you can't hardcode a key. Instead, you fetch them from the <strong>JWKS (JSON Web Key Set) endpoint</strong>:</p>
+<p>The IdP signs tokens with a private key. Your app verifies them with the corresponding public key. But the IdP rotates keys — so you can't hardcode a key. Instead, you fetch them from the <strong><span class="term" data-term="jwks">JWKS</span> (JSON Web Key Set) endpoint</strong>:</p>
 
 <pre><code>GET https://accounts.google.com/.well-known/jwks.json
 
@@ -169,7 +169,7 @@ let claims = verifier.verify::&lt;MyClaims&gt;(&amp;token).await?;</code></pre>
 <table>
   <tr><th>Problem</th><th>Symptom</th><th>Fix</th></tr>
   <tr><td>Key rotation</td><td>Signature verification fails for new tokens</td><td>Refetch JWKS when <code>kid</code> not found in cache</td></tr>
-  <tr><td>Clock skew</td><td><code>exp</code> check rejects valid tokens</td><td>Allow 30-60s leeway in expiration checks</td></tr>
+  <tr><td><span class="term" data-term="clock-skew">Clock skew</span></td><td><code>exp</code> check rejects valid tokens</td><td>Allow 30-60s leeway in expiration checks</td></tr>
   <tr><td>Stale JWKS cache</td><td>All tokens fail after IdP rotates</td><td>Cache with TTL (1h) + force-refresh on miss</td></tr>
   <tr><td>Wrong audience</td><td>Tokens from another app accepted</td><td>Always validate <code>aud</code> — never skip this check</td></tr>
   <tr><td>Multi-tenant confusion</td><td>Tokens from wrong tenant accepted</td><td>Validate <code>iss</code> matches expected issuer exactly</td></tr>

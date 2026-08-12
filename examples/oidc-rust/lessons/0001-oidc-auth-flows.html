@@ -36,7 +36,7 @@
 
 <ul>
   <li>The <code>openid</code> scope (signals "I want identity, not just authorization")</li>
-  <li>The <strong>ID token</strong> — a signed JWT proving who logged in</li>
+  <li>The <strong><span class="term" data-term="id-token">ID token</span></strong> — a signed JWT proving who logged in</li>
   <li>The <strong>UserInfo endpoint</strong> — for fetching additional user claims</li>
 </ul>
 
@@ -49,44 +49,44 @@
 <svg role="img" aria-labelledby="auth-flow-title" viewBox="0 0 720 400" style="max-width:100%; height:auto; margin: 1.5rem 0;">
   <title id="auth-flow-title">Authorization code flow: browser redirects to IdP, returns code to your app, app exchanges code for tokens server-to-server</title>
   <!-- Actors -->
-  <rect x="30" y="20" width="120" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
-  <text x="90" y="45" text-anchor="middle" font-size="13" fill="#1e40af">User (Browser)</text>
-  <rect x="290" y="20" width="120" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
-  <text x="350" y="45" text-anchor="middle" font-size="13" fill="#1e40af">Your App (Rust)</text>
-  <rect x="560" y="20" width="130" height="40" rx="4" fill="#f3f4f6" stroke="#6b7280" stroke-width="2"/>
-  <text x="625" y="45" text-anchor="middle" font-size="13" fill="#374151">Identity Provider</text>
+  <rect x="30" y="20" width="120" height="40" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="90" y="45" text-anchor="middle" font-size="13" fill="var(--svg-primary-text)">User (Browser)</text>
+  <rect x="290" y="20" width="120" height="40" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="350" y="45" text-anchor="middle" font-size="13" fill="var(--svg-primary-text)">Your App (Rust)</text>
+  <rect x="560" y="20" width="130" height="40" rx="4" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="2"/>
+  <text x="625" y="45" text-anchor="middle" font-size="13" fill="var(--svg-text)">Identity Provider</text>
   <!-- Lifelines -->
-  <line x1="90" y1="60" x2="90" y2="380" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4"/>
-  <line x1="350" y1="60" x2="350" y2="380" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4"/>
-  <line x1="625" y1="60" x2="625" y2="380" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4"/>
+  <line x1="90" y1="60" x2="90" y2="380" stroke="var(--svg-line)" stroke-width="1" stroke-dasharray="4"/>
+  <line x1="350" y1="60" x2="350" y2="380" stroke="var(--svg-line)" stroke-width="1" stroke-dasharray="4"/>
+  <line x1="625" y1="60" x2="625" y2="380" stroke="var(--svg-line)" stroke-width="1" stroke-dasharray="4"/>
   <!-- Step 1 -->
-  <line x1="90" y1="90" x2="350" y2="90" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)"/>
-  <text x="220" y="83" text-anchor="middle" font-size="11" fill="#374151">1. Click "Login"</text>
+  <line x1="90" y1="90" x2="350" y2="90" stroke="var(--svg-primary)" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="220" y="83" text-anchor="middle" font-size="11" fill="var(--svg-text)">1. Click "Login"</text>
   <!-- Step 2 -->
-  <line x1="350" y1="120" x2="90" y2="120" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)"/>
-  <text x="220" y="113" text-anchor="middle" font-size="11" fill="#374151">2. Redirect → IdP</text>
-  <text x="220" y="135" text-anchor="middle" font-size="9" fill="#6b7280">(client_id, scope=openid, state, code_challenge)</text>
+  <line x1="350" y1="120" x2="90" y2="120" stroke="var(--svg-primary)" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="220" y="113" text-anchor="middle" font-size="11" fill="var(--svg-text)">2. Redirect → IdP</text>
+  <text x="220" y="135" text-anchor="middle" font-size="9" fill="var(--svg-neutral)">(client_id, scope=openid, state, code_challenge)</text>
   <!-- Step 3 -->
-  <line x1="90" y1="160" x2="625" y2="160" stroke="#6b7280" stroke-width="2" marker-end="url(#arrow)"/>
-  <text x="357" y="153" text-anchor="middle" font-size="11" fill="#374151">3. User authenticates at IdP</text>
+  <line x1="90" y1="160" x2="625" y2="160" stroke="var(--svg-neutral)" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="357" y="153" text-anchor="middle" font-size="11" fill="var(--svg-text)">3. User authenticates at IdP</text>
   <!-- Step 4 -->
-  <line x1="625" y1="195" x2="90" y2="195" stroke="#6b7280" stroke-width="2" marker-end="url(#arrow)"/>
-  <text x="357" y="188" text-anchor="middle" font-size="11" fill="#374151">4. Redirect back with ?code=xxx&state=yyy</text>
+  <line x1="625" y1="195" x2="90" y2="195" stroke="var(--svg-neutral)" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="357" y="188" text-anchor="middle" font-size="11" fill="var(--svg-text)">4. Redirect back with ?code=xxx&state=yyy</text>
   <!-- Step 5 (browser to app) -->
-  <line x1="90" y1="225" x2="350" y2="225" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)"/>
-  <text x="220" y="218" text-anchor="middle" font-size="11" fill="#374151">5. Browser hits callback</text>
+  <line x1="90" y1="225" x2="350" y2="225" stroke="var(--svg-primary)" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="220" y="218" text-anchor="middle" font-size="11" fill="var(--svg-text)">5. Browser hits callback</text>
   <!-- Step 6 (server to server) -->
-  <line x1="350" y1="260" x2="625" y2="260" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow)"/>
-  <text x="487" y="253" text-anchor="middle" font-size="11" fill="#374151">6. Exchange code + code_verifier</text>
-  <text x="487" y="275" text-anchor="middle" font-size="9" fill="#16a34a">(server-to-server, not via browser)</text>
+  <line x1="350" y1="260" x2="625" y2="260" stroke="var(--svg-success)" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="487" y="253" text-anchor="middle" font-size="11" fill="var(--svg-text)">6. Exchange code + code_verifier</text>
+  <text x="487" y="275" text-anchor="middle" font-size="9" fill="var(--svg-success)">(server-to-server, not via browser)</text>
   <!-- Step 7 (tokens back) -->
-  <line x1="625" y1="300" x2="350" y2="300" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow)"/>
-  <text x="487" y="293" text-anchor="middle" font-size="11" fill="#374151">7. {id_token, access_token, refresh_token}</text>
+  <line x1="625" y1="300" x2="350" y2="300" stroke="var(--svg-success)" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="487" y="293" text-anchor="middle" font-size="11" fill="var(--svg-text)">7. {id_token, access_token, refresh_token}</text>
   <!-- Step 8 -->
   <line x1="350" y1="340" x2="350" y2="340" stroke="none"/>
-  <text x="350" y="340" text-anchor="middle" font-size="11" fill="#374151">8. Validate ID token → user is logged in</text>
+  <text x="350" y="340" text-anchor="middle" font-size="11" fill="var(--svg-text)">8. Validate ID token → user is logged in</text>
   <!-- Arrow marker -->
-  <defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="currentColor" stroke-width="1.5"/></marker></defs>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="var(--svg-text)" stroke-width="1.5"/></marker></defs>
 </svg>
 
 <p>Notice the split: steps 1-5 happen through the browser (redirects). Steps 6-7 happen server-to-server — your Rust code talks directly to the IdP's token endpoint. This is crucial: <strong>tokens never transit through the browser URL bar</strong>.</p>
@@ -105,10 +105,10 @@
 
 <h2>PKCE: Why the Code Alone Isn't Enough</h2>
 
-<p>The authorization code travels through the browser (in the redirect URL). If something intercepts it — a malicious browser extension, a compromised redirect, a rogue app registered with the same custom scheme — they could exchange it for tokens.</p>
+<p>The <span class="term" data-term="authorization-code-flow">authorization code</span> travels through the browser (in the redirect URL). If something intercepts it — a malicious browser extension, a compromised redirect, a rogue app registered with the same custom scheme — they could exchange it for tokens.</p>
 
 <div class="key-concept">
-<strong>PKCE</strong> (Proof Key for Code Exchange) ties the code to whoever started the flow. An interceptor has the code but can't prove they're the original requester.
+<strong><span class="term" data-term="pkce">PKCE</span></strong> (Proof Key for Code Exchange) ties the code to whoever started the flow. An interceptor has the code but can't prove they're the original requester.
 </div>
 
 <p>How it works:</p>
@@ -131,7 +131,7 @@
 
 <pre><code>https://accounts.google.com/.well-known/openid-configuration</code></pre>
 
-<p>This JSON document contains all the metadata your client needs: endpoints, supported scopes, signing algorithms, PKCE methods. In Rust, the <code>openidconnect</code> crate fetches and parses this with one async call:</p>
+<p>This JSON document contains all the metadata your client needs: endpoints, supported scopes, signing algorithms, PKCE methods. This is the <span class="term" data-term="discovery-document">discovery document</span> — in Rust, the <code>openidconnect</code> crate fetches and parses it with one async call:</p>
 
 <pre><code>let metadata = CoreProviderMetadata::discover_async(
     IssuerUrl::new("https://accounts.google.com".to_string())?,
@@ -146,7 +146,7 @@
 
 <table>
   <tr><th>Mechanism</th><th>What it prevents</th></tr>
-  <tr><td><code>state</code> parameter</td><td>CSRF — someone tricking a user into logging in as the attacker</td></tr>
+  <tr><td><span class="term" data-term="state-parameter"><code>state</code> parameter</span></td><td>CSRF — someone tricking a user into logging in as the attacker</td></tr>
   <tr><td><code>nonce</code> in ID token</td><td>Replay — using an old ID token to impersonate someone</td></tr>
   <tr><td>PKCE</td><td>Code interception — stealing the authorization code from the redirect</td></tr>
   <tr><td>Server-to-server token exchange</td><td>Token exposure — tokens never appear in browser history or logs</td></tr>

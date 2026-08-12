@@ -15,6 +15,7 @@ Usage:
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
@@ -199,7 +200,7 @@ def render_svg(dot_source: str) -> str:
     return svg
 
 
-def generate_page(map_data: dict, svg: str) -> str:
+def generate_page(map_data: dict, svg: str, index_link: str = "index.html") -> str:
     """Generate the full HTML page."""
     title = map_data["title"]
     orientation = map_data["orientation"]
@@ -447,7 +448,7 @@ def generate_page(map_data: dict, svg: str) -> str:
 
 <div class="map-container">
   <nav class="lesson-nav">
-    <a href="index.html" class="back-to-map">← All Lessons</a>
+    <a href="{index_link}" class="back-to-map">← All Lessons</a>
     <span class="nav-position">{len(map_data['topics'])} topics · {sum(1 for t in map_data['topics'] if t['status'] == 'complete')} complete</span>
   </nav>
   <h1>🗺️ {title}</h1>
@@ -555,7 +556,12 @@ def main() -> None:
             output_path = PROJECT_ROOT / "lessons" / f"{domain}-map.html"
             dot = generate_dot(map_data)
             svg = render_svg(dot)
-            html = generate_page(map_data, svg)
+            index_path = PROJECT_ROOT / "lessons" / "index.html"
+            try:
+                index_link = str(Path(os.path.relpath(index_path, output_path.parent)))
+            except ValueError:
+                index_link = "index.html"
+            html = generate_page(map_data, svg, index_link)
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_text(html, encoding="utf-8")
             try:
@@ -590,7 +596,12 @@ def main() -> None:
 
     dot = generate_dot(map_data)
     svg = render_svg(dot)
-    html = generate_page(map_data, svg)
+    index_path = PROJECT_ROOT / "lessons" / "index.html"
+    try:
+        index_link = str(Path(os.path.relpath(index_path, output_path.parent)))
+    except ValueError:
+        index_link = "index.html"
+    html = generate_page(map_data, svg, index_link)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(html, encoding="utf-8")
