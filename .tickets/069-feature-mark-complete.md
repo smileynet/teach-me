@@ -1,7 +1,7 @@
 ---
 id: "069"
 title: "Feature: mark topic as complete — button on lesson page"
-status: open
+status: done
 priority: high
 blocked_by: ["068"]
 type: feature
@@ -31,10 +31,19 @@ A "Mark as complete" button at the bottom of each lesson page (via lesson-action
 
 ## Acceptance criteria
 
-- [ ] "Mark as complete" button visible on lesson pages
-- [ ] Click updates MAP.md status to `complete`
-- [ ] Map page shows green node after marking complete
-- [ ] Already-complete topics show disabled button on load
+- [x] "Mark as complete" button visible on lesson pages
+- [x] Click updates MAP.md status to `complete`
+- [x] Map page shows green node after marking complete
+- [x] Already-complete topics show disabled button on load
+
+## Resolution (2026-08-12)
+
+lesson-actions.js renders "☐ Mark as complete" button. On click, POSTs to
+`/api/map/{domain}/{slug}/status`. Button transitions to "✓ Completed" (disabled).
+Map page shows green node on return. data-domain + data-topic-slug attributes
+on script tag enable reliable detection.
+
+Validated: Playwright click-through on lesson 0002, MAP.md updated, map node green.
 
 ## Validation
 
