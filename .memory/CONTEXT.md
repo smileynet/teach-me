@@ -65,3 +65,11 @@ _Avoid_: progressive difficulty (different concept in game design)
 **Research-first**:
 The hard gate requiring domain research before writing any lesson. Established by ADR 0002 after finding 8 factual errors in the Iceberg lesson and having the roguelike premise overturned entirely.
 _Avoid_: optional research step
+
+**Casual exploration posture**:
+teach-me is a discovery/exploration tool, not a retention optimization system. SR reinforces what was interesting, not maximizes recall. Features that add friction between "I'm curious" and "I'm learning" don't belong.
+_Avoid_: study tool, learning management system, course platform
+
+**Mask color (diagram cards)**:
+Slate gray #585b70 for occluded label masks. Neutral against all diagram layer colors (blue, amber, green). Never amber (clashes with diagram elements).
+_Avoid_: amber/orange masks, bright accent colors for masks
