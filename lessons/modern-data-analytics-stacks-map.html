@@ -394,47 +394,44 @@
 
 <!-- Generation modal -->
 <div class="modal-overlay" id="gen-modal">
-  <div class="modal">
+  <div class="modal" style="max-width:400px;">
     <h3 id="gen-title">Generate topic</h3>
     <p id="gen-desc">This topic hasn't been created yet.</p>
-    <div id="gen-progress" style="display:none; margin-top:1rem;">
-      <ul id="gen-phases" style="list-style:none; padding:0; margin:0 0 0.5rem 0; font-size:0.85rem;"></ul>
-      <pre id="gen-output" style="max-height:150px; overflow-y:auto; font-size:0.75rem; background:var(--code-bg); padding:0.5rem; display:none;"></pre>
-    </div>
+    <p id="gen-status" style="display:none; font-size:0.9rem; margin:1rem 0 0; padding:0.75rem; background:var(--code-bg,#f8fafc); border-radius:6px;">
+      <span id="gen-spinner" style="display:inline-block; animation:spin 1s linear infinite;">⟳</span>
+      <span id="gen-phase-text">Starting...</span>
+    </p>
     <div class="modal-actions">
-      <button class="primary" id="gen-run-btn" onclick="runGenerate()">▶ Generate now</button>
+      <button class="primary" id="gen-run-btn" onclick="runGenerate()">▶ Generate</button>
       <button id="gen-cancel-btn" onclick="cancelGenerate()" style="display:none; background:#dc2626; color:white;">Cancel</button>
       <button onclick="closeModal()">Close</button>
     </div>
   </div>
 </div>
+<style>@keyframes spin { to { transform: rotate(360deg); } }</style>
 
 <script>
 let _genTaskId = null;
 let _genES = null;
-let _genSlug = '';
-let _genTitle = '';
 let _genType = 'topic';
+let _genTitle = '';
 
 function offerGenerate(slug, title) {
-  _genSlug = slug; _genTitle = title; _genType = 'topic';
+  _genTitle = title; _genType = 'topic';
   document.getElementById('gen-title').textContent = 'Generate: ' + title;
   resetModal();
   document.getElementById('gen-modal').classList.add('show');
 }
 
 function offerGenerateQuiz(slug, title) {
-  _genSlug = slug; _genTitle = title; _genType = 'quiz';
+  _genTitle = title; _genType = 'quiz';
   document.getElementById('gen-title').textContent = 'Generate Quiz: ' + title;
   resetModal();
   document.getElementById('gen-modal').classList.add('show');
 }
 
 function resetModal() {
-  document.getElementById('gen-progress').style.display = 'none';
-  document.getElementById('gen-phases').innerHTML = '';
-  document.getElementById('gen-output').textContent = '';
-  document.getElementById('gen-output').style.display = 'none';
+  document.getElementById('gen-status').style.display = 'none';
   document.getElementById('gen-run-btn').style.display = '';
   document.getElementById('gen-cancel-btn').style.display = 'none';
   document.getElementById('gen-desc').textContent = "This topic hasn't been created yet.";
@@ -447,8 +444,9 @@ async function runGenerate() {
 
   document.getElementById('gen-run-btn').style.display = 'none';
   document.getElementById('gen-cancel-btn').style.display = '';
-  document.getElementById('gen-progress').style.display = '';
-  document.getElementById('gen-desc').textContent = 'Generating...';
+  document.getElementById('gen-status').style.display = '';
+  document.getElementById('gen-desc').textContent = 'Generating — this takes 30–120 seconds.';
+  setPhase('Starting...');
 
   try {
     const res = await fetch('/api/generate', {
@@ -457,65 +455,56 @@ async function runGenerate() {
       body: JSON.stringify({ prompt, mock: false }),
     });
     if (res.status !== 202) {
-      document.getElementById('gen-desc').textContent = 'Error: server returned ' + res.status;
-      document.getElementById('gen-run-btn').style.display = '';
-      document.getElementById('gen-cancel-btn').style.display = 'none';
+      finish('❌ Server error: ' + res.status, false);
       return;
     }
     const data = await res.json();
     _genTaskId = data.id;
 
     _genES = new EventSource(data.stream_url);
-    _genES.addEventListener('phase', (e) => addGenPhase(e.data));
-    _genES.addEventListener('output', (e) => addGenOutput(e.data));
+    _genES.addEventListener('phase', (e) => {
+      const labels = {
+        'tool:thinking':'Thinking...', 'tool:write':'Writing file...',
+        'tool:read':'Reading context...', 'tool:web_search':'Researching...',
+        'tool:subagent':'Researching (parallel)...', 'tool:glob':'Scanning files...',
+        'writing':'Writing lesson...', 'responding':'Finishing up...',
+        'complete':'Done', 'tool_done':null
+      };
+      const label = labels[e.data];
+      if (label) setPhase(label);
+      else if (e.data.startsWith('creating:')) setPhase('Saving: ' + e.data.slice(9));
+      else if (!labels.hasOwnProperty(e.data)) setPhase(e.data);
+    });
     _genES.addEventListener('done', (e) => {
       const result = JSON.parse(e.data);
       _genES.close(); _genES = null;
-      document.getElementById('gen-cancel-btn').style.display = 'none';
-      document.getElementById('gen-desc').textContent = result.exit_code === 0
-        ? '✅ Generation complete! Reload to see the new content.'
-        : '⚠️ Exited with code ' + result.exit_code;
-      const active = document.querySelector('#gen-phases .active');
-      if (active) active.classList.replace('active', 'done');
+      if (result.exit_code === 0) {
+        finish('✅ Done! Reload the page to see your new content.', true);
+      } else {
+        finish('⚠️ Generation exited with code ' + result.exit_code, false);
+      }
     });
-    _genES.onerror = () => {
-      document.getElementById('gen-desc').textContent = '❌ Connection lost';
-      document.getElementById('gen-cancel-btn').style.display = 'none';
-    };
+    _genES.onerror = () => finish('❌ Connection lost', false);
   } catch (err) {
-    document.getElementById('gen-desc').textContent = '❌ ' + err.message + ' — is the server running? (mise run serve)';
-    document.getElementById('gen-run-btn').style.display = '';
-    document.getElementById('gen-cancel-btn').style.display = 'none';
+    finish('❌ ' + err.message + ' — is the server running?', false);
   }
 }
 
-function addGenPhase(phase) {
-  const phases = document.getElementById('gen-phases');
-  const active = phases.querySelector('.active');
-  if (active) active.classList.replace('active', 'done');
-  if (phase === 'tool_done') return;
-  const labels = { 'tool:thinking':'Thinking...', 'tool:write':'Writing file...', 'tool:read':'Reading...', 'writing':'Writing content...', 'responding':'Generating response...', 'complete':'Complete' };
-  const li = document.createElement('li');
-  li.textContent = labels[phase] || phase;
-  li.className = 'active';
-  li.style.cssText = 'padding:0.2rem 0;';
-  phases.appendChild(li);
+function setPhase(text) {
+  document.getElementById('gen-phase-text').textContent = text;
 }
 
-function addGenOutput(text) {
-  const out = document.getElementById('gen-output');
-  out.style.display = '';
-  out.textContent += text + '\n';
-  out.scrollTop = out.scrollHeight;
+function finish(msg, success) {
+  document.getElementById('gen-desc').textContent = msg;
+  document.getElementById('gen-cancel-btn').style.display = 'none';
+  document.getElementById('gen-spinner').style.display = 'none';
+  document.getElementById('gen-phase-text').textContent = success ? 'Complete' : 'Stopped';
 }
 
 async function cancelGenerate() {
-  if (_genTaskId) {
-    await fetch('/api/generate/' + _genTaskId + '/cancel', { method: 'POST' });
-  }
+  if (_genTaskId) await fetch('/api/generate/' + _genTaskId + '/cancel', { method: 'POST' });
   if (_genES) { _genES.close(); _genES = null; }
-  document.getElementById('gen-desc').textContent = '🛑 Cancelled';
-  document.getElementById('gen-cancel-btn').style.display = 'none';
+  finish('🛑 Cancelled', false);
 }
 
 function closeModal() {
