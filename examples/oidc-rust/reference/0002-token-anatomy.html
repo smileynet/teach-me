@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference: Token Anatomy</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<h1>Token Anatomy</h1>
+<p class="lesson-meta">Reference · Companion to <a href="../lessons/0002-token-anatomy.html">Lesson 2</a></p>
+
+<h2>Token Types</h2>
+
+<table>
+  <tr><th>Token</th><th>For</th><th>Audience</th><th>Format</th><th>Lifetime</th></tr>
+  <tr><td>ID token</td><td>Identity (who logged in)</td><td>Your app</td><td>JWT (always)</td><td>Minutes-hours</td></tr>
+  <tr><td>Access token</td><td>Authorization (API calls)</td><td>Resource server</td><td>Opaque or JWT</td><td>Minutes-hours</td></tr>
+  <tr><td>Refresh token</td><td>Get new access tokens</td><td>Auth server only</td><td>Opaque</td><td>Days-months</td></tr>
+</table>
+
+<p><strong>Rule:</strong> ID token → your app. Access token → APIs. Never cross them.</p>
+
+<h2>JWT Structure</h2>
+
+<pre><code>base64url(header) . base64url(payload) . base64url(signature)</code></pre>
+
+<ul>
+  <li><strong>Header:</strong> <code>{"alg": "RS256", "kid": "key-id"}</code></li>
+  <li><strong>Payload:</strong> Claims (iss, sub, aud, exp, ...)</li>
+  <li><strong>Signature:</strong> RSA/ECDSA over header.payload with IdP's private key</li>
+</ul>
+
+<h2>Standard Claims</h2>
+
+<table>
+  <tr><th>Claim</th><th>What</th><th>Validate?</th></tr>
+  <tr><td><code>iss</code></td><td>Issuer URL</td><td>✓ Must match your configured issuer</td></tr>
+  <tr><td><code>sub</code></td><td>User's unique ID</td><td>— (use as stable identifier)</td></tr>
+  <tr><td><code>aud</code></td><td>Intended audience (your client_id)</td><td>✓ Must contain your app</td></tr>
+  <tr><td><code>exp</code></td><td>Expiration (Unix timestamp)</td><td>✓ Must be future (allow ~60s skew)</td></tr>
+  <tr><td><code>iat</code></td><td>Issued at</td><td>Optional (detect old tokens)</td></tr>
+  <tr><td><code>nonce</code></td><td>Your random value from auth request</td><td>✓ Must match stored nonce</td></tr>
+  <tr><td><code>auth_time</code></td><td>When user entered credentials</td><td>Optional (enforce max age)</td></tr>
+  <tr><td><code>at_hash</code></td><td>Access token hash</td><td>Optional (bind tokens together)</td></tr>
+</table>
+
+<h2>8-Step Validation Checklist</h2>
+
+<ol>
+  <li>Decode header → find <code>kid</code> and <code>alg</code></li>
+  <li>Fetch public keys from <code>jwks_uri</code></li>
+  <li>Verify signature with matching key</li>
+  <li>Check <code>iss</code> matches configured issuer</li>
+  <li>Check <code>aud</code> contains your client_id</li>
+  <li>Check <code>exp</code> &gt; now (with ≤60s leeway)</li>
+  <li>Check <code>nonce</code> matches stored value</li>
+  <li>Optionally check <code>iat</code> is recent</li>
+</ol>
+
+<h2>Scopes → Claims</h2>
+
+<table>
+  <tr><th>Scope</th><th>Claims you get</th></tr>
+  <tr><td><code>openid</code></td><td><code>sub</code> (required for OIDC)</td></tr>
+  <tr><td><code>profile</code></td><td><code>name</code>, <code>family_name</code>, <code>given_name</code>, <code>picture</code></td></tr>
+  <tr><td><code>email</code></td><td><code>email</code>, <code>email_verified</code></td></tr>
+</table>
+
+<h2>Rust Crate Selection</h2>
+
+<table>
+  <tr><th>Situation</th><th>Crate</th></tr>
+  <tr><td>Full login flow (web app)</td><td><code>openidconnect</code> (handles everything)</td></tr>
+  <tr><td>API token validation (manual)</td><td><code>jsonwebtoken</code> + manual JWKS fetch</td></tr>
+  <tr><td>API token validation (auto JWKS)</td><td><code>jwtk</code> with RemoteJwksVerifier</td></tr>
+  <tr><td>Axum middleware (production)</td><td><code>axum-oidc-layer</code> (caching, pluggable)</td></tr>
+  <tr><td>Axum middleware (lightweight)</td><td><code>axum-jwt-oidc</code></td></tr>
+</table>
+
+<h2>Production Gotchas</h2>
+
+<table>
+  <tr><th>Problem</th><th>Fix</th></tr>
+  <tr><td>Key rotation → sig fails</td><td>Refetch JWKS when kid not in cache</td></tr>
+  <tr><td>Clock skew → exp rejects valid tokens</td><td>Allow 30-60s leeway</td></tr>
+  <tr><td>Stale JWKS cache</td><td>TTL (1h) + force-refresh on kid miss</td></tr>
+  <tr><td>Wrong audience accepted</td><td>Always validate aud (never skip)</td></tr>
+  <tr><td>Multi-tenant cross-contamination</td><td>Validate iss exactly matches expected</td></tr>
+</table>
+
+<h2>Debugging 401s</h2>
+
+<ol>
+  <li>Decode token (jwt.io or <code>base64 -d</code>) — check <code>exp</code></li>
+  <li>Compare <code>kid</code> in token header to your JWKS cache</li>
+  <li>Check server clock: <code>date -u</code> vs token's <code>iat</code></li>
+  <li>Verify <code>aud</code> matches your configured client_id/audience</li>
+  <li>Check <code>iss</code> matches (trailing slashes matter)</li>
+</ol>
+
+<script src="../assets/theme-toggle.js"></script>
+
+</body>
+</html>
