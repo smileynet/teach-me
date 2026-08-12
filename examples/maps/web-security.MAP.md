@@ -24,14 +24,14 @@ Every web app you ship is exposed to the entire internet the moment it goes live
 - **why:** Untrusted input flowing into interpreters (SQL, OS, LDAP) is the oldest and most exploited class of web vulnerability
 - **scope:** substantial
 - **prereqs:** []
-- **status:** not-started
+- **status:** complete
 
 ### authentication-and-session-management
 - **title:** Authentication & Session Management
 - **why:** If attackers can impersonate a legitimate user, nothing else you build matters
 - **scope:** substantial
 - **prereqs:** []
-- **status:** not-started
+- **status:** in-progress
 
 ### authorization-and-access-control
 - **title:** Authorization & Access Control
