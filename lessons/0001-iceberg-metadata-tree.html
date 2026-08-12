@@ -292,35 +292,7 @@ Iceberg is a <strong>file-tracking metadata tree on top of object storage</stron
   </details>
 </div>
 
-<div class="next-steps" id="lesson-actions">
-  <h3>What's Next</h3>
-  <div style="display:flex; flex-direction:column; gap:0.75rem; margin-top:0.75rem;">
-    <a href="modern-data-analytics-stacks-map.html" class="action-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.6rem 1rem; border:1px solid var(--accent); border-radius:6px; color:var(--accent); text-decoration:none; font-size:0.9rem; width:fit-content;">← Back to map</a>
-    <span id="quiz-link" class="action-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.6rem 1rem; border:1px solid var(--border); border-radius:6px; font-size:0.9rem; width:fit-content; color:var(--text-muted);">checking quiz...</span>
-    <a href="../reference/0001-iceberg-metadata-tree.html" class="action-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.6rem 1rem; border:1px solid var(--border); border-radius:6px; color:var(--text); text-decoration:none; font-size:0.9rem; width:fit-content;">📄 Reference cheat sheet</a>
-  </div>
-</div>
-
 <script>
-(async function() {
-  const el = document.getElementById('quiz-link');
-  const btnStyle = 'display:inline-flex; align-items:center; gap:0.5rem; padding:0.6rem 1rem; border-radius:6px; font-size:0.9rem; width:fit-content; text-decoration:none; cursor:pointer;';
-  try {
-    const res = await fetch('/api/questions');
-    if (res.ok) {
-      const data = await res.json();
-      const count = data['0001-iceberg-metadata-tree'] || 0;
-      if (count > 0) {
-        el.outerHTML = `<a href="javascript:void(0)" onclick="alert('Quiz page coming soon — ${count} questions available')" style="${btnStyle} border:1px solid var(--accent); color:var(--accent);">✓ Take the quiz (${count} questions)</a>`;
-      } else {
-        el.outerHTML = `<a href="javascript:void(0)" onclick="offerQuiz()" style="${btnStyle} border:1px solid var(--border); color:var(--text);">+ Generate quiz</a>`;
-      }
-    }
-  } catch(e) {
-    el.outerHTML = `<span style="${btnStyle} border:1px solid var(--border); color:var(--text-muted);">Quiz requires server (mise run serve)</span>`;
-  }
-})();
-
 function offerQuiz() {
   if (!confirm('Generate quiz questions for this topic?')) return;
   fetch('/api/generate', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:'generate quick-check questions for Iceberg Metadata Tree', mock:false})})
@@ -345,6 +317,7 @@ function offerQuiz() {
 }
 </script>
 <script src="../assets/glossary.js"></script>
+<script src="../assets/lesson-actions.js" data-map-page="modern-data-analytics-stacks-map.html"></script>
 <script src="../assets/theme-toggle.js"></script>
 
 </body>
