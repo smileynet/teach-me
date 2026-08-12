@@ -51,6 +51,10 @@ assets/             — shared components (style.css, glossary, quiz, progressiv
 | Smoke test | `mise run verify` | Quick draw-diagram test |
 | Clone references | `mise run rehydrate` | Clone repos from REFERENCES.md |
 | Open lesson | `mise run open-lesson` | Open latest lesson in browser |
+| Quick-check page | `mise run sr:quick-check -- [topic] [--all]` | Generate quick-check review HTML from due cards |
+| Export to Anki | `mise run sr:export-anki -- [topic] [--output path]` | Export cards to .apkg |
+| Generate map page | `mise run map:generate -- <MAP.md> [--output path]` | Interactive map HTML from MAP.md |
+| Generate index | `mise run index:generate -- [--scan-dir path]` | All Lessons dashboard from MAP.md files |
 
 ## Workflow
 

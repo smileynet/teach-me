@@ -1,7 +1,7 @@
 ---
 id: "036"
 title: "Feature: export self-contained knowledge objects for sharing"
-status: open
+status: closed
 priority: low
 blocked_by: []
 type: feature
@@ -64,3 +64,7 @@ Unpacks into the target workspace, merges glossary, imports questions with fresh
 - [ ] MANIFEST.md describes contents and prerequisites
 - [ ] Import into a fresh workspace works (questions get new UUIDs, glossary merges)
 - [ ] Lessons render correctly without the original workspace's assets
+
+## Resolution (closed 2026-08-11)
+
+Superseded by the MAP.md + domain pages model. With per-domain map pages, generated lessons, and the All Lessons index — sharing a domain IS sharing the `*.MAP.md` + `lessons/` directory. No separate export format needed. The map page + lessons + questions ARE the portable knowledge object.
