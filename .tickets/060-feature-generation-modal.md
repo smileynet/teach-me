@@ -1,7 +1,7 @@
 ---
 id: "060"
 title: "Feature: generation progress modal — live checklist in browser"
-status: open
+status: done
 priority: medium
 blocked_by: ["058", "059"]
 type: feature
@@ -94,3 +94,13 @@ const STEP_PATTERNS = [
 
 - **Integration:** Start `mise run serve`, POST to `/api/generate` with mock=true, verify SSE events have correct structure for each checklist step
 - **E2E (Playwright):** Navigate to map page → click generate on a topic → verify modal appears → click confirm → verify timer starts, status updates (mock completes in 8s) → verify "Open Lesson" button appears → click it → verify navigation. Repeat with cancel mid-mock.
+
+## Resolution (2026-08-12)
+
+**Superseded.** The generation modal shipped with a deliberately simpler design:
+- Single status line (not a checklist) — less noise, fixed modal size
+- No collapsible log — raw output was actively harmful UX (ticket findings)
+- No elapsed timer — low value vs implementation cost
+- Auto-redirect on completion instead of "Open Lesson" button
+
+Error handling and retry split to ticket 066 (backlog).
