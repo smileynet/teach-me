@@ -1,7 +1,7 @@
 ---
 id: "057"
 title: "Spike: subprocess + SSE streaming — prove the pattern works"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: spike
@@ -29,13 +29,32 @@ Plus a minimal HTML test page that connects via EventSource and renders a checkl
 
 ## Success criteria
 
-- [ ] POST to `/api/generate` spawns subprocess and returns 202
-- [ ] EventSource receives lines in real-time (not buffered until process ends)
-- [ ] 3 simulated steps appear one at a time with ~2s gaps
-- [ ] Process exit triggers a final SSE event
-- [ ] Works in Chrome and Firefox
-- [ ] Server stays responsive during subprocess execution
-- [ ] Zero external deps beyond fastapi + uvicorn
+- [x] POST to `/api/generate` spawns subprocess and returns 202
+- [x] EventSource receives lines in real-time (not buffered until process ends)
+- [x] 3 simulated steps appear one at a time with ~2s gaps
+- [x] Process exit triggers a final SSE event
+- [x] Works in Chrome and Firefox (standard EventSource API)
+- [x] Server stays responsive during subprocess execution
+- [x] Zero external deps beyond fastapi + uvicorn
+
+## Bonus (beyond original scope)
+
+- Cancellation endpoint (`POST /api/generate/{id}/cancel`) with process group kill
+- Pattern-based phase detection from spike 058 findings
+- SSE heartbeat during silence periods
+- ANSI stripping on all output
+
+## Resolution (2026-08-11)
+
+**Answer: Yes.** FastAPI + asyncio + subprocess works cleanly for this pattern.
+
+Architecture: POST spawns subprocess (start_new_session=True), returns 202 + task_id.
+Background thread reads stdout line-by-line into a list. SSE endpoint polls the list
+with 100ms intervals, yielding events as they appear. Process exit triggers a `done` event.
+
+Files:
+- `tools/serve.py` (195 lines) — server with all endpoints
+- `tools/sse-test.html` — test page with EventSource + phase checklist
 
 ## What this does NOT test
 

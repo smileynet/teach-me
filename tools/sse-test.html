@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Generation Test — SSE Spike</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; color: #1a1a2e; }
+h1 { font-size: 1.4rem; margin-bottom: 1rem; }
+button { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+#start { background: #2563eb; color: white; }
+#start:disabled { background: #93a3b8; cursor: not-allowed; }
+#cancel { background: #dc2626; color: white; margin-left: 0.5rem; display: none; }
+.controls { margin-bottom: 1.5rem; }
+#status { font-size: 0.85rem; color: #6b7280; margin-top: 0.5rem; }
+#phases { list-style: none; margin: 1rem 0; }
+#phases li { padding: 0.4rem 0; border-bottom: 1px solid #e5e7eb; font-size: 0.9rem; }
+#phases li::before { content: "⏳ "; }
+#phases li.done::before { content: "✅ "; }
+#phases li.active::before { content: "🔄 "; }
+#output { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 0.75rem; font-family: monospace; font-size: 0.8rem; max-height: 300px; overflow-y: auto; white-space: pre-wrap; display: none; }
+#output.visible { display: block; }
+.timing { margin-top: 1rem; font-size: 0.85rem; color: #6b7280; }
+</style>
+</head>
+<body>
+<h1>🧪 Generation SSE Test</h1>
+
+<div class="controls">
+  <button id="start">Start Mock Generation</button>
+  <button id="cancel">Cancel</button>
+  <div id="status">Ready</div>
+</div>
+
+<ul id="phases"></ul>
+<pre id="output"></pre>
+<div class="timing" id="timing"></div>
+
+<script>
+const startBtn = document.getElementById('start');
+const cancelBtn = document.getElementById('cancel');
+const status = document.getElementById('status');
+const phaseList = document.getElementById('phases');
+const output = document.getElementById('output');
+const timing = document.getElementById('timing');
+
+let taskId = null;
+let eventSource = null;
+let startTime = null;
+
+// Phase display names
+const PHASE_LABELS = {
+  'started': 'Starting generation...',
+  'tool:thinking': 'Thinking...',
+  'tool:write': 'Writing file...',
+  'tool:read': 'Reading file...',
+  'tool_done': null, // marks previous as done
+  'creating': 'Creating file...',
+  'writing': 'Writing content...',
+  'responding': 'Generating response...',
+  'complete': 'Complete',
+};
+
+function addPhase(phase) {
+  // Mark previous active as done
+  const active = phaseList.querySelector('.active');
+  if (active) active.classList.replace('active', 'done');
+
+  // Skip phases that just mark completion
+  if (phase === 'tool_done') return;
+
+  const label = PHASE_LABELS[phase] || phase;
+  const li = document.createElement('li');
+  li.textContent = label;
+  li.classList.add('active');
+  li.dataset.phase = phase;
+  phaseList.appendChild(li);
+}
+
+function appendOutput(text) {
+  output.classList.add('visible');
+  output.textContent += text + '\n';
+  output.scrollTop = output.scrollHeight;
+}
+
+startBtn.addEventListener('click', async () => {
+  // Reset UI
+  phaseList.innerHTML = '';
+  output.textContent = '';
+  output.classList.remove('visible');
+  timing.textContent = '';
+  startTime = performance.now();
+
+  startBtn.disabled = true;
+  cancelBtn.style.display = 'inline-block';
+  status.textContent = 'Starting...';
+
+  // POST to start generation
+  const res = await fetch('/api/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: '', mock: true }),
+  });
+
+  if (res.status !== 202) {
+    status.textContent = `Error: ${res.status}`;
+    startBtn.disabled = false;
+    cancelBtn.style.display = 'none';
+    return;
+  }
+
+  const data = await res.json();
+  taskId = data.id;
+  status.textContent = `Task ${taskId} — streaming...`;
+
+  // Connect SSE
+  eventSource = new EventSource(data.stream_url);
+
+  eventSource.addEventListener('phase', (e) => {
+    addPhase(e.data);
+    status.textContent = `Task ${taskId} — ${e.data}`;
+  });
+
+  eventSource.addEventListener('output', (e) => {
+    appendOutput(e.data);
+  });
+
+  eventSource.addEventListener('done', (e) => {
+    const result = JSON.parse(e.data);
+    const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
+
+    // Mark last phase done
+    const active = phaseList.querySelector('.active');
+    if (active) active.classList.replace('active', 'done');
+
+    status.textContent = result.exit_code === 0
+      ? `✅ Complete (exit 0)`
+      : `⚠️ Exited with code ${result.exit_code}`;
+    timing.textContent = `Total time: ${elapsed}s`;
+
+    cleanup();
+  });
+
+  eventSource.onerror = () => {
+    status.textContent = '❌ SSE connection error';
+    cleanup();
+  };
+});
+
+cancelBtn.addEventListener('click', async () => {
+  if (!taskId) return;
+  await fetch(`/api/generate/${taskId}/cancel`, { method: 'POST' });
+  status.textContent = '🛑 Cancelled';
+  cleanup();
+});
+
+function cleanup() {
+  if (eventSource) { eventSource.close(); eventSource = null; }
+  startBtn.disabled = false;
+  cancelBtn.style.display = 'none';
+  taskId = null;
+}
+</script>
+</body>
+</html>
