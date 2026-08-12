@@ -43,3 +43,9 @@ Color vocabulary: blue = available now, gray = has unmet prereqs, green = comple
 - [ ] Topic descriptions come from MAP.md `why` fields
 - [ ] Lesson ends with "where do you want to start?" + suggestion
 - [ ] Follows existing lesson scaffold (CSS variables, theme toggle, accessibility)
+
+## Validation
+
+- **Unit:** `python tools/map_parser.py` parses the source MAP.md without errors
+- **Integration:** Generated HTML loads in Playwright with zero console errors
+- **E2E:** Start `mise run serve`, navigate to generated orientation lesson, verify diagram renders (SVG present), topic cards visible, theme toggle works, suggestion matches `get_next_suggestion()` output

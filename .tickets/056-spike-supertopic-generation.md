@@ -55,4 +55,9 @@ Update `generate_map_page.py` to render the "Where This Leads" section with:
 
 ## Partial resolution (2026-08-11)
 
-The "generatable" state is fully working — leads_to items are buttons that trigger the generation modal with live SSE. But existing domain detection (linking to other map pages) and the horizon state (prerequisites unmet) are not implemented. Those need the MAP.md parser (ticket 043) to determine which domains exist and what their prereqs are.
+The "generatable" state is fully working — leads_to items are buttons that trigger the generation modal with live SSE. But existing domain detection (linking to other map pages) and the horizon state (prerequisites unmet) are not implemented. Those need the MAP.md parser (ticket 043, now done) to determine which domains exist and what their prereqs are.
+
+## Validation (remaining work)
+
+- **Integration:** `/api/maps` endpoint returns list of existing domain MAP.md files; page JS calls it on load and updates leads_to button states
+- **E2E (Playwright):** Load map page with one existing leads_to domain (create a test MAP.md) → verify that item renders as a link (not generate button). Load with a non-existing domain → verify generate button. Verify visual distinction between states.

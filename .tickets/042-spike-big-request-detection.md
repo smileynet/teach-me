@@ -44,6 +44,12 @@ THEN → ask: "[Topic] is broad. Want the full landscape, or focused on [detecte
 - [ ] < 20% false negatives (focused treatment of broad requests)
 - [ ] Borderline cases get a clarifying question (not a wrong guess)
 
+## Validation
+
+- **Unit:** Test corpus of 20+ requests (10 broad, 10 focused, 5 borderline) with expected classifications. Script scores accuracy.
+- **Integration:** Heuristic callable from serve.py — POST `/api/classify` with a prompt → returns `{mode: "domain" | "topic" | "clarify"}`. Verify against the test corpus via curl.
+- **E2E:** In a browser, type a broad request in the generate modal → verify system asks "This sounds like a whole domain — generate a MAP, or just one topic?" rather than silently choosing.
+
 ## Expected output
 
 Decision table mapping requests → actions. Heuristic ready to embed in teach skill.

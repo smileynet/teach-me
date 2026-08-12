@@ -35,3 +35,9 @@ On hover (desktop) or tap (mobile):
 - [ ] Popover has a clickable action (generate or open lesson)
 - [ ] Works on both desktop and mobile (hover vs tap)
 - [ ] Doesn't interfere with the node click-to-scroll behavior (048)
+
+## Validation
+
+- **E2E (Playwright desktop):** Navigate to map page → hover a node → verify popover element appears with correct title/why text → verify popover disappears on mouseout
+- **E2E (Playwright mobile):** Resize to iPhone viewport → tap a node → verify popover appears → tap elsewhere → verify popover dismisses
+- **Regression:** After popover implementation, click a node → verify detail panel still appears (no interference)
