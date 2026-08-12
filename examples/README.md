@@ -1,55 +1,40 @@
-# Example Teaching Workspace: Apache Iceberg on AWS
+# Examples
 
-This is a real teaching workspace created during skill development. It serves as a **test fixture** for validating feature improvements to the teach, quiz-me, and visual tooling.
+Each subdirectory is a **workspace** — a self-contained learning project with its own mission, lessons, and progress. These demonstrate what teach-me produces at various stages of use.
 
-## What's here
+## Workspaces
 
-| Path | Purpose |
-|------|---------|
-| `MISSION.md` | Mission: learn Iceberg for customer advisory |
-| `RESOURCES.md` | Curated sources (Iceberg spec, AWS docs, communities) |
-| `NOTES.md` | Learner profile and preferences |
-| `learning-records/0001-*.md` | Prior knowledge baseline |
-| `lessons/0001-iceberg-metadata-tree.html` | Lesson 1 with inline SVG diagram |
-| `lessons/spike-quiz-test.html` | Quiz component demo (3 questions with source links) |
-| `lessons/spike-reveal-test.html` | Progressive reveal demo (step-by-step diagram) |
-| `lessons/spike-drawsvg-test.html` | drawsvg output demo (3 diagram types) |
+| Example | Status | Demonstrates |
+|---------|--------|-------------|
+| `iceberg-workspace/` | Full (2 lessons, quizzes, reference) | Complete workspace with all artifact types |
+| `godot-gamedev/` | MAP only (no lessons generated) | Starting point: just a MISSION + domain map |
+| `web-security/` | MAP only (no lessons generated) | Starting point: just a MISSION + domain map |
+| `roguelike-rust/` | Minimal (1 lesson) | Early-stage workspace with one topic done |
+| `workout-fundamentals/` | Minimal (1 lesson) | Boundary example: physical skills vs knowledge |
 
-## Use as test fixture
+## Workspace structure
 
-When improving skills or components, test against this workspace:
+Every workspace follows this layout (same as what `mise run init-workspace` creates):
 
-```bash
-# Verify lesson renders
-open lessons/0001-iceberg-metadata-tree.html
-
-# Verify quiz component
-open lessons/spike-quiz-test.html
-
-# Verify progressive reveal
-open lessons/spike-reveal-test.html
-
-# Verify diagram generation
-source .venv/bin/activate
-python tools/draw-diagram.py --type stack --data "$(python -c "
-import json; print(json.dumps({
-  'layers': [
-    {'label': 'Glue Catalog', 'color': 'blue'},
-    {'label': 'Metadata', 'color': 'amber'},
-    {'label': 'Data Files', 'color': 'green'}
-  ],
-  'arrows': ['points to', 'lists']
-}))")"
+```
+workspace-name/
+  MISSION.md            — why you're learning this
+  RESOURCES.md          — verified sources (optional)
+  maps/                 — domain MAP.md files
+  lessons/              — generated HTML lessons
+    quiz/               — per-topic quiz pages
+  reference/            — compressed lookup companions
+  learning-records/     — demonstrated understanding
+    questions/          — SR question bank (.jsonl)
 ```
 
-## What to test feature changes against
+## How these get built
 
-| Feature | Test with |
-|---------|-----------|
-| Teach skill changes | Does lesson 1 still follow the new guidance? |
-| Quiz component changes | Does spike-quiz-test.html still work? (shuffle, feedback, source links) |
-| Progressive reveal changes | Does spike-reveal-test.html still advance? (click, keyboard, buttons) |
-| draw-diagram.py changes | Do all 3 types in spike-drawsvg-test.html still render? |
-| Visual steering changes | Does lesson 1's SVG comply with the updated rules? |
-| Glossary component | Does spike-glossary-test.html work? (hover tooltip, click tray, keyboard) |
-| Accessibility (ticket 013) | Apply ARIA fixes to lesson 1 and verify |
+1. User writes `MISSION.md` (what they want to learn and why)
+2. Agent generates `maps/*.MAP.md` (domain decomposition into topics)
+3. Agent generates `lessons/*.html` (one per topic, from the map)
+4. Agent generates `lessons/quiz/*-quiz.html` (questions for each topic)
+5. User marks topics complete as they go
+6. Adjacent domains appear in "From here, you could explore"
+
+The `iceberg-workspace/` example shows steps 1–5 completed for two topics.

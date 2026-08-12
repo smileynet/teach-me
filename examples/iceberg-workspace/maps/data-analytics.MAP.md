@@ -45,7 +45,7 @@ Every organization sits on operational data that only becomes useful when it flo
 - **why:** The engine you pick decides what workloads are fast, what's expensive, and how your storage is actually read
 - **scope:** substantial
 - **prereqs:** [storage-and-table-formats]
-- **status:** in-progress
+- **status:** not-started
 
 ### transformation-and-modeling
 - **title:** Transformation & Data Modeling

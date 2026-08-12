@@ -11,7 +11,10 @@ from map_parser import (
     get_available_topics, get_next_suggestion, update_status,
 )
 
-EXAMPLES_DIR = Path(__file__).parent.parent / "examples" / "maps"
+EXAMPLES_DIR = Path(__file__).parent.parent / "examples"
+DATA_ANALYTICS_MAP = EXAMPLES_DIR / "iceberg-workspace" / "maps" / "data-analytics.MAP.md"
+GODOT_MAP = EXAMPLES_DIR / "godot-gamedev" / "maps" / "godot-gamedev.MAP.md"
+SECURITY_MAP = EXAMPLES_DIR / "web-security" / "maps" / "web-security.MAP.md"
 
 
 # ---------------------------------------------------------------------------
@@ -19,7 +22,7 @@ EXAMPLES_DIR = Path(__file__).parent.parent / "examples" / "maps"
 # ---------------------------------------------------------------------------
 
 def test_load_data_analytics():
-    m = load_map(EXAMPLES_DIR / "data-analytics.MAP.md")
+    m = load_map(DATA_ANALYTICS_MAP)
     assert m.domain == "modern-data-analytics-stacks"
     assert m.depth == 0
     assert m.parent is None
@@ -42,7 +45,7 @@ def test_load_data_analytics():
 
 
 def test_load_godot():
-    m = load_map(EXAMPLES_DIR / "godot-gamedev.MAP.md")
+    m = load_map(GODOT_MAP)
     assert m.domain == "godot-gamedev"
     assert len(m.topics) == 8
     assert m.topic_by_slug("nodes-and-scenes").prereqs == []
@@ -50,7 +53,7 @@ def test_load_godot():
 
 
 def test_load_security():
-    m = load_map(EXAMPLES_DIR / "web-security.MAP.md")
+    m = load_map(SECURITY_MAP)
     assert m.domain == "web-application-security"
     assert len(m.topics) >= 5
 
@@ -79,10 +82,10 @@ def test_load_no_frontmatter():
 # ---------------------------------------------------------------------------
 
 def test_validate_good_maps():
-    for name in ("data-analytics.MAP.md", "godot-gamedev.MAP.md", "web-security.MAP.md"):
-        m = load_map(EXAMPLES_DIR / name)
+    for path in (DATA_ANALYTICS_MAP, GODOT_MAP, SECURITY_MAP):
+        m = load_map(path)
         errors = validate(m)
-        assert errors == [], f"{name} has errors: {errors}"
+        assert errors == [], f"{path.name} has errors: {errors}"
 
 
 def test_validate_too_many_topics():
@@ -142,7 +145,7 @@ def test_validate_invalid_status():
 # ---------------------------------------------------------------------------
 
 def test_get_available_topics():
-    m = load_map(EXAMPLES_DIR / "data-analytics.MAP.md")
+    m = load_map(DATA_ANALYTICS_MAP)
     available = get_available_topics(m)
     slugs = [t.slug for t in available]
     # ingestion has no prereqs but storage is in-progress (prereq satisfied)
@@ -168,7 +171,7 @@ def test_get_available_all_blocked():
 
 
 def test_get_next_suggestion():
-    m = load_map(EXAMPLES_DIR / "data-analytics.MAP.md")
+    m = load_map(DATA_ANALYTICS_MAP)
     suggestion = get_next_suggestion(m)
     assert suggestion is not None
     # With ingestion=complete and storage=in-progress, transformation-and-modeling
@@ -196,7 +199,7 @@ def test_get_next_suggestion_nothing_available():
 
 def test_update_status():
     # Copy a MAP.md to temp, update, verify
-    src = EXAMPLES_DIR / "data-analytics.MAP.md"
+    src = DATA_ANALYTICS_MAP
     with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
         f.write(src.read_text())
         tmp = Path(f.name)
@@ -217,7 +220,7 @@ def test_update_status():
 
 
 def test_update_status_invalid():
-    src = EXAMPLES_DIR / "data-analytics.MAP.md"
+    src = DATA_ANALYTICS_MAP
     with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
         f.write(src.read_text())
         tmp = Path(f.name)
@@ -232,7 +235,7 @@ def test_update_status_invalid():
 
 
 def test_update_status_missing_slug():
-    src = EXAMPLES_DIR / "data-analytics.MAP.md"
+    src = DATA_ANALYTICS_MAP
     with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
         f.write(src.read_text())
         tmp = Path(f.name)

@@ -98,7 +98,10 @@ WORKSPACE = PROJECT_ROOT / "workspace"
 if not WORKSPACE.exists():
     WORKSPACE = PROJECT_ROOT / "examples" / "iceberg-workspace"
 
-MAPS_DIR = PROJECT_ROOT / "examples" / "maps"
+MAPS_DIR = WORKSPACE / "maps"
+if not MAPS_DIR.exists():
+    # Fallback: look in the example workspace
+    MAPS_DIR = PROJECT_ROOT / "examples" / "iceberg-workspace" / "maps"
 
 # Mock command for testing (simulates a 3-step generation)
 MOCK_CMD = [
