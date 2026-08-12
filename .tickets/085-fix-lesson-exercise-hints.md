@@ -1,7 +1,7 @@
 ---
 id: "085"
 title: "Fix: add hint <details> to workout lessons 0002 and 0003 exercises"
-status: open
+status: done
 blocked_by: []
 priority: low
 ---
@@ -29,6 +29,10 @@ Add a hint `<details>` before the answer `<details>`:
 
 ## Acceptance criteria
 
-- [ ] Both lessons have hint + answer in their exercise section
-- [ ] Hint guides reasoning without giving away the answer
-- [ ] `mise run verify` passes
+- [x] Both lessons have hint + answer in their exercise section
+- [x] Hint guides reasoning without giving away the answer
+- [x] `mise run verify` passes
+
+## Resolution (2026-08-12)
+
+TBD
