@@ -1,0 +1,261 @@
+"""Tests for tools/map_parser.py."""
+
+import tempfile
+from pathlib import Path
+
+import sys
+sys.path.insert(0, str(Path(__file__).parent))
+
+from map_parser import (
+    DomainMap, Topic, load_map, validate,
+    get_available_topics, get_next_suggestion, update_status,
+)
+
+EXAMPLES_DIR = Path(__file__).parent.parent / "examples" / "maps"
+
+
+# ---------------------------------------------------------------------------
+# Parsing tests
+# ---------------------------------------------------------------------------
+
+def test_load_data_analytics():
+    m = load_map(EXAMPLES_DIR / "data-analytics.MAP.md")
+    assert m.domain == "modern-data-analytics-stacks"
+    assert m.depth == 0
+    assert m.parent is None
+    assert "streaming-architectures" in m.leads_to
+    assert len(m.leads_to) == 5
+    assert "deliberate pipeline" in m.orientation
+    assert len(m.topics) == 7
+
+    # Check a specific topic
+    t = m.topic_by_slug("storage-and-table-formats")
+    assert t is not None
+    assert t.title == "Storage & Open Table Formats"
+    assert t.status == "in-progress"
+    assert t.lesson_file == "0001-iceberg-metadata-tree.html"
+    assert t.prereqs == ["ingestion"]
+    assert t.scope == "deep"
+
+
+def test_load_godot():
+    m = load_map(EXAMPLES_DIR / "godot-gamedev.MAP.md")
+    assert m.domain == "godot-gamedev"
+    assert len(m.topics) == 8
+    assert m.topic_by_slug("nodes-and-scenes").prereqs == []
+    assert "gdscript-fundamentals" in m.topic_by_slug("2d-game-mechanics").prereqs
+
+
+def test_load_security():
+    m = load_map(EXAMPLES_DIR / "web-security.MAP.md")
+    assert m.domain == "web-application-security"
+    assert len(m.topics) >= 5
+
+
+def test_load_missing_file():
+    try:
+        load_map("/nonexistent/path.md")
+        assert False, "Should have raised FileNotFoundError"
+    except FileNotFoundError:
+        pass
+
+
+def test_load_no_frontmatter():
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
+        f.write("# No frontmatter\n\nJust content.\n")
+        f.flush()
+        try:
+            load_map(f.name)
+            assert False, "Should have raised ValueError"
+        except ValueError as e:
+            assert "frontmatter" in str(e).lower()
+
+
+# ---------------------------------------------------------------------------
+# Validation tests
+# ---------------------------------------------------------------------------
+
+def test_validate_good_maps():
+    for name in ("data-analytics.MAP.md", "godot-gamedev.MAP.md", "web-security.MAP.md"):
+        m = load_map(EXAMPLES_DIR / name)
+        errors = validate(m)
+        assert errors == [], f"{name} has errors: {errors}"
+
+
+def test_validate_too_many_topics():
+    m = DomainMap(
+        domain="test", description="", depth=0, parent=None,
+        leads_to=[], orientation="",
+        topics=[Topic(slug=f"t{i}", title=f"T{i}", why="", scope="substantial",
+                      prereqs=[], status="not-started") for i in range(10)]
+    )
+    errors = validate(m)
+    assert any("Too many topics" in e for e in errors)
+
+
+def test_validate_undefined_prereq():
+    m = DomainMap(
+        domain="test", description="", depth=0, parent=None,
+        leads_to=[], orientation="",
+        topics=[
+            Topic(slug="a", title="A", why="", scope="substantial",
+                  prereqs=["nonexistent"], status="not-started"),
+        ]
+    )
+    errors = validate(m)
+    assert any("undefined prereq" in e for e in errors)
+
+
+def test_validate_cycle():
+    m = DomainMap(
+        domain="test", description="", depth=0, parent=None,
+        leads_to=[], orientation="",
+        topics=[
+            Topic(slug="a", title="A", why="", scope="substantial",
+                  prereqs=["b"], status="not-started"),
+            Topic(slug="b", title="B", why="", scope="substantial",
+                  prereqs=["a"], status="not-started"),
+        ]
+    )
+    errors = validate(m)
+    assert any("Cycle" in e for e in errors)
+
+
+def test_validate_invalid_status():
+    m = DomainMap(
+        domain="test", description="", depth=0, parent=None,
+        leads_to=[], orientation="",
+        topics=[
+            Topic(slug="a", title="A", why="", scope="substantial",
+                  prereqs=[], status="garbage"),
+        ]
+    )
+    errors = validate(m)
+    assert any("invalid status" in e for e in errors)
+
+
+# ---------------------------------------------------------------------------
+# Query tests
+# ---------------------------------------------------------------------------
+
+def test_get_available_topics():
+    m = load_map(EXAMPLES_DIR / "data-analytics.MAP.md")
+    available = get_available_topics(m)
+    slugs = [t.slug for t in available]
+    # ingestion has no prereqs but storage is in-progress (prereq satisfied)
+    # so compute-engines and transformation-and-modeling should be available
+    assert "compute-engines" in slugs
+    assert "transformation-and-modeling" in slugs
+    # governance requires orchestration which is not-started
+    assert "governance-and-observability" not in slugs
+
+
+def test_get_available_all_blocked():
+    m = DomainMap(
+        domain="test", description="", depth=0, parent=None,
+        leads_to=[], orientation="",
+        topics=[
+            Topic(slug="a", title="A", why="", scope="substantial",
+                  prereqs=["b"], status="not-started"),
+            Topic(slug="b", title="B", why="", scope="substantial",
+                  prereqs=["a"], status="not-started"),
+        ]
+    )
+    assert get_available_topics(m) == []
+
+
+def test_get_next_suggestion():
+    m = load_map(EXAMPLES_DIR / "data-analytics.MAP.md")
+    suggestion = get_next_suggestion(m)
+    assert suggestion is not None
+    # ingestion has 6 downstream dependents (most of any available topic)
+    assert suggestion.slug == "ingestion"
+
+
+def test_get_next_suggestion_nothing_available():
+    m = DomainMap(
+        domain="test", description="", depth=0, parent=None,
+        leads_to=[], orientation="",
+        topics=[
+            Topic(slug="a", title="A", why="", scope="substantial",
+                  prereqs=["b"], status="not-started"),
+            Topic(slug="b", title="B", why="", scope="substantial",
+                  prereqs=["a"], status="not-started"),
+        ]
+    )
+    assert get_next_suggestion(m) is None
+
+
+# ---------------------------------------------------------------------------
+# Mutation tests
+# ---------------------------------------------------------------------------
+
+def test_update_status():
+    # Copy a MAP.md to temp, update, verify
+    src = EXAMPLES_DIR / "data-analytics.MAP.md"
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
+        f.write(src.read_text())
+        tmp = Path(f.name)
+
+    update_status(tmp, "ingestion", "in-progress")
+    m = load_map(tmp)
+    assert m.topic_by_slug("ingestion").status == "in-progress"
+    # Other topics unchanged
+    assert m.topic_by_slug("storage-and-table-formats").status == "in-progress"
+    assert m.topic_by_slug("compute-engines").status == "not-started"
+
+    # Update again
+    update_status(tmp, "ingestion", "complete")
+    m = load_map(tmp)
+    assert m.topic_by_slug("ingestion").status == "complete"
+
+    tmp.unlink()
+
+
+def test_update_status_invalid():
+    src = EXAMPLES_DIR / "data-analytics.MAP.md"
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
+        f.write(src.read_text())
+        tmp = Path(f.name)
+
+    try:
+        update_status(tmp, "ingestion", "garbage")
+        assert False, "Should have raised ValueError"
+    except ValueError as e:
+        assert "Invalid status" in str(e)
+
+    tmp.unlink()
+
+
+def test_update_status_missing_slug():
+    src = EXAMPLES_DIR / "data-analytics.MAP.md"
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
+        f.write(src.read_text())
+        tmp = Path(f.name)
+
+    try:
+        update_status(tmp, "nonexistent-topic", "complete")
+        assert False, "Should have raised ValueError"
+    except ValueError as e:
+        assert "not found" in str(e)
+
+    tmp.unlink()
+
+
+# ---------------------------------------------------------------------------
+# Runner
+# ---------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    tests = [v for k, v in globals().items() if k.startswith("test_")]
+    passed = failed = 0
+    for test in tests:
+        try:
+            test()
+            passed += 1
+            print(f"  ✓ {test.__name__}")
+        except Exception as e:
+            failed += 1
+            print(f"  ✗ {test.__name__}: {e}")
+    print(f"\n{passed} passed, {failed} failed")
+    raise SystemExit(1 if failed else 0)

@@ -1,7 +1,7 @@
 ---
 id: "043"
 title: "Feature: MAP.md parser and data model"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: feature
@@ -49,8 +49,17 @@ class DomainMap:
 
 ## Acceptance criteria
 
-- [ ] Parses the MAP.md format from the proposal correctly
-- [ ] Rejects maps with cycles, undefined prereqs, or >9 topics
-- [ ] Updates status field without clobbering other content
-- [ ] `get_available_topics` respects prereq completion
-- [ ] Handles missing MAP.md gracefully (not a crash)
+- [x] Parses the MAP.md format from the proposal correctly
+- [x] Rejects maps with cycles, undefined prereqs, or >9 topics
+- [x] Updates status field without clobbering other content
+- [x] `get_available_topics` respects prereq completion
+- [x] Handles missing MAP.md gracefully (not a crash)
+
+## Resolution (2026-08-12)
+
+`tools/map_parser.py` — 294 lines, pure stdlib (no PyYAML needed).
+`tools/test_map_parser.py` — 17 tests, all passing.
+
+Parses all 3 example MAP.md files. Validates cycles (Kahn's), undefined prereqs,
+topic count, status values. `get_next_suggestion` picks by downstream dependent count.
+`update_status` does regex replace preserving all other content.
