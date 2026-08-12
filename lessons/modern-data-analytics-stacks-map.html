@@ -410,41 +410,51 @@ document.getElementById('gen-modal').addEventListener('click', function(e) {
 });
 
 // --- On load: scan for existing lesson files and update topic status ---
-(async function detectLessons() {
+(async function detectStatus() {
   let withLessons = 0, complete = 0;
-  let lessonFiles = [], questionMap = {};
+
+  // MAP.md is source of truth for status; /api/lessons for file detection
+  let lessonFiles = [], mapData = null;
   try {
-    const [lRes, qRes] = await Promise.all([fetch('/api/lessons'), fetch('/api/questions')]);
+    const [lRes, mRes] = await Promise.all([fetch('/api/lessons'), fetch(`/api/map/${DOMAIN}`)]);
     if (lRes.ok) lessonFiles = await lRes.json();
-    if (qRes.ok) questionMap = await qRes.json();
+    if (mRes.ok) mapData = await mRes.json();
   } catch (e) {}
 
+  // Update topic data from MAP.md
+  if (mapData) {
+    for (const mt of mapData.topics) {
+      if (TOPICS[mt.slug]) {
+        TOPICS[mt.slug].status = mt.status;
+        if (mt.lesson_file) TOPICS[mt.slug].lesson_file = mt.lesson_file;
+      }
+    }
+  }
+
+  // Detect lesson files for topics that don't have one in MAP.md
   for (const [slug, topic] of Object.entries(TOPICS)) {
     if (!topic.lesson_file) {
       const slugParts = slug.split('-');
       const match = lessonFiles.find(f =>
         slugParts.every(part => f.includes(part)) || f.includes(slug)
       );
-      if (match) { topic.lesson_file = match; topic.status = 'in-progress'; }
+      if (match) {
+        topic.lesson_file = match;
+        if (topic.status === 'not-started') topic.status = 'in-progress';
+      }
     }
-    if (!topic.lesson_file) continue;
-    withLessons++;
 
-    // Check if questions exist (lesson_id = filename without .html)
-    const lessonId = topic.lesson_file.replace('.html', '');
-    const hasQuestions = Object.keys(questionMap).some(qid =>
-      qid === lessonId || qid.includes(slug) || slug.split('-').every(p => qid.includes(p))
-    );
-
+    // Update node colors based on status
     const node = document.querySelector(`.map-graph .node[data-slug="${slug}"] path`);
-    if (hasQuestions) {
-      topic.status = 'complete'; complete++;
+    if (topic.status === 'complete') {
+      complete++; withLessons++;
       if (node) { node.setAttribute('fill', '#dcfce7'); node.setAttribute('stroke', '#16a34a'); }
-    } else {
-      topic.status = 'in-progress';
+    } else if (topic.status === 'in-progress' || topic.lesson_file) {
+      withLessons++;
       if (node) { node.setAttribute('fill', '#dbeafe'); node.setAttribute('stroke', '#2563eb'); }
     }
   }
+
   const total = Object.keys(TOPICS).length;
   const navPos = document.querySelector('.nav-position');
   if (navPos) navPos.textContent = `${total} topics · ${complete} complete · ${withLessons - complete} in progress`;
@@ -453,24 +463,14 @@ document.getElementById('gen-modal').addEventListener('click', function(e) {
   const banner = document.getElementById('suggestion-banner');
   const bannerText = document.getElementById('suggestion-text');
   const bannerBtn = document.getElementById('suggestion-btn');
-  try {
-    const mapRes = await fetch(`/api/map/${DOMAIN}`);
-    if (mapRes.ok) {
-      const mapData = await mapRes.json();
-      if (mapData.next_suggestion) {
-        const sugTopic = TOPICS[mapData.next_suggestion];
-        const title = sugTopic ? sugTopic.title : mapData.next_suggestion;
-        if (withLessons === 0) {
-          bannerText.textContent = 'Start here:';
-        } else {
-          bannerText.textContent = 'Suggested next:';
-        }
-        bannerBtn.textContent = title + ' →';
-        bannerBtn.onclick = () => selectTopic(mapData.next_suggestion);
-        banner.style.display = 'flex';
-      }
-    }
-  } catch(e) {}
+  if (mapData && mapData.next_suggestion) {
+    const sugTopic = TOPICS[mapData.next_suggestion];
+    const title = sugTopic ? sugTopic.title : mapData.next_suggestion;
+    bannerText.textContent = withLessons === 0 ? 'Start here:' : 'Suggested next:';
+    bannerBtn.textContent = title + ' →';
+    bannerBtn.onclick = () => selectTopic(mapData.next_suggestion);
+    banner.style.display = 'flex';
+  }
 })();
 
 // --- Detect existing domain maps for leads-to linking ---
