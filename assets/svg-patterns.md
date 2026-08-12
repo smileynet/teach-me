@@ -33,10 +33,33 @@ The `--title` flag handles all of the above automatically.
 - Max 5-9 elements per diagram
 - Labels go ON the diagram (never separate)
 - One-line verbal summary above every diagram
-- Consistent colors: blue (#2563eb) = primary/input, green (#16a34a) = success/output, amber (#d97706) = warning/caution, gray (#6b7280) = neutral/infrastructure
-- Font: `font-family="system-ui, sans-serif"` at `font-size="13"` or `14`
+- **Use CSS custom properties** for all colors (enables dark mode):
+  - `var(--svg-primary)` / `var(--svg-primary-fill)` / `var(--svg-primary-text)` — primary/input (blue in light)
+  - `var(--svg-success)` / `var(--svg-success-fill)` / `var(--svg-success-text)` — success/output (green in light)
+  - `var(--svg-warning)` / `var(--svg-warning-fill)` / `var(--svg-warning-text)` — warning/caution (amber in light)
+  - `var(--svg-error)` / `var(--svg-error-fill)` / `var(--svg-error-text)` — error/problem (red in light)
+  - `var(--svg-neutral)` / `var(--svg-neutral-fill)` / `var(--svg-neutral-text)` — infrastructure/supporting (gray in light)
+  - `var(--svg-line)` — connector lines, lifelines
+  - `var(--svg-text)` — general text in diagrams
+- Font: `font-size="13"` or `14` (inherits page font via CSS)
 - Rounded corners: `rx="6"` on all rects
 - Arrow markers: define once, reuse via `marker-end="url(#arrow)"`
+
+### Color Variable Usage
+
+```svg
+<!-- Stroke + fill for a primary element -->
+<rect fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+<text fill="var(--svg-primary-text)">Label</text>
+
+<!-- Connector line -->
+<line stroke="var(--svg-line)" stroke-width="1.5"/>
+
+<!-- General text -->
+<text fill="var(--svg-text)">Description</text>
+```
+
+**Note:** CSS variables in SVG attributes work when the SVG is inline HTML (which ours always are). They do NOT work in external `.svg` files loaded via `<img>`. This is fine — we always inline.
 
 ## Arrow Marker Definition
 
