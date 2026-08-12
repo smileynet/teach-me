@@ -1,14 +1,37 @@
 #!/usr/bin/env bash
 # Initialize a fresh learning workspace.
-# Creates workspace/ with the required directory structure.
+# Creates the required directory structure with assets symlink.
 # Safe to run multiple times — won't overwrite existing files.
+#
+# Usage:
+#   tools/init-workspace.sh                    # creates workspace/ at project root
+#   tools/init-workspace.sh --path examples/my-topic  # creates at custom location
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-WORKSPACE="$PROJECT_ROOT/workspace"
 TEMPLATE="$PROJECT_ROOT/assets/workspace-template"
+
+# Parse --path argument
+WORKSPACE="$PROJECT_ROOT/workspace"
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --path)
+      WORKSPACE="$2"
+      # Make relative paths absolute from project root
+      if [[ "$WORKSPACE" != /* ]]; then
+        WORKSPACE="$PROJECT_ROOT/$WORKSPACE"
+      fi
+      shift 2
+      ;;
+    *)
+      echo "Unknown argument: $1"
+      echo "Usage: init-workspace.sh [--path <workspace-dir>]"
+      exit 1
+      ;;
+  esac
+done
 
 if [ -d "$WORKSPACE/lessons" ]; then
   echo "Workspace already exists at: $WORKSPACE"
@@ -27,15 +50,21 @@ for f in MISSION.md RESOURCES.md; do
   fi
 done
 
-# Copy shared assets symlink (lessons reference ../assets/)
+# Create assets symlink (relative path so it's portable)
 if [ ! -L "$WORKSPACE/assets" ] && [ ! -d "$WORKSPACE/assets" ]; then
-  ln -s "$PROJECT_ROOT/assets" "$WORKSPACE/assets"
+  # Compute relative path from workspace to project assets/
+  ASSETS_ABS="$PROJECT_ROOT/assets"
+  # Use python for reliable relative path computation
+  REL_PATH=$(python3 -c "
+import os.path
+print(os.path.relpath('$ASSETS_ABS', '$WORKSPACE'))
+")
+  ln -s "$REL_PATH" "$WORKSPACE/assets"
 fi
 
-echo "✓ Workspace ready"
+echo "✓ Workspace ready at: $WORKSPACE"
 echo ""
 echo "Next steps:"
-echo "  1. Edit workspace/MISSION.md with your learning goal"
+echo "  1. Edit MISSION.md with your learning goal"
 echo "  2. Run: mise run serve"
-echo "  3. Open: http://localhost:8787/lessons/index.html"
-echo "  4. Generate your first topic from the map page"
+echo "  3. Generate your first topic map"
