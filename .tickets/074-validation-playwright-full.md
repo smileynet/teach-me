@@ -1,7 +1,7 @@
 ---
 id: "074"
 title: "Validation: Playwright full navigation + visual analysis of all page types"
-status: open
+status: done
 priority: high
 blocked_by: ["073"]
 type: feature
@@ -59,3 +59,15 @@ Capture a named screenshot at each step. After all tests pass, analyze screensho
 ## Validation
 
 - This ticket IS the validation. Its output validates ticket 073.
+
+## Resolution (2026-08-12)
+
+**14/14 tests pass.** Script: `python tools/test-navigation.py`
+
+### Visual findings (from screenshot analysis):
+1. **Index progress rings hardcoded** — not reading from /api/map (known gap, deferred)
+2. **No selected-node highlight** on graph when detail panel shows — cosmetic
+3. **Action bar** could use stronger visual separator from lesson content — cosmetic
+
+None blocking. Navigation flow is complete and correct.
+Screenshots in `test-results/screenshots/`, report in `test-results/navigation-report.md`.
