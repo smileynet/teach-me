@@ -1,7 +1,7 @@
 ---
 id: "079"
 title: "Feature: replace example workspaces — remove web-security, add OIDC-in-Rust"
-status: open
+status: done
 priority: high
 blocked_by: []
 type: feature
@@ -38,3 +38,7 @@ examples/oidc-rust/
 
 - `mise run verify` passes
 - Playwright: navigate to OIDC example, verify lessons load and quiz works
+
+## Resolution (2026-08-12)
+
+TBD
