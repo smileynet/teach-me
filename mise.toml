@@ -43,6 +43,11 @@ description = "Start generation server (localhost:8787, or --lan for network acc
 depends = ["setup"]
 run = "python tools/serve.py"
 
+[tasks."serve:dev"]
+description = "Start server with auto-reload on code changes"
+depends = ["setup"]
+run = "uvicorn tools.serve:app --host 127.0.0.1 --port 8787 --reload --reload-dir tools"
+
 [tasks.rehydrate]
 description = "Clone reference repos from REFERENCES.md"
 run = """

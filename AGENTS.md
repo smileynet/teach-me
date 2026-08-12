@@ -66,6 +66,7 @@ examples/           — test fixtures and example workspaces (MAP.md samples, to
 | After UI changes | `mise run visual-qa` to verify components still work |
 | Before progression | quiz-me for Socratic dialog (learner explains, agent probes) |
 | Reviewing retention | `mise run sr:review` (all topics) or `mise run sr:review -- topic-slug` |
+| Leaving a ticket | Ticket is DONE (all AC checked) or OPEN with an update note. No partial closes. No moving on with unchecked boxes. |
 | Session start | `mise run sr` to check if cards are due before new material |
 | After writing questions | `mise run sr:check` as quality gate |
 | Checking knowledge health | `mise run sr:analytics` for decay alerts and load forecast |
@@ -87,6 +88,7 @@ examples/           — test fixtures and example workspaces (MAP.md samples, to
 | Don't teach from parametric memory | Cite sources in every lesson |
 | Don't invent specific numbers | Cite or frame as general |
 | Don't ask recall questions in gates | Ask "explain to [person] why..." |
+| Don't omit lesson-actions.js | Every lesson includes `<script src="../assets/lesson-actions.js">` — provides consistent nav + quiz buttons |
 
 ## Environment
 

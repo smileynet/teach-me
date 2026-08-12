@@ -2,6 +2,12 @@
 """
 Rebuild a map page's HTML to use the simplified template.
 
+NOTE: This script reads the OLD format (with topic-card divs). It cannot
+re-run on pages it already rebuilt. To re-process, get the original from git:
+    git show <commit>:lessons/page.html > /tmp/original.html
+    python tools/rebuild-map-page.py /tmp/original.html
+    cp /tmp/original.html lessons/page.html
+
 Reads the existing map page, extracts the SVG and topic data from the
 topic-card sections, then rewrites the page with:
 - Status-colored clickable graph nodes

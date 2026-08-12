@@ -48,3 +48,16 @@ ANSI_RE = re.compile(r"\x1b\[\??[0-9;]*[a-zA-Z]")
 def strip_ansi(text: str) -> str:
     return ANSI_RE.sub("", text)
 ```
+
+## Tool Restrictions in Non-Interactive Mode
+
+When spawned with `--no-interactive`, kiro-cli **rejects** certain tools:
+- `subagent` — "non-interactive mode (no user to approve)"
+- `web_search` — same rejection
+
+This means generated lessons cannot dispatch research subagents or search the web.
+The agent falls back to its training knowledge + files already in the workspace.
+
+Workaround: pass `--trust-tools=read,write,glob,shell,code,grep` to allow file operations,
+but research tools remain blocked. If research is needed, run it in a separate
+interactive session first, save findings to `.scratch/research/`, then generate the lesson.
