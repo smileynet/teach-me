@@ -65,7 +65,11 @@
         .lesson-action-bar .action-btn:hover { background: var(--bg-surface); }
         .lesson-action-bar .action-primary { border-color: var(--accent); color: var(--accent); }
         .lesson-action-bar .action-success { border-color: #16a34a; color: #16a34a; }
+        .lesson-action-bar .action-success:hover { background: color-mix(in srgb, #16a34a 10%, transparent); }
+        .lesson-action-bar .action-success:active { transform: scale(0.96); }
         .lesson-action-bar .action-done { border-color: #16a34a; color: #16a34a; opacity: 0.7; cursor: default; }
+        .lesson-action-bar .action-muted { border-color: var(--border); color: var(--text-muted); font-size: 0.8rem; }
+        .lesson-action-bar .action-muted:hover { color: var(--text); }
       </style>
       <h3>What's next</h3>
       <div class="actions" id="lesson-actions-list">
@@ -148,7 +152,7 @@
       const topic = mapData.topics.find(t => t.slug === resolvedSlug);
 
       if (topic && topic.status === 'complete') {
-        el.outerHTML = `<span class="action-btn action-done">✓ Completed</span>`;
+        el.outerHTML = `<span class="action-btn action-done">✓ Completed</span> <button class="action-btn action-muted" onclick="window._reopenTopic()">↩ Reopen</button>`;
       } else {
         el.outerHTML = `<button class="action-btn action-success" id="mark-complete-btn" onclick="window._markComplete()">☐ Mark as complete</button>`;
       }
@@ -215,7 +219,11 @@
   window._markComplete = async function() {
     const btn = document.getElementById('mark-complete-btn');
     if (!btn) return;
-    btn.textContent = '⟳ Updating...';
+    btn.textContent = '✓ Done!';
+    btn.style.background = '#16a34a';
+    btn.style.color = '#fff';
+    btn.style.borderColor = '#16a34a';
+    btn.style.transform = 'scale(1.05)';
     btn.disabled = true;
 
     try {
@@ -225,15 +233,30 @@
         body: JSON.stringify({ status: 'complete' }),
       });
       if (res.ok) {
-        btn.outerHTML = `<span class="action-btn action-done">✓ Completed</span>`;
+        setTimeout(() => { window.location.href = mapPage; }, 800);
       } else {
         btn.textContent = '☐ Mark as complete';
+        btn.style.cssText = '';
         btn.disabled = false;
         alert('Failed to update status');
       }
     } catch(e) {
       btn.textContent = '☐ Mark as complete';
+      btn.style.cssText = '';
       btn.disabled = false;
+      alert('Server not running — use: mise run serve');
+    }
+  };
+
+  window._reopenTopic = async function() {
+    try {
+      const res = await fetch(`/api/map/${window._completeDomain}/${window._completeSlug}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'in-progress' }),
+      });
+      if (res.ok) location.reload();
+    } catch(e) {
       alert('Server not running — use: mise run serve');
     }
   };
