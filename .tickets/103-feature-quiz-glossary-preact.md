@@ -2,7 +2,7 @@
 id: "103"
 title: "Convert quiz.js + glossary.js to Preact components"
 type: feature
-status: open
+status: done
 priority: low
 blocked_by: ["095"]
 work_order: 7

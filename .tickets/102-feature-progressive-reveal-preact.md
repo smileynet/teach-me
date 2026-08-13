@@ -2,7 +2,7 @@
 id: "102"
 title: "Convert progressive-reveal.js to Preact component"
 type: feature
-status: open
+status: done
 priority: low
 blocked_by: ["095"]
 work_order: 6
