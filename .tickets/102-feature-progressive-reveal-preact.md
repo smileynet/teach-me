@@ -1,0 +1,26 @@
+---
+id: "102"
+title: "Convert progressive-reveal.js to Preact component"
+type: feature
+status: open
+priority: low
+blocked_by: ["095"]
+---
+
+# Convert progressive-reveal.js to Preact component
+
+## What to build
+
+Step-through diagram reveal as a Preact component. Signal tracks current step, DOM elements with `data-step` show/hide reactively.
+
+## Deliverables
+
+- `assets/components/ProgressiveReveal.js` — step counter signal, next/prev buttons, aria-live for a11y
+- Works as an island mount in static lesson HTML
+
+## Acceptance Criteria
+
+- [ ] Steps advance/retreat on button click
+- [ ] Only elements up to current step are visible
+- [ ] aria-live announces new content for screen readers
+- [ ] Works in existing lesson pages via mount point

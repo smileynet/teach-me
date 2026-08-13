@@ -2,7 +2,7 @@
 id: "091"
 title: "Move topic detail into graph nodes — inline cards replace sidebar list"
 type: feature
-status: open
+status: done
 priority: high
 blocked_by: []
 ---
@@ -53,3 +53,7 @@ The graph layout still shows edges (prereq arrows) between cards, preserving the
 - The current Graphviz SVG is generated server-side in Python — may need to switch to a client-side layout library or a CSS-based approach
 - Keep it zero-dependency if possible (no npm build step) — inline JS library or pure CSS grid with manual edge drawing
 - The `generate_map_page.py` script produces a single self-contained HTML file; this constraint stays
+
+## Resolution
+
+Superseded by ticket 096 (Convert generate_map_page.py to Preact DAG output). The spike evaluation (092-094) confirmed dagre + HTML cards as the approach, and Preact + HTM + Signals as the reactive layer. Ticket 096 is the production implementation of this ticket's goals.
