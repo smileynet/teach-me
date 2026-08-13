@@ -5,6 +5,7 @@ Test bed for learning-oriented agent skills. Refined here, then ported to crew-r
 ## Workspace Layout
 
 ```
+workspace/          — THE user's live learning workspace (gitignored, auto-created on first serve)
 .kiro/skills/       — agent skills (teach, quiz-me, wait-what, jargon, visual-qa, theme, etc.)
 .kiro/steering/     — visual-teaching guidelines
 .memory/            — persistent knowledge (CONTEXT.md glossary, ADRs, research findings)
@@ -12,13 +13,12 @@ Test bed for learning-oriented agent skills. Refined here, then ported to crew-r
 .references/        — cloned reference repos (gitignored, rehydrate via mise run rehydrate)
 tools/              — project scripts (draw-diagram, visual-qa, theme-preview, render-diagrams, sr-*)
 palettes/           — color palette definitions (JSON)
-lessons/            — HTML lessons (the teaching output)
-reference/          — compressed reference docs (scannable work artifacts, alongside lessons)
-learning-records/   — what the learner has demonstrated understanding of
 assets/             — shared components (style.css, glossary, quiz, progressive-reveal, theme-toggle)
 .tickets/           — local ticket tracking
 examples/           — test fixtures and example workspaces (MAP.md samples, topic examples)
 ```
+
+The `workspace/` directory is the single live workspace per machine. All topics go here — maps, lessons, quizzes, reference docs, learning records. It's gitignored (user-local state). Auto-created on first `mise run serve` if missing.
 
 ## Skills
 
@@ -48,7 +48,9 @@ examples/           — test fixtures and example workspaces (MAP.md samples, to
 | Generate quiz page | `python3 tools/generate-quiz-page.py --workspace X --lesson-id Y --title T --lesson-file F --map-page M` | Quiz page from JSONL questions |
 | Generate map page | `python3 tools/generate_map_page.py MAP.md --workspace X --output Y` | Interactive SVG map from MAP.md |
 | Generate index | `python3 tools/generate_index_page.py --scan-dir examples` | All Lessons dashboard |
-| Init workspace | `tools/init-workspace.sh --path X` | Scaffold workspace with relative assets symlink |
+| Init workspace | `tools/init-workspace.sh [--default]` | Scaffold workspace; --default for generic first-launch content |
+| Serve workspace | `mise run serve -- [--workspace PATH]` | Start server (default: workspace/). Auto-creates workspace on first run |
+| Serve on LAN | `mise run serve:lan -- [--workspace PATH]` | Same but on 0.0.0.0:8787 for network access |
 | SR status | `mise run sr` | What's due, health summary |
 | SR review | `mise run sr:review` | Review all due (or `-- topic-slug` for one topic) |
 | SR quality check | `mise run sr:check` | Leech detection, prompt format issues |
@@ -105,6 +107,8 @@ examples/           — test fixtures and example workspaces (MAP.md samples, to
 | Don't ask recall questions in gates | Ask "explain to [person] why..." |
 | Don't omit lesson-actions.js | Every lesson includes `<script src="../assets/lesson-actions.js">` — provides consistent nav + quiz buttons |
 | Don't ship silent buttons | Interactive buttons must have visible hover state + click feedback (animation, color change, or navigation) |
+| Don't give partial URLs | When a server is running, always provide full clickable URLs (http://host:port/path) |
+| Don't create per-topic workspaces | One workspace/ per machine holds all topics. Use examples/ only for demo fixtures |
 
 ## Environment
 
@@ -139,3 +143,5 @@ The teach skill's posture is **knowledgeable colleague at a whiteboard** — not
 ## Test Fixture
 
 The root-level teaching workspace (MISSION.md, RESOURCES.md, lessons/, reference/, learning-records/) is the **Iceberg on AWS** example — a real teaching session used as a test fixture. See `examples/README.md` for what to test feature changes against.
+
+The live `workspace/` directory is gitignored and user-local. It holds all active learning topics for this machine.
