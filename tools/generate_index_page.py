@@ -162,10 +162,36 @@ def render_card(meta: dict) -> str:
     </a>"""
 
 
-def generate_page(domains: list[dict]) -> str:
+def generate_page(domains: list[dict], scan_dir: Path | None = None) -> str:
     """Generate the Preact index page."""
     sys.path.insert(0, str(PROJECT_ROOT / "tools"))
     from lib.preact_page import render_page
+
+    # Parse MISSION.md if it exists
+    mission = None
+    mission_path = (scan_dir or PROJECT_ROOT) / "MISSION.md"
+    if not mission_path.exists():
+        # Try workspace
+        mission_path = PROJECT_ROOT / "workspace" / "MISSION.md"
+    if mission_path.exists():
+        content = mission_path.read_text(encoding="utf-8")
+        # Skip generic template content
+        if "Tell your AI assistant" not in content and "[Your Topic]" not in content:
+            # Extract title (# line)
+            title_m = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+            # Extract Why section
+            why_m = re.search(r'## Why\n\n(.+?)(?=\n##|\Z)', content, re.DOTALL)
+            # Extract Success Criteria (bullet list)
+            criteria_m = re.search(r'## Success Criteria\n\n((?:- .+\n?)+)', content)
+            criteria = []
+            if criteria_m:
+                criteria = [line.lstrip('- ').strip() for line in criteria_m.group(1).strip().splitlines() if line.strip()]
+
+            mission = {
+                "title": title_m.group(1).strip() if title_m else None,
+                "why": why_m.group(1).strip() if why_m else None,
+                "criteria": criteria[:4],  # top 4 max
+            }
 
     # Build data island
     domain_data = []
@@ -184,6 +210,7 @@ def generate_page(domains: list[dict]) -> str:
 
     data = {
         "domains": domain_data,
+        "mission": mission,
         "stats": {
             "domainCount": len(domains),
             "topicCount": total_topics,
@@ -200,7 +227,7 @@ def generate_page(domains: list[dict]) -> str:
     const data = JSON.parse(document.getElementById('page-data').textContent);
 
     render(
-      html`<${IndexView} domains=${data.domains} stats=${data.stats} />`,
+      html`<${IndexView} domains=${data.domains} stats=${data.stats} mission=${data.mission} />`,
       document.getElementById('app')
     );
 """
@@ -209,6 +236,10 @@ def generate_page(domains: list[dict]) -> str:
     body { max-width: 900px; margin: 0 auto; padding: 2rem; }
     .index-view h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
     .index-meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .mission-block { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+    .mission-why { font-size: 0.9rem; color: var(--text); line-height: 1.5; margin-bottom: 0.5rem; }
+    .mission-criteria { padding-left: 1.2rem; margin: 0; }
+    .mission-criteria li { font-size: 0.83rem; color: var(--text-muted); line-height: 1.6; }
     .domain-grid { display: flex; flex-direction: column; gap: 1rem; }
     .domain-card {
       display: block; padding: 1.25rem; background: var(--bg-elevated);
@@ -370,7 +401,7 @@ def main() -> None:
         print("No depth-0 MAP.md files found.")
         # Still generate the page with empty state
         output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(generate_page([]), encoding="utf-8")
+        output.write_text(generate_page([], scan_dir=scan_dirs[0] if scan_dirs else None), encoding="utf-8")
         print(f"✓ Generated {output.relative_to(PROJECT_ROOT)} (empty state)")
         return
 
@@ -378,7 +409,7 @@ def main() -> None:
     domains.sort(key=lambda d: d["title"])
 
     output.parent.mkdir(parents=True, exist_ok=True)
-    page = generate_page(domains)
+    page = generate_page(domains, scan_dir=scan_dirs[0] if scan_dirs else None)
     output.write_text(page, encoding="utf-8")
     print(f"✓ Generated {output.relative_to(PROJECT_ROOT)} ({len(domains)} domains)")
 
