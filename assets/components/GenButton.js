@@ -7,7 +7,7 @@ import { GenerationStream } from './GenerationStream.js';
 
 const html = htm.bind(h);
 
-export function GenButton({ topicId, topicTitle }) {
+export function GenButton({ topicId, topicTitle, lessonPath }) {
   const state = getTopicState(topicId);
   const [stream, setStream] = useState(null);
 
@@ -43,7 +43,10 @@ export function GenButton({ topicId, topicTitle }) {
     return html`<button class="btn primary" onClick=${handleGenerate}>Generate this topic</button>`;
   }
   if (state.status.value === 'complete') {
-    return html`<button class="btn primary">Open lesson →</button>`;
+    if (lessonPath) {
+      return html`<a href=${lessonPath} class="btn primary">Open lesson →</a>`;
+    }
+    return html`<span class="btn done">✓ Complete</span>`;
   }
   return null;
 }
