@@ -1,7 +1,7 @@
 ---
 id: "032"
 title: "Feature: open-ended knowledge and interests analysis from SR + dialog"
-status: closed
+status: done
 priority: low
 blocked_by: []
 type: feature

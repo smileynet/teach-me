@@ -1,7 +1,7 @@
 ---
 id: "053"
 title: "Spike: generation progress checklist — live feedback during topic creation"
-status: closed
+status: done
 priority: low
 blocked_by: []
 type: spike

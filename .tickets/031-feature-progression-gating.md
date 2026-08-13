@@ -1,7 +1,7 @@
 ---
 id: "031"
 title: "Feature: soft-recommend review before new lessons"
-status: closed
+status: done
 priority: medium
 blocked_by: []
 type: feature
