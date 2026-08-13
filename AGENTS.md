@@ -63,6 +63,11 @@ examples/           — test fixtures and example workspaces (MAP.md samples, to
 
 | Situation | Action |
 |-----------|--------|
+| **New user arrives** | Detect no populated workspace → introduce ("I'm a teaching workspace"), ask what they want to learn, scaffold their workspace, begin research |
+| Someone asks "what is this?" | Orient: research-backed lessons + quizzes + spaced repetition. Offer to start with any topic. |
+| User names a topic to learn | Run `generate-topic` pipeline (research → lesson → post-process → verify) |
+| User wants to customize | Ask about pace (detailed vs direct), visuals (diagrams vs text), then save to NOTES.md |
+| User says "quiz me" or "test me" | Socratic dialog — learner explains, agent probes understanding |
 | Writing a lesson | Teach skill produces lesson + reference doc + SR questions + glossary JSON |
 | After a lesson | Run jargon skill to annotate domain terms |
 | After UI changes | `mise run visual-qa` to verify components still work |
