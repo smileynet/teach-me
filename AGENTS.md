@@ -50,9 +50,9 @@ The `workspace/` directory is the single live workspace per machine. All topics 
 | Check topic complete | `python3 tools/check-topic-completeness.py --workspace X --all` | Reports missing artifacts per topic (lesson, ref, quiz, jargon, SR) |
 | Annotate jargon | `python3 tools/jargon-annotate.py --workspace X` | Mechanical term annotation from glossary-data JSON (idempotent) |
 | Migrate SVG colors | `python3 tools/check-svg-vars.py --workspace X` | Flags hardcoded hex in lesson SVGs |
-| Generate quiz page | `python3 tools/generate-quiz-page.py --workspace X --lesson-id Y --title T --lesson-file F --map-page M` | Quiz page from JSONL questions |
 | Generate map page | `python3 tools/generate_map_page.py MAP.md --workspace X --output Y` | Preact DAG map from MAP.md |
 | Generate index | `python3 tools/generate_index_page.py --scan-dir X --output Y` | Preact All Lessons dashboard |
+| Generate resources | `python3 tools/generate_resources_page.py --workspace X --output Y` | Themed resources page from RESOURCES.md |
 | Generate quiz page | `python3 tools/generate-quiz-page.py --workspace X --lesson-id Y --title T --lesson-file F --map-page M` | Preact quiz page from JSONL questions |
 | Init workspace | `tools/init-workspace.sh [--default]` | Scaffold workspace; --default for generic first-launch content |
 | Serve workspace | `mise run serve -- [--workspace PATH]` | Start server (default: workspace/). Auto-creates workspace on first run |
@@ -73,6 +73,7 @@ The `workspace/` directory is the single live workspace per machine. All topics 
 | Topic quiz page | `python tools/generate-quiz-page.py --lesson-id ID --title T --lesson-file F --map-page M` | Generate standalone quiz page for a topic (all questions, not just due) |
 | Export to Anki | `mise run sr:export-anki -- [topic] [--output path]` | Export cards to .apkg |
 | Generate map page | `mise run map:generate -- <MAP.md> [--output path]` | Interactive map HTML from MAP.md |
+| Regenerate all maps | `mise run maps:regenerate` | Rebuild all map pages (workspace + examples) |
 | Generate index | `mise run index:generate -- [--scan-dir path]` | All Lessons dashboard from MAP.md files |
 
 ## Workflow
