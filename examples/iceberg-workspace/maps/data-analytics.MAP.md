@@ -1,5 +1,5 @@
 ---
-domain: modern-data-analytics-stacks
+domain: data-analytics
 description: "Understand how data moves from operational sources through storage, transformation, and orchestration to analyst-facing tools — and how governance keeps it trustworthy"
 generated: 2026-08-11
 depth: 0
