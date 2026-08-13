@@ -1,542 +1,91 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Map: Workout Fundamentals</title>
   <link rel="stylesheet" href="../assets/style.css">
   <style>
-    html { scroll-behavior: smooth; }
-    .lesson-nav {
-      padding: 0.5rem 0;
-      margin-bottom: 0.5rem;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.85rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .lesson-nav a {
-      color: var(--link);
-      text-decoration: none;
-    }
-    .lesson-nav a:hover { text-decoration: underline; }
-    .lesson-nav .nav-position {
-      color: var(--text-muted);
-    }
-    .map-container {
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 1rem;
-    }
-    .map-graph {
-      max-width: 100%;
-      height: auto;
-      cursor: pointer;
-    }
-    .map-graph a:hover polygon,
-    .map-graph a:hover path {
-      filter: brightness(0.9);
-    }
-    .orientation {
-      font-size: 1rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-      border-left: 4px solid var(--accent);
-      padding-left: 1rem;
-    }
+
+    body { max-width: none; padding: 2rem; }
+    .dag-container { position: relative; width: 100%; overflow-x: auto; }
+    .dag-canvas { position: relative; min-width: min-content; }
+    .edge-layer { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1; }
     .topic-card {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem 1.25rem;
-      margin: 0.75rem 0;
-      background: var(--bg-elevated);
-      scroll-margin-top: 1rem;
-      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+      position: absolute; width: 420px; padding: 1rem 1.2rem;
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+      z-index: 2; transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .topic-card:target {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+    .topic-card:hover { border-color: var(--accent); box-shadow: 0 2px 16px rgba(203, 166, 247, 0.1); }
+    .topic-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text); flex-wrap: wrap; }
+    .topic-card .why { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
+    .topic-card .prereq-label { font-size: 0.75rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.5rem; }
+    .topic-card .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .btn {
+      font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px;
+      border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+      cursor: pointer; transition: border-color 0.15s, color 0.15s;
     }
-    .topic-card h3 {
-      margin: 0 0 0.25rem 0;
-      font-size: 1rem;
-    }
-    .topic-why {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      margin: 0.25rem 0;
-    }
-    .topic-prereqs {
-      font-size: 0.8rem;
-      color: var(--text-faint, #888);
-    }
-    .badge {
-      font-size: 0.7rem;
-      padding: 0.1rem 0.4rem;
-      border-radius: 3px;
-      font-weight: 600;
-    }
-    .badge.complete { background: #dcfce7; color: #166534; }
-    .badge.in-progress { background: #dbeafe; color: #1e40af; }
-    .badge.not-started { background: #f3f4f6; color: #6b7280; }
-    .topic-link {
-      display: inline-block;
-      margin-top: 0.5rem;
-      color: var(--link);
-      font-size: 0.9rem;
-    }
-    .topic-actions {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-      margin-top: 0.5rem;
-      flex-wrap: wrap;
-    }
-    .quiz-link {
-      color: var(--success, #16a34a);
-    }
-    .quiz-gen {
-      border-color: var(--success, #16a34a);
-      color: var(--success, #16a34a);
-    }
-    .subtopic-link {
-      color: var(--accent, #2563eb);
-      font-size: 0.85rem;
-    }
-    .subtopic-gen {
-      border-color: var(--accent, #2563eb);
-      color: var(--accent, #2563eb);
-      font-size: 0.85rem;
-    }
-    .generate-btn {
-      margin-top: 0.5rem;
-      padding: 0.4rem 0.8rem;
-      border: 1px solid var(--accent);
-      border-radius: 4px;
-      background: var(--bg-surface);
-      color: var(--accent);
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-    .generate-btn:hover { background: var(--bg-elevated); }
-    .breadcrumb {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin: 0.5rem 0 0.25rem;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .breadcrumb a {
-      color: var(--link);
-      text-decoration: none;
-      font-weight: 500;
-    }
-    .breadcrumb a:hover { text-decoration: underline; }
-    .breadcrumb-sep { color: var(--text-faint, #999); }
-    .breadcrumb-current { font-weight: 500; }
-      font-style: italic;
-    }
-    .leads-to {
-      margin-top: 2rem;
-      padding: 1.25rem;
-      border-radius: 8px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-    }
-    .leads-to-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.primary { border-color: var(--accent); color: var(--accent); }
+    .badge { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 3px; font-weight: 500; white-space: nowrap; }
+    .badge.not-started { background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    .badge.generating { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
+    .badge.complete { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
+    .badge.in-progress { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+    .gen-progress { font-size: 0.75rem; color: var(--warning); margin-top: 0.4rem; font-family: monospace; }
+    .leads-to { margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); }
+    .leads-to-grid { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
     .leads-to-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 0.75rem 1rem;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: var(--bg);
-      color: var(--text);
-      font-weight: 500;
-      font-size: 0.95rem;
-      cursor: pointer;
+      display: flex; flex-direction: column; align-items: flex-start; padding: 0.75rem 1rem;
+      border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);
+      font-weight: 500; font-size: 0.95rem; cursor: pointer; text-align: left;
       transition: border-color 0.15s, background 0.15s;
-      text-align: left;
     }
-    .leads-to-btn:hover {
-      border-color: var(--accent, #2563eb);
-      background: var(--bg-elevated);
-    }
-    .leads-to-desc {
-      font-weight: 400;
-      font-size: 0.83rem;
-      color: var(--text-muted);
-      margin-top: 0.2rem;
-    }
-    .legend {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 0.5rem;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-    .legend-swatch {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      border: 1px solid;
-    }
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-overlay.show { display: flex; }
-    .modal {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.5rem;
-      max-width: 550px;
-      width: 90%;
-    }
-    .modal h3 { margin-top: 0; }
-    .gen-output {
-      background: var(--code-bg, #1a1a2e);
-      padding: 0.75rem;
-      border-radius: 4px;
-      font-size: 0.78rem;
-      font-family: monospace;
-      max-height: 300px;
-      overflow-y: auto;
-      margin: 0.75rem 0;
-      line-height: 1.4;
-    }
-    .gen-output div {
-      padding: 1px 0;
-    }
-    .gen-output .phase-tool {
-      color: var(--accent, #60a5fa);
-    }
-    .gen-output .phase-writing {
-      color: var(--success, #4ade80);
-    }
-    .modal-actions {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
-    .modal-actions button {
-      padding: 0.4rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      font-size: 0.85rem;
-    }
-    .modal-actions .primary {
-      background: var(--accent);
-      color: var(--bg);
-      border-color: var(--accent);
-    }
+    .leads-to-btn:hover { border-color: var(--accent); background: var(--bg-elevated); }
+    .leads-to-desc { font-weight: 400; font-size: 0.83rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .loading { color: var(--text-muted); padding: 2rem; }
+    .map-header { margin-bottom: 1.5rem; }
+    .map-header h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    .map-header .orientation { color: var(--text-muted); font-size: 0.9rem; max-width: 700px; line-height: 1.5; }
+
   </style>
+  <script type="importmap">
+{
+  "imports": {
+    "preact": "../assets/vendor/preact.module.js",
+    "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+    "@preact/signals": "../assets/vendor/preact-signals.module.js",
+    "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+    "htm": "../assets/vendor/htm.module.js"
+  }
+}
+  </script>
 </head>
 <body>
-
-<div class="map-container">
-  <nav class="lesson-nav">
-    <a href="../../../lessons/index.html" class="back-to-map">← All Lessons</a>
-    <span class="nav-position">6 topics · 3 complete</span>
-  </nav>
-  
-  <h1>🗺️ Workout Fundamentals</h1>
-  <p class="orientation">Strength training is governed by a small number of principles that explain 90% of results. You'll learn the mechanism behind all adaptation (progressive overload), why rest is when gains actually happen (recovery), and how to structure a simple program that applies these principles (programming). Everything else — specific exercises, supplements, timing tricks — is implementation detail that matters far less than getting these fundamentals right.</p>
-
-  <div class="legend">
-    <span class="legend-item"><span class="legend-swatch" style="background:#dcfce7;border-color:#16a34a"></span> Complete</span>
-    <span class="legend-item"><span class="legend-swatch" style="background:#dbeafe;border-color:#2563eb"></span> In progress</span>
-    <span class="legend-item"><span class="legend-swatch" style="background:#f3f4f6;border-color:#6b7280"></span> Not started</span>
+  <script src="../assets/vendor/dagre.min.js"></script>
+  <script type="application/json" id="page-data">{"title": "Workout Fundamentals", "orientation": "Strength training is governed by a small number of principles that explain 90% of results. You'll learn the mechanism behind all adaptation (progressive overload), why rest is when gains actually happen (recovery), and how to structure a simple program that applies these principles (programming). Everything else — specific exercises, supplements, timing tricks — is implementation detail that matters far less than getting these fundamentals right.", "topics": [{"id": "progressive-overload", "title": "Progressive Overload — The One Principle That Matters", "why": "The single mechanism behind all training adaptation. Without understanding this, everything else is noise.", "prereqs": [], "status": "complete", "lessonPath": "0001-progressive-overload.html"}, {"id": "recovery-and-adaptation", "title": "Recovery & Adaptation — When Gains Actually Happen", "why": "Training is the stimulus; adaptation happens during rest. Most beginners train too much and recover too little because they don't understand this relationship.", "prereqs": ["progressive-overload"], "status": "complete", "lessonPath": "0002-recovery-and-adaptation.html"}, {"id": "programming-basics", "title": "Programming Basics — Structuring Your Training Week", "why": "Knowing HOW MUCH to do, HOW OFTEN, and in WHAT ORDER turns the overload principle into a concrete plan you can follow.", "prereqs": ["progressive-overload", "recovery-and-adaptation"], "status": "complete", "lessonPath": "0003-programming-basics.html"}, {"id": "exercise-selection", "title": "Exercise Selection & Movement Patterns", "why": "Not all exercises are equal — compound movements that train multiple joints give beginners the most return for their time. But the choice matters less than you think.", "prereqs": ["programming-basics"], "status": "not-started", "lessonPath": null}, {"id": "nutrition-essentials", "title": "Nutrition for Training — What Actually Matters", "why": "You can't out-train a bad diet, but the fitness industry makes nutrition far more complicated than the evidence supports. Protein and calories explain 90% of results.", "prereqs": ["recovery-and-adaptation"], "status": "not-started", "lessonPath": null}, {"id": "putting-it-together", "title": "Putting It Together — Your First 12-Week Block", "why": "Theory without application is useless. This synthesizes everything into a concrete program you can start Monday.", "prereqs": ["programming-basics", "exercise-selection", "nutrition-essentials"], "status": "not-started", "lessonPath": null}], "leadsTo": [{"slug": "intermediate-programming", "why": ""}, {"slug": "nutrition-for-training", "why": ""}, {"slug": "mobility-and-injury-prevention", "why": ""}, {"slug": "sport-specific-training", "why": ""}]}</script>
+  <div class="map-header">
+    <h1>Workout Fundamentals</h1>
+    <p class="orientation">Strength training is governed by a small number of principles that explain 90% of results. You'll learn the mechanism behind all adaptation (progressive overload), why rest is when gains actually happen (recovery), and how to structure a simple program that applies these principles (programming). Everything else — specific exercises, supplements, timing tricks — is implementation detail that matters far less than getting these fundamentals right.</p>
   </div>
-
-  <!-- Generated by graphviz version 15.1.1 (20260805.0921)
- -->
-<!-- Title: G Pages: 1 -->
-<svg class="map-graph"
- viewBox="0.00 0.00 651.00 371.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 367)">
-<title>G</title>
-<!-- progressive&#45;overload -->
-<g id="node1" class="node">
-<title>progressive&#45;overload</title>
-<g id="a_node1"><a xlink:href="#topic-progressive-overload" xlink:title="The single mechanism behind all training adaptation. Without understanding this, everything else is noise.">
-<path fill="#dcfce7" stroke="#16a34a" d="M532.95,-363C532.95,-363 207.75,-363 207.75,-363 201.75,-363 195.75,-357 195.75,-351 195.75,-351 195.75,-331.2 195.75,-331.2 195.75,-325.2 201.75,-319.2 207.75,-319.2 207.75,-319.2 532.95,-319.2 532.95,-319.2 538.95,-319.2 544.95,-325.2 544.95,-331.2 544.95,-331.2 544.95,-351 544.95,-351 544.95,-357 538.95,-363 532.95,-363"/>
-<text xml:space="preserve" text-anchor="middle" x="370.35" y="-337.2" font-family="system-ui, sans-serif" font-size="12.00" fill="#166534">Progressive Overload — The One Principle That Matters</text>
-</a>
-</g>
-</g>
-<!-- recovery&#45;and&#45;adaptation -->
-<g id="node2" class="node">
-<title>recovery&#45;and&#45;adaptation</title>
-<g id="a_node2"><a xlink:href="#topic-recovery-and-adaptation" xlink:title="Training is the stimulus; adaptation happens during rest. Most beginners train too much and recover too little because they don&#39;t understand this relationship.">
-<path fill="#dcfce7" stroke="#16a34a" d="M630.7,-283.2C630.7,-283.2 310,-283.2 310,-283.2 304,-283.2 298,-277.2 298,-271.2 298,-271.2 298,-251.4 298,-251.4 298,-245.4 304,-239.4 310,-239.4 310,-239.4 630.7,-239.4 630.7,-239.4 636.7,-239.4 642.7,-245.4 642.7,-251.4 642.7,-251.4 642.7,-271.2 642.7,-271.2 642.7,-277.2 636.7,-283.2 630.7,-283.2"/>
-<text xml:space="preserve" text-anchor="middle" x="470.35" y="-257.4" font-family="system-ui, sans-serif" font-size="12.00" fill="#166534">Recovery &amp; Adaptation — When Gains Actually Happen</text>
-</a>
-</g>
-</g>
-<!-- progressive&#45;overload&#45;&gt;recovery&#45;and&#45;adaptation -->
-<g id="edge1" class="edge">
-<title>progressive&#45;overload&#45;&gt;recovery&#45;and&#45;adaptation</title>
-<path fill="none" stroke="#6b7280" d="M397.68,-318.84C409.69,-309.49 423.92,-298.42 436.59,-288.56"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="437.84,-290.69 441.86,-284.46 434.83,-286.83 437.84,-290.69"/>
-</g>
-<!-- programming&#45;basics -->
-<g id="node3" class="node">
-<title>programming&#45;basics</title>
-<g id="a_node3"><a xlink:href="#topic-programming-basics" xlink:title="Knowing HOW MUCH to do, HOW OFTEN, and in WHAT ORDER turns the overload principle into a concrete plan you can follow.">
-<path fill="#dcfce7" stroke="#16a34a" d="M429.95,-203.4C429.95,-203.4 110.75,-203.4 110.75,-203.4 104.75,-203.4 98.75,-197.4 98.75,-191.4 98.75,-191.4 98.75,-171.6 98.75,-171.6 98.75,-165.6 104.75,-159.6 110.75,-159.6 110.75,-159.6 429.95,-159.6 429.95,-159.6 435.95,-159.6 441.95,-165.6 441.95,-171.6 441.95,-171.6 441.95,-191.4 441.95,-191.4 441.95,-197.4 435.95,-203.4 429.95,-203.4"/>
-<text xml:space="preserve" text-anchor="middle" x="270.35" y="-177.6" font-family="system-ui, sans-serif" font-size="12.00" fill="#166534">Programming Basics — Structuring Your Training Week</text>
-</a>
-</g>
-</g>
-<!-- progressive&#45;overload&#45;&gt;programming&#45;basics -->
-<g id="edge2" class="edge">
-<title>progressive&#45;overload&#45;&gt;programming&#45;basics</title>
-<path fill="none" stroke="#6b7280" d="M327.57,-318.83C313.34,-309.72 298.75,-297.79 289.35,-283.2 275.71,-262.04 271.35,-233.5 270.17,-212.21"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="272.62,-212.28 269.91,-205.38 267.73,-212.46 272.62,-212.28"/>
-</g>
-<!-- recovery&#45;and&#45;adaptation&#45;&gt;programming&#45;basics -->
-<g id="edge3" class="edge">
-<title>recovery&#45;and&#45;adaptation&#45;&gt;programming&#45;basics</title>
-<path fill="none" stroke="#6b7280" d="M415.43,-238.94C389.86,-228.99 359.31,-217.1 332.85,-206.81"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="333.97,-204.62 326.55,-204.36 332.19,-209.18 333.97,-204.62"/>
-</g>
-<!-- nutrition&#45;essentials -->
-<g id="node5" class="node">
-<title>nutrition&#45;essentials</title>
-<g id="a_node5"><a xlink:href="#topic-nutrition-essentials" xlink:title="You can&#39;t out&#45;train a bad diet, but the fitness industry makes nutrition far more complicated than the evidence supports. Protein and calories explain 90% of results.">
-<path fill="#f3f4f6" stroke="#6b7280" d="M606.33,-123.6C606.33,-123.6 334.38,-123.6 334.38,-123.6 328.38,-123.6 322.38,-117.6 322.38,-111.6 322.38,-111.6 322.38,-91.8 322.38,-91.8 322.38,-85.8 328.38,-79.8 334.38,-79.8 334.38,-79.8 606.33,-79.8 606.33,-79.8 612.33,-79.8 618.33,-85.8 618.33,-91.8 618.33,-91.8 618.33,-111.6 618.33,-111.6 618.33,-117.6 612.33,-123.6 606.33,-123.6"/>
-<text xml:space="preserve" text-anchor="middle" x="470.35" y="-97.8" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Nutrition for Training — What Actually Matters</text>
-</a>
-</g>
-</g>
-<!-- recovery&#45;and&#45;adaptation&#45;&gt;nutrition&#45;essentials -->
-<g id="edge5" class="edge">
-<title>recovery&#45;and&#45;adaptation&#45;&gt;nutrition&#45;essentials</title>
-<path fill="none" stroke="#6b7280" d="M470.35,-239.05C470.35,-211.47 470.35,-163.24 470.35,-132.15"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="472.8,-132.38 470.35,-125.38 467.9,-132.38 472.8,-132.38"/>
-</g>
-<!-- exercise&#45;selection -->
-<g id="node4" class="node">
-<title>exercise&#45;selection</title>
-<g id="a_node4"><a xlink:href="#topic-exercise-selection" xlink:title="Not all exercises are equal — compound movements that train multiple joints give beginners the most return for their time. But the choice matters less than you think.">
-<path fill="#f3f4f6" stroke="#6b7280" d="M254.7,-123.6C254.7,-123.6 12,-123.6 12,-123.6 6,-123.6 0,-117.6 0,-111.6 0,-111.6 0,-91.8 0,-91.8 0,-85.8 6,-79.8 12,-79.8 12,-79.8 254.7,-79.8 254.7,-79.8 260.7,-79.8 266.7,-85.8 266.7,-91.8 266.7,-91.8 266.7,-111.6 266.7,-111.6 266.7,-117.6 260.7,-123.6 254.7,-123.6"/>
-<text xml:space="preserve" text-anchor="middle" x="133.35" y="-97.8" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Exercise Selection &amp; Movement Patterns</text>
-</a>
-</g>
-</g>
-<!-- programming&#45;basics&#45;&gt;exercise&#45;selection -->
-<g id="edge4" class="edge">
-<title>programming&#45;basics&#45;&gt;exercise&#45;selection</title>
-<path fill="none" stroke="#6b7280" d="M232.91,-159.24C215.85,-149.55 195.52,-138.01 177.69,-127.88"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="179.35,-126.01 172.06,-124.68 176.93,-130.27 179.35,-126.01"/>
-</g>
-<!-- putting&#45;it&#45;together -->
-<g id="node6" class="node">
-<title>putting&#45;it&#45;together</title>
-<g id="a_node6"><a xlink:href="#topic-putting-it-together" xlink:title="Theory without application is useless. This synthesizes everything into a concrete program you can start Monday.">
-<path fill="#f3f4f6" stroke="#6b7280" d="M430.7,-43.8C430.7,-43.8 158,-43.8 158,-43.8 152,-43.8 146,-37.8 146,-31.8 146,-31.8 146,-12 146,-12 146,-6 152,0 158,0 158,0 430.7,0 430.7,0 436.7,0 442.7,-6 442.7,-12 442.7,-12 442.7,-31.8 442.7,-31.8 442.7,-37.8 436.7,-43.8 430.7,-43.8"/>
-<text xml:space="preserve" text-anchor="middle" x="294.35" y="-18" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Putting It Together — Your First 12&#45;Week Block</text>
-</a>
-</g>
-</g>
-<!-- programming&#45;basics&#45;&gt;putting&#45;it&#45;together -->
-<g id="edge6" class="edge">
-<title>programming&#45;basics&#45;&gt;putting&#45;it&#45;together</title>
-<path fill="none" stroke="#6b7280" d="M273.59,-159.25C277.79,-131.67 285.13,-83.44 289.87,-52.35"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="292.27,-52.85 290.9,-45.57 287.42,-52.12 292.27,-52.85"/>
-</g>
-<!-- exercise&#45;selection&#45;&gt;putting&#45;it&#45;together -->
-<g id="edge7" class="edge">
-<title>exercise&#45;selection&#45;&gt;putting&#45;it&#45;together</title>
-<path fill="none" stroke="#6b7280" d="M177.34,-79.44C197.49,-69.7 221.51,-58.1 242.53,-47.94"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="243.53,-50.18 248.77,-44.93 241.4,-45.77 243.53,-50.18"/>
-</g>
-<!-- nutrition&#45;essentials&#45;&gt;putting&#45;it&#45;together -->
-<g id="edge8" class="edge">
-<title>nutrition&#45;essentials&#45;&gt;putting&#45;it&#45;together</title>
-<path fill="none" stroke="#6b7280" d="M422.26,-79.44C400.04,-69.62 373.51,-57.89 350.39,-47.67"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="351.47,-45.47 344.07,-44.88 349.49,-49.95 351.47,-45.47"/>
-</g>
-</g>
-</svg>
-
-
-  <h2>Topics</h2>
+  <div id="app"></div>
   
-    <div class="topic-card" id="topic-progressive-overload">
-      <h3>Progressive Overload — The One Principle That Matters <span class="badge complete">✓ complete</span></h3>
-      <p class="topic-why">The single mechanism behind all training adaptation. Without understanding this, everything else is noise.</p>
-      <p class="topic-prereqs">Start here</p>
-      <div class="topic-actions"><a href="0001-progressive-overload.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('progressive-overload', 'Progressive Overload — The One Principle That Matters')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('progressive-overload', 'Progressive Overload — The One Principle That Matters')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-recovery-and-adaptation">
-      <h3>Recovery & Adaptation — When Gains Actually Happen <span class="badge complete">✓ complete</span></h3>
-      <p class="topic-why">Training is the stimulus; adaptation happens during rest. Most beginners train too much and recover too little because they don't understand this relationship.</p>
-      <p class="topic-prereqs">After: progressive-overload</p>
-      <div class="topic-actions"><a href="0002-recovery-and-adaptation.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('recovery-and-adaptation', 'Recovery & Adaptation — When Gains Actually Happen')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('recovery-and-adaptation', 'Recovery & Adaptation — When Gains Actually Happen')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-programming-basics">
-      <h3>Programming Basics — Structuring Your Training Week <span class="badge complete">✓ complete</span></h3>
-      <p class="topic-why">Knowing HOW MUCH to do, HOW OFTEN, and in WHAT ORDER turns the overload principle into a concrete plan you can follow.</p>
-      <p class="topic-prereqs">After: progressive-overload, recovery-and-adaptation</p>
-      <div class="topic-actions"><a href="0003-programming-basics.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('programming-basics', 'Programming Basics — Structuring Your Training Week')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('programming-basics', 'Programming Basics — Structuring Your Training Week')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-exercise-selection">
-      <h3>Exercise Selection & Movement Patterns <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">Not all exercises are equal — compound movements that train multiple joints give beginners the most return for their time. But the choice matters less than you think.</p>
-      <p class="topic-prereqs">After: programming-basics</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('exercise-selection', 'Exercise Selection & Movement Patterns')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('exercise-selection', 'Exercise Selection & Movement Patterns')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('exercise-selection', 'Exercise Selection & Movement Patterns')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-nutrition-essentials">
-      <h3>Nutrition for Training — What Actually Matters <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">You can't out-train a bad diet, but the fitness industry makes nutrition far more complicated than the evidence supports. Protein and calories explain 90% of results.</p>
-      <p class="topic-prereqs">After: recovery-and-adaptation</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('nutrition-essentials', 'Nutrition for Training — What Actually Matters')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('nutrition-essentials', 'Nutrition for Training — What Actually Matters')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('nutrition-essentials', 'Nutrition for Training — What Actually Matters')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-putting-it-together">
-      <h3>Putting It Together — Your First 12-Week Block <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">Theory without application is useless. This synthesizes everything into a concrete program you can start Monday.</p>
-      <p class="topic-prereqs">After: programming-basics, exercise-selection, nutrition-essentials</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('putting-it-together', 'Putting It Together — Your First 12-Week Block')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('putting-it-together', 'Putting It Together — Your First 12-Week Block')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('putting-it-together', 'Putting It Together — Your First 12-Week Block')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
 
-  
-    <div class="leads-to">
-      <h2>Where This Leads</h2>
-      <div class="leads-to-grid"><button class="leads-to-btn" data-domain="intermediate-programming">Intermediate Programming</button><button class="leads-to-btn" data-domain="nutrition-for-training">Nutrition For Training</button><button class="leads-to-btn" data-domain="mobility-and-injury-prevention">Mobility And Injury Prevention</button><button class="leads-to-btn" data-domain="sport-specific-training">Sport Specific Training</button></div>
-    </div>
-</div>
+  <script type="module">
 
-<!-- Generation modal -->
-<div class="modal-overlay" id="gen-modal">
-  <div class="modal">
-    <h3 id="gen-title">Generate topic</h3>
-    <p id="gen-desc">Generating...</p>
-    <div id="gen-output" class="gen-output"></div>
-    <div class="modal-actions">
-      <button id="gen-cancel-btn" onclick="cancelGeneration()">Cancel</button>
-      <button id="gen-close-btn" onclick="closeModal()" style="display:none">Close</button>
-    </div>
-  </div>
-</div>
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { MapView } from '../assets/components/MapView.js';
 
-<script>
-let currentEventSource = null;
-let currentTaskId = null;
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
 
-function startGeneration(prompt, title) {
-  document.getElementById('gen-title').textContent = title;
-  document.getElementById('gen-desc').textContent = 'Generating...';
-  document.getElementById('gen-output').innerHTML = '';
-  document.getElementById('gen-cancel-btn').style.display = '';
-  document.getElementById('gen-close-btn').style.display = 'none';
-  document.getElementById('gen-modal').classList.add('show');
+    render(
+      html`<${MapView} topics=${data.topics} leadsTo=${data.leadsTo} orientation=${data.orientation} title=${data.title} />`,
+      document.getElementById('app')
+    );
 
-  fetch('/api/generate', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({prompt: prompt, mock: false})
-  })
-  .then(r => r.json())
-  .then(data => {
-    currentTaskId = data.id;
-    const es = new EventSource(data.stream_url);
-    currentEventSource = es;
-    const output = document.getElementById('gen-output');
-
-    es.addEventListener('line', function(e) {
-      const line = JSON.parse(e.data);
-      if (line.text) {
-        const div = document.createElement('div');
-        div.textContent = line.text;
-        if (line.phase) div.className = 'phase-' + line.phase.split(':')[0];
-        output.appendChild(div);
-        output.scrollTop = output.scrollHeight;
-      }
-    });
-
-    es.addEventListener('done', function(e) {
-      es.close();
-      currentEventSource = null;
-      document.getElementById('gen-desc').textContent = '✓ Done — reloading...';
-      document.getElementById('gen-cancel-btn').style.display = 'none';
-      document.getElementById('gen-close-btn').style.display = '';
-      setTimeout(() => location.reload(), 1500);
-    });
-
-    es.addEventListener('error', function(e) {
-      es.close();
-      currentEventSource = null;
-      document.getElementById('gen-desc').textContent = '✗ Generation failed';
-      document.getElementById('gen-cancel-btn').style.display = 'none';
-      document.getElementById('gen-close-btn').style.display = '';
-    });
-  })
-  .catch(err => {
-    document.getElementById('gen-desc').textContent = '✗ Could not connect to server: ' + err.message;
-    document.getElementById('gen-cancel-btn').style.display = 'none';
-    document.getElementById('gen-close-btn').style.display = '';
-  });
-}
-
-function offerGenerate(slug, title) {
-  startGeneration('teach me about ' + title, 'Generating: ' + title);
-}
-
-function offerGenerateQuiz(slug, title) {
-  startGeneration('generate quick-check questions for ' + title, 'Generating Quiz: ' + title);
-}
-
-function offerSubtopics(slug, title) {
-  startGeneration('go deeper on ' + title, 'Exploring Subtopics: ' + title);
-}
-
-function cancelGeneration() {
-  if (currentEventSource) {
-    currentEventSource.close();
-    currentEventSource = null;
-  }
-  if (currentTaskId) {
-    fetch('/api/generate/' + currentTaskId + '/cancel', {method: 'POST'});
-    currentTaskId = null;
-  }
-  closeModal();
-}
-
-function closeModal() {
-  document.getElementById('gen-modal').classList.remove('show');
-}
-
-document.getElementById('gen-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-</script>
-<script src="../assets/theme-toggle.js"></script>
-
+  </script>
 </body>
 </html>

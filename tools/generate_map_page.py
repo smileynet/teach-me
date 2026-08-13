@@ -740,6 +740,133 @@ document.getElementById('gen-modal').addEventListener('click', function(e) {{
 </html>"""
 
 
+# ---------------------------------------------------------------------------
+# Preact page generation (replaces Graphviz pipeline)
+# ---------------------------------------------------------------------------
+
+def generate_preact_map_page(map_data: dict, output_path: Path) -> str:
+    """Generate a Preact-based map page from parsed MAP.md data."""
+    sys.path.insert(0, str(PROJECT_ROOT / "tools"))
+    from lib.preact_page import render_page
+
+    title = map_data["title"]
+    orientation = map_data["orientation"]
+    topics = map_data["topics"]
+    leads_to = map_data["frontmatter"].get("leads_to", [])
+
+    # Build data island
+    topic_data = []
+    for t in topics:
+        lesson_path = t.get("lesson_file") or topic_has_lesson(t["slug"])
+        topic_data.append({
+            "id": t["slug"],
+            "title": t["title"],
+            "why": t["why"],
+            "prereqs": t["prereqs"],
+            "status": t["status"],
+            "lessonPath": lesson_path or None,
+        })
+
+    # Normalize leads_to to list of dicts
+    leads_to_data = []
+    for lt in leads_to:
+        if isinstance(lt, dict):
+            leads_to_data.append({"slug": lt.get("slug", ""), "why": lt.get("why", "")})
+        elif isinstance(lt, str):
+            leads_to_data.append({"slug": lt, "why": ""})
+
+    data = {
+        "title": title,
+        "orientation": orientation,
+        "topics": topic_data,
+        "leadsTo": leads_to_data,
+    }
+
+    # Determine depth from output path relative to workspace
+    # lessons/ = depth 1, lessons/quiz/ = depth 2
+    depth = 1
+    try:
+        rel = output_path.relative_to(LESSONS_DIR)
+        depth = 1 + str(rel).count("/")
+    except (ValueError, TypeError):
+        depth = 1
+
+    prefix = "../" * depth
+
+    module_script = f"""
+    import {{ h, render }} from 'preact';
+    import htm from 'htm';
+    import {{ MapView }} from '{prefix}assets/components/MapView.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    render(
+      html`<${{MapView}} topics=${{data.topics}} leadsTo=${{data.leadsTo}} orientation=${{data.orientation}} title=${{data.title}} />`,
+      document.getElementById('app')
+    );
+"""
+
+    css_extra = f"""
+    body {{ max-width: none; padding: 2rem; }}
+    .dag-container {{ position: relative; width: 100%; overflow-x: auto; }}
+    .dag-canvas {{ position: relative; min-width: min-content; }}
+    .edge-layer {{ position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1; }}
+    .topic-card {{
+      position: absolute; width: 420px; padding: 1rem 1.2rem;
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+      z-index: 2; transition: border-color 0.2s, box-shadow 0.2s;
+    }}
+    .topic-card:hover {{ border-color: var(--accent); box-shadow: 0 2px 16px rgba(203, 166, 247, 0.1); }}
+    .topic-card h3 {{ font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text); flex-wrap: wrap; }}
+    .topic-card .why {{ font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }}
+    .topic-card .prereq-label {{ font-size: 0.75rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.5rem; }}
+    .topic-card .actions {{ display: flex; gap: 0.4rem; flex-wrap: wrap; }}
+    .btn {{
+      font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px;
+      border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+      cursor: pointer; transition: border-color 0.15s, color 0.15s;
+    }}
+    .btn:hover {{ border-color: var(--accent); color: var(--accent); }}
+    .btn.primary {{ border-color: var(--accent); color: var(--accent); }}
+    .badge {{ font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 3px; font-weight: 500; white-space: nowrap; }}
+    .badge.not-started {{ background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }}
+    .badge.generating {{ background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }}
+    .badge.complete {{ background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }}
+    .badge.in-progress {{ background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }}
+    .gen-progress {{ font-size: 0.75rem; color: var(--warning); margin-top: 0.4rem; font-family: monospace; }}
+    .leads-to {{ margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); }}
+    .leads-to-grid {{ display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }}
+    .leads-to-btn {{
+      display: flex; flex-direction: column; align-items: flex-start; padding: 0.75rem 1rem;
+      border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);
+      font-weight: 500; font-size: 0.95rem; cursor: pointer; text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }}
+    .leads-to-btn:hover {{ border-color: var(--accent); background: var(--bg-elevated); }}
+    .leads-to-desc {{ font-weight: 400; font-size: 0.83rem; color: var(--text-muted); margin-top: 0.2rem; }}
+    .loading {{ color: var(--text-muted); padding: 2rem; }}
+    .map-header {{ margin-bottom: 1.5rem; }}
+    .map-header h1 {{ font-size: 1.4rem; margin-bottom: 0.5rem; }}
+    .map-header .orientation {{ color: var(--text-muted); font-size: 0.9rem; max-width: 700px; line-height: 1.5; }}
+"""
+
+    body_before = f"""<div class="map-header">
+    <h1>{title}</h1>
+    <p class="orientation">{orientation}</p>
+  </div>"""
+
+    return render_page(
+        title=f"Map: {title}",
+        data=data,
+        module_script=module_script,
+        css_extra=css_extra,
+        body_before=body_before,
+        depth=depth,
+        include_dagre=True,
+    )
+
+
 def find_all_maps() -> list[Path]:
     """Auto-discover depth-0 MAP.md files in the project."""
     maps = []
@@ -777,14 +904,7 @@ def main() -> None:
             map_data = parse_map_md(map_path)
             domain = map_data["frontmatter"].get("domain", map_path.stem)
             output_path = PROJECT_ROOT / "lessons" / f"{domain}-map.html"
-            dot = generate_dot(map_data)
-            svg = render_svg(dot)
-            index_path = PROJECT_ROOT / "lessons" / "index.html"
-            try:
-                index_link = str(Path(os.path.relpath(index_path, output_path.parent)))
-            except ValueError:
-                index_link = "index.html"
-            html = generate_page(map_data, svg, index_link, maps_dir=map_path.parent)
+            html = generate_preact_map_page(map_data, output_path)
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_text(html, encoding="utf-8")
             try:
@@ -817,15 +937,7 @@ def main() -> None:
     if output_path is None:
         output_path = PROJECT_ROOT / "lessons" / f"{domain}-map.html"
 
-    dot = generate_dot(map_data)
-    svg = render_svg(dot)
-    index_path = PROJECT_ROOT / "lessons" / "index.html"
-    try:
-        index_link = str(Path(os.path.relpath(index_path, output_path.parent)))
-    except ValueError:
-        index_link = "index.html"
-    maps_dir_resolved = MAPS_DIR or map_path.parent
-    html = generate_page(map_data, svg, index_link, maps_dir=maps_dir_resolved)
+    html = generate_preact_map_page(map_data, output_path)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(html, encoding="utf-8")

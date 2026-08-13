@@ -1,508 +1,91 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Map: Storage & Open Table Formats</title>
   <link rel="stylesheet" href="../assets/style.css">
   <style>
-    html { scroll-behavior: smooth; }
-    .lesson-nav {
-      padding: 0.5rem 0;
-      margin-bottom: 0.5rem;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.85rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .lesson-nav a {
-      color: var(--link);
-      text-decoration: none;
-    }
-    .lesson-nav a:hover { text-decoration: underline; }
-    .lesson-nav .nav-position {
-      color: var(--text-muted);
-    }
-    .map-container {
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 1rem;
-    }
-    .map-graph {
-      max-width: 100%;
-      height: auto;
-      cursor: pointer;
-    }
-    .map-graph a:hover polygon,
-    .map-graph a:hover path {
-      filter: brightness(0.9);
-    }
-    .orientation {
-      font-size: 1rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-      border-left: 4px solid var(--accent);
-      padding-left: 1rem;
-    }
+
+    body { max-width: none; padding: 2rem; }
+    .dag-container { position: relative; width: 100%; overflow-x: auto; }
+    .dag-canvas { position: relative; min-width: min-content; }
+    .edge-layer { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1; }
     .topic-card {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem 1.25rem;
-      margin: 0.75rem 0;
-      background: var(--bg-elevated);
-      scroll-margin-top: 1rem;
-      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+      position: absolute; width: 420px; padding: 1rem 1.2rem;
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+      z-index: 2; transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .topic-card:target {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+    .topic-card:hover { border-color: var(--accent); box-shadow: 0 2px 16px rgba(203, 166, 247, 0.1); }
+    .topic-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text); flex-wrap: wrap; }
+    .topic-card .why { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
+    .topic-card .prereq-label { font-size: 0.75rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.5rem; }
+    .topic-card .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .btn {
+      font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px;
+      border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+      cursor: pointer; transition: border-color 0.15s, color 0.15s;
     }
-    .topic-card h3 {
-      margin: 0 0 0.25rem 0;
-      font-size: 1rem;
-    }
-    .topic-why {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      margin: 0.25rem 0;
-    }
-    .topic-prereqs {
-      font-size: 0.8rem;
-      color: var(--text-faint, #888);
-    }
-    .badge {
-      font-size: 0.7rem;
-      padding: 0.1rem 0.4rem;
-      border-radius: 3px;
-      font-weight: 600;
-    }
-    .badge.complete { background: #dcfce7; color: #166534; }
-    .badge.in-progress { background: #dbeafe; color: #1e40af; }
-    .badge.not-started { background: #f3f4f6; color: #6b7280; }
-    .topic-link {
-      display: inline-block;
-      margin-top: 0.5rem;
-      color: var(--link);
-      font-size: 0.9rem;
-    }
-    .topic-actions {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-      margin-top: 0.5rem;
-      flex-wrap: wrap;
-    }
-    .quiz-link {
-      color: var(--success, #16a34a);
-    }
-    .quiz-gen {
-      border-color: var(--success, #16a34a);
-      color: var(--success, #16a34a);
-    }
-    .subtopic-link {
-      color: var(--accent, #2563eb);
-      font-size: 0.85rem;
-    }
-    .subtopic-gen {
-      border-color: var(--accent, #2563eb);
-      color: var(--accent, #2563eb);
-      font-size: 0.85rem;
-    }
-    .generate-btn {
-      margin-top: 0.5rem;
-      padding: 0.4rem 0.8rem;
-      border: 1px solid var(--accent);
-      border-radius: 4px;
-      background: var(--bg-surface);
-      color: var(--accent);
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-    .generate-btn:hover { background: var(--bg-elevated); }
-    .breadcrumb {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin: 0.5rem 0 0.25rem;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .breadcrumb a {
-      color: var(--link);
-      text-decoration: none;
-      font-weight: 500;
-    }
-    .breadcrumb a:hover { text-decoration: underline; }
-    .breadcrumb-sep { color: var(--text-faint, #999); }
-    .breadcrumb-current { font-weight: 500; }
-      font-style: italic;
-    }
-    .leads-to {
-      margin-top: 2rem;
-      padding: 1.25rem;
-      border-radius: 8px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-    }
-    .leads-to-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.primary { border-color: var(--accent); color: var(--accent); }
+    .badge { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 3px; font-weight: 500; white-space: nowrap; }
+    .badge.not-started { background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    .badge.generating { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
+    .badge.complete { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
+    .badge.in-progress { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+    .gen-progress { font-size: 0.75rem; color: var(--warning); margin-top: 0.4rem; font-family: monospace; }
+    .leads-to { margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); }
+    .leads-to-grid { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
     .leads-to-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 0.75rem 1rem;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: var(--bg);
-      color: var(--text);
-      font-weight: 500;
-      font-size: 0.95rem;
-      cursor: pointer;
+      display: flex; flex-direction: column; align-items: flex-start; padding: 0.75rem 1rem;
+      border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);
+      font-weight: 500; font-size: 0.95rem; cursor: pointer; text-align: left;
       transition: border-color 0.15s, background 0.15s;
-      text-align: left;
     }
-    .leads-to-btn:hover {
-      border-color: var(--accent, #2563eb);
-      background: var(--bg-elevated);
-    }
-    .leads-to-desc {
-      font-weight: 400;
-      font-size: 0.83rem;
-      color: var(--text-muted);
-      margin-top: 0.2rem;
-    }
-    .legend {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 0.5rem;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-    .legend-swatch {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      border: 1px solid;
-    }
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-overlay.show { display: flex; }
-    .modal {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.5rem;
-      max-width: 550px;
-      width: 90%;
-    }
-    .modal h3 { margin-top: 0; }
-    .gen-output {
-      background: var(--code-bg, #1a1a2e);
-      padding: 0.75rem;
-      border-radius: 4px;
-      font-size: 0.78rem;
-      font-family: monospace;
-      max-height: 300px;
-      overflow-y: auto;
-      margin: 0.75rem 0;
-      line-height: 1.4;
-    }
-    .gen-output div {
-      padding: 1px 0;
-    }
-    .gen-output .phase-tool {
-      color: var(--accent, #60a5fa);
-    }
-    .gen-output .phase-writing {
-      color: var(--success, #4ade80);
-    }
-    .modal-actions {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
-    .modal-actions button {
-      padding: 0.4rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      font-size: 0.85rem;
-    }
-    .modal-actions .primary {
-      background: var(--accent);
-      color: var(--bg);
-      border-color: var(--accent);
-    }
+    .leads-to-btn:hover { border-color: var(--accent); background: var(--bg-elevated); }
+    .leads-to-desc { font-weight: 400; font-size: 0.83rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .loading { color: var(--text-muted); padding: 2rem; }
+    .map-header { margin-bottom: 1.5rem; }
+    .map-header h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    .map-header .orientation { color: var(--text-muted); font-size: 0.9rem; max-width: 700px; line-height: 1.5; }
+
   </style>
+  <script type="importmap">
+{
+  "imports": {
+    "preact": "../assets/vendor/preact.module.js",
+    "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+    "@preact/signals": "../assets/vendor/preact-signals.module.js",
+    "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+    "htm": "../assets/vendor/htm.module.js"
+  }
+}
+  </script>
 </head>
 <body>
-
-<div class="map-container">
-  <nav class="lesson-nav">
-    <a href="../../../lessons/index.html" class="back-to-map">← All Lessons</a>
-    <span class="nav-position">5 topics · 0 complete</span>
-  </nav>
-  
-  <nav class="breadcrumb" aria-label="Map navigation">
-    <a href="modern-data-analytics-stacks-map.html">← Modern Data Analytics Stacks</a>
-    <span class="breadcrumb-sep">›</span>
-    <span class="breadcrumb-current">Storage & Open Table Formats</span>
-  </nav>
-  <h1>🗺️ Storage & Open Table Formats</h1>
-  <p class="orientation">Your data has to live somewhere, and HOW it's stored determines everything downstream: what queries are fast, what operations are possible, how much you pay, and how much operational burden you carry. This sub-map breaks storage into its constituent concerns — from the physical file layout on object storage to the metadata layer that makes it behave like a database table.</p>
-
-  <div class="legend">
-    <span class="legend-item"><span class="legend-swatch" style="background:#dcfce7;border-color:#16a34a"></span> Complete</span>
-    <span class="legend-item"><span class="legend-swatch" style="background:#dbeafe;border-color:#2563eb"></span> In progress</span>
-    <span class="legend-item"><span class="legend-swatch" style="background:#f3f4f6;border-color:#6b7280"></span> Not started</span>
+  <script src="../assets/vendor/dagre.min.js"></script>
+  <script type="application/json" id="page-data">{"title": "Storage & Open Table Formats", "orientation": "Your data has to live somewhere, and HOW it's stored determines everything downstream: what queries are fast, what operations are possible, how much you pay, and how much operational burden you carry. This sub-map breaks storage into its constituent concerns — from the physical file layout on object storage to the metadata layer that makes it behave like a database table.", "topics": [{"id": "object-storage-fundamentals", "title": "Object Storage Fundamentals", "why": "Every modern analytics stack sits on object storage (S3, GCS, ADLS) — understanding its constraints and strengths is prerequisite to everything else", "prereqs": [], "status": "not-started", "lessonPath": null}, {"id": "columnar-file-formats", "title": "Columnar File Formats (Parquet, ORC)", "why": "The file format determines compression ratios, read patterns, and which queries can skip data — it's the physical foundation of performance", "prereqs": ["object-storage-fundamentals"], "status": "not-started", "lessonPath": null}, {"id": "table-format-metadata", "title": "Table Format Metadata (Iceberg, Delta, Hudi)", "why": "Open table formats add transactional semantics, schema evolution, and time travel on top of raw files — this is where \"data lake\" becomes \"lakehouse\"", "prereqs": ["columnar-file-formats"], "status": "not-started", "lessonPath": null}, {"id": "partitioning-strategies", "title": "Partitioning & Clustering Strategies", "why": "How you partition data determines whether queries read megabytes or terabytes — the single biggest lever for query cost and speed", "prereqs": ["columnar-file-formats"], "status": "not-started", "lessonPath": null}, {"id": "compaction-and-maintenance", "title": "Compaction & Table Maintenance", "why": "Without regular maintenance, small files accumulate and metadata bloats — turning fast queries into slow, expensive ones over time", "prereqs": ["table-format-metadata"], "status": "not-started", "lessonPath": null}], "leadsTo": [{"slug": "lakehouse-architecture", "why": "Combines the best of data lakes and warehouses — the natural evolution of open table formats"}, {"slug": "storage-cost-optimization", "why": "Once you understand formats and compaction, optimizing storage cost becomes tractable"}]}</script>
+  <div class="map-header">
+    <h1>Storage & Open Table Formats</h1>
+    <p class="orientation">Your data has to live somewhere, and HOW it's stored determines everything downstream: what queries are fast, what operations are possible, how much you pay, and how much operational burden you carry. This sub-map breaks storage into its constituent concerns — from the physical file layout on object storage to the metadata layer that makes it behave like a database table.</p>
   </div>
-
-  <!-- Generated by graphviz version 15.1.1 (20260805.0921)
- -->
-<!-- Title: G Pages: 1 -->
-<svg class="map-graph"
- viewBox="0.00 0.00 556.00 291.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 287.2)">
-<title>G</title>
-<!-- object&#45;storage&#45;fundamentals -->
-<g id="node1" class="node">
-<title>object&#45;storage&#45;fundamentals</title>
-<g id="a_node1"><a xlink:href="#topic-object-storage-fundamentals" xlink:title="Every modern analytics stack sits on object storage (S3, GCS, ADLS) — understanding its constraints and strengths is prerequisite to everything else">
-<path fill="#f3f4f6" stroke="#6b7280" d="M380.33,-283.2C380.33,-283.2 196.13,-283.2 196.13,-283.2 190.13,-283.2 184.13,-277.2 184.13,-271.2 184.13,-271.2 184.13,-251.4 184.13,-251.4 184.13,-245.4 190.13,-239.4 196.13,-239.4 196.13,-239.4 380.33,-239.4 380.33,-239.4 386.33,-239.4 392.33,-245.4 392.33,-251.4 392.33,-251.4 392.33,-271.2 392.33,-271.2 392.33,-277.2 386.33,-283.2 380.33,-283.2"/>
-<text xml:space="preserve" text-anchor="middle" x="288.23" y="-257.4" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Object Storage Fundamentals</text>
-</a>
-</g>
-</g>
-<!-- columnar&#45;file&#45;formats -->
-<g id="node2" class="node">
-<title>columnar&#45;file&#45;formats</title>
-<g id="a_node2"><a xlink:href="#topic-columnar-file-formats" xlink:title="The file format determines compression ratios, read patterns, and which queries can skip data — it&#39;s the physical foundation of performance">
-<path fill="#f3f4f6" stroke="#6b7280" d="M402.83,-203.4C402.83,-203.4 173.63,-203.4 173.63,-203.4 167.63,-203.4 161.63,-197.4 161.63,-191.4 161.63,-191.4 161.63,-171.6 161.63,-171.6 161.63,-165.6 167.63,-159.6 173.63,-159.6 173.63,-159.6 402.83,-159.6 402.83,-159.6 408.83,-159.6 414.83,-165.6 414.83,-171.6 414.83,-171.6 414.83,-191.4 414.83,-191.4 414.83,-197.4 408.83,-203.4 402.83,-203.4"/>
-<text xml:space="preserve" text-anchor="middle" x="288.23" y="-177.6" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Columnar File Formats (Parquet, ORC)</text>
-</a>
-</g>
-</g>
-<!-- object&#45;storage&#45;fundamentals&#45;&gt;columnar&#45;file&#45;formats -->
-<g id="edge1" class="edge">
-<title>object&#45;storage&#45;fundamentals&#45;&gt;columnar&#45;file&#45;formats</title>
-<path fill="none" stroke="#6b7280" d="M288.23,-239.04C288.23,-230.72 288.23,-221.04 288.23,-212.06"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="290.68,-212.25 288.23,-205.25 285.78,-212.25 290.68,-212.25"/>
-</g>
-<!-- table&#45;format&#45;metadata -->
-<g id="node3" class="node">
-<title>table&#45;format&#45;metadata</title>
-<g id="a_node3"><a xlink:href="#topic-table-format-metadata" xlink:title="Open table formats add transactional semantics, schema evolution, and time travel on top of raw files — this is where &quot;data lake&quot; becomes &quot;lakehouse&quot;">
-<path fill="#f3f4f6" stroke="#6b7280" d="M282.45,-123.6C282.45,-123.6 12,-123.6 12,-123.6 6,-123.6 0,-117.6 0,-111.6 0,-111.6 0,-91.8 0,-91.8 0,-85.8 6,-79.8 12,-79.8 12,-79.8 282.45,-79.8 282.45,-79.8 288.45,-79.8 294.45,-85.8 294.45,-91.8 294.45,-91.8 294.45,-111.6 294.45,-111.6 294.45,-117.6 288.45,-123.6 282.45,-123.6"/>
-<text xml:space="preserve" text-anchor="middle" x="147.23" y="-97.8" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Table Format Metadata (Iceberg, Delta, Hudi)</text>
-</a>
-</g>
-</g>
-<!-- columnar&#45;file&#45;formats&#45;&gt;table&#45;format&#45;metadata -->
-<g id="edge2" class="edge">
-<title>columnar&#45;file&#45;formats&#45;&gt;table&#45;format&#45;metadata</title>
-<path fill="none" stroke="#6b7280" d="M249.7,-159.24C232.13,-149.55 211.21,-138.01 192.86,-127.88"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="194.35,-125.9 187.03,-124.66 191.98,-130.19 194.35,-125.9"/>
-</g>
-<!-- partitioning&#45;strategies -->
-<g id="node4" class="node">
-<title>partitioning&#45;strategies</title>
-<g id="a_node4"><a xlink:href="#topic-partitioning-strategies" xlink:title="How you partition data determines whether queries read megabytes or terabytes — the single biggest lever for query cost and speed">
-<path fill="#f3f4f6" stroke="#6b7280" d="M536.2,-123.6C536.2,-123.6 324.25,-123.6 324.25,-123.6 318.25,-123.6 312.25,-117.6 312.25,-111.6 312.25,-111.6 312.25,-91.8 312.25,-91.8 312.25,-85.8 318.25,-79.8 324.25,-79.8 324.25,-79.8 536.2,-79.8 536.2,-79.8 542.2,-79.8 548.2,-85.8 548.2,-91.8 548.2,-91.8 548.2,-111.6 548.2,-111.6 548.2,-117.6 542.2,-123.6 536.2,-123.6"/>
-<text xml:space="preserve" text-anchor="middle" x="430.23" y="-97.8" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Partitioning &amp; Clustering Strategies</text>
-</a>
-</g>
-</g>
-<!-- columnar&#45;file&#45;formats&#45;&gt;partitioning&#45;strategies -->
-<g id="edge3" class="edge">
-<title>columnar&#45;file&#45;formats&#45;&gt;partitioning&#45;strategies</title>
-<path fill="none" stroke="#6b7280" d="M327.03,-159.24C344.72,-149.55 365.79,-138.01 384.26,-127.88"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="385.18,-130.17 390.14,-124.66 382.83,-125.88 385.18,-130.17"/>
-</g>
-<!-- compaction&#45;and&#45;maintenance -->
-<g id="node5" class="node">
-<title>compaction&#45;and&#45;maintenance</title>
-<g id="a_node5"><a xlink:href="#topic-compaction-and-maintenance" xlink:title="Without regular maintenance, small files accumulate and metadata bloats — turning fast queries into slow, expensive ones over time">
-<path fill="#f3f4f6" stroke="#6b7280" d="M249.45,-43.8C249.45,-43.8 45,-43.8 45,-43.8 39,-43.8 33,-37.8 33,-31.8 33,-31.8 33,-12 33,-12 33,-6 39,0 45,0 45,0 249.45,0 249.45,0 255.45,0 261.45,-6 261.45,-12 261.45,-12 261.45,-31.8 261.45,-31.8 261.45,-37.8 255.45,-43.8 249.45,-43.8"/>
-<text xml:space="preserve" text-anchor="middle" x="147.23" y="-18" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Compaction &amp; Table Maintenance</text>
-</a>
-</g>
-</g>
-<!-- table&#45;format&#45;metadata&#45;&gt;compaction&#45;and&#45;maintenance -->
-<g id="edge4" class="edge">
-<title>table&#45;format&#45;metadata&#45;&gt;compaction&#45;and&#45;maintenance</title>
-<path fill="none" stroke="#6b7280" d="M147.23,-79.44C147.23,-71.12 147.23,-61.44 147.23,-52.46"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="149.68,-52.65 147.23,-45.65 144.78,-52.65 149.68,-52.65"/>
-</g>
-</g>
-</svg>
-
-
-  <h2>Topics</h2>
+  <div id="app"></div>
   
-    <div class="topic-card" id="topic-object-storage-fundamentals">
-      <h3>Object Storage Fundamentals <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">Every modern analytics stack sits on object storage (S3, GCS, ADLS) — understanding its constraints and strengths is prerequisite to everything else</p>
-      <p class="topic-prereqs">Start here</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('object-storage-fundamentals', 'Object Storage Fundamentals')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('object-storage-fundamentals', 'Object Storage Fundamentals')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('object-storage-fundamentals', 'Object Storage Fundamentals')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-columnar-file-formats">
-      <h3>Columnar File Formats (Parquet, ORC) <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">The file format determines compression ratios, read patterns, and which queries can skip data — it's the physical foundation of performance</p>
-      <p class="topic-prereqs">After: object-storage-fundamentals</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('columnar-file-formats', 'Columnar File Formats (Parquet, ORC)')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('columnar-file-formats', 'Columnar File Formats (Parquet, ORC)')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('columnar-file-formats', 'Columnar File Formats (Parquet, ORC)')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-table-format-metadata">
-      <h3>Table Format Metadata (Iceberg, Delta, Hudi) <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">Open table formats add transactional semantics, schema evolution, and time travel on top of raw files — this is where "data lake" becomes "lakehouse"</p>
-      <p class="topic-prereqs">After: columnar-file-formats</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('table-format-metadata', 'Table Format Metadata (Iceberg, Delta, Hudi)')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('table-format-metadata', 'Table Format Metadata (Iceberg, Delta, Hudi)')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('table-format-metadata', 'Table Format Metadata (Iceberg, Delta, Hudi)')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-partitioning-strategies">
-      <h3>Partitioning & Clustering Strategies <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">How you partition data determines whether queries read megabytes or terabytes — the single biggest lever for query cost and speed</p>
-      <p class="topic-prereqs">After: columnar-file-formats</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('partitioning-strategies', 'Partitioning & Clustering Strategies')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('partitioning-strategies', 'Partitioning & Clustering Strategies')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('partitioning-strategies', 'Partitioning & Clustering Strategies')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-compaction-and-maintenance">
-      <h3>Compaction & Table Maintenance <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">Without regular maintenance, small files accumulate and metadata bloats — turning fast queries into slow, expensive ones over time</p>
-      <p class="topic-prereqs">After: table-format-metadata</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('compaction-and-maintenance', 'Compaction & Table Maintenance')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('compaction-and-maintenance', 'Compaction & Table Maintenance')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('compaction-and-maintenance', 'Compaction & Table Maintenance')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
 
-  
-    <div class="leads-to">
-      <h2>Where This Leads</h2>
-      <div class="leads-to-grid"><button class="leads-to-btn" data-domain="lakehouse-architecture">Lakehouse Architecture<span class="leads-to-desc">Combines the best of data lakes and warehouses — the natural evolution of open table formats</span></button><button class="leads-to-btn" data-domain="storage-cost-optimization">Storage Cost Optimization<span class="leads-to-desc">Once you understand formats and compaction, optimizing storage cost becomes tractable</span></button></div>
-    </div>
-</div>
+  <script type="module">
 
-<!-- Generation modal -->
-<div class="modal-overlay" id="gen-modal">
-  <div class="modal">
-    <h3 id="gen-title">Generate topic</h3>
-    <p id="gen-desc">Generating...</p>
-    <div id="gen-output" class="gen-output"></div>
-    <div class="modal-actions">
-      <button id="gen-cancel-btn" onclick="cancelGeneration()">Cancel</button>
-      <button id="gen-close-btn" onclick="closeModal()" style="display:none">Close</button>
-    </div>
-  </div>
-</div>
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { MapView } from '../assets/components/MapView.js';
 
-<script>
-let currentEventSource = null;
-let currentTaskId = null;
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
 
-function startGeneration(prompt, title) {
-  document.getElementById('gen-title').textContent = title;
-  document.getElementById('gen-desc').textContent = 'Generating...';
-  document.getElementById('gen-output').innerHTML = '';
-  document.getElementById('gen-cancel-btn').style.display = '';
-  document.getElementById('gen-close-btn').style.display = 'none';
-  document.getElementById('gen-modal').classList.add('show');
+    render(
+      html`<${MapView} topics=${data.topics} leadsTo=${data.leadsTo} orientation=${data.orientation} title=${data.title} />`,
+      document.getElementById('app')
+    );
 
-  fetch('/api/generate', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({prompt: prompt, mock: false})
-  })
-  .then(r => r.json())
-  .then(data => {
-    currentTaskId = data.id;
-    const es = new EventSource(data.stream_url);
-    currentEventSource = es;
-    const output = document.getElementById('gen-output');
-
-    es.addEventListener('line', function(e) {
-      const line = JSON.parse(e.data);
-      if (line.text) {
-        const div = document.createElement('div');
-        div.textContent = line.text;
-        if (line.phase) div.className = 'phase-' + line.phase.split(':')[0];
-        output.appendChild(div);
-        output.scrollTop = output.scrollHeight;
-      }
-    });
-
-    es.addEventListener('done', function(e) {
-      es.close();
-      currentEventSource = null;
-      document.getElementById('gen-desc').textContent = '✓ Done — reloading...';
-      document.getElementById('gen-cancel-btn').style.display = 'none';
-      document.getElementById('gen-close-btn').style.display = '';
-      setTimeout(() => location.reload(), 1500);
-    });
-
-    es.addEventListener('error', function(e) {
-      es.close();
-      currentEventSource = null;
-      document.getElementById('gen-desc').textContent = '✗ Generation failed';
-      document.getElementById('gen-cancel-btn').style.display = 'none';
-      document.getElementById('gen-close-btn').style.display = '';
-    });
-  })
-  .catch(err => {
-    document.getElementById('gen-desc').textContent = '✗ Could not connect to server: ' + err.message;
-    document.getElementById('gen-cancel-btn').style.display = 'none';
-    document.getElementById('gen-close-btn').style.display = '';
-  });
-}
-
-function offerGenerate(slug, title) {
-  startGeneration('teach me about ' + title, 'Generating: ' + title);
-}
-
-function offerGenerateQuiz(slug, title) {
-  startGeneration('generate quick-check questions for ' + title, 'Generating Quiz: ' + title);
-}
-
-function offerSubtopics(slug, title) {
-  startGeneration('go deeper on ' + title, 'Exploring Subtopics: ' + title);
-}
-
-function cancelGeneration() {
-  if (currentEventSource) {
-    currentEventSource.close();
-    currentEventSource = null;
-  }
-  if (currentTaskId) {
-    fetch('/api/generate/' + currentTaskId + '/cancel', {method: 'POST'});
-    currentTaskId = null;
-  }
-  closeModal();
-}
-
-function closeModal() {
-  document.getElementById('gen-modal').classList.remove('show');
-}
-
-document.getElementById('gen-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-</script>
-<script src="../assets/theme-toggle.js"></script>
-
+  </script>
 </body>
 </html>

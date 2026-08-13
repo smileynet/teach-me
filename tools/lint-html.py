@@ -59,10 +59,10 @@ def lint_map(path: Path, html: str) -> list[str]:
     """Lint a map page (*-map.html)."""
     errors = []
     checks = [
-        lambda h: check_contains(h, 'href="../assets/style.css"', "style.css link"),
-        lambda h: check_contains(h, 'theme-toggle.js"', "theme-toggle.js script"),
-        lambda h: check_regex(h, r'class="map-graph"', "SVG with class='map-graph'"),
-        lambda h: check_contains(h, 'id="gen-modal"', "generation modal"),
+        lambda h: check_contains(h, 'assets/style.css"', "style.css link"),
+        lambda h: check_contains(h, 'importmap', "import map for Preact"),
+        lambda h: check_contains(h, 'id="app"', "Preact mount point"),
+        lambda h: check_contains(h, 'dagre', "dagre layout library"),
     ]
     for check in checks:
         err = check(html)

@@ -61,9 +61,6 @@ def _generate_fixture_html():
         f.flush()
         path = Path(f.name)
 
-    map_data = parse_map_md(path)
-    # generate_map_html needs the parsed data — call the full pipeline
-    # We'll generate to a temp dir
     outdir = Path(tempfile.mkdtemp())
     outfile = outdir / "test-map.html"
 
@@ -73,7 +70,7 @@ def _generate_fixture_html():
          str(path), "--output", str(outfile)],
         capture_output=True, text=True, cwd=str(Path(__file__).parent.parent)
     )
-    assert result.returncode == 0, f"Generation failed: {result.stderr}"
+    assert result.returncode == 0, f"Generation failed: {result.stderr}\n{result.stdout}"
     html = outfile.read_text()
     path.unlink()
     return html
@@ -87,96 +84,105 @@ class TestMapPageNoScopeMarkers:
         for marker in ['○ lightweight', '◐ substantial', '● deep']:
             assert marker not in html, f"Scope marker found: {marker}"
 
-    def test_no_scope_text_in_topic_cards(self):
+    def test_no_scope_text_in_data(self):
         html = _generate_fixture_html()
-        assert 'Scope:' not in html
+        assert '"scope"' not in html
 
 
-class TestMapPageLiveGeneration:
-    """Generation must use SSE, not copy-command."""
+class TestMapPagePreactArchitecture:
+    """Page must use Preact component architecture, not vanilla JS."""
 
     def test_no_copy_command(self):
         html = _generate_fixture_html()
         assert 'copyCommand' not in html
         assert 'Copy command' not in html
-        assert '📋' not in html
 
-    def test_has_event_source(self):
+    def test_has_import_map(self):
         html = _generate_fixture_html()
-        assert 'EventSource' in html
+        assert 'importmap' in html
+        assert 'preact' in html
 
-    def test_hits_api_generate(self):
+    def test_imports_map_view(self):
         html = _generate_fixture_html()
-        assert '/api/generate' in html
+        assert 'MapView' in html
 
-    def test_has_live_output_element(self):
+    def test_has_data_island(self):
         html = _generate_fixture_html()
-        assert 'id="gen-output"' in html
+        assert 'id="page-data"' in html
+        assert 'application/json' in html
 
-    def test_has_cancel_button(self):
+    def test_has_dagre(self):
         html = _generate_fixture_html()
-        assert 'cancelGeneration' in html
+        assert 'dagre' in html
+
+    def test_has_app_mount_point(self):
+        html = _generate_fixture_html()
+        assert 'id="app"' in html
+
+    def test_uses_module_script(self):
+        html = _generate_fixture_html()
+        assert 'type="module"' in html
+
+
+class TestMapPageDataIsland:
+    """Data island must contain correct topic structure."""
+
+    def test_topics_in_data(self):
+        html = _generate_fixture_html()
+        assert '"id": "topic-one"' in html or '"id":"topic-one"' in html
+
+    def test_prereqs_in_data(self):
+        html = _generate_fixture_html()
+        assert 'topic-one' in html  # topic-two's prereq
+
+    def test_leads_to_in_data(self):
+        html = _generate_fixture_html()
+        assert 'next-domain' in html
+        assert 'This unlocks the next thing' in html
+        assert 'another-domain' in html
+        assert 'And also this' in html
 
 
 class TestMapPageLeadsTo:
-    """Leads-to section must render as buttons with descriptions."""
+    """Leads-to data must include slug and description."""
 
-    def test_leads_to_are_buttons(self):
+    def test_leads_to_has_slug_and_why(self):
         html = _generate_fixture_html()
-        assert 'leads-to-btn' in html
-
-    def test_leads_to_has_descriptions(self):
-        html = _generate_fixture_html()
-        assert 'leads-to-desc' in html
+        assert 'next-domain' in html
         assert 'This unlocks the next thing' in html
-        assert 'And also this' in html
 
     def test_no_bare_list(self):
         html = _generate_fixture_html()
-        # Should not have <li> in leads-to section
-        # (buttons replace the old <ul><li> pattern)
-        assert '<li>' not in html.split('Where This Leads')[1] if 'Where This Leads' in html else True
+        # No <li> elements — leads-to renders as buttons via component
+        assert '<li>' not in html
 
 
-class TestMapPageSubtopics:
-    """Explore subtopics button must exist with clear labeling."""
-
-    def test_has_explore_subtopics(self):
-        html = _generate_fixture_html()
-        assert 'Explore subtopics' in html
+class TestMapPageNoZoomIn:
+    """No 'Zoom in' labeling — use 'Explore subtopics'."""
 
     def test_no_zoom_in_label(self):
         html = _generate_fixture_html()
         assert 'Zoom in' not in html
         assert '🔍' not in html
 
-    def test_subtopic_has_tooltip(self):
-        html = _generate_fixture_html()
-        assert 'Break this topic into' in html
 
-
-class TestMapPageSequentialFlow:
-    """Topics should show prereqs clearly — branching is natural."""
-
-    def test_start_here_for_entry_topic(self):
-        html = _generate_fixture_html()
-        assert 'Start here' in html
-
-    def test_after_label_for_dependent(self):
-        html = _generate_fixture_html()
-        assert 'After: topic-one' in html
-
-
-class TestMapPageFullURLs:
-    """Links must be relative paths (full URLs are the server's job, 
-    but internal links must be valid relative paths)."""
+class TestMapPageStructure:
+    """Basic page structure requirements."""
 
     def test_asset_links_relative(self):
         html = _generate_fixture_html()
-        assert 'href="../assets/style.css"' in html
+        assert 'assets/style.css' in html
 
-    def test_lesson_actions_included(self):
+    def test_has_title(self):
         html = _generate_fixture_html()
-        # Map pages may or may not include lesson-actions.js
-        # but must include theme-toggle
-        assert 'theme-toggle' in html
+        assert '<title>' in html
+        assert 'Test Domain' in html
+
+    def test_has_orientation(self):
+        html = _generate_fixture_html()
+        assert 'test orientation paragraph' in html
+
+    def test_vendor_deps_relative(self):
+        html = _generate_fixture_html()
+        assert 'assets/vendor/preact.module.js' in html
+        assert 'assets/vendor/dagre.min.js' in html
