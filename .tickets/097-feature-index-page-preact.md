@@ -2,7 +2,7 @@
 id: "097"
 title: "Convert generate_index_page.py to Preact output"
 type: feature
-status: open
+status: done
 priority: medium
 blocked_by: ["095"]
 work_order: 2
