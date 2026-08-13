@@ -103,6 +103,15 @@
       border-color: var(--success, #16a34a);
       color: var(--success, #16a34a);
     }
+    .subtopic-link {
+      color: var(--accent, #2563eb);
+      font-size: 0.85rem;
+    }
+    .subtopic-gen {
+      border-color: var(--accent, #2563eb);
+      color: var(--accent, #2563eb);
+      font-size: 0.85rem;
+    }
     .generate-btn {
       margin-top: 0.5rem;
       padding: 0.4rem 0.8rem;
@@ -139,13 +148,36 @@
       background: var(--bg-elevated);
       border: 1px solid var(--border);
     }
-    .leads-to ul {
-      padding-left: 1.5rem;
-      margin: 0.5rem 0 0;
+    .leads-to-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
     }
-    .leads-to li {
+    .leads-to-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      font-weight: 500;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      text-align: left;
+    }
+    .leads-to-btn:hover {
+      border-color: var(--accent, #2563eb);
+      background: var(--bg-elevated);
+    }
+    .leads-to-desc {
+      font-weight: 400;
+      font-size: 0.83rem;
       color: var(--text-muted);
-      margin: 0.25rem 0;
+      margin-top: 0.2rem;
     }
     .legend {
       display: flex;
@@ -347,44 +379,44 @@
       <h3>Progressive Overload — The One Principle That Matters <span class="badge complete">✓ complete</span></h3>
       <p class="topic-why">The single mechanism behind all training adaptation. Without understanding this, everything else is noise.</p>
       <p class="topic-prereqs">Start here</p>
-      <div class="topic-actions"><a href="0001-progressive-overload.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('progressive-overload', 'Progressive Overload — The One Principle That Matters')">Generate quiz</button></div>
+      <div class="topic-actions"><a href="0001-progressive-overload.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('progressive-overload', 'Progressive Overload — The One Principle That Matters')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('progressive-overload', 'Progressive Overload — The One Principle That Matters')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-recovery-and-adaptation">
       <h3>Recovery & Adaptation — When Gains Actually Happen <span class="badge complete">✓ complete</span></h3>
       <p class="topic-why">Training is the stimulus; adaptation happens during rest. Most beginners train too much and recover too little because they don't understand this relationship.</p>
       <p class="topic-prereqs">After: progressive-overload</p>
-      <div class="topic-actions"><a href="0002-recovery-and-adaptation.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('recovery-and-adaptation', 'Recovery & Adaptation — When Gains Actually Happen')">Generate quiz</button></div>
+      <div class="topic-actions"><a href="0002-recovery-and-adaptation.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('recovery-and-adaptation', 'Recovery & Adaptation — When Gains Actually Happen')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('recovery-and-adaptation', 'Recovery & Adaptation — When Gains Actually Happen')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-programming-basics">
       <h3>Programming Basics — Structuring Your Training Week <span class="badge complete">✓ complete</span></h3>
       <p class="topic-why">Knowing HOW MUCH to do, HOW OFTEN, and in WHAT ORDER turns the overload principle into a concrete plan you can follow.</p>
       <p class="topic-prereqs">After: progressive-overload, recovery-and-adaptation</p>
-      <div class="topic-actions"><a href="0003-programming-basics.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('programming-basics', 'Programming Basics — Structuring Your Training Week')">Generate quiz</button></div>
+      <div class="topic-actions"><a href="0003-programming-basics.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('programming-basics', 'Programming Basics — Structuring Your Training Week')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('programming-basics', 'Programming Basics — Structuring Your Training Week')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-exercise-selection">
       <h3>Exercise Selection & Movement Patterns <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Not all exercises are equal — compound movements that train multiple joints give beginners the most return for their time. But the choice matters less than you think.</p>
       <p class="topic-prereqs">After: programming-basics</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('exercise-selection', 'Exercise Selection & Movement Patterns')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('exercise-selection', 'Exercise Selection & Movement Patterns')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('exercise-selection', 'Exercise Selection & Movement Patterns')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('exercise-selection', 'Exercise Selection & Movement Patterns')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('exercise-selection', 'Exercise Selection & Movement Patterns')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-nutrition-essentials">
       <h3>Nutrition for Training — What Actually Matters <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">You can't out-train a bad diet, but the fitness industry makes nutrition far more complicated than the evidence supports. Protein and calories explain 90% of results.</p>
       <p class="topic-prereqs">After: recovery-and-adaptation</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('nutrition-essentials', 'Nutrition for Training — What Actually Matters')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('nutrition-essentials', 'Nutrition for Training — What Actually Matters')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('nutrition-essentials', 'Nutrition for Training — What Actually Matters')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('nutrition-essentials', 'Nutrition for Training — What Actually Matters')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('nutrition-essentials', 'Nutrition for Training — What Actually Matters')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-putting-it-together">
       <h3>Putting It Together — Your First 12-Week Block <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Theory without application is useless. This synthesizes everything into a concrete program you can start Monday.</p>
       <p class="topic-prereqs">After: programming-basics, exercise-selection, nutrition-essentials</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('putting-it-together', 'Putting It Together — Your First 12-Week Block')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('putting-it-together', 'Putting It Together — Your First 12-Week Block')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('putting-it-together', 'Putting It Together — Your First 12-Week Block')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('putting-it-together', 'Putting It Together — Your First 12-Week Block')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('putting-it-together', 'Putting It Together — Your First 12-Week Block')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
 
   
     <div class="leads-to">
       <h2>🚀 Where This Leads</h2>
-      <p>After exploring this domain, these become accessible:</p>
-      <ul><li>Intermediate Programming</li><li>Nutrition For Training</li><li>Mobility And Injury Prevention</li><li>Sport Specific Training</li></ul>
+      <p>After this domain, these open up:</p>
+      <div class="leads-to-grid"><button class="leads-to-btn" data-domain="intermediate-programming">Intermediate Programming</button><button class="leads-to-btn" data-domain="nutrition-for-training">Nutrition For Training</button><button class="leads-to-btn" data-domain="mobility-and-injury-prevention">Mobility And Injury Prevention</button><button class="leads-to-btn" data-domain="sport-specific-training">Sport Specific Training</button></div>
     </div>
 </div>
 
@@ -411,6 +443,13 @@ function offerGenerate(slug, title) {
 function offerGenerateQuiz(slug, title) {
   document.getElementById('gen-title').textContent = 'Generate Quiz: ' + title;
   document.getElementById('gen-command').textContent = 'kiro-cli chat "generate quick-check questions for ' + title + '"';
+  document.getElementById('gen-modal').classList.add('show');
+}
+
+function offerSubtopics(slug, title) {
+  document.getElementById('gen-title').textContent = 'Explore Subtopics: ' + title;
+  document.getElementById('gen-desc').textContent = 'Break this topic into 3-5 focused subtopics you can explore individually:';
+  document.getElementById('gen-command').textContent = 'kiro-cli chat "go deeper on ' + title + '"';
   document.getElementById('gen-modal').classList.add('show');
 }
 

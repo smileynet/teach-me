@@ -103,6 +103,15 @@
       border-color: var(--success, #16a34a);
       color: var(--success, #16a34a);
     }
+    .subtopic-link {
+      color: var(--accent, #2563eb);
+      font-size: 0.85rem;
+    }
+    .subtopic-gen {
+      border-color: var(--accent, #2563eb);
+      color: var(--accent, #2563eb);
+      font-size: 0.85rem;
+    }
     .generate-btn {
       margin-top: 0.5rem;
       padding: 0.4rem 0.8rem;
@@ -139,13 +148,36 @@
       background: var(--bg-elevated);
       border: 1px solid var(--border);
     }
-    .leads-to ul {
-      padding-left: 1.5rem;
-      margin: 0.5rem 0 0;
+    .leads-to-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
     }
-    .leads-to li {
+    .leads-to-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      font-weight: 500;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      text-align: left;
+    }
+    .leads-to-btn:hover {
+      border-color: var(--accent, #2563eb);
+      background: var(--bg-elevated);
+    }
+    .leads-to-desc {
+      font-weight: 400;
+      font-size: 0.83rem;
       color: var(--text-muted);
-      margin: 0.25rem 0;
+      margin-top: 0.2rem;
     }
     .legend {
       display: flex;
@@ -377,56 +409,56 @@
       <h3>Nodes, Scenes & the Scene Tree <span class="badge complete">✓ complete</span></h3>
       <p class="topic-why">Everything in Godot is a node in a tree — understanding this architecture is the foundation for every project</p>
       <p class="topic-prereqs">Start here</p>
-      <div class="topic-actions"><a href="0001-nodes-and-scenes.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('nodes-and-scenes', 'Nodes, Scenes & the Scene Tree')">Generate quiz</button></div>
+      <div class="topic-actions"><a href="0001-nodes-and-scenes.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('nodes-and-scenes', 'Nodes, Scenes & the Scene Tree')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('nodes-and-scenes', 'Nodes, Scenes & the Scene Tree')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-gdscript-fundamentals">
       <h3>GDScript Fundamentals <span class="badge complete">✓ complete</span></h3>
       <p class="topic-why">GDScript is how you give nodes behavior — variables, functions, signals, and lifecycle callbacks make your game respond to the player</p>
       <p class="topic-prereqs">After: nodes-and-scenes</p>
-      <div class="topic-actions"><a href="0002-gdscript-fundamentals.html" class="topic-link">Open lesson →</a> <a href="review/quick-check.html" class="topic-link quiz-link">Quiz (1) →</a></div>
+      <div class="topic-actions"><a href="0002-gdscript-fundamentals.html" class="topic-link">Open lesson →</a> <a href="review/quick-check.html" class="topic-link quiz-link">Quiz (1) →</a> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('gdscript-fundamentals', 'GDScript Fundamentals')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-2d-game-mechanics">
       <h3>2D Game Mechanics <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">2D is where most Godot learners build their first complete game — movement, collision, tilemaps, and camera work</p>
       <p class="topic-prereqs">After: gdscript-fundamentals</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('2d-game-mechanics', '2D Game Mechanics')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('2d-game-mechanics', '2D Game Mechanics')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('2d-game-mechanics', '2D Game Mechanics')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('2d-game-mechanics', '2D Game Mechanics')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('2d-game-mechanics', '2D Game Mechanics')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-physics-and-collision">
       <h3>Physics & Collision Systems <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Rigid bodies, areas, raycasts, and collision layers are how your game world enforces physical rules</p>
       <p class="topic-prereqs">After: nodes-and-scenes, gdscript-fundamentals</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('physics-and-collision', 'Physics & Collision Systems')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('physics-and-collision', 'Physics & Collision Systems')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('physics-and-collision', 'Physics & Collision Systems')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('physics-and-collision', 'Physics & Collision Systems')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('physics-and-collision', 'Physics & Collision Systems')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-ui-and-control-nodes">
       <h3>UI, Menus & HUD <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Every game needs at least a title screen and a score counter — Godot's Control nodes are a full UI toolkit built into the engine</p>
       <p class="topic-prereqs">After: gdscript-fundamentals</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('ui-and-control-nodes', 'UI, Menus & HUD')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('ui-and-control-nodes', 'UI, Menus & HUD')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('ui-and-control-nodes', 'UI, Menus & HUD')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('ui-and-control-nodes', 'UI, Menus & HUD')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('ui-and-control-nodes', 'UI, Menus & HUD')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-animation-and-audio">
       <h3>Animation & Audio <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">AnimationPlayer, tweens, and the audio bus system turn a functional prototype into something that feels alive</p>
       <p class="topic-prereqs">After: nodes-and-scenes, gdscript-fundamentals</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('animation-and-audio', 'Animation & Audio')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('animation-and-audio', 'Animation & Audio')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('animation-and-audio', 'Animation & Audio')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('animation-and-audio', 'Animation & Audio')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('animation-and-audio', 'Animation & Audio')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-3d-fundamentals">
       <h3>3D Fundamentals <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Godot's 3D pipeline shares the same node/scene model — once you know 2D, 3D is a spatial upgrade, not a rewrite</p>
       <p class="topic-prereqs">After: 2d-game-mechanics, physics-and-collision</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('3d-fundamentals', '3D Fundamentals')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('3d-fundamentals', '3D Fundamentals')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('3d-fundamentals', '3D Fundamentals')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('3d-fundamentals', '3D Fundamentals')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('3d-fundamentals', '3D Fundamentals')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-exporting-and-publishing">
       <h3>Exporting & Publishing <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">A game isn't done until someone can play it — export templates, platform quirks, and distribution channels</p>
       <p class="topic-prereqs">After: 2d-game-mechanics</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('exporting-and-publishing', 'Exporting & Publishing')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('exporting-and-publishing', 'Exporting & Publishing')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('exporting-and-publishing', 'Exporting & Publishing')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('exporting-and-publishing', 'Exporting & Publishing')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('exporting-and-publishing', 'Exporting & Publishing')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
 
   
     <div class="leads-to">
       <h2>🚀 Where This Leads</h2>
-      <p>After exploring this domain, these become accessible:</p>
-      <ul><li>Shader Programming</li><li>Multiplayer Networking</li><li>Procedural Generation</li><li>Game Ai And Behavior</li><li>Publishing And Marketing</li></ul>
+      <p>After this domain, these open up:</p>
+      <div class="leads-to-grid"><button class="leads-to-btn" data-domain="shader-programming">Shader Programming</button><button class="leads-to-btn" data-domain="multiplayer-networking">Multiplayer Networking</button><button class="leads-to-btn" data-domain="procedural-generation">Procedural Generation</button><button class="leads-to-btn" data-domain="game-ai-and-behavior">Game Ai And Behavior</button><button class="leads-to-btn" data-domain="publishing-and-marketing">Publishing And Marketing</button></div>
     </div>
 </div>
 
@@ -453,6 +485,13 @@ function offerGenerate(slug, title) {
 function offerGenerateQuiz(slug, title) {
   document.getElementById('gen-title').textContent = 'Generate Quiz: ' + title;
   document.getElementById('gen-command').textContent = 'kiro-cli chat "generate quick-check questions for ' + title + '"';
+  document.getElementById('gen-modal').classList.add('show');
+}
+
+function offerSubtopics(slug, title) {
+  document.getElementById('gen-title').textContent = 'Explore Subtopics: ' + title;
+  document.getElementById('gen-desc').textContent = 'Break this topic into 3-5 focused subtopics you can explore individually:';
+  document.getElementById('gen-command').textContent = 'kiro-cli chat "go deeper on ' + title + '"';
   document.getElementById('gen-modal').classList.add('show');
 }
 
