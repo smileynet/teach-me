@@ -39,11 +39,23 @@ function DomainCard({ domain }) {
   `;
 }
 
-export function IndexView({ domains, stats }) {
+export function IndexView({ domains, stats, mission }) {
   return html`
     <div class="index-view">
       <h1>📚 All Lessons</h1>
       <p class="index-meta">${stats.domainCount} domain${stats.domainCount !== 1 ? 's' : ''} · ${stats.topicCount} topics · ${stats.completeCount} complete</p>
+      
+      ${mission && mission.why && html`
+        <div class="mission-block">
+          <p class="mission-why">${mission.why}</p>
+          ${mission.criteria && mission.criteria.length > 0 && html`
+            <ul class="mission-criteria">
+              ${mission.criteria.map(c => html`<li>${c}</li>`)}
+            </ul>
+          `}
+        </div>
+      `}
+
       <div class="domain-grid">
         ${domains.map(d => html`<${DomainCard} domain=${d} key=${d.domain} />`)}
       </div>
