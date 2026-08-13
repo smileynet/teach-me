@@ -44,21 +44,21 @@
   <!-- Sections -->
   <rect x="35" y="22" width="430" height="26" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
   <text x="50" y="40" font-size="11" font-family="monospace" fill="var(--svg-primary-text)">extends CharacterBody2D</text>
-  <text x="350" y="40" font-size="9" fill="var(--svg-neutral)">← what node type this script is for</text>
+  <text x="350" y="40" font-size="9" fill="var(--svg-primary-text)">← what node type this script is for</text>
 
   <rect x="35" y="56" width="430" height="40" rx="4" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="1.5"/>
   <text x="50" y="72" font-size="11" font-family="monospace" fill="var(--svg-success-text)">@export var speed: float = 200.0</text>
   <text x="50" y="88" font-size="11" font-family="monospace" fill="var(--svg-success-text)">@onready var sprite := $Sprite2D</text>
-  <text x="350" y="80" font-size="9" fill="var(--svg-neutral)">← state (visible in editor)</text>
+  <text x="350" y="80" font-size="9" fill="var(--svg-success-text)">← state (visible in editor)</text>
 
   <rect x="35" y="104" width="430" height="30" rx="4" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="1.5"/>
   <text x="50" y="124" font-size="11" font-family="monospace" fill="var(--svg-warning-text)">func _ready() -> void:</text>
-  <text x="350" y="124" font-size="9" fill="var(--svg-neutral)">← runs once when node enters tree</text>
+  <text x="350" y="124" font-size="9" fill="var(--svg-warning-text)">← runs once when node enters tree</text>
 
   <rect x="35" y="142" width="430" height="40" rx="4" fill="var(--svg-error-fill)" stroke="var(--svg-error)" stroke-width="1.5"/>
   <text x="50" y="160" font-size="11" font-family="monospace" fill="var(--svg-error-text)">func _process(delta: float) -> void:</text>
   <text x="50" y="176" font-size="11" font-family="monospace" fill="var(--svg-error-text)">    position.x += speed * delta</text>
-  <text x="350" y="168" font-size="9" fill="var(--svg-neutral)">← runs every frame</text>
+  <text x="350" y="168" font-size="9" fill="var(--svg-error-text)">← runs every frame</text>
 </svg>
 
 <h2>Variables: Types, @export, @onready</h2>
