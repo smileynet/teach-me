@@ -229,6 +229,12 @@ svg[role="img"] {
   height: auto;
 }
 
+/* Default text fill for SVG diagrams — prevents black text on dark backgrounds
+   when elements lack explicit fill (e.g. Graphviz-generated SVGs) */
+svg[role="img"] text {
+  fill: var(--svg-text);
+}
+
 /* --- Theme toggle --- */
 .theme-toggle {
   position: fixed;
