@@ -2,7 +2,7 @@
 id: "109"
 title: "Embed mission context in index page header"
 type: feature
-status: in_progress
+status: done
 priority: high
 blocked_by: []
 ---
@@ -39,3 +39,7 @@ The index page (All Lessons dashboard) should show the user's learning mission a
 - Current index generator: `tools/generate_index_page.py`
 - IndexView component: `assets/components/IndexView.js`
 - Mission file: `workspace/MISSION.md`
+
+## Resolution (2026-08-13)
+
+TBD
