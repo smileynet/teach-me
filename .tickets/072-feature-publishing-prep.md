@@ -1,7 +1,7 @@
 ---
 id: "072"
 title: "Feature: publishing prep — LICENSE, CHANGELOG, CONTRIBUTING, CI"
-status: open
+status: done
 priority: high
 blocked_by: ["079", "080", "081"]
 type: feature
@@ -34,14 +34,18 @@ type: feature
 
 ## Acceptance criteria
 
-- [ ] LICENSE file exists (MIT)
-- [ ] CHANGELOG.md exists with v0.1.0 entry
-- [ ] CONTRIBUTING.md explains setup and contribution process
-- [ ] CI workflow runs on push and passes
-- [ ] No personal paths or data in committed files
-- [ ] Fresh clone → setup → verify passes
+- [x] LICENSE file exists (MIT)
+- [x] CHANGELOG.md exists with v0.1.0 entry
+- [x] CONTRIBUTING.md explains setup and contribution process
+- [x] CI workflow runs on push and passes
+- [x] No personal paths or data in committed files
+- [x] Fresh clone → setup → verify passes
 
 ## Validation
 
 - **E2E:** Clone to /tmp, run full setup + verify pipeline
 - **Audit:** `grep -r "/home/sam" . --include="*.py" --include="*.md"` returns zero hits (excluding .git)
+
+## Resolution (2026-08-13)
+
+TBD
