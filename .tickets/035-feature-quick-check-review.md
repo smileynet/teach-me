@@ -81,10 +81,10 @@ Uses the existing quiz component (`assets/quiz.js`) with cards drawn from the qu
 
 ## Acceptance criteria
 
-- [ ] Multiple-choice question type added to Card schema
-- [ ] teach skill generates 2-3 quick-check questions per lesson alongside explain questions
-- [ ] Review page (HTML) presents questions using existing quiz component
-- [ ] Questions drawn from due cards (SR-scheduled) or manually selected
-- [ ] Correct/incorrect feeds back into review log
-- [ ] Can be invoked via `mise run sr:quick-check` or opened in browser
-- [ ] Complements (not replaces) Socratic dialog for deeper review
+- [x] Multiple-choice question type added to Card schema
+- [x] teach skill generates 2-3 quick-check questions per lesson alongside explain questions
+- [x] Review page (HTML) presents questions using existing quiz component
+- [x] Questions drawn from due cards (SR-scheduled) or manually selected
+- [x] Correct/incorrect feeds back into review log
+- [x] Can be invoked via `mise run sr:quick-check` or opened in browser
+- [x] Complements (not replaces) Socratic dialog for deeper review

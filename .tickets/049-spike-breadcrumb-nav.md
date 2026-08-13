@@ -39,7 +39,7 @@ A minimal nav bar inserted at the top of lesson HTML:
 
 ## Success criteria
 
-- [ ] "← Course Map" link at top of a lesson page navigates to map.html
-- [ ] Visually consistent with the dark theme
-- [ ] Doesn't add clutter to a single-topic lesson (hide if no map exists?)
-- [ ] Works with relative paths from `lessons/` directory
+- [x] "← Course Map" link at top of a lesson page navigates to map.html
+- [x] Visually consistent with the dark theme
+- [x] Doesn't add clutter to a single-topic lesson (hide if no map exists?)
+- [x] Works with relative paths from `lessons/` directory

@@ -73,10 +73,10 @@ def mask_svg(svg_str: str, labels_to_hide: list[str]) -> str:
 
 ## Acceptance criteria
 
-- [ ] `svg_ref` and `occluded_labels` fields added to Card schema
-- [ ] `mask_svg()` function extracts and masks SVG text elements
-- [ ] quick-check.py renders diagram cards with click-to-reveal masks
-- [ ] Mask color is slate gray (#585b70), hover darkens, click reveals with transition
-- [ ] Terminal review shows description + text prompt (answerable without diagram)
-- [ ] At least one diagram card exists in the Iceberg question bank
-- [ ] Card is answerable in both modes (text prompt is sufficient, diagram adds context)
+- [x] `svg_ref` and `occluded_labels` fields added to Card schema
+- [x] `mask_svg()` function extracts and masks SVG text elements
+- [x] quick-check.py renders diagram cards with click-to-reveal masks
+- [x] Mask color is slate gray (#585b70), hover darkens, click reveals with transition
+- [x] Terminal review shows description + text prompt (answerable without diagram)
+- [x] At least one diagram card exists in the Iceberg question bank
+- [x] Card is answerable in both modes (text prompt is sufficient, diagram adds context)

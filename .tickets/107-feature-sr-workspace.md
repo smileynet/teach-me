@@ -20,11 +20,11 @@ The live workspace is at `workspace/` (gitignored, user-local). Questions genera
 
 ## Acceptance Criteria
 
-- [ ] `mise run sr` finds and reports questions from `workspace/learning-records/questions/`
-- [ ] `mise run sr:check` validates questions from workspace
-- [ ] `mise run sr:review` reviews due cards from workspace
-- [ ] Fallback: if no workspace/ exists, check project root (for examples)
-- [ ] All SR mise tasks work without extra flags for the default workspace
+- [x] `mise run sr` finds and reports questions from `workspace/learning-records/questions/`
+- [x] `mise run sr:check` validates questions from workspace
+- [x] `mise run sr:review` reviews due cards from workspace
+- [x] Fallback: if no workspace/ exists, check project root (for examples)
+- [x] All SR mise tasks work without extra flags for the default workspace
 
 ## Implementation
 

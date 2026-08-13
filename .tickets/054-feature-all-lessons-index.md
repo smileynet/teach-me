@@ -56,9 +56,9 @@ mise run index:generate   # scan all MAP.md files, produce index.html
 
 ## Acceptance criteria
 
-- [ ] Generates `lessons/index.html` from all depth-0 MAP.md files
-- [ ] Each domain shows as a card with title, description, progress
-- [ ] Progress ring (SVG) shows complete/total ratio
-- [ ] Card click navigates to that domain's map.html
-- [ ] Works with 1 domain and with 5+ domains
-- [ ] Breadcrumb on map page ("← All Lessons") links here
+- [x] Generates `lessons/index.html` from all depth-0 MAP.md files
+- [x] Each domain shows as a card with title, description, progress
+- [x] Progress ring (SVG) shows complete/total ratio
+- [x] Card click navigates to that domain's map.html
+- [x] Works with 1 domain and with 5+ domains
+- [x] Breadcrumb on map page ("← All Lessons") links here

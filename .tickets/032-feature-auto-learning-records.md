@@ -59,12 +59,12 @@ This is a qualitative synthesis the agent writes, informed by (but not reduced t
 
 ## Acceptance criteria
 
-- [ ] Agent can generate a knowledge snapshot from available signals
-- [ ] Snapshot is qualitative and open-ended, not just metrics
-- [ ] Covers: demonstrated knowledge, developing areas, interests, potential confusions
-- [ ] Written as a learning record (not ephemeral)
-- [ ] teach skill reads snapshots when calculating ZPD for next lesson
-- [ ] Does not gate or block — purely informational for the agent and learner
+- [x] Agent can generate a knowledge snapshot from available signals
+- [x] Snapshot is qualitative and open-ended, not just metrics
+- [x] Covers: demonstrated knowledge, developing areas, interests, potential confusions
+- [x] Written as a learning record (not ephemeral)
+- [x] teach skill reads snapshots when calculating ZPD for next lesson
+- [x] Does not gate or block — purely informational for the agent and learner
 
 ## Resolution (closed 2026-08-10)
 

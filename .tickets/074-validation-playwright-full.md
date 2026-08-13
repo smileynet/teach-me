@@ -50,11 +50,11 @@ Capture a named screenshot at each step. After all tests pass, analyze screensho
 
 ## Acceptance criteria
 
-- [ ] All 14 navigation/action tests pass
-- [ ] Screenshots captured at each major state
-- [ ] Visual analysis reports no layout breaks or style inconsistencies
-- [ ] Script is reusable: `python tools/test-navigation.py` runs the full suite
-- [ ] Can run headless (CI-compatible)
+- [x] All 14 navigation/action tests pass
+- [x] Screenshots captured at each major state
+- [x] Visual analysis reports no layout breaks or style inconsistencies
+- [x] Script is reusable: `python tools/test-navigation.py` runs the full suite
+- [x] Can run headless (CI-compatible)
 
 ## Validation
 

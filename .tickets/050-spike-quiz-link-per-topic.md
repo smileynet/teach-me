@@ -33,7 +33,7 @@ On each topic card, alongside "Generate this topic" or "Open lesson →":
 
 ## Success criteria
 
-- [ ] Topic cards show quiz link when questions exist for that topic
-- [ ] Topic cards show "Generate quiz" when no questions exist
-- [ ] Clicking quiz link opens a functional quick-check page for that topic
-- [ ] Generation modal shows appropriate CLI command for question generation
+- [x] Topic cards show quiz link when questions exist for that topic
+- [x] Topic cards show "Generate quiz" when no questions exist
+- [x] Clicking quiz link opens a functional quick-check page for that topic
+- [x] Generation modal shows appropriate CLI command for question generation

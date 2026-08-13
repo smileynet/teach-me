@@ -23,11 +23,11 @@ Index page (All Lessons dashboard) as Preact components — domain cards with pr
 
 ## Acceptance Criteria
 
-- [ ] `python tools/generate_index_page.py --scan-dir X --output Y` produces Preact page
-- [ ] Domain cards render with progress indicators
-- [ ] Links to map pages work
-- [ ] Theme toggle works
-- [ ] Loads offline (vendored deps)
+- [x] `python tools/generate_index_page.py --scan-dir X --output Y` produces Preact page
+- [x] Domain cards render with progress indicators
+- [x] Links to map pages work
+- [x] Theme toggle works
+- [x] Loads offline (vendored deps)
 
 ## Context & Sources
 

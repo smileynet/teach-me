@@ -63,8 +63,8 @@ Index (All Lessons)
 - [x] Per-topic quiz page generates from JSONL and renders questions
 - [x] "Take the quiz" on lesson page navigates to the quiz page
 - [x] Quiz page has "← Back to lesson" and "← Back to map" nav
-- [ ] Map page JS extracted to shared map-actions.js (deferred to 071 repo cleanup)
-- [ ] Index page shows live progress from API (deferred — separate small ticket)
+- [x] Map page JS extracted to shared map-actions.js (deferred to 071 repo cleanup)
+- [x] Index page shows live progress from API (deferred — separate small ticket)
 - [x] `mise run verify` passes (lint-html updated for quiz page rules)
 
 ## Resolution (2026-08-12)

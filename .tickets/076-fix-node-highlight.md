@@ -19,9 +19,9 @@ Add a CSS-based highlight (glow, thicker border, or scale) to the selected graph
 
 ## Acceptance criteria
 
-- [ ] Clicking a graph node visually highlights it (distinct from hover)
-- [ ] Highlight clears when a different node is clicked
-- [ ] Works for all three states (green, blue, gray nodes)
+- [x] Clicking a graph node visually highlights it (distinct from hover)
+- [x] Highlight clears when a different node is clicked
+- [x] Works for all three states (green, blue, gray nodes)
 
 ## Validation
 

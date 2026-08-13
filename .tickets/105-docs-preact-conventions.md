@@ -28,10 +28,10 @@ Document the Preact conventions so the agent (and future developers) know how to
 
 ## Acceptance Criteria
 
-- [ ] Agent can generate a new Preact page without checking research files
-- [ ] Conventions documented: file naming, import patterns, signal usage, testing
-- [ ] Commands table in AGENTS.md updated
-- [ ] Glossary terms added to CONTEXT.md
+- [x] Agent can generate a new Preact page without checking research files
+- [x] Conventions documented: file naming, import patterns, signal usage, testing
+- [x] Commands table in AGENTS.md updated
+- [x] Glossary terms added to CONTEXT.md
 
 ## Context & Sources
 

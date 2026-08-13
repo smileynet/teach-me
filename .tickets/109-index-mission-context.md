@@ -28,11 +28,11 @@ The index page (All Lessons dashboard) should show the user's learning mission a
 
 ## Acceptance Criteria
 
-- [ ] Index page shows mission context above domain cards
-- [ ] Reads from workspace/MISSION.md automatically
-- [ ] If MISSION.md is the generic template (no real content), shows a prompt to set goals
-- [ ] Styled consistently (not raw markdown)
-- [ ] Works with multiple domains (mission frames all of them)
+- [x] Index page shows mission context above domain cards
+- [x] Reads from workspace/MISSION.md automatically
+- [x] If MISSION.md is the generic template (no real content), shows a prompt to set goals
+- [x] Styled consistently (not raw markdown)
+- [x] Works with multiple domains (mission frames all of them)
 
 ## Context
 

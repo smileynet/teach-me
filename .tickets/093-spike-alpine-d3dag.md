@@ -26,23 +26,23 @@ Build a standalone prototype at `tools/spike-alpine-d3dag.html` that:
 
 ## Evaluate
 
-- [ ] Does Alpine's directive syntax make the generated HTML readable/maintainable?
-- [ ] Does d3-dag handle branching better than dagre? (parallel branches at correct rank)
-- [ ] Is the reactive state model natural for generation status updates?
-- [ ] Does it feel snappy (sub-100ms layout for 7-9 nodes)?
-- [ ] Can Python's `generate_map_page.py` realistically output Alpine-flavored HTML?
-- [ ] Does theming (dark/light toggle) work without fighting Alpine?
-- [ ] Total page weight with CDN deps
+- [x] Does Alpine's directive syntax make the generated HTML readable/maintainable?
+- [x] Does d3-dag handle branching better than dagre? (parallel branches at correct rank)
+- [x] Is the reactive state model natural for generation status updates?
+- [x] Does it feel snappy (sub-100ms layout for 7-9 nodes)?
+- [x] Can Python's `generate_map_page.py` realistically output Alpine-flavored HTML?
+- [x] Does theming (dark/light toggle) work without fighting Alpine?
+- [x] Total page weight with CDN deps
 
 ## Acceptance Criteria
 
-- [ ] Single HTML file, opens in browser, no server needed (except CDN fetch)
-- [ ] 7 topic cards in correct DAG layout with edges
-- [ ] Click "Generate" → simulated progress state visible on card (spinner/text)
-- [ ] Card status updates reactively (not-started → generating → complete)
-- [ ] Dark/light theme toggle works
-- [ ] No overlapping cards
-- [ ] Cards wide enough for content
+- [x] Single HTML file, opens in browser, no server needed (except CDN fetch)
+- [x] 7 topic cards in correct DAG layout with edges
+- [x] Click "Generate" → simulated progress state visible on card (spinner/text)
+- [x] Card status updates reactively (not-started → generating → complete)
+- [x] Dark/light theme toggle works
+- [x] No overlapping cards
+- [x] Cards wide enough for content
 
 ## NOT in scope
 

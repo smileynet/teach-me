@@ -58,13 +58,13 @@ _site/
 
 ## Acceptance Criteria
 
-- [ ] GitHub Pages deploys automatically on push to main
-- [ ] Landing page lists all example workspaces with descriptions
-- [ ] Each example's index, map, lessons, quizzes are browsable
-- [ ] Dark theme renders correctly
-- [ ] No broken asset links (style.css, vendor JS, components)
-- [ ] Generate buttons show graceful fallback (no server = no generation)
-- [ ] README links to the live demo
+- [x] GitHub Pages deploys automatically on push to main
+- [x] Landing page lists all example workspaces with descriptions
+- [x] Each example's index, map, lessons, quizzes are browsable
+- [x] Dark theme renders correctly
+- [x] No broken asset links (style.css, vendor JS, components)
+- [x] Generate buttons show graceful fallback (no server = no generation)
+- [x] README links to the live demo
 
 ## Context
 

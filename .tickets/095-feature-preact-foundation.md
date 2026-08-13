@@ -66,13 +66,13 @@ Python helper that generates the HTML boilerplate:
 
 ## Acceptance Criteria
 
-- [ ] `assets/vendor/` contains all 4 deps, loadable offline
-- [ ] Import map resolves correctly from `lessons/` subdirectory (relative paths)
-- [ ] Each component in `assets/components/` exports a named function
-- [ ] Components use signals from `store.js` for shared state
-- [ ] `preact_page.py` helper generates valid HTML that renders components
-- [ ] Existing pages still work (no breakage from adding new files)
-- [ ] `mise run verify` passes
+- [x] `assets/vendor/` contains all 4 deps, loadable offline
+- [x] Import map resolves correctly from `lessons/` subdirectory (relative paths)
+- [x] Each component in `assets/components/` exports a named function
+- [x] Components use signals from `store.js` for shared state
+- [x] `preact_page.py` helper generates valid HTML that renders components
+- [x] Existing pages still work (no breakage from adding new files)
+- [x] `mise run verify` passes
 
 ## Research references
 

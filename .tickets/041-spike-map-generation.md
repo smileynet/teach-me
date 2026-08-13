@@ -38,10 +38,10 @@ The quality of generated maps determines if the whole domain scaffolding feature
 
 ## Success criteria
 
-- [ ] MAP.md format defined and documented
-- [ ] 3+ domains tested
-- [ ] 3/3 generated maps are usable without major restructuring
-- [ ] Failure modes identified (if any)
+- [x] MAP.md format defined and documented
+- [x] 3+ domains tested
+- [x] 3/3 generated maps are usable without major restructuring
+- [x] Failure modes identified (if any)
 
 ## Expected output
 
