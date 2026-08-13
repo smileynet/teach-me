@@ -20,12 +20,41 @@ Deploy the example workspaces to the repo's GitHub Pages site (smileynet.github.
 - Each example workspace browsable: index → map → lessons → quizzes
 - Static-only (no server needed) — the Preact components load vendored deps from relative paths
 
-## Considerations
+## Implementation Plan (from research)
 
-- The examples use `../assets/` symlinks — GitHub Pages needs real files (resolve symlinks or copy assets into each example)
-- Map pages use dagre from `assets/vendor/dagre.min.js` — must be included
-- No `/api/generate` endpoint — "Generate this topic" buttons should degrade gracefully (show a message like "Clone the repo to generate lessons")
-- Quiz/review pages work fully client-side (data island + Preact)
+**Strategy:** Copy examples + shared assets into a flat `_site/` directory, resolving all symlinks. Deploy via official `actions/deploy-pages`.
+
+**Deploy structure:**
+```
+_site/
+  .nojekyll
+  index.html                          ← landing page (links to examples)
+  assets/                             ← copied (not symlinked) shared assets
+    style.css
+    vendor/                           ← preact, signals, htm, dagre
+    components/                       ← MapView, QuizView, etc.
+    services/
+  examples/
+    iceberg-workspace/
+      assets/                         ← COPY of shared assets (symlink resolved)
+      lessons/
+      reference/
+      maps/
+    godot-gamedev/
+    oidc-rust/
+    workout-fundamentals/
+```
+
+**Key decisions:**
+1. Symlinks resolved via `cp -rL` (GitHub Pages forbids symlinks)
+2. `.nojekyll` at root (bypass Jekyll processing)
+3. All paths already relative (no base-path issue)
+4. Import maps in each page already use `../assets/vendor/` which resolves correctly
+5. Generate buttons get a graceful fallback (no server = show "Clone to generate" message)
+
+**Workflow:** `.github/workflows/pages.yml` with `actions/upload-pages-artifact` + `actions/deploy-pages`
+
+**Landing page:** Simple HTML listing the 4 example workspaces with descriptions, linking to each one's `lessons/index.html`
 
 ## Acceptance Criteria
 
