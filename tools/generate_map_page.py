@@ -310,7 +310,17 @@ def generate_page(map_data: dict, svg: str, index_link: str = "index.html", maps
     # Leads-to section
     leads_html = ""
     if leads_to:
-        items = "".join(f"<li>{lt.replace('-', ' ').title()}</li>" for lt in leads_to)
+        items = ""
+        for lt in leads_to:
+            # Handle both dict format and string format
+            if isinstance(lt, dict):
+                label = lt.get("slug", lt.get("why", "")).replace("-", " ").title()
+            elif isinstance(lt, str):
+                # Strip "slug: " prefix if present (parse_map_md artifact)
+                label = lt.replace("slug: ", "").replace("-", " ").title()
+            else:
+                label = str(lt).replace("-", " ").title()
+            items += f"<li>{label}</li>"
         leads_html = f"""
     <div class="leads-to">
       <h2>🚀 Where This Leads</h2>
