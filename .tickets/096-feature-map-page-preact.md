@@ -2,7 +2,7 @@
 id: "096"
 title: "Convert generate_map_page.py to Preact DAG output"
 type: feature
-status: open
+status: done
 priority: high
 blocked_by: ["095"]
 ---
