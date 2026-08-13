@@ -1,0 +1,9 @@
+{
+  "imports": {
+    "preact": "./assets/vendor/preact.module.js",
+    "preact/hooks": "./assets/vendor/preact-hooks.module.js",
+    "@preact/signals": "./assets/vendor/preact-signals.module.js",
+    "@preact/signals-core": "./assets/vendor/signals-core.module.js",
+    "htm": "./assets/vendor/htm.module.js"
+  }
+}
