@@ -1,31 +1,37 @@
 import { h, render } from 'preact';
-import { useState } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 import htm from 'htm';
 
 const html = htm.bind(h);
 
 function LessonActions({ lessonId, domain, mapPage, topicTitle }) {
   const [status, setStatus] = useState('idle');
+  const [quizExists, setQuizExists] = useState(null);
 
   const resolvedMapPage = mapPage || (domain ? `${domain}-map.html` : null);
+  const quizUrl = 'quiz/' + lessonId + '-quiz.html';
+
+  useEffect(() => {
+    fetch(quizUrl, { method: 'HEAD' })
+      .then(res => setQuizExists(res.ok))
+      .catch(() => setQuizExists(false));
+  }, [quizUrl]);
 
   function handleMarkComplete() {
     setStatus('completing');
-    // POST to mark-complete API if available, otherwise just visual feedback
     fetch(`/api/map/${domain}/complete/${lessonId}`, { method: 'POST' })
       .then(() => setStatus('complete'))
-      .catch(() => setStatus('complete')); // optimistic
+      .catch(() => setStatus('complete'));
   }
+
+  const quizLabel = quizExists === null ? '…' : quizExists ? '📝 Take quiz' : '+ Generate quiz';
 
   return html`
     <div class="lesson-actions-bar">
       ${resolvedMapPage && html`
         <a href=${resolvedMapPage} class="btn">← Back to map</a>
       `}
-      <button class="btn" onClick=${() => {
-        const quizUrl = 'quiz/' + lessonId + '-quiz.html';
-        window.location.href = quizUrl;
-      }}>+ Generate quiz</button>
+      <button class="btn" onClick=${() => { window.location.href = quizUrl; }}>${quizLabel}</button>
       ${status === 'idle' && html`
         <button class="btn primary" onClick=${handleMarkComplete}>✓ Mark complete</button>
       `}
