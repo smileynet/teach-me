@@ -213,16 +213,29 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 1.5rem;
-      max-width: 500px;
+      max-width: 550px;
       width: 90%;
     }
     .modal h3 { margin-top: 0; }
-    .modal pre {
-      background: var(--code-bg);
+    .gen-output {
+      background: var(--code-bg, #1a1a2e);
       padding: 0.75rem;
       border-radius: 4px;
-      font-size: 0.8rem;
-      overflow-x: auto;
+      font-size: 0.78rem;
+      font-family: monospace;
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 0.75rem 0;
+      line-height: 1.4;
+    }
+    .gen-output div {
+      padding: 1px 0;
+    }
+    .gen-output .phase-tool {
+      color: var(--accent, #60a5fa);
+    }
+    .gen-output .phase-writing {
+      color: var(--success, #4ade80);
     }
     .modal-actions {
       display: flex;
@@ -418,47 +431,102 @@
 <div class="modal-overlay" id="gen-modal">
   <div class="modal">
     <h3 id="gen-title">Generate topic</h3>
-    <p id="gen-desc">This topic hasn't been created yet. Generate it with:</p>
-    <pre id="gen-command"></pre>
+    <p id="gen-desc">Generating...</p>
+    <div id="gen-output" class="gen-output"></div>
     <div class="modal-actions">
-      <button onclick="copyCommand()">📋 Copy command</button>
-      <button onclick="closeModal()">Close</button>
+      <button id="gen-cancel-btn" onclick="cancelGeneration()">Cancel</button>
+      <button id="gen-close-btn" onclick="closeModal()" style="display:none">Close</button>
     </div>
   </div>
 </div>
 
 <script>
-function offerGenerate(slug, title) {
-  document.getElementById('gen-title').textContent = 'Generate: ' + title;
-  document.getElementById('gen-command').textContent = 'kiro-cli chat "teach me about ' + title + '"';
+let currentEventSource = null;
+let currentTaskId = null;
+
+function startGeneration(prompt, title) {
+  document.getElementById('gen-title').textContent = title;
+  document.getElementById('gen-desc').textContent = 'Generating...';
+  document.getElementById('gen-output').innerHTML = '';
+  document.getElementById('gen-cancel-btn').style.display = '';
+  document.getElementById('gen-close-btn').style.display = 'none';
   document.getElementById('gen-modal').classList.add('show');
+
+  fetch('/api/generate', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({prompt: prompt, mock: false})
+  })
+  .then(r => r.json())
+  .then(data => {
+    currentTaskId = data.id;
+    const es = new EventSource(data.stream_url);
+    currentEventSource = es;
+    const output = document.getElementById('gen-output');
+
+    es.addEventListener('line', function(e) {
+      const line = JSON.parse(e.data);
+      if (line.text) {
+        const div = document.createElement('div');
+        div.textContent = line.text;
+        if (line.phase) div.className = 'phase-' + line.phase.split(':')[0];
+        output.appendChild(div);
+        output.scrollTop = output.scrollHeight;
+      }
+    });
+
+    es.addEventListener('done', function(e) {
+      es.close();
+      currentEventSource = null;
+      document.getElementById('gen-desc').textContent = '✓ Done — reloading...';
+      document.getElementById('gen-cancel-btn').style.display = 'none';
+      document.getElementById('gen-close-btn').style.display = '';
+      setTimeout(() => location.reload(), 1500);
+    });
+
+    es.addEventListener('error', function(e) {
+      es.close();
+      currentEventSource = null;
+      document.getElementById('gen-desc').textContent = '✗ Generation failed';
+      document.getElementById('gen-cancel-btn').style.display = 'none';
+      document.getElementById('gen-close-btn').style.display = '';
+    });
+  })
+  .catch(err => {
+    document.getElementById('gen-desc').textContent = '✗ Could not connect to server: ' + err.message;
+    document.getElementById('gen-cancel-btn').style.display = 'none';
+    document.getElementById('gen-close-btn').style.display = '';
+  });
+}
+
+function offerGenerate(slug, title) {
+  startGeneration('teach me about ' + title, 'Generating: ' + title);
 }
 
 function offerGenerateQuiz(slug, title) {
-  document.getElementById('gen-title').textContent = 'Generate Quiz: ' + title;
-  document.getElementById('gen-command').textContent = 'kiro-cli chat "generate quick-check questions for ' + title + '"';
-  document.getElementById('gen-modal').classList.add('show');
+  startGeneration('generate quick-check questions for ' + title, 'Generating Quiz: ' + title);
 }
 
 function offerSubtopics(slug, title) {
-  document.getElementById('gen-title').textContent = 'Explore Subtopics: ' + title;
-  document.getElementById('gen-desc').textContent = 'Break this topic into 3-5 focused subtopics you can explore individually:';
-  document.getElementById('gen-command').textContent = 'kiro-cli chat "go deeper on ' + title + '"';
-  document.getElementById('gen-modal').classList.add('show');
+  startGeneration('go deeper on ' + title, 'Exploring Subtopics: ' + title);
+}
+
+function cancelGeneration() {
+  if (currentEventSource) {
+    currentEventSource.close();
+    currentEventSource = null;
+  }
+  if (currentTaskId) {
+    fetch('/api/generate/' + currentTaskId + '/cancel', {method: 'POST'});
+    currentTaskId = null;
+  }
+  closeModal();
 }
 
 function closeModal() {
   document.getElementById('gen-modal').classList.remove('show');
 }
 
-function copyCommand() {
-  const cmd = document.getElementById('gen-command').textContent;
-  navigator.clipboard.writeText(cmd).then(() => {
-    document.querySelector('.modal-actions .primary')
-  });
-}
-
-// Close modal on overlay click
 document.getElementById('gen-modal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
