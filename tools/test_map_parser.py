@@ -22,7 +22,7 @@ GODOT_MAP = EXAMPLES_DIR / "godot-gamedev" / "maps" / "godot-gamedev.MAP.md"
 
 def test_load_data_analytics():
     m = load_map(DATA_ANALYTICS_MAP)
-    assert m.domain == "modern-data-analytics-stacks"
+    assert m.domain == "data-analytics"
     assert m.depth == 0
     assert m.parent is None
     assert any(lt.slug == "streaming-architectures" for lt in m.leads_to)
