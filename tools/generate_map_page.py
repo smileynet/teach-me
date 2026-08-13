@@ -25,12 +25,28 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 LESSONS_DIR = PROJECT_ROOT / "lessons"
 QUESTIONS_DIR = PROJECT_ROOT / "learning-records" / "questions"
 
+# Sub-map navigation (zoom)
+try:
+    from tools.map_parser import (
+        find_child_map, has_child_maps, get_breadcrumb_chain,
+        can_zoom_in, load_map as mp_load_map, MAX_DEPTH,
+    )
+except ModuleNotFoundError:
+    from map_parser import (  # type: ignore[no-redef]
+        find_child_map, has_child_maps, get_breadcrumb_chain,
+        can_zoom_in, load_map as mp_load_map, MAX_DEPTH,
+    )
+
+# Track the maps directory for sub-map discovery
+MAPS_DIR: Path | None = None
+
 
 def set_workspace(workspace_path: Path) -> None:
-    """Override LESSONS_DIR and QUESTIONS_DIR to point at a workspace."""
-    global LESSONS_DIR, QUESTIONS_DIR
+    """Override LESSONS_DIR, QUESTIONS_DIR, and MAPS_DIR to point at a workspace."""
+    global LESSONS_DIR, QUESTIONS_DIR, MAPS_DIR
     LESSONS_DIR = workspace_path / "lessons"
     QUESTIONS_DIR = workspace_path / "learning-records" / "questions"
+    MAPS_DIR = workspace_path / "maps"
 
 # State → color mapping (teach-me color vocabulary)
 STATE_COLORS = {
@@ -197,15 +213,54 @@ def render_svg(dot_source: str) -> str:
     svg = re.sub(r'\s*height="\d+pt"', '', svg)
     # Add responsive class
     svg = svg.replace('<svg ', '<svg class="map-graph" ', 1)
+    # Handle Graphviz output where <svg has a newline before attributes
+    if 'class="map-graph"' not in svg:
+        svg = svg.replace('<svg\n', '<svg class="map-graph"\n', 1)
     return svg
 
 
-def generate_page(map_data: dict, svg: str, index_link: str = "index.html") -> str:
+def _find_map_file_for_data(maps_dir: Path, map_data: dict) -> Path:
+    """Find the MAP.md file matching parsed map_data by domain."""
+    domain = map_data["frontmatter"].get("domain", "")
+    for f in maps_dir.glob("*.MAP.md"):
+        if domain in f.stem or f.stem.replace(".MAP", "") == domain:
+            return f
+    raise FileNotFoundError(f"No MAP.md found for domain '{domain}' in {maps_dir}")
+
+
+def generate_page(map_data: dict, svg: str, index_link: str = "index.html", maps_dir: Path | None = None, output_path: Path | None = None) -> str:
     """Generate the full HTML page."""
     title = map_data["title"]
     orientation = map_data["orientation"]
     topics = map_data["topics"]
     leads_to = map_data["frontmatter"].get("leads_to", [])
+    depth = int(map_data["frontmatter"].get("depth", 0))
+    parent_domain = map_data["frontmatter"].get("parent")
+
+    # Detect child maps for zoom-in affordances
+    child_maps: dict[str, Path] = {}
+    if maps_dir and maps_dir.is_dir():
+        try:
+            dm = mp_load_map(maps_dir / _find_map_file_for_data(maps_dir, map_data))
+            child_maps = has_child_maps(maps_dir, dm)
+        except (FileNotFoundError, ValueError):
+            # Fall back to slug-based detection
+            for t in topics:
+                child = find_child_map(maps_dir, t["slug"])
+                if child:
+                    child_maps[t["slug"]] = child
+
+    # Breadcrumb navigation (only for depth > 0)
+    breadcrumb_html = ""
+    if depth > 0 and parent_domain:
+        # Build breadcrumb: link to parent map page
+        parent_map_page = f"{parent_domain}-map.html"
+        breadcrumb_html = f"""
+  <nav class="breadcrumb" aria-label="Map navigation">
+    <a href="{parent_map_page}">← {parent_domain.replace('-', ' ').title()}</a>
+    <span class="breadcrumb-sep">›</span>
+    <span class="breadcrumb-current">{title}</span>
+  </nav>"""
 
     # Build topic cards for the sidebar/details
     topic_cards = []
@@ -230,12 +285,26 @@ def generate_page(map_data: dict, svg: str, index_link: str = "index.html") -> s
         else:
             quiz_action = f'<button class="generate-btn quiz-gen" onclick="offerGenerateQuiz(\'{t["slug"]}\', \'{t["title"]}\')">Generate quiz</button>'
 
+        # Zoom-in affordance
+        zoom_action = ""
+        if depth < MAX_DEPTH:
+            if t["slug"] in child_maps:
+                # Child map exists — link directly to it
+                child_domain = child_maps[t["slug"]].stem.replace(".MAP", "")
+                child_page = f"{child_domain}-map.html"
+                zoom_action = f'<a href="{child_page}" class="topic-link zoom-link">🔍 Zoom in →</a>'
+            else:
+                # No child yet — offer to generate
+                zoom_action = f'<button class="generate-btn zoom-gen" onclick="offerZoomIn(\'{t["slug"]}\', \'{t["title"]}\')">🔍 Zoom in</button>'
+        elif depth >= MAX_DEPTH:
+            zoom_action = '<span class="depth-limit">📚 Max depth — explore external resources</span>'
+
         topic_cards.append(f"""
     <div class="topic-card" id="topic-{t['slug']}">
       <h3>{t['title']} {status_badge}</h3>
       <p class="topic-why">{t['why']}</p>
       <p class="topic-scope">Scope: {t['scope']} · Prereqs: {', '.join(t['prereqs']) or 'none'}</p>
-      <div class="topic-actions">{action} {quiz_action}</div>
+      <div class="topic-actions">{action} {quiz_action} {zoom_action}</div>
     </div>""")
 
     # Leads-to section
@@ -365,6 +434,35 @@ def generate_page(map_data: dict, svg: str, index_link: str = "index.html") -> s
       font-size: 0.85rem;
     }}
     .generate-btn:hover {{ background: var(--bg-elevated); }}
+    .breadcrumb {{
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 0.5rem 0 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }}
+    .breadcrumb a {{
+      color: var(--link);
+      text-decoration: none;
+      font-weight: 500;
+    }}
+    .breadcrumb a:hover {{ text-decoration: underline; }}
+    .breadcrumb-sep {{ color: var(--text-faint, #999); }}
+    .breadcrumb-current {{ font-weight: 500; }}
+    .zoom-link {{
+      color: var(--accent);
+      font-size: 0.85rem;
+    }}
+    .zoom-gen {{
+      border-color: var(--accent);
+      color: var(--accent);
+    }}
+    .depth-limit {{
+      font-size: 0.8rem;
+      color: var(--text-faint, #888);
+      font-style: italic;
+    }}
     .leads-to {{
       margin-top: 2rem;
       padding: 1.25rem;
@@ -451,6 +549,7 @@ def generate_page(map_data: dict, svg: str, index_link: str = "index.html") -> s
     <a href="{index_link}" class="back-to-map">← All Lessons</a>
     <span class="nav-position">{len(map_data['topics'])} topics · {sum(1 for t in map_data['topics'] if t['status'] == 'complete')} complete</span>
   </nav>
+  {breadcrumb_html}
   <h1>🗺️ {title}</h1>
   <p class="orientation">{orientation}</p>
 
@@ -492,6 +591,13 @@ function offerGenerate(slug, title) {{
 function offerGenerateQuiz(slug, title) {{
   document.getElementById('gen-title').textContent = 'Generate Quiz: ' + title;
   document.getElementById('gen-command').textContent = 'kiro-cli chat "generate quick-check questions for ' + title + '"';
+  document.getElementById('gen-modal').classList.add('show');
+}}
+
+function offerZoomIn(slug, title) {{
+  document.getElementById('gen-title').textContent = 'Zoom in: ' + title;
+  document.getElementById('gen-desc').textContent = 'Generate a sub-map to explore this topic in more depth:';
+  document.getElementById('gen-command').textContent = 'kiro-cli chat "zoom in on ' + title + '"';
   document.getElementById('gen-modal').classList.add('show');
 }}
 
@@ -561,7 +667,7 @@ def main() -> None:
                 index_link = str(Path(os.path.relpath(index_path, output_path.parent)))
             except ValueError:
                 index_link = "index.html"
-            html = generate_page(map_data, svg, index_link)
+            html = generate_page(map_data, svg, index_link, maps_dir=map_path.parent)
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_text(html, encoding="utf-8")
             try:
@@ -601,7 +707,8 @@ def main() -> None:
         index_link = str(Path(os.path.relpath(index_path, output_path.parent)))
     except ValueError:
         index_link = "index.html"
-    html = generate_page(map_data, svg, index_link)
+    maps_dir_resolved = MAPS_DIR or map_path.parent
+    html = generate_page(map_data, svg, index_link, maps_dir=maps_dir_resolved)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(html, encoding="utf-8")

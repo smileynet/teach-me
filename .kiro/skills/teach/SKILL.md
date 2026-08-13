@@ -124,3 +124,53 @@ For the full pipeline (research → lesson → jargon → quiz → reference →
 - Lessons produced before understanding why the learner cares
 - Reference docs read like shorter lessons instead of lookup artifacts
 - The learner reads but never explains anything back
+
+## Zoom Navigation (Sub-Maps)
+
+When the learner wants to go deeper on a topic, use recursive sub-maps.
+
+### Trigger Phrases
+
+| Phrase | Action |
+|--------|--------|
+| "zoom in on [X]" / "go deeper on [X]" / "more about [X]" | Generate or load subtopic MAP.md |
+| "zoom out" / "big picture" / "go back" | Navigate to parent MAP.md |
+| "show me the map" | Re-present current MAP.md |
+
+### Zoom In Flow
+
+1. Identify which topic slug the learner means (fuzzy match against current map's topics)
+2. Check: does a child MAP.md exist? (`find_child_map` from `tools/map_parser.py`)
+   - **Yes:** Load it, present its orientation, offer first topic
+   - **No:** Research that subtopic space, generate a sub-MAP.md (3-5 topics), generate its map page
+3. Sub-MAP.md requirements:
+   - `depth:` = parent depth + 1
+   - `parent:` = parent's domain name
+   - 3-5 focused subtopics (fewer than a root map)
+   - Same format as any MAP.md (frontmatter + orientation + topics)
+4. After generating: run `python3 tools/generate_map_page.py <new-map> --workspace <ws> --output <ws>/lessons/<domain>-map.html`
+5. Regenerate parent map page so its topic card shows the direct zoom link
+
+### Zoom Out Flow
+
+1. Read current MAP.md's `parent` field
+2. Find and load the parent MAP.md (`get_parent_map` from `tools/map_parser.py`)
+3. Present the parent's orientation and topic list
+
+### Depth Limit
+
+Maximum depth is 3 (constant `MAX_DEPTH` in `tools/map_parser.py`). At depth 3:
+- Do NOT generate another sub-map
+- Instead suggest external resources: official docs, books, courses, or papers
+- Frame as: "This is deep enough for exploration — here's where to go for mastery"
+
+### File Naming
+
+Maps live flat in `workspace/maps/`:
+```
+data-analytics.MAP.md              # depth 0
+storage-and-table-formats.MAP.md   # depth 1 (child of a data-analytics topic)
+object-storage-fundamentals.MAP.md # depth 2 (child of a storage topic)
+```
+
+The `parent:` frontmatter field is the link back up. No `--` separators needed at depth 1-2 unless there's a slug collision.
