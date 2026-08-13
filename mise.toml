@@ -53,6 +53,11 @@ description = "Start server on LAN. Usage: mise run serve:lan -- [--workspace PA
 depends = ["setup"]
 run = "python tools/serve.py --lan \"$@\""
 
+[tasks."serve:restart"]
+description = "Kill existing server and restart (default workspace)"
+depends = ["setup"]
+run = "lsof -ti :8787 | xargs kill -9 2>/dev/null; sleep 1; python tools/serve.py \"$@\""
+
 [tasks.init-workspace]
 description = "Create a fresh learning workspace (workspace/)"
 run = "bash tools/init-workspace.sh"

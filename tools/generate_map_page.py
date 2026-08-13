@@ -167,8 +167,6 @@ def generate_dot(map_data: dict) -> str:
         url = f"#topic-{topic['slug']}"
 
         label = topic["title"]
-        # Add scope indicator
-        scope_icon = {"lightweight": "○", "substantial": "◐", "deep": "●"}.get(topic["scope"], "◐")
 
         # Escape quotes for DOT syntax
         safe_label = label.replace('"', '\\"')
@@ -176,7 +174,7 @@ def generate_dot(map_data: dict) -> str:
 
         lines.append(
             f'  "{topic["slug"]}" ['
-            f'label="{safe_label}\\n{scope_icon} {topic["scope"]}", '
+            f'label="{safe_label}", '
             f'fillcolor="{colors["fill"]}", '
             f'color="{colors["stroke"]}", '
             f'fontcolor="{colors["text"]}", '
@@ -285,26 +283,15 @@ def generate_page(map_data: dict, svg: str, index_link: str = "index.html", maps
         else:
             quiz_action = f'<button class="generate-btn quiz-gen" onclick="offerGenerateQuiz(\'{t["slug"]}\', \'{t["title"]}\')">Generate quiz</button>'
 
-        # Zoom-in affordance
-        zoom_action = ""
-        if depth < MAX_DEPTH:
-            if t["slug"] in child_maps:
-                # Child map exists — link directly to it
-                child_domain = child_maps[t["slug"]].stem.replace(".MAP", "")
-                child_page = f"{child_domain}-map.html"
-                zoom_action = f'<a href="{child_page}" class="topic-link zoom-link">🔍 Zoom in →</a>'
-            else:
-                # No child yet — offer to generate
-                zoom_action = f'<button class="generate-btn zoom-gen" onclick="offerZoomIn(\'{t["slug"]}\', \'{t["title"]}\')">🔍 Zoom in</button>'
-        elif depth >= MAX_DEPTH:
-            zoom_action = '<span class="depth-limit">📚 Max depth — explore external resources</span>'
+        # Prereqs display
+        prereqs_text = f'After: {", ".join(t["prereqs"])}' if t["prereqs"] else "Start here"
 
         topic_cards.append(f"""
     <div class="topic-card" id="topic-{t['slug']}">
       <h3>{t['title']} {status_badge}</h3>
       <p class="topic-why">{t['why']}</p>
-      <p class="topic-scope">Scope: {t['scope']} · Prereqs: {', '.join(t['prereqs']) or 'none'}</p>
-      <div class="topic-actions">{action} {quiz_action} {zoom_action}</div>
+      <p class="topic-prereqs">{prereqs_text}</p>
+      <div class="topic-actions">{action} {quiz_action}</div>
     </div>""")
 
     # Leads-to section
@@ -400,7 +387,7 @@ def generate_page(map_data: dict, svg: str, index_link: str = "index.html", maps
       font-size: 0.9rem;
       margin: 0.25rem 0;
     }}
-    .topic-scope {{
+    .topic-prereqs {{
       font-size: 0.8rem;
       color: var(--text-faint, #888);
     }}
@@ -460,17 +447,6 @@ def generate_page(map_data: dict, svg: str, index_link: str = "index.html", maps
     .breadcrumb a:hover {{ text-decoration: underline; }}
     .breadcrumb-sep {{ color: var(--text-faint, #999); }}
     .breadcrumb-current {{ font-weight: 500; }}
-    .zoom-link {{
-      color: var(--accent);
-      font-size: 0.85rem;
-    }}
-    .zoom-gen {{
-      border-color: var(--accent);
-      color: var(--accent);
-    }}
-    .depth-limit {{
-      font-size: 0.8rem;
-      color: var(--text-faint, #888);
       font-style: italic;
     }}
     .leads-to {{
@@ -567,7 +543,6 @@ def generate_page(map_data: dict, svg: str, index_link: str = "index.html", maps
     <span class="legend-item"><span class="legend-swatch" style="background:#dcfce7;border-color:#16a34a"></span> Complete</span>
     <span class="legend-item"><span class="legend-swatch" style="background:#dbeafe;border-color:#2563eb"></span> In progress</span>
     <span class="legend-item"><span class="legend-swatch" style="background:#f3f4f6;border-color:#6b7280"></span> Not started</span>
-    <span class="legend-item">○ lightweight · ◐ substantial · ● deep</span>
   </div>
 
   {svg}
@@ -601,13 +576,6 @@ function offerGenerate(slug, title) {{
 function offerGenerateQuiz(slug, title) {{
   document.getElementById('gen-title').textContent = 'Generate Quiz: ' + title;
   document.getElementById('gen-command').textContent = 'kiro-cli chat "generate quick-check questions for ' + title + '"';
-  document.getElementById('gen-modal').classList.add('show');
-}}
-
-function offerZoomIn(slug, title) {{
-  document.getElementById('gen-title').textContent = 'Zoom in: ' + title;
-  document.getElementById('gen-desc').textContent = 'Generate a sub-map to explore this topic in more depth:';
-  document.getElementById('gen-command').textContent = 'kiro-cli chat "zoom in on ' + title + '"';
   document.getElementById('gen-modal').classList.add('show');
 }}
 
