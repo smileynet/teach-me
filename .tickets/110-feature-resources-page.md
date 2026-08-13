@@ -2,7 +2,7 @@
 id: "110"
 title: "Themed resources page with source trust ratings"
 type: feature
-status: open
+status: in_progress
 priority: high
 blocked_by: []
 ---
