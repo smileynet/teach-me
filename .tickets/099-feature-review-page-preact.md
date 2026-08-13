@@ -2,7 +2,7 @@
 id: "099"
 title: "Convert quick-check.py (SR review) to Preact output"
 type: feature
-status: open
+status: done
 priority: medium
 blocked_by: ["095"]
 work_order: 5
