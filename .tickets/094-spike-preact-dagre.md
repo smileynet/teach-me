@@ -2,7 +2,7 @@
 id: "094"
 title: "Spike: Preact + HTM + Signals + dagre map page prototype"
 type: spike
-status: open
+status: done
 priority: high
 blocked_by: []
 ---
@@ -61,3 +61,18 @@ Direct comparison:
 - Replacing `generate_map_page.py`
 - Full component library
 - Mobile responsiveness (desktop evaluation first)
+
+## Resolution
+
+**Outcome:** Adopted. Preact + HTM + Signals + dagre is the chosen UI stack.
+
+Key findings:
+- Import maps (`?external=preact`) are required to prevent CDN singleton issues with signals
+- Signals trigger fine-grained re-renders correctly once the singleton is resolved
+- Component model (TopicCard, EdgeLayer, MapView) composes cleanly
+- HTM tagged templates are readable and Python can generate them
+- 420px card width + `max-width: none` on body prevents clipping
+- dagre handles branching DAGs correctly (parallel branches at same rank)
+- Total bundle: ~37KB from CDN (Preact 4KB + Signals 1.6KB + HTM 1KB + dagre 30KB)
+
+Next: Ticket 091 integrates this into `generate_map_page.py` to replace the current Graphviz + card list output.

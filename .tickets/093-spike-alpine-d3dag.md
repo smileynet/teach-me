@@ -2,7 +2,7 @@
 id: "093"
 title: "Spike: Alpine.js + d3-dag map page prototype"
 type: spike
-status: open
+status: done
 priority: high
 blocked_by: []
 ---
@@ -50,3 +50,15 @@ Build a standalone prototype at `tools/spike-alpine-d3dag.html` that:
 - Replacing `generate_map_page.py` (that's ticket 091)
 - Quiz or subtopic functionality
 - Mobile responsiveness (evaluate desktop first)
+
+## Resolution
+
+**Outcome:** Works but rejected in favor of Preact (094).
+
+Alpine renders correctly and reactivity works (directives update on state change). However:
+- No component model — can't reuse TopicCard across lesson/quiz pages
+- Performance degrades on large DOM trees (Alpine's own docs warn against this)
+- d3-dag ESM module has timing issues with Alpine's synchronous init (forced dagre fallback)
+- Directive-heavy HTML is harder to compose programmatically from Python
+
+The Alpine spike validates that dagre + absolute-positioned cards + SVG edges is the right visual approach. The reactive layer should be Preact.
