@@ -103,6 +103,15 @@
       border-color: var(--success, #16a34a);
       color: var(--success, #16a34a);
     }
+    .subtopic-link {
+      color: var(--accent, #2563eb);
+      font-size: 0.85rem;
+    }
+    .subtopic-gen {
+      border-color: var(--accent, #2563eb);
+      color: var(--accent, #2563eb);
+      font-size: 0.85rem;
+    }
     .generate-btn {
       margin-top: 0.5rem;
       padding: 0.4rem 0.8rem;
@@ -139,13 +148,36 @@
       background: var(--bg-elevated);
       border: 1px solid var(--border);
     }
-    .leads-to ul {
-      padding-left: 1.5rem;
-      margin: 0.5rem 0 0;
+    .leads-to-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
     }
-    .leads-to li {
+    .leads-to-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      font-weight: 500;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      text-align: left;
+    }
+    .leads-to-btn:hover {
+      border-color: var(--accent, #2563eb);
+      background: var(--bg-elevated);
+    }
+    .leads-to-desc {
+      font-weight: 400;
+      font-size: 0.83rem;
       color: var(--text-muted);
-      margin: 0.25rem 0;
+      margin-top: 0.2rem;
     }
     .legend {
       display: flex;
@@ -341,44 +373,44 @@
       <h3>OIDC Authorization Code Flow & PKCE <span class="badge complete">✓ complete</span></h3>
       <p class="topic-why">This is what happens when a user clicks "Login" — the redirect dance between your app, the browser, and the identity provider. You can't implement auth without understanding this sequence.</p>
       <p class="topic-prereqs">Start here</p>
-      <div class="topic-actions"><a href="0001-oidc-auth-flows.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('oidc-auth-flows', 'OIDC Authorization Code Flow & PKCE')">Generate quiz</button></div>
+      <div class="topic-actions"><a href="0001-oidc-auth-flows.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('oidc-auth-flows', 'OIDC Authorization Code Flow & PKCE')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('oidc-auth-flows', 'OIDC Authorization Code Flow & PKCE')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-token-anatomy">
       <h3>Token Anatomy — ID Tokens, Access Tokens & JWTs <span class="badge complete">✓ complete</span></h3>
       <p class="topic-why">Tokens are the credentials your code handles — knowing their structure, what each claim means, and the 8-step validation checklist prevents the security bugs that happen when developers treat tokens as opaque blobs.</p>
       <p class="topic-prereqs">After: oidc-auth-flows</p>
-      <div class="topic-actions"><a href="0002-token-anatomy.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('token-anatomy', 'Token Anatomy — ID Tokens, Access Tokens & JWTs')">Generate quiz</button></div>
+      <div class="topic-actions"><a href="0002-token-anatomy.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('token-anatomy', 'Token Anatomy — ID Tokens, Access Tokens & JWTs')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('token-anatomy', 'Token Anatomy — ID Tokens, Access Tokens & JWTs')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-rust-oidc-client">
       <h3>Building an OIDC Client with openidconnect-rs <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">The openidconnect crate handles discovery, PKCE, token exchange, and ID token validation — but its type system is intimidating. You need to know which types to wire together and what the compiler is protecting you from.</p>
       <p class="topic-prereqs">After: oidc-auth-flows, token-anatomy</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('rust-oidc-client', 'Building an OIDC Client with openidconnect-rs')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('rust-oidc-client', 'Building an OIDC Client with openidconnect-rs')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('rust-oidc-client', 'Building an OIDC Client with openidconnect-rs')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('rust-oidc-client', 'Building an OIDC Client with openidconnect-rs')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('rust-oidc-client', 'Building an OIDC Client with openidconnect-rs')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-token-validation-middleware">
       <h3>Token Validation Middleware for APIs <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Your API endpoints need to validate bearer tokens on every request — fetching JWKS, checking signatures, verifying claims. This is where most production bugs live (caching, rotation, clock skew).</p>
       <p class="topic-prereqs">After: token-anatomy</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('token-validation-middleware', 'Token Validation Middleware for APIs')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('token-validation-middleware', 'Token Validation Middleware for APIs')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('token-validation-middleware', 'Token Validation Middleware for APIs')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('token-validation-middleware', 'Token Validation Middleware for APIs')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('token-validation-middleware', 'Token Validation Middleware for APIs')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-session-and-refresh">
       <h3>Sessions, Refresh Tokens & Logout <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Login is one request; staying logged in is a session problem. Refresh token rotation, secure cookie handling, and logout (front-channel vs back-channel) are where simple demos become production code.</p>
       <p class="topic-prereqs">After: rust-oidc-client</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('session-and-refresh', 'Sessions, Refresh Tokens & Logout')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('session-and-refresh', 'Sessions, Refresh Tokens & Logout')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('session-and-refresh', 'Sessions, Refresh Tokens & Logout')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('session-and-refresh', 'Sessions, Refresh Tokens & Logout')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('session-and-refresh', 'Sessions, Refresh Tokens & Logout')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-testing-oidc">
       <h3>Testing OIDC Integrations <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">You can't call Google's auth server in CI. Mock providers, test JWKs, and integration test patterns let you verify auth code without live IdP dependencies.</p>
       <p class="topic-prereqs">After: rust-oidc-client, token-validation-middleware</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('testing-oidc', 'Testing OIDC Integrations')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('testing-oidc', 'Testing OIDC Integrations')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('testing-oidc', 'Testing OIDC Integrations')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('testing-oidc', 'Testing OIDC Integrations')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('testing-oidc', 'Testing OIDC Integrations')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
 
   
     <div class="leads-to">
       <h2>🚀 Where This Leads</h2>
-      <p>After exploring this domain, these become accessible:</p>
-      <ul><li>Oauth2 Advanced Grants</li><li>Session Management Patterns</li><li>Zero Trust Architecture</li><li>Rust Web Security Hardening</li></ul>
+      <p>After this domain, these open up:</p>
+      <div class="leads-to-grid"><button class="leads-to-btn" data-domain="oauth2-advanced-grants">Oauth2 Advanced Grants</button><button class="leads-to-btn" data-domain="session-management-patterns">Session Management Patterns</button><button class="leads-to-btn" data-domain="zero-trust-architecture">Zero Trust Architecture</button><button class="leads-to-btn" data-domain="rust-web-security-hardening">Rust Web Security Hardening</button></div>
     </div>
 </div>
 
@@ -405,6 +437,13 @@ function offerGenerate(slug, title) {
 function offerGenerateQuiz(slug, title) {
   document.getElementById('gen-title').textContent = 'Generate Quiz: ' + title;
   document.getElementById('gen-command').textContent = 'kiro-cli chat "generate quick-check questions for ' + title + '"';
+  document.getElementById('gen-modal').classList.add('show');
+}
+
+function offerSubtopics(slug, title) {
+  document.getElementById('gen-title').textContent = 'Explore Subtopics: ' + title;
+  document.getElementById('gen-desc').textContent = 'Break this topic into 3-5 focused subtopics you can explore individually:';
+  document.getElementById('gen-command').textContent = 'kiro-cli chat "go deeper on ' + title + '"';
   document.getElementById('gen-modal').classList.add('show');
 }
 

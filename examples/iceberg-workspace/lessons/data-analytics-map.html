@@ -103,6 +103,15 @@
       border-color: var(--success, #16a34a);
       color: var(--success, #16a34a);
     }
+    .subtopic-link {
+      color: var(--accent, #2563eb);
+      font-size: 0.85rem;
+    }
+    .subtopic-gen {
+      border-color: var(--accent, #2563eb);
+      color: var(--accent, #2563eb);
+      font-size: 0.85rem;
+    }
     .generate-btn {
       margin-top: 0.5rem;
       padding: 0.4rem 0.8rem;
@@ -139,13 +148,36 @@
       background: var(--bg-elevated);
       border: 1px solid var(--border);
     }
-    .leads-to ul {
-      padding-left: 1.5rem;
-      margin: 0.5rem 0 0;
+    .leads-to-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
     }
-    .leads-to li {
+    .leads-to-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      font-weight: 500;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      text-align: left;
+    }
+    .leads-to-btn:hover {
+      border-color: var(--accent, #2563eb);
+      background: var(--bg-elevated);
+    }
+    .leads-to-desc {
+      font-weight: 400;
+      font-size: 0.83rem;
       color: var(--text-muted);
-      margin: 0.25rem 0;
+      margin-top: 0.2rem;
     }
     .legend {
       display: flex;
@@ -356,50 +388,50 @@
       <h3>Data Ingestion & Change Capture <span class="badge complete">✓ complete</span></h3>
       <p class="topic-why">Nothing downstream works until data reliably moves from source systems into your analytics layer</p>
       <p class="topic-prereqs">Start here</p>
-      <div class="topic-actions"><a href="0002-data-ingestion-change-capture.html" class="topic-link">Open lesson →</a> <a href="review/quick-check.html" class="topic-link quiz-link">Quiz (3) →</a></div>
+      <div class="topic-actions"><a href="0002-data-ingestion-change-capture.html" class="topic-link">Open lesson →</a> <a href="review/quick-check.html" class="topic-link quiz-link">Quiz (3) →</a> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('ingestion', 'Data Ingestion & Change Capture')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-storage-and-table-formats">
       <h3>Storage & Open Table Formats <span class="badge complete">✓ complete</span></h3>
       <p class="topic-why">Where and how data is stored determines query performance, cost, and what operations are even possible</p>
       <p class="topic-prereqs">After: ingestion</p>
-      <div class="topic-actions"><a href="0001-iceberg-metadata-tree.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('storage-and-table-formats', 'Storage & Open Table Formats')">Generate quiz</button></div>
+      <div class="topic-actions"><a href="0001-iceberg-metadata-tree.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('storage-and-table-formats', 'Storage & Open Table Formats')">Generate quiz</button> <a href="storage-and-table-formats-map.html" class="topic-link subtopic-link" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics →</a></div>
     </div>
     <div class="topic-card" id="topic-compute-engines">
       <h3>Compute & Query Engines <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">The engine you pick decides what workloads are fast, what's expensive, and how your storage is actually read</p>
       <p class="topic-prereqs">After: storage-and-table-formats</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('compute-engines', 'Compute & Query Engines')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('compute-engines', 'Compute & Query Engines')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('compute-engines', 'Compute & Query Engines')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('compute-engines', 'Compute & Query Engines')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('compute-engines', 'Compute & Query Engines')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-transformation-and-modeling">
       <h3>Transformation & Data Modeling <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Raw ingested data is unusable for analysis — transformation turns it into trusted, business-meaningful tables</p>
       <p class="topic-prereqs">After: storage-and-table-formats</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('transformation-and-modeling', 'Transformation & Data Modeling')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('transformation-and-modeling', 'Transformation & Data Modeling')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('transformation-and-modeling', 'Transformation & Data Modeling')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('transformation-and-modeling', 'Transformation & Data Modeling')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('transformation-and-modeling', 'Transformation & Data Modeling')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-orchestration">
       <h3>Orchestration & Pipeline Management <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Pipelines fail, dependencies shift, schedules slip — orchestration is what makes the whole stack run without manual intervention</p>
       <p class="topic-prereqs">After: ingestion, transformation-and-modeling</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('orchestration', 'Orchestration & Pipeline Management')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('orchestration', 'Orchestration & Pipeline Management')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('orchestration', 'Orchestration & Pipeline Management')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('orchestration', 'Orchestration & Pipeline Management')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('orchestration', 'Orchestration & Pipeline Management')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-serving-and-bi">
       <h3>Serving, BI & the Semantic Layer <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">The entire stack exists to put trustworthy answers in front of decision-makers — this is where value is realized</p>
       <p class="topic-prereqs">After: transformation-and-modeling</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('serving-and-bi', 'Serving, BI & the Semantic Layer')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('serving-and-bi', 'Serving, BI & the Semantic Layer')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('serving-and-bi', 'Serving, BI & the Semantic Layer')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('serving-and-bi', 'Serving, BI & the Semantic Layer')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('serving-and-bi', 'Serving, BI & the Semantic Layer')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-governance-and-observability">
       <h3>Data Governance & Observability <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Without quality checks, lineage, and access controls, your stack produces confident wrong answers — the most dangerous kind</p>
       <p class="topic-prereqs">After: transformation-and-modeling, orchestration</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('governance-and-observability', 'Data Governance & Observability')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('governance-and-observability', 'Data Governance & Observability')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('governance-and-observability', 'Data Governance & Observability')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('governance-and-observability', 'Data Governance & Observability')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('governance-and-observability', 'Data Governance & Observability')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
 
   
     <div class="leads-to">
       <h2>🚀 Where This Leads</h2>
-      <p>After exploring this domain, these become accessible:</p>
-      <ul><li>Streaming Architectures</li><li>Data Governance At Scale</li><li>Platform Engineering</li><li>Ml Feature Engineering</li><li>Data Mesh Organizational Patterns</li></ul>
+      <p>After this domain, these open up:</p>
+      <div class="leads-to-grid"><button class="leads-to-btn" data-domain="streaming-architectures">Streaming Architectures<span class="leads-to-desc">Real-time version of batch ingestion — same concepts, tighter latency constraints</span></button><button class="leads-to-btn" data-domain="data-governance-at-scale">Data Governance At Scale<span class="leads-to-desc">The observability topic here, expanded to org-wide policy and compliance</span></button><button class="leads-to-btn" data-domain="platform-engineering">Platform Engineering<span class="leads-to-desc">Who builds, operates, and abstracts the stack you just learned</span></button><button class="leads-to-btn" data-domain="ml-feature-engineering">Ml Feature Engineering<span class="leads-to-desc">Uses the same storage and transformation layers to feed ML models</span></button><button class="leads-to-btn" data-domain="data-mesh-organizational-patterns">Data Mesh Organizational Patterns<span class="leads-to-desc">Decentralizes ownership of the pipeline you learned as a single team's concern</span></button></div>
     </div>
 </div>
 
@@ -426,6 +458,13 @@ function offerGenerate(slug, title) {
 function offerGenerateQuiz(slug, title) {
   document.getElementById('gen-title').textContent = 'Generate Quiz: ' + title;
   document.getElementById('gen-command').textContent = 'kiro-cli chat "generate quick-check questions for ' + title + '"';
+  document.getElementById('gen-modal').classList.add('show');
+}
+
+function offerSubtopics(slug, title) {
+  document.getElementById('gen-title').textContent = 'Explore Subtopics: ' + title;
+  document.getElementById('gen-desc').textContent = 'Break this topic into 3-5 focused subtopics you can explore individually:';
+  document.getElementById('gen-command').textContent = 'kiro-cli chat "go deeper on ' + title + '"';
   document.getElementById('gen-modal').classList.add('show');
 }
 

@@ -103,6 +103,15 @@
       border-color: var(--success, #16a34a);
       color: var(--success, #16a34a);
     }
+    .subtopic-link {
+      color: var(--accent, #2563eb);
+      font-size: 0.85rem;
+    }
+    .subtopic-gen {
+      border-color: var(--accent, #2563eb);
+      color: var(--accent, #2563eb);
+      font-size: 0.85rem;
+    }
     .generate-btn {
       margin-top: 0.5rem;
       padding: 0.4rem 0.8rem;
@@ -139,13 +148,36 @@
       background: var(--bg-elevated);
       border: 1px solid var(--border);
     }
-    .leads-to ul {
-      padding-left: 1.5rem;
-      margin: 0.5rem 0 0;
+    .leads-to-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
     }
-    .leads-to li {
+    .leads-to-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      font-weight: 500;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      text-align: left;
+    }
+    .leads-to-btn:hover {
+      border-color: var(--accent, #2563eb);
+      background: var(--bg-elevated);
+    }
+    .leads-to-desc {
+      font-weight: 400;
+      font-size: 0.83rem;
       color: var(--text-muted);
-      margin: 0.25rem 0;
+      margin-top: 0.2rem;
     }
     .legend {
       display: flex;
@@ -319,38 +351,38 @@
       <h3>Object Storage Fundamentals <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Every modern analytics stack sits on object storage (S3, GCS, ADLS) — understanding its constraints and strengths is prerequisite to everything else</p>
       <p class="topic-prereqs">Start here</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('object-storage-fundamentals', 'Object Storage Fundamentals')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('object-storage-fundamentals', 'Object Storage Fundamentals')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('object-storage-fundamentals', 'Object Storage Fundamentals')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('object-storage-fundamentals', 'Object Storage Fundamentals')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('object-storage-fundamentals', 'Object Storage Fundamentals')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-columnar-file-formats">
       <h3>Columnar File Formats (Parquet, ORC) <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">The file format determines compression ratios, read patterns, and which queries can skip data — it's the physical foundation of performance</p>
       <p class="topic-prereqs">After: object-storage-fundamentals</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('columnar-file-formats', 'Columnar File Formats (Parquet, ORC)')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('columnar-file-formats', 'Columnar File Formats (Parquet, ORC)')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('columnar-file-formats', 'Columnar File Formats (Parquet, ORC)')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('columnar-file-formats', 'Columnar File Formats (Parquet, ORC)')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('columnar-file-formats', 'Columnar File Formats (Parquet, ORC)')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-table-format-metadata">
       <h3>Table Format Metadata (Iceberg, Delta, Hudi) <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Open table formats add transactional semantics, schema evolution, and time travel on top of raw files — this is where "data lake" becomes "lakehouse"</p>
       <p class="topic-prereqs">After: columnar-file-formats</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('table-format-metadata', 'Table Format Metadata (Iceberg, Delta, Hudi)')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('table-format-metadata', 'Table Format Metadata (Iceberg, Delta, Hudi)')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('table-format-metadata', 'Table Format Metadata (Iceberg, Delta, Hudi)')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('table-format-metadata', 'Table Format Metadata (Iceberg, Delta, Hudi)')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('table-format-metadata', 'Table Format Metadata (Iceberg, Delta, Hudi)')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-partitioning-strategies">
       <h3>Partitioning & Clustering Strategies <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">How you partition data determines whether queries read megabytes or terabytes — the single biggest lever for query cost and speed</p>
       <p class="topic-prereqs">After: columnar-file-formats</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('partitioning-strategies', 'Partitioning & Clustering Strategies')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('partitioning-strategies', 'Partitioning & Clustering Strategies')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('partitioning-strategies', 'Partitioning & Clustering Strategies')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('partitioning-strategies', 'Partitioning & Clustering Strategies')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('partitioning-strategies', 'Partitioning & Clustering Strategies')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
     <div class="topic-card" id="topic-compaction-and-maintenance">
       <h3>Compaction & Table Maintenance <span class="badge not-started">○ not started</span></h3>
       <p class="topic-why">Without regular maintenance, small files accumulate and metadata bloats — turning fast queries into slow, expensive ones over time</p>
       <p class="topic-prereqs">After: table-format-metadata</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('compaction-and-maintenance', 'Compaction & Table Maintenance')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('compaction-and-maintenance', 'Compaction & Table Maintenance')">Generate quiz</button></div>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('compaction-and-maintenance', 'Compaction & Table Maintenance')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('compaction-and-maintenance', 'Compaction & Table Maintenance')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('compaction-and-maintenance', 'Compaction & Table Maintenance')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
     </div>
 
   
     <div class="leads-to">
       <h2>🚀 Where This Leads</h2>
-      <p>After exploring this domain, these become accessible:</p>
-      <ul><li>Lakehouse Architecture</li><li>Storage Cost Optimization</li></ul>
+      <p>After this domain, these open up:</p>
+      <div class="leads-to-grid"><button class="leads-to-btn" data-domain="lakehouse-architecture">Lakehouse Architecture<span class="leads-to-desc">Combines the best of data lakes and warehouses — the natural evolution of open table formats</span></button><button class="leads-to-btn" data-domain="storage-cost-optimization">Storage Cost Optimization<span class="leads-to-desc">Once you understand formats and compaction, optimizing storage cost becomes tractable</span></button></div>
     </div>
 </div>
 
@@ -377,6 +409,13 @@ function offerGenerate(slug, title) {
 function offerGenerateQuiz(slug, title) {
   document.getElementById('gen-title').textContent = 'Generate Quiz: ' + title;
   document.getElementById('gen-command').textContent = 'kiro-cli chat "generate quick-check questions for ' + title + '"';
+  document.getElementById('gen-modal').classList.add('show');
+}
+
+function offerSubtopics(slug, title) {
+  document.getElementById('gen-title').textContent = 'Explore Subtopics: ' + title;
+  document.getElementById('gen-desc').textContent = 'Break this topic into 3-5 focused subtopics you can explore individually:';
+  document.getElementById('gen-command').textContent = 'kiro-cli chat "go deeper on ' + title + '"';
   document.getElementById('gen-modal').classList.add('show');
 }
 

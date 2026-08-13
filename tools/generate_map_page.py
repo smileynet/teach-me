@@ -68,9 +68,27 @@ def parse_map_md(path: Path) -> dict:
             if ':' in line and not line.strip().startswith('-'):
                 key, val = line.split(':', 1)
                 frontmatter[key.strip()] = val.strip().strip('"')
-        # Parse leads_to list
-        leads_to_match = re.findall(r'^\s+-\s+(.+)$', fm_match.group(1), re.MULTILINE)
-        frontmatter['leads_to'] = leads_to_match
+        # Parse leads_to list (supports both string items and dict items with slug/why)
+        leads_to_section = re.search(r'^leads_to:\s*\n((?:\s+-.*\n?(?:\s+\w+:.*\n?)*)*)', fm_match.group(1), re.MULTILINE)
+        leads_to = []
+        if leads_to_section:
+            items = re.split(r'\n\s+-\s+', '\n' + leads_to_section.group(1))
+            for item in items:
+                item = item.strip()
+                if not item:
+                    continue
+                if 'slug:' in item or 'why:' in item:
+                    # Dict format: parse slug and why
+                    slug_m = re.search(r'slug:\s*(.+)', item)
+                    why_m = re.search(r'why:\s*"?([^"]+)"?', item)
+                    leads_to.append({
+                        "slug": slug_m.group(1).strip() if slug_m else item.split('\n')[0].strip(),
+                        "why": why_m.group(1).strip() if why_m else "",
+                    })
+                else:
+                    # Simple string format
+                    leads_to.append({"slug": item.strip(), "why": ""})
+        frontmatter['leads_to'] = leads_to
 
     # Extract orientation
     orient_match = re.search(r'## Orientation\n\n(.+?)(?=\n##|\Z)', content, re.DOTALL)
@@ -283,6 +301,16 @@ def generate_page(map_data: dict, svg: str, index_link: str = "index.html", maps
         else:
             quiz_action = f'<button class="generate-btn quiz-gen" onclick="offerGenerateQuiz(\'{t["slug"]}\', \'{t["title"]}\')">Generate quiz</button>'
 
+        # Explore subtopics (drill deeper into this topic's sub-map)
+        subtopic_action = ""
+        if depth < MAX_DEPTH:
+            if t["slug"] in child_maps:
+                child_domain = child_maps[t["slug"]].stem.replace(".MAP", "")
+                child_page = f"{child_domain}-map.html"
+                subtopic_action = f'<a href="{child_page}" class="topic-link subtopic-link" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics →</a>'
+            else:
+                subtopic_action = f'<button class="generate-btn subtopic-gen" onclick="offerSubtopics(\'{t["slug"]}\', \'{t["title"]}\')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button>'
+
         # Prereqs display
         prereqs_text = f'After: {", ".join(t["prereqs"])}' if t["prereqs"] else "Start here"
 
@@ -291,7 +319,7 @@ def generate_page(map_data: dict, svg: str, index_link: str = "index.html", maps
       <h3>{t['title']} {status_badge}</h3>
       <p class="topic-why">{t['why']}</p>
       <p class="topic-prereqs">{prereqs_text}</p>
-      <div class="topic-actions">{action} {quiz_action}</div>
+      <div class="topic-actions">{action} {quiz_action} {subtopic_action}</div>
     </div>""")
 
     # Leads-to section
@@ -299,20 +327,25 @@ def generate_page(map_data: dict, svg: str, index_link: str = "index.html", maps
     if leads_to:
         items = ""
         for lt in leads_to:
-            # Handle both dict format and string format
             if isinstance(lt, dict):
-                label = lt.get("slug", lt.get("why", "")).replace("-", " ").title()
+                slug = lt.get("slug", "")
+                label = slug.replace("-", " ").title()
+                why = lt.get("why", "")
             elif isinstance(lt, str):
-                # Strip "slug: " prefix if present (parse_map_md artifact)
-                label = lt.replace("slug: ", "").replace("-", " ").title()
+                slug = lt.replace("slug: ", "")
+                label = slug.replace("-", " ").title()
+                why = ""
             else:
-                label = str(lt).replace("-", " ").title()
-            items += f"<li>{label}</li>"
+                slug = str(lt)
+                label = slug.replace("-", " ").title()
+                why = ""
+            desc_html = f'<span class="leads-to-desc">{why}</span>' if why else ""
+            items += f'<button class="leads-to-btn" data-domain="{slug}">{label}{desc_html}</button>'
         leads_html = f"""
     <div class="leads-to">
       <h2>🚀 Where This Leads</h2>
-      <p>After exploring this domain, these become accessible:</p>
-      <ul>{items}</ul>
+      <p>After this domain, these open up:</p>
+      <div class="leads-to-grid">{items}</div>
     </div>"""
 
     return f"""<!DOCTYPE html>
@@ -420,6 +453,15 @@ def generate_page(map_data: dict, svg: str, index_link: str = "index.html", maps
       border-color: var(--success, #16a34a);
       color: var(--success, #16a34a);
     }}
+    .subtopic-link {{
+      color: var(--accent, #2563eb);
+      font-size: 0.85rem;
+    }}
+    .subtopic-gen {{
+      border-color: var(--accent, #2563eb);
+      color: var(--accent, #2563eb);
+      font-size: 0.85rem;
+    }}
     .generate-btn {{
       margin-top: 0.5rem;
       padding: 0.4rem 0.8rem;
@@ -456,13 +498,36 @@ def generate_page(map_data: dict, svg: str, index_link: str = "index.html", maps
       background: var(--bg-elevated);
       border: 1px solid var(--border);
     }}
-    .leads-to ul {{
-      padding-left: 1.5rem;
-      margin: 0.5rem 0 0;
+    .leads-to-grid {{
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
     }}
-    .leads-to li {{
+    .leads-to-btn {{
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      font-weight: 500;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      text-align: left;
+    }}
+    .leads-to-btn:hover {{
+      border-color: var(--accent, #2563eb);
+      background: var(--bg-elevated);
+    }}
+    .leads-to-desc {{
+      font-weight: 400;
+      font-size: 0.83rem;
       color: var(--text-muted);
-      margin: 0.25rem 0;
+      margin-top: 0.2rem;
     }}
     .legend {{
       display: flex;
@@ -576,6 +641,13 @@ function offerGenerate(slug, title) {{
 function offerGenerateQuiz(slug, title) {{
   document.getElementById('gen-title').textContent = 'Generate Quiz: ' + title;
   document.getElementById('gen-command').textContent = 'kiro-cli chat "generate quick-check questions for ' + title + '"';
+  document.getElementById('gen-modal').classList.add('show');
+}}
+
+function offerSubtopics(slug, title) {{
+  document.getElementById('gen-title').textContent = 'Explore Subtopics: ' + title;
+  document.getElementById('gen-desc').textContent = 'Break this topic into 3-5 focused subtopics you can explore individually:';
+  document.getElementById('gen-command').textContent = 'kiro-cli chat "go deeper on ' + title + '"';
   document.getElementById('gen-modal').classList.add('show');
 }}
 
