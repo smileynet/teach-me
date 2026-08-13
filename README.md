@@ -8,7 +8,7 @@ You tell the agent what you want to learn. It researches the domain from real so
 
 You name a topic. The agent researches it, breaks it into a map of subtopics, and generates lessons one at a time. Each lesson comes with a reference doc for quick lookup, a quiz that asks you to explain concepts (not recite definitions), and spaced repetition cards that surface again when you're about to forget. If something doesn't land, say so — it'll re-explain differently.
 
-Between lessons, the agent offers Socratic dialog — you explain what you've learned, it probes gaps and deepens your understanding through conversation. As you go, ask for more topics, drill into subtopics, or follow connections to adjacent domains. Each map leads to the next, like an infinite Wikipedia-style rabbit hole where every page is written for you and your goals.
+Want to lock in your understanding? Ask for a Socratic dialog — you explain what you've learned, the agent probes gaps and deepens your grasp through conversation. As you go, ask for more topics, drill into subtopics, or follow connections to adjacent domains. Each map leads to the next, like an infinite Wikipedia-style rabbit hole where every page is written for you and your goals.
 
 ## Quick start
 
