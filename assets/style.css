@@ -80,6 +80,47 @@
   --svg-text: #374151;
 }
 
+/* --- System light mode preference (auto-applies without toggle) --- */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #fffff8;
+    --bg-elevated: #f5f5f0;
+    --bg-surface: #e8e8e3;
+    --text: #1a1a1a;
+    --text-muted: #6c757d;
+    --text-faint: #9ca3af;
+    --accent: #7c3aed;
+    --link: #2563eb;
+    --border: #dee2e6;
+    --code-bg: #f5f5f0;
+    --success: #16a34a;
+    --warning: #d97706;
+    --error: #dc2626;
+    --callout-bg: #eff6ff;
+    --callout-border: #2563eb;
+    --key-concept-bg: #fef3c7;
+    --key-concept-border: #f59e0b;
+
+    --svg-primary: #2563eb;
+    --svg-primary-fill: #dbeafe;
+    --svg-primary-text: #1e40af;
+    --svg-success: #16a34a;
+    --svg-success-fill: #dcfce7;
+    --svg-success-text: #166534;
+    --svg-warning: #d97706;
+    --svg-warning-fill: #fef3c7;
+    --svg-warning-text: #92400e;
+    --svg-error: #dc2626;
+    --svg-error-fill: #fef2f2;
+    --svg-error-text: #991b1b;
+    --svg-neutral: #6b7280;
+    --svg-neutral-fill: #f3f4f6;
+    --svg-neutral-text: #374151;
+    --svg-line: #94a3b8;
+    --svg-text: #374151;
+  }
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { font-size: 16px; }
