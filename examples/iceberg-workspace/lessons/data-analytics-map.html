@@ -1,557 +1,91 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Map: Modern Data Analytics Stacks</title>
   <link rel="stylesheet" href="../assets/style.css">
   <style>
-    html { scroll-behavior: smooth; }
-    .lesson-nav {
-      padding: 0.5rem 0;
-      margin-bottom: 0.5rem;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.85rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .lesson-nav a {
-      color: var(--link);
-      text-decoration: none;
-    }
-    .lesson-nav a:hover { text-decoration: underline; }
-    .lesson-nav .nav-position {
-      color: var(--text-muted);
-    }
-    .map-container {
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 1rem;
-    }
-    .map-graph {
-      max-width: 100%;
-      height: auto;
-      cursor: pointer;
-    }
-    .map-graph a:hover polygon,
-    .map-graph a:hover path {
-      filter: brightness(0.9);
-    }
-    .orientation {
-      font-size: 1rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-      border-left: 4px solid var(--accent);
-      padding-left: 1rem;
-    }
+
+    body { max-width: none; padding: 2rem; }
+    .dag-container { position: relative; width: 100%; overflow-x: auto; }
+    .dag-canvas { position: relative; min-width: min-content; }
+    .edge-layer { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1; }
     .topic-card {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem 1.25rem;
-      margin: 0.75rem 0;
-      background: var(--bg-elevated);
-      scroll-margin-top: 1rem;
-      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+      position: absolute; width: 420px; padding: 1rem 1.2rem;
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+      z-index: 2; transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .topic-card:target {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+    .topic-card:hover { border-color: var(--accent); box-shadow: 0 2px 16px rgba(203, 166, 247, 0.1); }
+    .topic-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text); flex-wrap: wrap; }
+    .topic-card .why { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
+    .topic-card .prereq-label { font-size: 0.75rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.5rem; }
+    .topic-card .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .btn {
+      font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px;
+      border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+      cursor: pointer; transition: border-color 0.15s, color 0.15s;
     }
-    .topic-card h3 {
-      margin: 0 0 0.25rem 0;
-      font-size: 1rem;
-    }
-    .topic-why {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      margin: 0.25rem 0;
-    }
-    .topic-prereqs {
-      font-size: 0.8rem;
-      color: var(--text-faint, #888);
-    }
-    .badge {
-      font-size: 0.7rem;
-      padding: 0.1rem 0.4rem;
-      border-radius: 3px;
-      font-weight: 600;
-    }
-    .badge.complete { background: #dcfce7; color: #166534; }
-    .badge.in-progress { background: #dbeafe; color: #1e40af; }
-    .badge.not-started { background: #f3f4f6; color: #6b7280; }
-    .topic-link {
-      display: inline-block;
-      margin-top: 0.5rem;
-      color: var(--link);
-      font-size: 0.9rem;
-    }
-    .topic-actions {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-      margin-top: 0.5rem;
-      flex-wrap: wrap;
-    }
-    .quiz-link {
-      color: var(--success, #16a34a);
-    }
-    .quiz-gen {
-      border-color: var(--success, #16a34a);
-      color: var(--success, #16a34a);
-    }
-    .subtopic-link {
-      color: var(--accent, #2563eb);
-      font-size: 0.85rem;
-    }
-    .subtopic-gen {
-      border-color: var(--accent, #2563eb);
-      color: var(--accent, #2563eb);
-      font-size: 0.85rem;
-    }
-    .generate-btn {
-      margin-top: 0.5rem;
-      padding: 0.4rem 0.8rem;
-      border: 1px solid var(--accent);
-      border-radius: 4px;
-      background: var(--bg-surface);
-      color: var(--accent);
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-    .generate-btn:hover { background: var(--bg-elevated); }
-    .breadcrumb {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin: 0.5rem 0 0.25rem;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .breadcrumb a {
-      color: var(--link);
-      text-decoration: none;
-      font-weight: 500;
-    }
-    .breadcrumb a:hover { text-decoration: underline; }
-    .breadcrumb-sep { color: var(--text-faint, #999); }
-    .breadcrumb-current { font-weight: 500; }
-      font-style: italic;
-    }
-    .leads-to {
-      margin-top: 2rem;
-      padding: 1.25rem;
-      border-radius: 8px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-    }
-    .leads-to-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.primary { border-color: var(--accent); color: var(--accent); }
+    .badge { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 3px; font-weight: 500; white-space: nowrap; }
+    .badge.not-started { background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    .badge.generating { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
+    .badge.complete { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
+    .badge.in-progress { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+    .gen-progress { font-size: 0.75rem; color: var(--warning); margin-top: 0.4rem; font-family: monospace; }
+    .leads-to { margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); }
+    .leads-to-grid { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
     .leads-to-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 0.75rem 1rem;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: var(--bg);
-      color: var(--text);
-      font-weight: 500;
-      font-size: 0.95rem;
-      cursor: pointer;
+      display: flex; flex-direction: column; align-items: flex-start; padding: 0.75rem 1rem;
+      border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);
+      font-weight: 500; font-size: 0.95rem; cursor: pointer; text-align: left;
       transition: border-color 0.15s, background 0.15s;
-      text-align: left;
     }
-    .leads-to-btn:hover {
-      border-color: var(--accent, #2563eb);
-      background: var(--bg-elevated);
-    }
-    .leads-to-desc {
-      font-weight: 400;
-      font-size: 0.83rem;
-      color: var(--text-muted);
-      margin-top: 0.2rem;
-    }
-    .legend {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 0.5rem;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-    .legend-swatch {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      border: 1px solid;
-    }
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-overlay.show { display: flex; }
-    .modal {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.5rem;
-      max-width: 550px;
-      width: 90%;
-    }
-    .modal h3 { margin-top: 0; }
-    .gen-output {
-      background: var(--code-bg, #1a1a2e);
-      padding: 0.75rem;
-      border-radius: 4px;
-      font-size: 0.78rem;
-      font-family: monospace;
-      max-height: 300px;
-      overflow-y: auto;
-      margin: 0.75rem 0;
-      line-height: 1.4;
-    }
-    .gen-output div {
-      padding: 1px 0;
-    }
-    .gen-output .phase-tool {
-      color: var(--accent, #60a5fa);
-    }
-    .gen-output .phase-writing {
-      color: var(--success, #4ade80);
-    }
-    .modal-actions {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
-    .modal-actions button {
-      padding: 0.4rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      font-size: 0.85rem;
-    }
-    .modal-actions .primary {
-      background: var(--accent);
-      color: var(--bg);
-      border-color: var(--accent);
-    }
+    .leads-to-btn:hover { border-color: var(--accent); background: var(--bg-elevated); }
+    .leads-to-desc { font-weight: 400; font-size: 0.83rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .loading { color: var(--text-muted); padding: 2rem; }
+    .map-header { margin-bottom: 1.5rem; }
+    .map-header h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    .map-header .orientation { color: var(--text-muted); font-size: 0.9rem; max-width: 700px; line-height: 1.5; }
+
   </style>
+  <script type="importmap">
+{
+  "imports": {
+    "preact": "../assets/vendor/preact.module.js",
+    "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+    "@preact/signals": "../assets/vendor/preact-signals.module.js",
+    "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+    "htm": "../assets/vendor/htm.module.js"
+  }
+}
+  </script>
 </head>
 <body>
-
-<div class="map-container">
-  <nav class="lesson-nav">
-    <a href="../../../lessons/index.html" class="back-to-map">← All Lessons</a>
-    <span class="nav-position">7 topics · 2 complete</span>
-  </nav>
-  
-  <h1>🗺️ Modern Data Analytics Stacks</h1>
-  <p class="orientation">Every organization sits on operational data that only becomes useful when it flows through a deliberate pipeline: captured, stored in queryable formats, transformed into business concepts, orchestrated reliably, and served to the people making decisions. You'll understand each layer of this stack, the tradeoffs driving tool choices, and how they compose into a coherent platform — so you can evaluate architectures, not just memorize vendor names.</p>
-
-  <div class="legend">
-    <span class="legend-item"><span class="legend-swatch" style="background:#dcfce7;border-color:#16a34a"></span> Complete</span>
-    <span class="legend-item"><span class="legend-swatch" style="background:#dbeafe;border-color:#2563eb"></span> In progress</span>
-    <span class="legend-item"><span class="legend-swatch" style="background:#f3f4f6;border-color:#6b7280"></span> Not started</span>
+  <script src="../assets/vendor/dagre.min.js"></script>
+  <script type="application/json" id="page-data">{"title": "Modern Data Analytics Stacks", "orientation": "Every organization sits on operational data that only becomes useful when it flows through a deliberate pipeline: captured, stored in queryable formats, transformed into business concepts, orchestrated reliably, and served to the people making decisions. You'll understand each layer of this stack, the tradeoffs driving tool choices, and how they compose into a coherent platform — so you can evaluate architectures, not just memorize vendor names.", "topics": [{"id": "ingestion", "title": "Data Ingestion & Change Capture", "why": "Nothing downstream works until data reliably moves from source systems into your analytics layer", "prereqs": [], "status": "complete", "lessonPath": "0002-data-ingestion-change-capture.html"}, {"id": "storage-and-table-formats", "title": "Storage & Open Table Formats", "why": "Where and how data is stored determines query performance, cost, and what operations are even possible", "prereqs": ["ingestion"], "status": "complete", "lessonPath": "0001-iceberg-metadata-tree.html"}, {"id": "compute-engines", "title": "Compute & Query Engines", "why": "The engine you pick decides what workloads are fast, what's expensive, and how your storage is actually read", "prereqs": ["storage-and-table-formats"], "status": "not-started", "lessonPath": null}, {"id": "transformation-and-modeling", "title": "Transformation & Data Modeling", "why": "Raw ingested data is unusable for analysis — transformation turns it into trusted, business-meaningful tables", "prereqs": ["storage-and-table-formats"], "status": "not-started", "lessonPath": null}, {"id": "orchestration", "title": "Orchestration & Pipeline Management", "why": "Pipelines fail, dependencies shift, schedules slip — orchestration is what makes the whole stack run without manual intervention", "prereqs": ["ingestion", "transformation-and-modeling"], "status": "not-started", "lessonPath": null}, {"id": "serving-and-bi", "title": "Serving, BI & the Semantic Layer", "why": "The entire stack exists to put trustworthy answers in front of decision-makers — this is where value is realized", "prereqs": ["transformation-and-modeling"], "status": "not-started", "lessonPath": null}, {"id": "governance-and-observability", "title": "Data Governance & Observability", "why": "Without quality checks, lineage, and access controls, your stack produces confident wrong answers — the most dangerous kind", "prereqs": ["transformation-and-modeling", "orchestration"], "status": "not-started", "lessonPath": null}], "leadsTo": [{"slug": "streaming-architectures", "why": "Real-time version of batch ingestion — same concepts, tighter latency constraints"}, {"slug": "data-governance-at-scale", "why": "The observability topic here, expanded to org-wide policy and compliance"}, {"slug": "platform-engineering", "why": "Who builds, operates, and abstracts the stack you just learned"}, {"slug": "ml-feature-engineering", "why": "Uses the same storage and transformation layers to feed ML models"}, {"slug": "data-mesh-organizational-patterns", "why": "Decentralizes ownership of the pipeline you learned as a single team's concern"}]}</script>
+  <div class="map-header">
+    <h1>Modern Data Analytics Stacks</h1>
+    <p class="orientation">Every organization sits on operational data that only becomes useful when it flows through a deliberate pipeline: captured, stored in queryable formats, transformed into business concepts, orchestrated reliably, and served to the people making decisions. You'll understand each layer of this stack, the tradeoffs driving tool choices, and how they compose into a coherent platform — so you can evaluate architectures, not just memorize vendor names.</p>
   </div>
-
-  <!-- Generated by graphviz version 15.1.1 (20260805.0921)
- -->
-<!-- Title: G Pages: 1 -->
-<svg class="map-graph"
- viewBox="0.00 0.00 600.00 371.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 367)">
-<title>G</title>
-<!-- ingestion -->
-<g id="node1" class="node">
-<title>ingestion</title>
-<g id="a_node1"><a xlink:href="#topic-ingestion" xlink:title="Nothing downstream works until data reliably moves from source systems into your analytics layer">
-<path fill="#dcfce7" stroke="#16a34a" d="M484.95,-363C484.95,-363 282.75,-363 282.75,-363 276.75,-363 270.75,-357 270.75,-351 270.75,-351 270.75,-331.2 270.75,-331.2 270.75,-325.2 276.75,-319.2 282.75,-319.2 282.75,-319.2 484.95,-319.2 484.95,-319.2 490.95,-319.2 496.95,-325.2 496.95,-331.2 496.95,-331.2 496.95,-351 496.95,-351 496.95,-357 490.95,-363 484.95,-363"/>
-<text xml:space="preserve" text-anchor="middle" x="383.85" y="-337.2" font-family="system-ui, sans-serif" font-size="12.00" fill="#166534">Data Ingestion &amp; Change Capture</text>
-</a>
-</g>
-</g>
-<!-- storage&#45;and&#45;table&#45;formats -->
-<g id="node2" class="node">
-<title>storage&#45;and&#45;table&#45;formats</title>
-<g id="a_node2"><a xlink:href="#topic-storage-and-table-formats" xlink:title="Where and how data is stored determines query performance, cost, and what operations are even possible">
-<path fill="#dcfce7" stroke="#16a34a" d="M408.08,-283.2C408.08,-283.2 221.63,-283.2 221.63,-283.2 215.63,-283.2 209.63,-277.2 209.63,-271.2 209.63,-271.2 209.63,-251.4 209.63,-251.4 209.63,-245.4 215.63,-239.4 221.63,-239.4 221.63,-239.4 408.08,-239.4 408.08,-239.4 414.08,-239.4 420.08,-245.4 420.08,-251.4 420.08,-251.4 420.08,-271.2 420.08,-271.2 420.08,-277.2 414.08,-283.2 408.08,-283.2"/>
-<text xml:space="preserve" text-anchor="middle" x="314.85" y="-257.4" font-family="system-ui, sans-serif" font-size="12.00" fill="#166534">Storage &amp; Open Table Formats</text>
-</a>
-</g>
-</g>
-<!-- ingestion&#45;&gt;storage&#45;and&#45;table&#45;formats -->
-<g id="edge1" class="edge">
-<title>ingestion&#45;&gt;storage&#45;and&#45;table&#45;formats</title>
-<path fill="none" stroke="#6b7280" d="M365,-318.84C357.01,-309.84 347.6,-299.23 339.11,-289.65"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="341.16,-288.28 334.69,-284.67 337.5,-291.53 341.16,-288.28"/>
-</g>
-<!-- orchestration -->
-<g id="node5" class="node">
-<title>orchestration</title>
-<g id="a_node5"><a xlink:href="#topic-orchestration" xlink:title="Pipelines fail, dependencies shift, schedules slip — orchestration is what makes the whole stack run without manual intervention">
-<path fill="#f3f4f6" stroke="#6b7280" d="M580.45,-123.6C580.45,-123.6 351.25,-123.6 351.25,-123.6 345.25,-123.6 339.25,-117.6 339.25,-111.6 339.25,-111.6 339.25,-91.8 339.25,-91.8 339.25,-85.8 345.25,-79.8 351.25,-79.8 351.25,-79.8 580.45,-79.8 580.45,-79.8 586.45,-79.8 592.45,-85.8 592.45,-91.8 592.45,-91.8 592.45,-111.6 592.45,-111.6 592.45,-117.6 586.45,-123.6 580.45,-123.6"/>
-<text xml:space="preserve" text-anchor="middle" x="465.85" y="-97.8" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Orchestration &amp; Pipeline Management</text>
-</a>
-</g>
-</g>
-<!-- ingestion&#45;&gt;orchestration -->
-<g id="edge4" class="edge">
-<title>ingestion&#45;&gt;orchestration</title>
-<path fill="none" stroke="#6b7280" d="M404.66,-318.75C413.37,-308.7 422.84,-296.1 428.85,-283.2 452.03,-233.4 460.76,-169.19 464,-132.31"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="466.43,-132.67 464.55,-125.5 461.54,-132.27 466.43,-132.67"/>
-</g>
-<!-- compute&#45;engines -->
-<g id="node3" class="node">
-<title>compute&#45;engines</title>
-<g id="a_node3"><a xlink:href="#topic-compute-engines" xlink:title="The engine you pick decides what workloads are fast, what&#39;s expensive, and how your storage is actually read">
-<path fill="#f3f4f6" stroke="#6b7280" d="M173.7,-203.4C173.7,-203.4 12,-203.4 12,-203.4 6,-203.4 0,-197.4 0,-191.4 0,-191.4 0,-171.6 0,-171.6 0,-165.6 6,-159.6 12,-159.6 12,-159.6 173.7,-159.6 173.7,-159.6 179.7,-159.6 185.7,-165.6 185.7,-171.6 185.7,-171.6 185.7,-191.4 185.7,-191.4 185.7,-197.4 179.7,-203.4 173.7,-203.4"/>
-<text xml:space="preserve" text-anchor="middle" x="92.85" y="-177.6" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Compute &amp; Query Engines</text>
-</a>
-</g>
-</g>
-<!-- storage&#45;and&#45;table&#45;formats&#45;&gt;compute&#45;engines -->
-<g id="edge2" class="edge">
-<title>storage&#45;and&#45;table&#45;formats&#45;&gt;compute&#45;engines</title>
-<path fill="none" stroke="#6b7280" d="M253.89,-238.94C225.26,-228.9 191.01,-216.9 161.47,-206.55"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="162.51,-204.32 155.1,-204.32 160.89,-208.94 162.51,-204.32"/>
-</g>
-<!-- transformation&#45;and&#45;modeling -->
-<g id="node4" class="node">
-<title>transformation&#45;and&#45;modeling</title>
-<g id="a_node4"><a xlink:href="#topic-transformation-and-modeling" xlink:title="Raw ingested data is unusable for analysis — transformation turns it into trusted, business&#45;meaningful tables">
-<path fill="#f3f4f6" stroke="#6b7280" d="M413.7,-203.4C413.7,-203.4 216,-203.4 216,-203.4 210,-203.4 204,-197.4 204,-191.4 204,-191.4 204,-171.6 204,-171.6 204,-165.6 210,-159.6 216,-159.6 216,-159.6 413.7,-159.6 413.7,-159.6 419.7,-159.6 425.7,-165.6 425.7,-171.6 425.7,-171.6 425.7,-191.4 425.7,-191.4 425.7,-197.4 419.7,-203.4 413.7,-203.4"/>
-<text xml:space="preserve" text-anchor="middle" x="314.85" y="-177.6" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Transformation &amp; Data Modeling</text>
-</a>
-</g>
-</g>
-<!-- storage&#45;and&#45;table&#45;formats&#45;&gt;transformation&#45;and&#45;modeling -->
-<g id="edge3" class="edge">
-<title>storage&#45;and&#45;table&#45;formats&#45;&gt;transformation&#45;and&#45;modeling</title>
-<path fill="none" stroke="#6b7280" d="M314.85,-239.04C314.85,-230.72 314.85,-221.04 314.85,-212.06"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="317.3,-212.25 314.85,-205.25 312.4,-212.25 317.3,-212.25"/>
-</g>
-<!-- transformation&#45;and&#45;modeling&#45;&gt;orchestration -->
-<g id="edge5" class="edge">
-<title>transformation&#45;and&#45;modeling&#45;&gt;orchestration</title>
-<path fill="none" stroke="#6b7280" d="M356.11,-159.24C374.93,-149.55 397.34,-138 416.99,-127.87"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="417.93,-130.15 423.03,-124.76 415.69,-125.79 417.93,-130.15"/>
-</g>
-<!-- serving&#45;and&#45;bi -->
-<g id="node6" class="node">
-<title>serving&#45;and&#45;bi</title>
-<g id="a_node6"><a xlink:href="#topic-serving-and-bi" xlink:title="The entire stack exists to put trustworthy answers in front of decision&#45;makers — this is where value is realized">
-<path fill="#f3f4f6" stroke="#6b7280" d="M270.7,-123.6C270.7,-123.6 73,-123.6 73,-123.6 67,-123.6 61,-117.6 61,-111.6 61,-111.6 61,-91.8 61,-91.8 61,-85.8 67,-79.8 73,-79.8 73,-79.8 270.7,-79.8 270.7,-79.8 276.7,-79.8 282.7,-85.8 282.7,-91.8 282.7,-91.8 282.7,-111.6 282.7,-111.6 282.7,-117.6 276.7,-123.6 270.7,-123.6"/>
-<text xml:space="preserve" text-anchor="middle" x="171.85" y="-97.8" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Serving, BI &amp; the Semantic Layer</text>
-</a>
-</g>
-</g>
-<!-- transformation&#45;and&#45;modeling&#45;&gt;serving&#45;and&#45;bi -->
-<g id="edge6" class="edge">
-<title>transformation&#45;and&#45;modeling&#45;&gt;serving&#45;and&#45;bi</title>
-<path fill="none" stroke="#6b7280" d="M275.77,-159.24C257.96,-149.55 236.74,-138.01 218.14,-127.88"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="219.53,-125.85 212.21,-124.66 217.19,-130.15 219.53,-125.85"/>
-</g>
-<!-- governance&#45;and&#45;observability -->
-<g id="node7" class="node">
-<title>governance&#45;and&#45;observability</title>
-<g id="a_node7"><a xlink:href="#topic-governance-and-observability" xlink:title="Without quality checks, lineage, and access controls, your stack produces confident wrong answers — the most dangerous kind">
-<path fill="#f3f4f6" stroke="#6b7280" d="M489.33,-43.8C489.33,-43.8 286.38,-43.8 286.38,-43.8 280.38,-43.8 274.38,-37.8 274.38,-31.8 274.38,-31.8 274.38,-12 274.38,-12 274.38,-6 280.38,0 286.38,0 286.38,0 489.33,0 489.33,0 495.33,0 501.33,-6 501.33,-12 501.33,-12 501.33,-31.8 501.33,-31.8 501.33,-37.8 495.33,-43.8 489.33,-43.8"/>
-<text xml:space="preserve" text-anchor="middle" x="387.85" y="-18" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Data Governance &amp; Observability</text>
-</a>
-</g>
-</g>
-<!-- transformation&#45;and&#45;modeling&#45;&gt;governance&#45;and&#45;observability -->
-<g id="edge7" class="edge">
-<title>transformation&#45;and&#45;modeling&#45;&gt;governance&#45;and&#45;observability</title>
-<path fill="none" stroke="#6b7280" d="M314.18,-159.27C314.36,-138.03 317.01,-105 329.85,-79.8 335.52,-68.67 344.21,-58.43 353.15,-49.8"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="354.75,-51.66 358.23,-45.11 351.43,-48.06 354.75,-51.66"/>
-</g>
-<!-- orchestration&#45;&gt;governance&#45;and&#45;observability -->
-<g id="edge8" class="edge">
-<title>orchestration&#45;&gt;governance&#45;and&#45;observability</title>
-<path fill="none" stroke="#6b7280" d="M444.54,-79.44C435.42,-70.35 424.67,-59.63 415,-49.98"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="416.9,-48.41 410.21,-45.2 413.44,-51.88 416.9,-48.41"/>
-</g>
-</g>
-</svg>
-
-
-  <h2>Topics</h2>
+  <div id="app"></div>
   
-    <div class="topic-card" id="topic-ingestion">
-      <h3>Data Ingestion & Change Capture <span class="badge complete">✓ complete</span></h3>
-      <p class="topic-why">Nothing downstream works until data reliably moves from source systems into your analytics layer</p>
-      <p class="topic-prereqs">Start here</p>
-      <div class="topic-actions"><a href="0002-data-ingestion-change-capture.html" class="topic-link">Open lesson →</a> <a href="review/quick-check.html" class="topic-link quiz-link">Quiz (3) →</a> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('ingestion', 'Data Ingestion & Change Capture')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-storage-and-table-formats">
-      <h3>Storage & Open Table Formats <span class="badge complete">✓ complete</span></h3>
-      <p class="topic-why">Where and how data is stored determines query performance, cost, and what operations are even possible</p>
-      <p class="topic-prereqs">After: ingestion</p>
-      <div class="topic-actions"><a href="0001-iceberg-metadata-tree.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('storage-and-table-formats', 'Storage & Open Table Formats')">Generate quiz</button> <a href="storage-and-table-formats-map.html" class="topic-link subtopic-link" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics →</a></div>
-    </div>
-    <div class="topic-card" id="topic-compute-engines">
-      <h3>Compute & Query Engines <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">The engine you pick decides what workloads are fast, what's expensive, and how your storage is actually read</p>
-      <p class="topic-prereqs">After: storage-and-table-formats</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('compute-engines', 'Compute & Query Engines')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('compute-engines', 'Compute & Query Engines')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('compute-engines', 'Compute & Query Engines')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-transformation-and-modeling">
-      <h3>Transformation & Data Modeling <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">Raw ingested data is unusable for analysis — transformation turns it into trusted, business-meaningful tables</p>
-      <p class="topic-prereqs">After: storage-and-table-formats</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('transformation-and-modeling', 'Transformation & Data Modeling')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('transformation-and-modeling', 'Transformation & Data Modeling')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('transformation-and-modeling', 'Transformation & Data Modeling')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-orchestration">
-      <h3>Orchestration & Pipeline Management <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">Pipelines fail, dependencies shift, schedules slip — orchestration is what makes the whole stack run without manual intervention</p>
-      <p class="topic-prereqs">After: ingestion, transformation-and-modeling</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('orchestration', 'Orchestration & Pipeline Management')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('orchestration', 'Orchestration & Pipeline Management')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('orchestration', 'Orchestration & Pipeline Management')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-serving-and-bi">
-      <h3>Serving, BI & the Semantic Layer <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">The entire stack exists to put trustworthy answers in front of decision-makers — this is where value is realized</p>
-      <p class="topic-prereqs">After: transformation-and-modeling</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('serving-and-bi', 'Serving, BI & the Semantic Layer')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('serving-and-bi', 'Serving, BI & the Semantic Layer')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('serving-and-bi', 'Serving, BI & the Semantic Layer')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-governance-and-observability">
-      <h3>Data Governance & Observability <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">Without quality checks, lineage, and access controls, your stack produces confident wrong answers — the most dangerous kind</p>
-      <p class="topic-prereqs">After: transformation-and-modeling, orchestration</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('governance-and-observability', 'Data Governance & Observability')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('governance-and-observability', 'Data Governance & Observability')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('governance-and-observability', 'Data Governance & Observability')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
 
-  
-    <div class="leads-to">
-      <h2>Where This Leads</h2>
-      <div class="leads-to-grid"><button class="leads-to-btn" data-domain="streaming-architectures">Streaming Architectures<span class="leads-to-desc">Real-time version of batch ingestion — same concepts, tighter latency constraints</span></button><button class="leads-to-btn" data-domain="data-governance-at-scale">Data Governance At Scale<span class="leads-to-desc">The observability topic here, expanded to org-wide policy and compliance</span></button><button class="leads-to-btn" data-domain="platform-engineering">Platform Engineering<span class="leads-to-desc">Who builds, operates, and abstracts the stack you just learned</span></button><button class="leads-to-btn" data-domain="ml-feature-engineering">Ml Feature Engineering<span class="leads-to-desc">Uses the same storage and transformation layers to feed ML models</span></button><button class="leads-to-btn" data-domain="data-mesh-organizational-patterns">Data Mesh Organizational Patterns<span class="leads-to-desc">Decentralizes ownership of the pipeline you learned as a single team's concern</span></button></div>
-    </div>
-</div>
+  <script type="module">
 
-<!-- Generation modal -->
-<div class="modal-overlay" id="gen-modal">
-  <div class="modal">
-    <h3 id="gen-title">Generate topic</h3>
-    <p id="gen-desc">Generating...</p>
-    <div id="gen-output" class="gen-output"></div>
-    <div class="modal-actions">
-      <button id="gen-cancel-btn" onclick="cancelGeneration()">Cancel</button>
-      <button id="gen-close-btn" onclick="closeModal()" style="display:none">Close</button>
-    </div>
-  </div>
-</div>
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { MapView } from '../assets/components/MapView.js';
 
-<script>
-let currentEventSource = null;
-let currentTaskId = null;
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
 
-function startGeneration(prompt, title) {
-  document.getElementById('gen-title').textContent = title;
-  document.getElementById('gen-desc').textContent = 'Generating...';
-  document.getElementById('gen-output').innerHTML = '';
-  document.getElementById('gen-cancel-btn').style.display = '';
-  document.getElementById('gen-close-btn').style.display = 'none';
-  document.getElementById('gen-modal').classList.add('show');
+    render(
+      html`<${MapView} topics=${data.topics} leadsTo=${data.leadsTo} orientation=${data.orientation} title=${data.title} />`,
+      document.getElementById('app')
+    );
 
-  fetch('/api/generate', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({prompt: prompt, mock: false})
-  })
-  .then(r => r.json())
-  .then(data => {
-    currentTaskId = data.id;
-    const es = new EventSource(data.stream_url);
-    currentEventSource = es;
-    const output = document.getElementById('gen-output');
-
-    es.addEventListener('line', function(e) {
-      const line = JSON.parse(e.data);
-      if (line.text) {
-        const div = document.createElement('div');
-        div.textContent = line.text;
-        if (line.phase) div.className = 'phase-' + line.phase.split(':')[0];
-        output.appendChild(div);
-        output.scrollTop = output.scrollHeight;
-      }
-    });
-
-    es.addEventListener('done', function(e) {
-      es.close();
-      currentEventSource = null;
-      document.getElementById('gen-desc').textContent = '✓ Done — reloading...';
-      document.getElementById('gen-cancel-btn').style.display = 'none';
-      document.getElementById('gen-close-btn').style.display = '';
-      setTimeout(() => location.reload(), 1500);
-    });
-
-    es.addEventListener('error', function(e) {
-      es.close();
-      currentEventSource = null;
-      document.getElementById('gen-desc').textContent = '✗ Generation failed';
-      document.getElementById('gen-cancel-btn').style.display = 'none';
-      document.getElementById('gen-close-btn').style.display = '';
-    });
-  })
-  .catch(err => {
-    document.getElementById('gen-desc').textContent = '✗ Could not connect to server: ' + err.message;
-    document.getElementById('gen-cancel-btn').style.display = 'none';
-    document.getElementById('gen-close-btn').style.display = '';
-  });
-}
-
-function offerGenerate(slug, title) {
-  startGeneration('teach me about ' + title, 'Generating: ' + title);
-}
-
-function offerGenerateQuiz(slug, title) {
-  startGeneration('generate quick-check questions for ' + title, 'Generating Quiz: ' + title);
-}
-
-function offerSubtopics(slug, title) {
-  startGeneration('go deeper on ' + title, 'Exploring Subtopics: ' + title);
-}
-
-function cancelGeneration() {
-  if (currentEventSource) {
-    currentEventSource.close();
-    currentEventSource = null;
-  }
-  if (currentTaskId) {
-    fetch('/api/generate/' + currentTaskId + '/cancel', {method: 'POST'});
-    currentTaskId = null;
-  }
-  closeModal();
-}
-
-function closeModal() {
-  document.getElementById('gen-modal').classList.remove('show');
-}
-
-document.getElementById('gen-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-</script>
-<script src="../assets/theme-toggle.js"></script>
-
+  </script>
 </body>
 </html>

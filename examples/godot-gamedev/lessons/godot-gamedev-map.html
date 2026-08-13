@@ -1,584 +1,91 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Map: Game Development with Godot</title>
   <link rel="stylesheet" href="../assets/style.css">
   <style>
-    html { scroll-behavior: smooth; }
-    .lesson-nav {
-      padding: 0.5rem 0;
-      margin-bottom: 0.5rem;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.85rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .lesson-nav a {
-      color: var(--link);
-      text-decoration: none;
-    }
-    .lesson-nav a:hover { text-decoration: underline; }
-    .lesson-nav .nav-position {
-      color: var(--text-muted);
-    }
-    .map-container {
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 1rem;
-    }
-    .map-graph {
-      max-width: 100%;
-      height: auto;
-      cursor: pointer;
-    }
-    .map-graph a:hover polygon,
-    .map-graph a:hover path {
-      filter: brightness(0.9);
-    }
-    .orientation {
-      font-size: 1rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-      border-left: 4px solid var(--accent);
-      padding-left: 1rem;
-    }
+
+    body { max-width: none; padding: 2rem; }
+    .dag-container { position: relative; width: 100%; overflow-x: auto; }
+    .dag-canvas { position: relative; min-width: min-content; }
+    .edge-layer { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1; }
     .topic-card {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem 1.25rem;
-      margin: 0.75rem 0;
-      background: var(--bg-elevated);
-      scroll-margin-top: 1rem;
-      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+      position: absolute; width: 420px; padding: 1rem 1.2rem;
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+      z-index: 2; transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .topic-card:target {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+    .topic-card:hover { border-color: var(--accent); box-shadow: 0 2px 16px rgba(203, 166, 247, 0.1); }
+    .topic-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text); flex-wrap: wrap; }
+    .topic-card .why { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
+    .topic-card .prereq-label { font-size: 0.75rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.5rem; }
+    .topic-card .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .btn {
+      font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px;
+      border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+      cursor: pointer; transition: border-color 0.15s, color 0.15s;
     }
-    .topic-card h3 {
-      margin: 0 0 0.25rem 0;
-      font-size: 1rem;
-    }
-    .topic-why {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      margin: 0.25rem 0;
-    }
-    .topic-prereqs {
-      font-size: 0.8rem;
-      color: var(--text-faint, #888);
-    }
-    .badge {
-      font-size: 0.7rem;
-      padding: 0.1rem 0.4rem;
-      border-radius: 3px;
-      font-weight: 600;
-    }
-    .badge.complete { background: #dcfce7; color: #166534; }
-    .badge.in-progress { background: #dbeafe; color: #1e40af; }
-    .badge.not-started { background: #f3f4f6; color: #6b7280; }
-    .topic-link {
-      display: inline-block;
-      margin-top: 0.5rem;
-      color: var(--link);
-      font-size: 0.9rem;
-    }
-    .topic-actions {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-      margin-top: 0.5rem;
-      flex-wrap: wrap;
-    }
-    .quiz-link {
-      color: var(--success, #16a34a);
-    }
-    .quiz-gen {
-      border-color: var(--success, #16a34a);
-      color: var(--success, #16a34a);
-    }
-    .subtopic-link {
-      color: var(--accent, #2563eb);
-      font-size: 0.85rem;
-    }
-    .subtopic-gen {
-      border-color: var(--accent, #2563eb);
-      color: var(--accent, #2563eb);
-      font-size: 0.85rem;
-    }
-    .generate-btn {
-      margin-top: 0.5rem;
-      padding: 0.4rem 0.8rem;
-      border: 1px solid var(--accent);
-      border-radius: 4px;
-      background: var(--bg-surface);
-      color: var(--accent);
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-    .generate-btn:hover { background: var(--bg-elevated); }
-    .breadcrumb {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin: 0.5rem 0 0.25rem;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .breadcrumb a {
-      color: var(--link);
-      text-decoration: none;
-      font-weight: 500;
-    }
-    .breadcrumb a:hover { text-decoration: underline; }
-    .breadcrumb-sep { color: var(--text-faint, #999); }
-    .breadcrumb-current { font-weight: 500; }
-      font-style: italic;
-    }
-    .leads-to {
-      margin-top: 2rem;
-      padding: 1.25rem;
-      border-radius: 8px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-    }
-    .leads-to-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.primary { border-color: var(--accent); color: var(--accent); }
+    .badge { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 3px; font-weight: 500; white-space: nowrap; }
+    .badge.not-started { background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    .badge.generating { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
+    .badge.complete { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
+    .badge.in-progress { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+    .gen-progress { font-size: 0.75rem; color: var(--warning); margin-top: 0.4rem; font-family: monospace; }
+    .leads-to { margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); }
+    .leads-to-grid { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
     .leads-to-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 0.75rem 1rem;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: var(--bg);
-      color: var(--text);
-      font-weight: 500;
-      font-size: 0.95rem;
-      cursor: pointer;
+      display: flex; flex-direction: column; align-items: flex-start; padding: 0.75rem 1rem;
+      border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);
+      font-weight: 500; font-size: 0.95rem; cursor: pointer; text-align: left;
       transition: border-color 0.15s, background 0.15s;
-      text-align: left;
     }
-    .leads-to-btn:hover {
-      border-color: var(--accent, #2563eb);
-      background: var(--bg-elevated);
-    }
-    .leads-to-desc {
-      font-weight: 400;
-      font-size: 0.83rem;
-      color: var(--text-muted);
-      margin-top: 0.2rem;
-    }
-    .legend {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 0.5rem;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-    .legend-swatch {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      border: 1px solid;
-    }
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-overlay.show { display: flex; }
-    .modal {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.5rem;
-      max-width: 550px;
-      width: 90%;
-    }
-    .modal h3 { margin-top: 0; }
-    .gen-output {
-      background: var(--code-bg, #1a1a2e);
-      padding: 0.75rem;
-      border-radius: 4px;
-      font-size: 0.78rem;
-      font-family: monospace;
-      max-height: 300px;
-      overflow-y: auto;
-      margin: 0.75rem 0;
-      line-height: 1.4;
-    }
-    .gen-output div {
-      padding: 1px 0;
-    }
-    .gen-output .phase-tool {
-      color: var(--accent, #60a5fa);
-    }
-    .gen-output .phase-writing {
-      color: var(--success, #4ade80);
-    }
-    .modal-actions {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
-    .modal-actions button {
-      padding: 0.4rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      font-size: 0.85rem;
-    }
-    .modal-actions .primary {
-      background: var(--accent);
-      color: var(--bg);
-      border-color: var(--accent);
-    }
+    .leads-to-btn:hover { border-color: var(--accent); background: var(--bg-elevated); }
+    .leads-to-desc { font-weight: 400; font-size: 0.83rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .loading { color: var(--text-muted); padding: 2rem; }
+    .map-header { margin-bottom: 1.5rem; }
+    .map-header h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    .map-header .orientation { color: var(--text-muted); font-size: 0.9rem; max-width: 700px; line-height: 1.5; }
+
   </style>
+  <script type="importmap">
+{
+  "imports": {
+    "preact": "../assets/vendor/preact.module.js",
+    "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+    "@preact/signals": "../assets/vendor/preact-signals.module.js",
+    "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+    "htm": "../assets/vendor/htm.module.js"
+  }
+}
+  </script>
 </head>
 <body>
-
-<div class="map-container">
-  <nav class="lesson-nav">
-    <a href="../../../lessons/index.html" class="back-to-map">← All Lessons</a>
-    <span class="nav-position">8 topics · 2 complete</span>
-  </nav>
-  
-  <h1>🗺️ Game Development with Godot</h1>
-  <p class="orientation">Godot is a free, open-source game engine whose node/scene architecture makes it unusually learnable — every game object is a composable tree of small, focused nodes. You'll go from understanding how Godot thinks about game objects to shipping a complete game, covering scripting, physics, UI, and polish along the way.</p>
-
-  <div class="legend">
-    <span class="legend-item"><span class="legend-swatch" style="background:#dcfce7;border-color:#16a34a"></span> Complete</span>
-    <span class="legend-item"><span class="legend-swatch" style="background:#dbeafe;border-color:#2563eb"></span> In progress</span>
-    <span class="legend-item"><span class="legend-swatch" style="background:#f3f4f6;border-color:#6b7280"></span> Not started</span>
+  <script src="../assets/vendor/dagre.min.js"></script>
+  <script type="application/json" id="page-data">{"title": "Game Development with Godot", "orientation": "Godot is a free, open-source game engine whose node/scene architecture makes it unusually learnable — every game object is a composable tree of small, focused nodes. You'll go from understanding how Godot thinks about game objects to shipping a complete game, covering scripting, physics, UI, and polish along the way.", "topics": [{"id": "nodes-and-scenes", "title": "Nodes, Scenes & the Scene Tree", "why": "Everything in Godot is a node in a tree — understanding this architecture is the foundation for every project", "prereqs": [], "status": "complete", "lessonPath": "0001-nodes-and-scenes.html"}, {"id": "gdscript-fundamentals", "title": "GDScript Fundamentals", "why": "GDScript is how you give nodes behavior — variables, functions, signals, and lifecycle callbacks make your game respond to the player", "prereqs": ["nodes-and-scenes"], "status": "complete", "lessonPath": "0002-gdscript-fundamentals.html"}, {"id": "2d-game-mechanics", "title": "2D Game Mechanics", "why": "2D is where most Godot learners build their first complete game — movement, collision, tilemaps, and camera work", "prereqs": ["gdscript-fundamentals"], "status": "not-started", "lessonPath": null}, {"id": "physics-and-collision", "title": "Physics & Collision Systems", "why": "Rigid bodies, areas, raycasts, and collision layers are how your game world enforces physical rules", "prereqs": ["nodes-and-scenes", "gdscript-fundamentals"], "status": "not-started", "lessonPath": null}, {"id": "ui-and-control-nodes", "title": "UI, Menus & HUD", "why": "Every game needs at least a title screen and a score counter — Godot's Control nodes are a full UI toolkit built into the engine", "prereqs": ["gdscript-fundamentals"], "status": "not-started", "lessonPath": null}, {"id": "animation-and-audio", "title": "Animation & Audio", "why": "AnimationPlayer, tweens, and the audio bus system turn a functional prototype into something that feels alive", "prereqs": ["nodes-and-scenes", "gdscript-fundamentals"], "status": "not-started", "lessonPath": null}, {"id": "3d-fundamentals", "title": "3D Fundamentals", "why": "Godot's 3D pipeline shares the same node/scene model — once you know 2D, 3D is a spatial upgrade, not a rewrite", "prereqs": ["2d-game-mechanics", "physics-and-collision"], "status": "not-started", "lessonPath": null}, {"id": "exporting-and-publishing", "title": "Exporting & Publishing", "why": "A game isn't done until someone can play it — export templates, platform quirks, and distribution channels", "prereqs": ["2d-game-mechanics"], "status": "not-started", "lessonPath": null}], "leadsTo": [{"slug": "shader-programming", "why": ""}, {"slug": "multiplayer-networking", "why": ""}, {"slug": "procedural-generation", "why": ""}, {"slug": "game-ai-and-behavior", "why": ""}, {"slug": "publishing-and-marketing", "why": ""}]}</script>
+  <div class="map-header">
+    <h1>Game Development with Godot</h1>
+    <p class="orientation">Godot is a free, open-source game engine whose node/scene architecture makes it unusually learnable — every game object is a composable tree of small, focused nodes. You'll go from understanding how Godot thinks about game objects to shipping a complete game, covering scripting, physics, UI, and polish along the way.</p>
   </div>
-
-  <!-- Generated by graphviz version 15.1.1 (20260805.0921)
- -->
-<!-- Title: G Pages: 1 -->
-<svg class="map-graph"
- viewBox="0.00 0.00 696.00 291.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 287.2)">
-<title>G</title>
-<!-- nodes&#45;and&#45;scenes -->
-<g id="node1" class="node">
-<title>nodes&#45;and&#45;scenes</title>
-<g id="a_node1"><a xlink:href="#topic-nodes-and-scenes" xlink:title="Everything in Godot is a node in a tree — understanding this architecture is the foundation for every project">
-<path fill="#dcfce7" stroke="#16a34a" d="M443.33,-283.2C443.33,-283.2 244.13,-283.2 244.13,-283.2 238.13,-283.2 232.13,-277.2 232.13,-271.2 232.13,-271.2 232.13,-251.4 232.13,-251.4 232.13,-245.4 238.13,-239.4 244.13,-239.4 244.13,-239.4 443.33,-239.4 443.33,-239.4 449.33,-239.4 455.33,-245.4 455.33,-251.4 455.33,-251.4 455.33,-271.2 455.33,-271.2 455.33,-277.2 449.33,-283.2 443.33,-283.2"/>
-<text xml:space="preserve" text-anchor="middle" x="343.73" y="-257.4" font-family="system-ui, sans-serif" font-size="12.00" fill="#166534">Nodes, Scenes &amp; the Scene Tree</text>
-</a>
-</g>
-</g>
-<!-- gdscript&#45;fundamentals -->
-<g id="node2" class="node">
-<title>gdscript&#45;fundamentals</title>
-<g id="a_node2"><a xlink:href="#topic-gdscript-fundamentals" xlink:title="GDScript is how you give nodes behavior — variables, functions, signals, and lifecycle callbacks make your game respond to the player">
-<path fill="#dcfce7" stroke="#16a34a" d="M419.33,-203.4C419.33,-203.4 268.12,-203.4 268.12,-203.4 262.12,-203.4 256.12,-197.4 256.12,-191.4 256.12,-191.4 256.12,-171.6 256.12,-171.6 256.12,-165.6 262.12,-159.6 268.12,-159.6 268.12,-159.6 419.33,-159.6 419.33,-159.6 425.33,-159.6 431.33,-165.6 431.33,-171.6 431.33,-171.6 431.33,-191.4 431.33,-191.4 431.33,-197.4 425.33,-203.4 419.33,-203.4"/>
-<text xml:space="preserve" text-anchor="middle" x="343.73" y="-177.6" font-family="system-ui, sans-serif" font-size="12.00" fill="#166534">GDScript Fundamentals</text>
-</a>
-</g>
-</g>
-<!-- nodes&#45;and&#45;scenes&#45;&gt;gdscript&#45;fundamentals -->
-<g id="edge1" class="edge">
-<title>nodes&#45;and&#45;scenes&#45;&gt;gdscript&#45;fundamentals</title>
-<path fill="none" stroke="#6b7280" d="M343.73,-239.04C343.73,-230.72 343.73,-221.04 343.73,-212.06"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="346.18,-212.25 343.73,-205.25 341.28,-212.25 346.18,-212.25"/>
-</g>
-<!-- physics&#45;and&#45;collision -->
-<g id="node4" class="node">
-<title>physics&#45;and&#45;collision</title>
-<g id="a_node4"><a xlink:href="#topic-physics-and-collision" xlink:title="Rigid bodies, areas, raycasts, and collision layers are how your game world enforces physical rules">
-<path fill="#f3f4f6" stroke="#6b7280" d="M183.45,-123.6C183.45,-123.6 12,-123.6 12,-123.6 6,-123.6 0,-117.6 0,-111.6 0,-111.6 0,-91.8 0,-91.8 0,-85.8 6,-79.8 12,-79.8 12,-79.8 183.45,-79.8 183.45,-79.8 189.45,-79.8 195.45,-85.8 195.45,-91.8 195.45,-91.8 195.45,-111.6 195.45,-111.6 195.45,-117.6 189.45,-123.6 183.45,-123.6"/>
-<text xml:space="preserve" text-anchor="middle" x="97.73" y="-97.8" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Physics &amp; Collision Systems</text>
-</a>
-</g>
-</g>
-<!-- nodes&#45;and&#45;scenes&#45;&gt;physics&#45;and&#45;collision -->
-<g id="edge3" class="edge">
-<title>nodes&#45;and&#45;scenes&#45;&gt;physics&#45;and&#45;collision</title>
-<path fill="none" stroke="#6b7280" d="M306.08,-238.96C287.97,-228.51 266.05,-215.58 246.73,-203.4 207.97,-178.97 164.69,-149.46 134.8,-128.72"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="136.27,-126.76 129.13,-124.78 133.47,-130.78 136.27,-126.76"/>
-</g>
-<!-- animation&#45;and&#45;audio -->
-<g id="node6" class="node">
-<title>animation&#45;and&#45;audio</title>
-<g id="a_node6"><a xlink:href="#topic-animation-and-audio" xlink:title="AnimationPlayer, tweens, and the audio bus system turn a functional prototype into something that feels alive">
-<path fill="#f3f4f6" stroke="#6b7280" d="M675.95,-123.6C675.95,-123.6 555.5,-123.6 555.5,-123.6 549.5,-123.6 543.5,-117.6 543.5,-111.6 543.5,-111.6 543.5,-91.8 543.5,-91.8 543.5,-85.8 549.5,-79.8 555.5,-79.8 555.5,-79.8 675.95,-79.8 675.95,-79.8 681.95,-79.8 687.95,-85.8 687.95,-91.8 687.95,-91.8 687.95,-111.6 687.95,-111.6 687.95,-117.6 681.95,-123.6 675.95,-123.6"/>
-<text xml:space="preserve" text-anchor="middle" x="615.73" y="-97.8" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Animation &amp; Audio</text>
-</a>
-</g>
-</g>
-<!-- nodes&#45;and&#45;scenes&#45;&gt;animation&#45;and&#45;audio -->
-<g id="edge6" class="edge">
-<title>nodes&#45;and&#45;scenes&#45;&gt;animation&#45;and&#45;audio</title>
-<path fill="none" stroke="#6b7280" d="M380.41,-239.05C430.13,-210.24 518.79,-158.87 571.93,-128.07"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="573.05,-130.26 577.88,-124.63 570.6,-126.02 573.05,-130.26"/>
-</g>
-<!-- 2d&#45;game&#45;mechanics -->
-<g id="node3" class="node">
-<title>2d&#45;game&#45;mechanics</title>
-<g id="a_node3"><a xlink:href="#topic-2d-game-mechanics" xlink:title="2D is where most Godot learners build their first complete game — movement, collision, tilemaps, and camera work">
-<path fill="#f3f4f6" stroke="#6b7280" d="M358.33,-123.6C358.33,-123.6 225.13,-123.6 225.13,-123.6 219.13,-123.6 213.13,-117.6 213.13,-111.6 213.13,-111.6 213.13,-91.8 213.13,-91.8 213.13,-85.8 219.13,-79.8 225.13,-79.8 225.13,-79.8 358.33,-79.8 358.33,-79.8 364.33,-79.8 370.33,-85.8 370.33,-91.8 370.33,-91.8 370.33,-111.6 370.33,-111.6 370.33,-117.6 364.33,-123.6 358.33,-123.6"/>
-<text xml:space="preserve" text-anchor="middle" x="291.73" y="-97.8" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">2D Game Mechanics</text>
-</a>
-</g>
-</g>
-<!-- gdscript&#45;fundamentals&#45;&gt;2d&#45;game&#45;mechanics -->
-<g id="edge2" class="edge">
-<title>gdscript&#45;fundamentals&#45;&gt;2d&#45;game&#45;mechanics</title>
-<path fill="none" stroke="#6b7280" d="M329.52,-159.24C323.67,-150.49 316.81,-140.24 310.56,-130.88"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="312.68,-129.65 306.76,-125.19 308.61,-132.37 312.68,-129.65"/>
-</g>
-<!-- gdscript&#45;fundamentals&#45;&gt;physics&#45;and&#45;collision -->
-<g id="edge4" class="edge">
-<title>gdscript&#45;fundamentals&#45;&gt;physics&#45;and&#45;collision</title>
-<path fill="none" stroke="#6b7280" d="M276.18,-159.14C244.18,-149.02 205.85,-136.9 172.93,-126.48"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="173.98,-124.25 166.56,-124.47 172.5,-128.92 173.98,-124.25"/>
-</g>
-<!-- ui&#45;and&#45;control&#45;nodes -->
-<g id="node5" class="node">
-<title>ui&#45;and&#45;control&#45;nodes</title>
-<g id="a_node5"><a xlink:href="#topic-ui-and-control-nodes" xlink:title="Every game needs at least a title screen and a score counter — Godot&#39;s Control nodes are a full UI toolkit built into the engine">
-<path fill="#f3f4f6" stroke="#6b7280" d="M513.2,-123.6C513.2,-123.6 400.25,-123.6 400.25,-123.6 394.25,-123.6 388.25,-117.6 388.25,-111.6 388.25,-111.6 388.25,-91.8 388.25,-91.8 388.25,-85.8 394.25,-79.8 400.25,-79.8 400.25,-79.8 513.2,-79.8 513.2,-79.8 519.2,-79.8 525.2,-85.8 525.2,-91.8 525.2,-91.8 525.2,-111.6 525.2,-111.6 525.2,-117.6 519.2,-123.6 513.2,-123.6"/>
-<text xml:space="preserve" text-anchor="middle" x="456.73" y="-97.8" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">UI, Menus &amp; HUD</text>
-</a>
-</g>
-</g>
-<!-- gdscript&#45;fundamentals&#45;&gt;ui&#45;and&#45;control&#45;nodes -->
-<g id="edge5" class="edge">
-<title>gdscript&#45;fundamentals&#45;&gt;ui&#45;and&#45;control&#45;nodes</title>
-<path fill="none" stroke="#6b7280" d="M374.6,-159.24C388.31,-149.81 404.56,-138.62 418.97,-128.69"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="420.26,-130.78 424.64,-124.79 417.48,-126.74 420.26,-130.78"/>
-</g>
-<!-- gdscript&#45;fundamentals&#45;&gt;animation&#45;and&#45;audio -->
-<g id="edge7" class="edge">
-<title>gdscript&#45;fundamentals&#45;&gt;animation&#45;and&#45;audio</title>
-<path fill="none" stroke="#6b7280" d="M418.41,-159.14C454.68,-148.76 498.3,-136.29 535.3,-125.7"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="535.57,-128.17 541.63,-123.89 534.23,-123.46 535.57,-128.17"/>
-</g>
-<!-- 3d&#45;fundamentals -->
-<g id="node7" class="node">
-<title>3d&#45;fundamentals</title>
-<g id="a_node7"><a xlink:href="#topic-3d-fundamentals" xlink:title="Godot&#39;s 3D pipeline shares the same node/scene model — once you know 2D, 3D is a spatial upgrade, not a rewrite">
-<path fill="#f3f4f6" stroke="#6b7280" d="M168.08,-43.8C168.08,-43.8 51.38,-43.8 51.38,-43.8 45.38,-43.8 39.38,-37.8 39.38,-31.8 39.38,-31.8 39.38,-12 39.38,-12 39.38,-6 45.38,0 51.38,0 51.38,0 168.08,0 168.08,0 174.08,0 180.08,-6 180.08,-12 180.08,-12 180.08,-31.8 180.08,-31.8 180.08,-37.8 174.08,-43.8 168.08,-43.8"/>
-<text xml:space="preserve" text-anchor="middle" x="109.73" y="-18" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">3D Fundamentals</text>
-</a>
-</g>
-</g>
-<!-- 2d&#45;game&#45;mechanics&#45;&gt;3d&#45;fundamentals -->
-<g id="edge8" class="edge">
-<title>2d&#45;game&#45;mechanics&#45;&gt;3d&#45;fundamentals</title>
-<path fill="none" stroke="#6b7280" d="M241.99,-79.44C218.92,-69.58 191.35,-57.79 167.36,-47.54"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="168.5,-45.36 161.1,-44.86 166.58,-49.87 168.5,-45.36"/>
-</g>
-<!-- exporting&#45;and&#45;publishing -->
-<g id="node8" class="node">
-<title>exporting&#45;and&#45;publishing</title>
-<g id="a_node8"><a xlink:href="#topic-exporting-and-publishing" xlink:title="A game isn&#39;t done until someone can play it — export templates, platform quirks, and distribution channels">
-<path fill="#f3f4f6" stroke="#6b7280" d="M362.83,-43.8C362.83,-43.8 220.63,-43.8 220.63,-43.8 214.63,-43.8 208.63,-37.8 208.63,-31.8 208.63,-31.8 208.63,-12 208.63,-12 208.63,-6 214.63,0 220.63,0 220.63,0 362.83,0 362.83,0 368.83,0 374.83,-6 374.83,-12 374.83,-12 374.83,-31.8 374.83,-31.8 374.83,-37.8 368.83,-43.8 362.83,-43.8"/>
-<text xml:space="preserve" text-anchor="middle" x="291.73" y="-18" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Exporting &amp; Publishing</text>
-</a>
-</g>
-</g>
-<!-- 2d&#45;game&#45;mechanics&#45;&gt;exporting&#45;and&#45;publishing -->
-<g id="edge10" class="edge">
-<title>2d&#45;game&#45;mechanics&#45;&gt;exporting&#45;and&#45;publishing</title>
-<path fill="none" stroke="#6b7280" d="M291.73,-79.44C291.73,-71.12 291.73,-61.44 291.73,-52.46"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="294.18,-52.65 291.73,-45.65 289.28,-52.65 294.18,-52.65"/>
-</g>
-<!-- physics&#45;and&#45;collision&#45;&gt;3d&#45;fundamentals -->
-<g id="edge9" class="edge">
-<title>physics&#45;and&#45;collision&#45;&gt;3d&#45;fundamentals</title>
-<path fill="none" stroke="#6b7280" d="M101,-79.44C102.29,-71.12 103.78,-61.44 105.17,-52.46"/>
-<polygon fill="#6b7280" stroke="#6b7280" points="107.57,-52.92 106.22,-45.63 102.73,-52.17 107.57,-52.92"/>
-</g>
-</g>
-</svg>
-
-
-  <h2>Topics</h2>
+  <div id="app"></div>
   
-    <div class="topic-card" id="topic-nodes-and-scenes">
-      <h3>Nodes, Scenes & the Scene Tree <span class="badge complete">✓ complete</span></h3>
-      <p class="topic-why">Everything in Godot is a node in a tree — understanding this architecture is the foundation for every project</p>
-      <p class="topic-prereqs">Start here</p>
-      <div class="topic-actions"><a href="0001-nodes-and-scenes.html" class="topic-link">Open lesson →</a> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('nodes-and-scenes', 'Nodes, Scenes & the Scene Tree')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('nodes-and-scenes', 'Nodes, Scenes & the Scene Tree')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-gdscript-fundamentals">
-      <h3>GDScript Fundamentals <span class="badge complete">✓ complete</span></h3>
-      <p class="topic-why">GDScript is how you give nodes behavior — variables, functions, signals, and lifecycle callbacks make your game respond to the player</p>
-      <p class="topic-prereqs">After: nodes-and-scenes</p>
-      <div class="topic-actions"><a href="0002-gdscript-fundamentals.html" class="topic-link">Open lesson →</a> <a href="review/quick-check.html" class="topic-link quiz-link">Quiz (1) →</a> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('gdscript-fundamentals', 'GDScript Fundamentals')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-2d-game-mechanics">
-      <h3>2D Game Mechanics <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">2D is where most Godot learners build their first complete game — movement, collision, tilemaps, and camera work</p>
-      <p class="topic-prereqs">After: gdscript-fundamentals</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('2d-game-mechanics', '2D Game Mechanics')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('2d-game-mechanics', '2D Game Mechanics')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('2d-game-mechanics', '2D Game Mechanics')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-physics-and-collision">
-      <h3>Physics & Collision Systems <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">Rigid bodies, areas, raycasts, and collision layers are how your game world enforces physical rules</p>
-      <p class="topic-prereqs">After: nodes-and-scenes, gdscript-fundamentals</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('physics-and-collision', 'Physics & Collision Systems')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('physics-and-collision', 'Physics & Collision Systems')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('physics-and-collision', 'Physics & Collision Systems')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-ui-and-control-nodes">
-      <h3>UI, Menus & HUD <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">Every game needs at least a title screen and a score counter — Godot's Control nodes are a full UI toolkit built into the engine</p>
-      <p class="topic-prereqs">After: gdscript-fundamentals</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('ui-and-control-nodes', 'UI, Menus & HUD')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('ui-and-control-nodes', 'UI, Menus & HUD')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('ui-and-control-nodes', 'UI, Menus & HUD')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-animation-and-audio">
-      <h3>Animation & Audio <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">AnimationPlayer, tweens, and the audio bus system turn a functional prototype into something that feels alive</p>
-      <p class="topic-prereqs">After: nodes-and-scenes, gdscript-fundamentals</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('animation-and-audio', 'Animation & Audio')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('animation-and-audio', 'Animation & Audio')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('animation-and-audio', 'Animation & Audio')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-3d-fundamentals">
-      <h3>3D Fundamentals <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">Godot's 3D pipeline shares the same node/scene model — once you know 2D, 3D is a spatial upgrade, not a rewrite</p>
-      <p class="topic-prereqs">After: 2d-game-mechanics, physics-and-collision</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('3d-fundamentals', '3D Fundamentals')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('3d-fundamentals', '3D Fundamentals')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('3d-fundamentals', '3D Fundamentals')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
-    <div class="topic-card" id="topic-exporting-and-publishing">
-      <h3>Exporting & Publishing <span class="badge not-started">○ not started</span></h3>
-      <p class="topic-why">A game isn't done until someone can play it — export templates, platform quirks, and distribution channels</p>
-      <p class="topic-prereqs">After: 2d-game-mechanics</p>
-      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('exporting-and-publishing', 'Exporting & Publishing')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('exporting-and-publishing', 'Exporting & Publishing')">Generate quiz</button> <button class="generate-btn subtopic-gen" onclick="offerSubtopics('exporting-and-publishing', 'Exporting & Publishing')" title="Break this topic into its own sub-map with 3-5 focused subtopics">Explore subtopics</button></div>
-    </div>
 
-  
-    <div class="leads-to">
-      <h2>Where This Leads</h2>
-      <div class="leads-to-grid"><button class="leads-to-btn" data-domain="shader-programming">Shader Programming</button><button class="leads-to-btn" data-domain="multiplayer-networking">Multiplayer Networking</button><button class="leads-to-btn" data-domain="procedural-generation">Procedural Generation</button><button class="leads-to-btn" data-domain="game-ai-and-behavior">Game Ai And Behavior</button><button class="leads-to-btn" data-domain="publishing-and-marketing">Publishing And Marketing</button></div>
-    </div>
-</div>
+  <script type="module">
 
-<!-- Generation modal -->
-<div class="modal-overlay" id="gen-modal">
-  <div class="modal">
-    <h3 id="gen-title">Generate topic</h3>
-    <p id="gen-desc">Generating...</p>
-    <div id="gen-output" class="gen-output"></div>
-    <div class="modal-actions">
-      <button id="gen-cancel-btn" onclick="cancelGeneration()">Cancel</button>
-      <button id="gen-close-btn" onclick="closeModal()" style="display:none">Close</button>
-    </div>
-  </div>
-</div>
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { MapView } from '../assets/components/MapView.js';
 
-<script>
-let currentEventSource = null;
-let currentTaskId = null;
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
 
-function startGeneration(prompt, title) {
-  document.getElementById('gen-title').textContent = title;
-  document.getElementById('gen-desc').textContent = 'Generating...';
-  document.getElementById('gen-output').innerHTML = '';
-  document.getElementById('gen-cancel-btn').style.display = '';
-  document.getElementById('gen-close-btn').style.display = 'none';
-  document.getElementById('gen-modal').classList.add('show');
+    render(
+      html`<${MapView} topics=${data.topics} leadsTo=${data.leadsTo} orientation=${data.orientation} title=${data.title} />`,
+      document.getElementById('app')
+    );
 
-  fetch('/api/generate', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({prompt: prompt, mock: false})
-  })
-  .then(r => r.json())
-  .then(data => {
-    currentTaskId = data.id;
-    const es = new EventSource(data.stream_url);
-    currentEventSource = es;
-    const output = document.getElementById('gen-output');
-
-    es.addEventListener('line', function(e) {
-      const line = JSON.parse(e.data);
-      if (line.text) {
-        const div = document.createElement('div');
-        div.textContent = line.text;
-        if (line.phase) div.className = 'phase-' + line.phase.split(':')[0];
-        output.appendChild(div);
-        output.scrollTop = output.scrollHeight;
-      }
-    });
-
-    es.addEventListener('done', function(e) {
-      es.close();
-      currentEventSource = null;
-      document.getElementById('gen-desc').textContent = '✓ Done — reloading...';
-      document.getElementById('gen-cancel-btn').style.display = 'none';
-      document.getElementById('gen-close-btn').style.display = '';
-      setTimeout(() => location.reload(), 1500);
-    });
-
-    es.addEventListener('error', function(e) {
-      es.close();
-      currentEventSource = null;
-      document.getElementById('gen-desc').textContent = '✗ Generation failed';
-      document.getElementById('gen-cancel-btn').style.display = 'none';
-      document.getElementById('gen-close-btn').style.display = '';
-    });
-  })
-  .catch(err => {
-    document.getElementById('gen-desc').textContent = '✗ Could not connect to server: ' + err.message;
-    document.getElementById('gen-cancel-btn').style.display = 'none';
-    document.getElementById('gen-close-btn').style.display = '';
-  });
-}
-
-function offerGenerate(slug, title) {
-  startGeneration('teach me about ' + title, 'Generating: ' + title);
-}
-
-function offerGenerateQuiz(slug, title) {
-  startGeneration('generate quick-check questions for ' + title, 'Generating Quiz: ' + title);
-}
-
-function offerSubtopics(slug, title) {
-  startGeneration('go deeper on ' + title, 'Exploring Subtopics: ' + title);
-}
-
-function cancelGeneration() {
-  if (currentEventSource) {
-    currentEventSource.close();
-    currentEventSource = null;
-  }
-  if (currentTaskId) {
-    fetch('/api/generate/' + currentTaskId + '/cancel', {method: 'POST'});
-    currentTaskId = null;
-  }
-  closeModal();
-}
-
-function closeModal() {
-  document.getElementById('gen-modal').classList.remove('show');
-}
-
-document.getElementById('gen-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-</script>
-<script src="../assets/theme-toggle.js"></script>
-
+  </script>
 </body>
 </html>
