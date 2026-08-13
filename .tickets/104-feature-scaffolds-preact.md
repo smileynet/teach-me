@@ -2,7 +2,7 @@
 id: "104"
 title: "Update scaffolds for Preact mount points"
 type: feature
-status: open
+status: done
 priority: medium
 blocked_by: ["101", "102", "103"]
 work_order: 8

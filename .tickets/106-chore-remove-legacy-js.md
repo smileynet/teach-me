@@ -2,7 +2,7 @@
 id: "106"
 title: "Remove deprecated vanilla JS + old Graphviz map generator"
 type: chore
-status: open
+status: done
 priority: low
 blocked_by: ["096", "097", "098", "099", "101", "102", "103"]
 work_order: 10
