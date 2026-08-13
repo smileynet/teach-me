@@ -1,7 +1,7 @@
 ---
 id: "036"
 title: "Feature: export self-contained knowledge objects for sharing"
-status: closed
+status: done
 priority: low
 blocked_by: []
 type: feature
