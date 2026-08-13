@@ -90,6 +90,7 @@ The `workspace/` directory is the single live workspace per machine. All topics 
 | Before progression | quiz-me for Socratic dialog (learner explains, agent probes) |
 | Reviewing retention | `mise run sr:review` (all topics) or `mise run sr:review -- topic-slug` |
 | Leaving a ticket | Ticket is DONE (all AC checked) or OPEN with an update note. No partial closes. No moving on with unchecked boxes. |
+| Creating tickets | Use `tkt new slug --title "..."` then edit the created file. Don't create a separate file manually — causes duplicate ID validation errors. |
 | Validating work | Validate from the user's perspective (Playwright click-through, curl the endpoint, load the page). Prefer linters, syntax checkers, and templates over formal test suites. Only write maintained tests for libraries with multiple consumers (e.g., map_parser.py). |
 | Session start | `mise run sr` to check if cards are due before new material |
 | After writing questions | `mise run sr:check` as quality gate |
@@ -115,6 +116,7 @@ The `workspace/` directory is the single live workspace per machine. All topics 
 | Don't omit lesson-actions.js | Every lesson includes `import '../assets/components/LessonActions.js'` in a module script — provides nav + quiz buttons |
 | Don't ship silent buttons | Interactive buttons must have visible hover state + click feedback (animation, color change, or navigation) |
 | Don't give partial URLs | When a server is running, always provide full clickable URLs (http://host:port/path) |
+| Don't context-switch to content during infrastructure | Finish the migration/ticket in progress before generating lessons or teaching |
 | Don't create per-topic workspaces | One workspace/ per machine holds all topics. Use examples/ only for demo fixtures |
 
 ## Environment
