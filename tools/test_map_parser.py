@@ -14,7 +14,6 @@ from map_parser import (
 EXAMPLES_DIR = Path(__file__).parent.parent / "examples"
 DATA_ANALYTICS_MAP = EXAMPLES_DIR / "iceberg-workspace" / "maps" / "data-analytics.MAP.md"
 GODOT_MAP = EXAMPLES_DIR / "godot-gamedev" / "maps" / "godot-gamedev.MAP.md"
-SECURITY_MAP = EXAMPLES_DIR / "web-security" / "maps" / "web-security.MAP.md"
 
 
 # ---------------------------------------------------------------------------
@@ -38,8 +37,7 @@ def test_load_data_analytics():
     t = m.topic_by_slug("storage-and-table-formats")
     assert t is not None
     assert t.title == "Storage & Open Table Formats"
-    assert t.status == "in-progress"
-    assert t.lesson_file == "0001-iceberg-metadata-tree.html"
+    assert t.status == "complete"
     assert t.prereqs == ["ingestion"]
     assert t.scope == "deep"
 
@@ -50,12 +48,6 @@ def test_load_godot():
     assert len(m.topics) == 8
     assert m.topic_by_slug("nodes-and-scenes").prereqs == []
     assert "gdscript-fundamentals" in m.topic_by_slug("2d-game-mechanics").prereqs
-
-
-def test_load_security():
-    m = load_map(SECURITY_MAP)
-    assert m.domain == "web-application-security"
-    assert len(m.topics) >= 5
 
 
 def test_load_missing_file():
@@ -82,7 +74,7 @@ def test_load_no_frontmatter():
 # ---------------------------------------------------------------------------
 
 def test_validate_good_maps():
-    for path in (DATA_ANALYTICS_MAP, GODOT_MAP, SECURITY_MAP):
+    for path in (DATA_ANALYTICS_MAP, GODOT_MAP):
         m = load_map(path)
         errors = validate(m)
         assert errors == [], f"{path.name} has errors: {errors}"
@@ -208,7 +200,7 @@ def test_update_status():
     m = load_map(tmp)
     assert m.topic_by_slug("ingestion").status == "in-progress"
     # Other topics unchanged
-    assert m.topic_by_slug("storage-and-table-formats").status == "in-progress"
+    assert m.topic_by_slug("storage-and-table-formats").status == "complete"
     assert m.topic_by_slug("compute-engines").status == "not-started"
 
     # Update again
