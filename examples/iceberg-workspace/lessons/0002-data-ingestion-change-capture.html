@@ -47,17 +47,17 @@
 <!-- Batch source -->
 <rect x="10" y="20" width="140" height="55" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
 <text x="80" y="42" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600">Batch</text>
-<text x="80" y="58" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral)">S3 files, APIs, exports</text>
+<text x="80" y="58" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-primary-text)">S3 files, APIs, exports</text>
 
 <!-- Streaming source -->
 <rect x="10" y="100" width="140" height="55" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
 <text x="80" y="122" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600">Streaming</text>
-<text x="80" y="138" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral)">Kafka, Kinesis, events</text>
+<text x="80" y="138" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-primary-text)">Kafka, Kinesis, events</text>
 
 <!-- CDC source -->
 <rect x="10" y="180" width="140" height="55" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
 <text x="80" y="202" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600">CDC</text>
-<text x="80" y="218" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral)">DB logs, DMS, Debezium</text>
+<text x="80" y="218" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-primary-text)">DB logs, DMS, Debezium</text>
 
 <!-- Arrows to middle -->
 <path d="M150,47 L220,47" stroke="var(--svg-text)" stroke-width="1.5" marker-end="url(#arr)"/>
@@ -67,15 +67,15 @@
 <!-- Processing layer -->
 <rect x="225" y="20" width="160" height="55" rx="6" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5"/>
 <text x="305" y="42" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">Glue / EMR Spark</text>
-<text x="305" y="58" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral)">large files, few commits</text>
+<text x="305" y="58" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral-text)">large files, few commits</text>
 
 <rect x="225" y="100" width="160" height="55" rx="6" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="1.5"/>
 <text x="305" y="122" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">Flink / Firehose</text>
-<text x="305" y="138" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral)">small files, many commits ⚠️</text>
+<text x="305" y="138" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-warning-text)">small files, many commits ⚠️</text>
 
 <rect x="225" y="180" width="160" height="55" rx="6" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="1.5"/>
 <text x="305" y="202" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">DMS → Glue / Flink</text>
-<text x="305" y="218" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral)">upserts need COW or MOR</text>
+<text x="305" y="218" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-warning-text)">upserts need COW or MOR</text>
 
 <!-- Arrows to Iceberg -->
 <path d="M385,47 L450,127" stroke="var(--svg-text)" stroke-width="1.5" marker-end="url(#arr)"/>
@@ -85,7 +85,7 @@
 <!-- Iceberg table -->
 <rect x="455" y="95" width="130" height="65" rx="6" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="2"/>
 <text x="520" y="120" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600">Iceberg Table</text>
-<text x="520" y="138" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral)">S3 + Glue Catalog</text>
+<text x="520" y="138" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-success-text)">S3 + Glue Catalog</text>
 </svg>
 
 <table>
@@ -158,9 +158,9 @@
 <rect x="150" y="45" width="95" height="35" rx="4" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="1"/>
 <text x="197" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11">New file (999K)</text>
 
-<text x="135" y="100" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral)">Write: Rewrite entire file</text>
+<text x="135" y="100" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-success-text)">Write: Rewrite entire file</text>
 <text x="135" y="115" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-success)">Read: Fast (clean files)</text>
-<text x="135" y="145" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral)">Best: read-heavy tables</text>
+<text x="135" y="145" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-success-text)">Best: read-heavy tables</text>
 
 <!-- MOR side -->
 <rect x="280" y="10" width="250" height="160" rx="6" fill="none" stroke="var(--svg-warning)" stroke-width="1.5" stroke-dasharray="4"/>
@@ -175,8 +175,8 @@
 <text x="462" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11">Delete file (tiny)</text>
 
 <text x="405" y="100" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-success)">Write: Fast (small file)</text>
-<text x="405" y="115" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral)">Read: Merge at scan time</text>
-<text x="405" y="145" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral)">Best: write-heavy tables</text>
+<text x="405" y="115" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-warning-text)">Read: Merge at scan time</text>
+<text x="405" y="145" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-warning-text)">Best: write-heavy tables</text>
 </svg>
 
 <div class="callout">
@@ -282,31 +282,31 @@
 
 <rect x="10" y="25" width="90" height="50" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
 <text x="55" y="47" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">Source DB</text>
-<text x="55" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-neutral)">Postgres/MySQL</text>
+<text x="55" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-primary-text)">Postgres/MySQL</text>
 
 <path d="M100,50 L130,50" stroke="var(--svg-text)" stroke-width="1.5" marker-end="url(#arr2)"/>
 
 <rect x="135" y="25" width="80" height="50" rx="6" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5"/>
 <text x="175" y="47" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">DMS</text>
-<text x="175" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-neutral)">captures WAL</text>
+<text x="175" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-neutral-text)">captures WAL</text>
 
 <path d="M215,50 L245,50" stroke="var(--svg-text)" stroke-width="1.5" marker-end="url(#arr2)"/>
 
 <rect x="250" y="25" width="95" height="50" rx="6" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="1.5"/>
 <text x="297" y="47" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">S3 Staging</text>
-<text x="297" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-neutral)">CDC records</text>
+<text x="297" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-warning-text)">CDC records</text>
 
 <path d="M345,50 L375,50" stroke="var(--svg-text)" stroke-width="1.5" marker-end="url(#arr2)"/>
 
 <rect x="380" y="25" width="95" height="50" rx="6" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5"/>
 <text x="427" y="47" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">Glue MERGE</text>
-<text x="427" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-neutral)">apply changes</text>
+<text x="427" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-neutral-text)">apply changes</text>
 
 <path d="M475,50 L505,50" stroke="var(--svg-text)" stroke-width="1.5" marker-end="url(#arr2)"/>
 
 <rect x="510" y="25" width="80" height="50" rx="6" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="1.5"/>
 <text x="550" y="47" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600">Iceberg</text>
-<text x="550" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-neutral)">updated table</text>
+<text x="550" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-success-text)">updated table</text>
 </svg>
 
 <h3>AWS DMS (Database Migration Service)</h3>
