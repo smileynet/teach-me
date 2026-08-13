@@ -131,6 +131,8 @@ def topic_has_lesson(slug: str) -> str | None:
     
     Matches by: slug in filename, or slug appears in file content (lesson-id, heading).
     """
+    if not LESSONS_DIR.exists():
+        return None
     for f in sorted(LESSONS_DIR.glob("*.html")):
         # Skip map pages, index, and review pages
         if f.stem.endswith("-map") or f.stem == "index":
@@ -139,6 +141,52 @@ def topic_has_lesson(slug: str) -> str | None:
         if slug in f.stem:
             return f.name
     return None
+
+
+def topic_has_reference(slug: str) -> bool:
+    """Check if a reference doc exists for this topic slug."""
+    ref_dir = LESSONS_DIR.parent / "reference"
+    if not ref_dir.exists():
+        return False
+    for f in ref_dir.glob("*.html"):
+        if slug in f.stem:
+            return True
+    return False
+
+
+def topic_has_quiz(slug: str) -> bool:
+    """Check if a quiz page exists for this topic slug."""
+    quiz_dir = LESSONS_DIR / "quiz"
+    if not quiz_dir.exists():
+        return False
+    for f in quiz_dir.glob("*.html"):
+        if slug in f.stem:
+            return True
+    return False
+
+
+def compute_effective_status(slug: str, map_status: str) -> str:
+    """Compute topic status from actual files on disk.
+    
+    Status lifecycle:
+      not-started → in-progress (lesson exists) → complete (lesson + reference + quiz/questions)
+    
+    Never downgrades: if MAP.md says 'complete', trust it (user may have marked manually).
+    """
+    if map_status == "complete":
+        return "complete"
+
+    has_lesson = topic_has_lesson(slug) is not None
+    has_ref = topic_has_reference(slug)
+    has_quiz = topic_has_quiz(slug)
+    has_questions = topic_has_questions(slug) > 0
+
+    if has_lesson and has_ref and (has_quiz or has_questions):
+        return "complete"
+    elif has_lesson:
+        return "in-progress"
+    else:
+        return map_status  # keep whatever MAP.md says
 
 
 def topic_has_questions(slug: str) -> int:
@@ -744,7 +792,7 @@ document.getElementById('gen-modal').addEventListener('click', function(e) {{
 # Preact page generation (replaces Graphviz pipeline)
 # ---------------------------------------------------------------------------
 
-def generate_preact_map_page(map_data: dict, output_path: Path) -> str:
+def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path | None = None) -> str:
     """Generate a Preact-based map page from parsed MAP.md data."""
     sys.path.insert(0, str(PROJECT_ROOT / "tools"))
     from lib.preact_page import render_page
@@ -756,16 +804,29 @@ def generate_preact_map_page(map_data: dict, output_path: Path) -> str:
 
     # Build data island
     topic_data = []
+    status_updates = {}  # track changes to write back to MAP.md
     for t in topics:
         lesson_path = t.get("lesson_file") or topic_has_lesson(t["slug"])
+        effective_status = compute_effective_status(t["slug"], t["status"])
+        if effective_status != t["status"]:
+            status_updates[t["slug"]] = effective_status
         topic_data.append({
             "id": t["slug"],
             "title": t["title"],
             "why": t["why"],
             "prereqs": t["prereqs"],
-            "status": t["status"],
+            "status": effective_status,
             "lessonPath": lesson_path or None,
         })
+
+    # Write status updates back to MAP.md (keeps it in sync with reality)
+    if status_updates and map_path and map_path.exists():
+        try:
+            from map_parser import update_status as _update_status
+        except ImportError:
+            from tools.map_parser import update_status as _update_status
+        for slug, new_status in status_updates.items():
+            _update_status(map_path, slug, new_status)
 
     # Normalize leads_to to list of dicts
     leads_to_data = []
@@ -927,7 +988,7 @@ def main() -> None:
             map_data = parse_map_md(map_path)
             domain = map_data["frontmatter"].get("domain", map_path.stem)
             output_path = PROJECT_ROOT / "lessons" / f"{domain}-map.html"
-            html = generate_preact_map_page(map_data, output_path)
+            html = generate_preact_map_page(map_data, output_path, map_path)
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_text(html, encoding="utf-8")
             try:
@@ -960,7 +1021,7 @@ def main() -> None:
     if output_path is None:
         output_path = PROJECT_ROOT / "lessons" / f"{domain}-map.html"
 
-    html = generate_preact_map_page(map_data, output_path)
+    html = generate_preact_map_page(map_data, output_path, map_path)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(html, encoding="utf-8")
