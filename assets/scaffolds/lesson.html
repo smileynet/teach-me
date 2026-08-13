@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,18 @@
   <link rel="stylesheet" href="../assets/style.css">
   <!-- REQUIRED: glossary.css for term tooltip styling -->
   <link rel="stylesheet" href="../assets/glossary.css">
+  <!-- REQUIRED: import map for Preact components -->
+  <script type="importmap">
+  {
+    "imports": {
+      "preact": "../assets/vendor/preact.module.js",
+      "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+      "@preact/signals": "../assets/vendor/preact-signals.module.js",
+      "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+      "htm": "../assets/vendor/htm.module.js"
+    }
+  }
+  </script>
 </head>
 <body>
 
@@ -40,47 +52,19 @@
      - aria-labelledby pointing to title's ID
      - viewBox only (no fixed width/height) + max-width:100%; height:auto
      - 5-9 elements max per diagram
-     - Color vocabulary: blue=#2563eb (primary), green=#16a34a (success),
-       amber=#d97706 (warning), red=#dc2626 (error), gray=#6b7280 (neutral)
+     - Use var(--svg-*) CSS variables for colors
      - Labels ON the diagram, not separate
 -->
 <svg role="img" aria-labelledby="{{DIAGRAM_ID}}-title" viewBox="0 0 {{W}} {{H}}" style="max-width:100%; height:auto; margin: 1.5rem 0;">
   <title id="{{DIAGRAM_ID}}-title">{{BRIEF_DESCRIPTION_OF_WHAT_DIAGRAM_SHOWS}}</title>
-  <!-- diagram content -->
+  <!-- diagram content using var(--svg-primary), var(--svg-success), etc. -->
 </svg>
 
 <!-- REQUIRED: Core explanation — the "how it works" section -->
 <h2>{{CORE_MECHANISM}}</h2>
-<!-- REQUIRED: Cite sources inline -->
 <p>{{EXPLANATION}} <a href="{{URL}}" class="citation">[{{SOURCE_NAME}}]</a></p>
 
-<!-- RECOMMENDED: key-concept callout for the central insight -->
-<div class="key-concept">
-<strong>{{TERM}}</strong> = {{ONE_SENTENCE_DEFINITION}}
-</div>
-
-<!-- RECOMMENDED: Table for structured comparisons or fact sets -->
-<table>
-  <tr><th>{{COL1}}</th><th>{{COL2}}</th><th>{{COL3}}</th></tr>
-  <tr><td>{{DATA}}</td><td>{{DATA}}</td><td>{{DATA}}</td></tr>
-</table>
-
-<!-- OPTIONAL: Additional h2 sections as needed. Each section should have
-     a clear instructional purpose — remove if it doesn't teach something new. -->
-
-<!-- RECOMMENDED: "What to watch out for" or "Common mistakes" section -->
-<h2>{{GOTCHAS_OR_LIMITATIONS}}</h2>
-
-<!-- OPTIONAL: Primary source recommendation -->
-<h2>Primary Source</h2>
-<p>Read <a href="{{URL}}">{{TITLE}}</a> — {{WHAT_IT_COVERS}}. ~{{READING_TIME}} minutes.</p>
-
-<!-- ═══════════════════════════════════════════════════════════════
-     FOOTER: SELF-CHECK + NAVIGATION
-     ═══════════════════════════════════════════════════════════════ -->
-
-<!-- REQUIRED: Self-check exercise — conceptual (explain to a colleague),
-     NOT recall (what is X?). Format: scenario + question + hint + criteria. -->
+<!-- REQUIRED: Self-check exercise -->
 <div class="next-steps">
   <h3>Check Your Understanding</h3>
   <p><strong>Exercise:</strong> {{SCENARIO_BASED_QUESTION}}</p>
@@ -90,7 +74,7 @@
   </details>
   <details>
   <summary>Key points to hit</summary>
-  <p>{{CRITERIA_BASED_ANSWER — "Should mention: (1)... (2)... Key insight:..."}}</p>
+  <p>{{CRITERIA_BASED_ANSWER}}</p>
   </details>
 </div>
 
@@ -99,36 +83,24 @@
   <h3>What's Next</h3>
   <p><strong>Next lesson:</strong> {{NEXT_TOPIC_TITLE}}</p>
   <p><strong>Reference:</strong> <a href="../reference/{{NNNN-SLUG}}.html">{{TITLE}} cheat sheet</a></p>
-  <p><strong>Questions?</strong> Ask me anything that's unclear.</p>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     SCRIPTS (order matters)
+     DATA + SCRIPTS
      ═══════════════════════════════════════════════════════════════ -->
 
-<!-- REQUIRED: Glossary data — JSON object mapping term-slug to definition.
-     Only include terms that appear in THIS lesson and need tooltip explanation.
-     3-word rule: if a term takes >3 words to define AND readers won't know it, include it. -->
+<!-- REQUIRED: Glossary data — terms that appear in THIS lesson needing tooltip explanation -->
 <script type="application/json" id="glossary-data">
 {
-  "{{term-slug}}": "{{One-sentence definition. What it IS, not where it's used.}}"
+  "{{term-slug}}": "{{One-sentence definition.}}"
 }
 </script>
 
-<!-- REQUIRED: glossary.js activates tooltips from the glossary-data above -->
-<script src="../assets/glossary.js"></script>
-
-<!-- REQUIRED: lesson-actions.js provides nav bar (← map, Take the Quiz, Mark Complete)
-     data-map-page: filename of the parent map page (in same lessons/ dir)
-     data-domain: domain slug from MAP.md frontmatter
-     data-topic-slug: this topic's slug from MAP.md -->
-<script src="../assets/lesson-actions.js"
-  data-map-page="{{DOMAIN-MAP-FILENAME}}.html"
-  data-domain="{{DOMAIN_SLUG}}"
-  data-topic-slug="{{TOPIC_SLUG}}"></script>
-
-<!-- REQUIRED: theme-toggle.js — dark/light mode support -->
-<script src="../assets/theme-toggle.js"></script>
+<!-- REQUIRED: Preact components (glossary tooltips + lesson action bar) -->
+<script type="module">
+  import '../assets/components/GlossaryQuiz.js';
+  import '../assets/components/LessonActions.js';
+</script>
 
 </body>
 </html>

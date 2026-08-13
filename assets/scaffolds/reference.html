@@ -1,78 +1,59 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reference: {{TITLE}}</title>
-  <!-- REQUIRED: style.css only — reference pages are text-scannable, no interactive widgets -->
   <link rel="stylesheet" href="../assets/style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "preact": "../assets/vendor/preact.module.js",
+      "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+      "@preact/signals": "../assets/vendor/preact-signals.module.js",
+      "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+      "htm": "../assets/vendor/htm.module.js"
+    }
+  }
+  </script>
 </head>
 <body>
 
-<!-- REQUIRED: h1 = topic title (same as lesson, no "Reference:" prefix — that goes in lesson-meta) -->
-<h1>{{TITLE}}</h1>
+<h1>{{TITLE}} — Quick Reference</h1>
 
-<!-- REQUIRED: lesson-meta with link back to companion lesson -->
-<p class="lesson-meta">Reference · Companion to <a href="../lessons/{{NNNN-SLUG}}.html">Lesson {{N}}</a></p>
+<div class="lesson-meta">
+  Reference · {{DOMAIN}}<br>
+  Pull this up when you need to look up {{WHAT_THIS_COVERS}}.
+</div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     CONTENT RULES:
-     - This is a LOOKUP document, not a teaching document
-     - Use tables, lists, and short answers — NOT prose paragraphs
-     - Someone pulls this up at work to check a fact or make a decision
-     - Every section should be findable by scanning headings
-     ═══════════════════════════════════════════════════════════════ -->
+<!-- Reference content: tables, lists, one-sentence summaries.
+     NOT a shorter lesson — this is what you pull up AT WORK. -->
 
-<!-- REQUIRED: Core concept — one bold sentence summarizing the mental model -->
-<h2>Core Concept</h2>
-<p><strong>{{ONE_SENTENCE_MENTAL_MODEL — the insight that makes everything else click}}</strong></p>
+<h2>{{CONCEPT}} in One Sentence</h2>
+<p>{{SINGLE_SENTENCE_SUMMARY}}</p>
 
-<!-- OPTIONAL: Key diagram — ONLY if it aids lookup (not for teaching).
-     Prefer the same diagram from the lesson (repeated for convenience)
-     or a simplified version. Skip if text tables are clearer for lookup. -->
-
-<!-- REQUIRED: At least one factual table — the "cheat sheet" content.
-     Columns should answer: what is it / when to use / example or gotcha -->
-<h2>{{SECTION_TITLE}}</h2>
+<h2>Key Facts</h2>
 <table>
-  <tr><th>{{WHAT}}</th><th>{{WHEN}}</th><th>{{EXAMPLE_OR_NOTE}}</th></tr>
+  <tr><th>{{COL1}}</th><th>{{COL2}}</th><th>{{COL3}}</th></tr>
   <tr><td>{{DATA}}</td><td>{{DATA}}</td><td>{{DATA}}</td></tr>
 </table>
 
-<!-- RECOMMENDED: Additional fact tables for other aspects of the topic.
-     Typical sections:
-     - How to do it (steps or commands)
-     - What doesn't matter much (common distractions)
-     - Key distinctions (X vs Y)
-     - Error/symptom → fix table
--->
-<h2>{{SECTION_TITLE}}</h2>
-
-<!-- REQUIRED: Decision aid — "when I'm in situation X, what do I do?"
-     Format: common question as heading, then conditional answers -->
 <h2>Decision Aid</h2>
-<p><strong>"{{COMMON_QUESTION_A_PRACTITIONER_WOULD_ASK}}?"</strong></p>
-<ul>
-  <li>If {{CONDITION}} → <strong>{{ACTION}}</strong></li>
-  <li>If {{CONDITION}} → <strong>{{ACTION}}</strong></li>
-  <li>If {{CONDITION}} → <strong>{{ACTION}}</strong></li>
-</ul>
+<table>
+  <tr><th>If you need...</th><th>Then use...</th></tr>
+  <tr><td>{{SITUATION}}</td><td>{{RECOMMENDATION}}</td></tr>
+</table>
 
-<!-- OPTIONAL: Additional decision aids for other common questions -->
+<h2>Key References</h2>
+<table>
+  <tr><th>Source</th><th>What it covers</th></tr>
+  <tr><td><a href="{{URL}}">{{SOURCE}}</a></td><td>{{DESCRIPTION}}</td></tr>
+</table>
 
-<!-- OPTIONAL: "When NOT to use this" — helps avoid over-application -->
-
-<!-- OPTIONAL: Quick command/code reference (if the topic involves tooling) -->
-<!-- <h2>Commands</h2>
-<pre><code>{{COMMAND}}</code></pre> -->
-
-<!-- ═══════════════════════════════════════════════════════════════
-     SCRIPTS
-     ═══════════════════════════════════════════════════════════════ -->
-
-<!-- REQUIRED: theme-toggle.js — dark/light mode support -->
-<!-- NOTE: No glossary.js, no lesson-actions.js — reference pages are passive lookup -->
-<script src="../assets/theme-toggle.js"></script>
+<!-- Lesson actions mount point -->
+<script type="module">
+  import '../assets/components/LessonActions.js';
+</script>
 
 </body>
 </html>
