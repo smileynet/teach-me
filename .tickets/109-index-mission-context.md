@@ -2,7 +2,7 @@
 id: "109"
 title: "Embed mission context in index page header"
 type: feature
-status: open
+status: in_progress
 priority: high
 blocked_by: []
 ---
