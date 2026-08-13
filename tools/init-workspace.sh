@@ -4,8 +4,9 @@
 # Safe to run multiple times — won't overwrite existing files.
 #
 # Usage:
-#   tools/init-workspace.sh                    # creates workspace/ at project root
+#   tools/init-workspace.sh                           # creates workspace/ at project root (default)
 #   tools/init-workspace.sh --path examples/my-topic  # creates at custom location
+#   tools/init-workspace.sh --default                 # creates workspace/ with generic (topic-agnostic) content
 
 set -euo pipefail
 
@@ -13,8 +14,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 TEMPLATE="$PROJECT_ROOT/assets/workspace-template"
 
-# Parse --path argument
+# Parse arguments
 WORKSPACE="$PROJECT_ROOT/workspace"
+DEFAULT_MODE=false
 while [[ $# -gt 0 ]]; do
   case $1 in
     --path)
@@ -25,9 +27,13 @@ while [[ $# -gt 0 ]]; do
       fi
       shift 2
       ;;
+    --default)
+      DEFAULT_MODE=true
+      shift
+      ;;
     *)
       echo "Unknown argument: $1"
-      echo "Usage: init-workspace.sh [--path <workspace-dir>]"
+      echo "Usage: init-workspace.sh [--path <workspace-dir>] [--default]"
       exit 1
       ;;
   esac
@@ -35,20 +41,41 @@ done
 
 if [ -d "$WORKSPACE/lessons" ]; then
   echo "Workspace already exists at: $WORKSPACE"
-  echo "  lessons/: $(ls "$WORKSPACE/lessons/"*.html 2>/dev/null | wc -l) lesson files"
-  echo "  maps/:    $(ls "$WORKSPACE/maps/"*.MAP.md 2>/dev/null | wc -l) map files"
+  echo "  lessons/: $(ls "$WORKSPACE/lessons/"*.html 2>/dev/null | wc -l | tr -d ' ') lesson files"
+  echo "  maps/:    $(ls "$WORKSPACE/maps/"*.MAP.md 2>/dev/null | wc -l | tr -d ' ') map files"
   exit 0
 fi
 
 echo "Creating workspace at: $WORKSPACE"
 mkdir -p "$WORKSPACE"/{lessons/quiz,reference,learning-records/questions,maps}
 
-# Copy template files (only if they don't exist)
-for f in MISSION.md RESOURCES.md; do
-  if [ ! -f "$WORKSPACE/$f" ]; then
-    cp "$TEMPLATE/$f" "$WORKSPACE/$f"
+# Copy template files or write defaults (only if they don't exist)
+if [ "$DEFAULT_MODE" = true ]; then
+  # Generic, topic-agnostic workspace for first-time users
+  if [ ! -f "$WORKSPACE/MISSION.md" ]; then
+    cat > "$WORKSPACE/MISSION.md" <<'EOF'
+# Learning Workspace
+
+This is your personal learning workspace. Topics you explore will generate
+lessons, maps, quizzes, and reference docs here.
+
+To get started, tell your AI assistant what you'd like to learn.
+EOF
   fi
-done
+  if [ ! -f "$WORKSPACE/RESOURCES.md" ]; then
+    cat > "$WORKSPACE/RESOURCES.md" <<'EOF'
+# Resources
+
+Verified sources for topics in this workspace. Populated automatically as you explore new domains.
+EOF
+  fi
+else
+  for f in MISSION.md RESOURCES.md; do
+    if [ ! -f "$WORKSPACE/$f" ]; then
+      cp "$TEMPLATE/$f" "$WORKSPACE/$f"
+    fi
+  done
+fi
 
 # Create assets symlink (relative path so it's portable)
 if [ ! -L "$WORKSPACE/assets" ] && [ ! -d "$WORKSPACE/assets" ]; then

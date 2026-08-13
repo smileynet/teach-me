@@ -135,7 +135,15 @@ def _parse_args() -> tuple[str, int, Path]:
     elif (PROJECT_ROOT / "workspace").exists():
         ws = PROJECT_ROOT / "workspace"
     else:
-        ws = PROJECT_ROOT / "examples" / "iceberg-workspace"
+        # Auto-create default workspace on first launch
+        import subprocess as _sp
+
+        print("First launch — creating default workspace...")
+        _sp.run(
+            ["bash", str(PROJECT_ROOT / "tools" / "init-workspace.sh"), "--default"],
+            check=True,
+        )
+        ws = PROJECT_ROOT / "workspace"
 
     return host, port, ws
 
