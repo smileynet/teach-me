@@ -42,6 +42,13 @@ examples/           — test fixtures and example workspaces (MAP.md samples, to
 | Generate diagram | `mise run draw -- --type flow --data '{...}'` | SVG to stdout (builtin layout) |
 | Generate complex diagram | `mise run draw -- --type graph --backend graphviz --data '{...}'` | Auto-layout via Graphviz |
 | Render .mmd/.d2 | `mise run render-diagrams` | Batch render to assets/generated/ |
+| Check topic complete | `python3 tools/check-topic-completeness.py --workspace X --all` | Reports missing artifacts per topic (lesson, ref, quiz, jargon, SR) |
+| Annotate jargon | `python3 tools/jargon-annotate.py --workspace X` | Mechanical term annotation from glossary-data JSON (idempotent) |
+| Migrate SVG colors | `python3 tools/check-svg-vars.py --workspace X` | Flags hardcoded hex in lesson SVGs |
+| Generate quiz page | `python3 tools/generate-quiz-page.py --workspace X --lesson-id Y --title T --lesson-file F --map-page M` | Quiz page from JSONL questions |
+| Generate map page | `python3 tools/generate_map_page.py MAP.md --workspace X --output Y` | Interactive SVG map from MAP.md |
+| Generate index | `python3 tools/generate_index_page.py --scan-dir examples` | All Lessons dashboard |
+| Init workspace | `tools/init-workspace.sh --path X` | Scaffold workspace with relative assets symlink |
 | SR status | `mise run sr` | What's due, health summary |
 | SR review | `mise run sr:review` | Review all due (or `-- topic-slug` for one topic) |
 | SR quality check | `mise run sr:check` | Leech detection, prompt format issues |
@@ -50,7 +57,7 @@ examples/           — test fixtures and example workspaces (MAP.md samples, to
 | Visual QA | `mise run visual-qa` | Exercise all components, report pass/fail |
 | Theme preview | `mise run theme-preview -- --palette palettes/purple-night.json` | Preview + contrast validation |
 | Health check | `mise run doctor` | Verify tools, venv, references |
-| Smoke test | `mise run verify` | Quick draw-diagram test |
+| Smoke test | `mise run verify` | Links + lint + SVG var check |
 | Clone references | `mise run rehydrate` | Clone repos from REFERENCES.md |
 | Open lesson | `mise run open-lesson` | Open latest lesson in browser |
 | Quick-check page | `mise run sr:quick-check -- [topic] [--all]` | Generate quick-check review HTML from due SR cards |
