@@ -1,4 +1,4 @@
-# teach-me
+# Teach Me
 
 Learn any topic through research-backed lessons, interactive diagrams, and spaced repetition — powered by your AI coding assistant.
 
@@ -64,3 +64,7 @@ mise run visual-qa  # Playwright component exercise
 ```
 
 MIT licensed. Skills are [Agent Skills-compatible](https://agentskills.io) — works across 40+ AI coding clients.
+
+---
+
+Inspired by [Matt Pocock's teach-me skill](https://github.com/mattpocock/skills/tree/main/skills/teach-me).
