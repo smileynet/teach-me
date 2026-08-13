@@ -163,3 +163,13 @@ run = "python tools/generate_map_page.py"
 description = "Generate the All Lessons index page. Pass --scan-dir for custom location."
 depends = ["setup"]
 run = "python tools/generate_index_page.py"
+
+[tasks."jargon:annotate"]
+description = "Annotate glossary terms in lesson files. Pass --workspace or specific files."
+depends = ["setup"]
+run = "python tools/jargon-annotate.py"
+
+[tasks."topic:check"]
+description = "Check topic completeness for a workspace. Pass --workspace X --all or --topic SLUG."
+depends = ["setup"]
+run = "python tools/check-topic-completeness.py"
