@@ -1,6 +1,6 @@
 ---
 id: "046"
-title: "Feature: topic status tracking + 'what's next?' suggestions"
+title: "Feature: 'what's next?' suggestions on map page"
 status: open
 priority: low
 blocked_by: []
