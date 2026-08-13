@@ -18,6 +18,7 @@ Usage:
 import argparse
 import json
 import html
+import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -26,7 +27,7 @@ OUTPUT_DIR = PROJECT_ROOT / "lessons" / "quiz"
 
 
 def find_questions(lesson_id: str, questions_dir: Path | None = None) -> list[dict]:
-    """Find all questions matching a lesson_id across all JSONL files."""
+    """Find all questions matching a lesson_id or topic across all JSONL files."""
     search_dir = questions_dir or QUESTIONS_DIR
     questions = []
     if not search_dir.exists():
@@ -39,7 +40,11 @@ def find_questions(lesson_id: str, questions_dir: Path | None = None) -> list[di
                 continue
             try:
                 q = json.loads(line)
-                if q.get("lesson_id") == lesson_id and not q.get("suspended"):
+                matches = (
+                    q.get("lesson_id") == lesson_id
+                    or q.get("topic") == lesson_id
+                )
+                if matches and not q.get("suspended"):
                     questions.append(q)
             except (json.JSONDecodeError, KeyError):
                 continue
@@ -47,134 +52,59 @@ def find_questions(lesson_id: str, questions_dir: Path | None = None) -> list[di
 
 
 def generate_page(questions: list[dict], title: str, lesson_file: str, map_page: str) -> str:
-    """Generate the quiz HTML page."""
-    cards_html = ""
-    for i, q in enumerate(questions, 1):
-        prompt = html.escape(q.get("prompt", ""))
-        answer = html.escape(q.get("expected_answer", ""))
-        q_type = html.escape(q.get("question_type", "explain"))
-        section = html.escape(q.get("section_heading", ""))
-        tags = ", ".join(q.get("tags", []))
+    """Generate the Preact quiz page."""
+    sys.path.insert(0, str(PROJECT_ROOT / "tools"))
+    from lib.preact_page import render_page
 
-        cards_html += f"""
-    <div class="card" id="card{i}">
-      <div class="card-prompt">
-        <span class="card-type">{q_type}</span>
-        <p><strong>{prompt}</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card{i}')">Show Answer</button>
-      <div class="card-answer">
-        <p>{answer}</p>
-      </div>
-      <div class="rating" id="card{i}-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card{i}', 1)">Not at all</button>
-        <button onclick="rate('card{i}', 3)">Roughly</button>
-        <button onclick="rate('card{i}', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: {section} · Tags: {tags}</div>
-    </div>"""
+    data = {
+        "questions": questions,
+        "title": title,
+        "lessonFile": lesson_file,
+        "mapPage": map_page,
+    }
 
-    return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz: {html.escape(title)}</title>
-  <link rel="stylesheet" href="../../assets/style.css">
-  <style>
-    .quiz-container {{ max-width: 700px; margin: 0 auto; padding: 1rem; }}
-    .quiz-nav {{
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 0.5rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border);
-      font-size: 0.85rem;
-    }}
-    .quiz-nav a {{ color: var(--link); text-decoration: none; }}
-    .quiz-nav a:hover {{ text-decoration: underline; }}
-    .quiz-progress {{ color: var(--text-muted); }}
-    .card {{
-      border: 2px solid var(--border); border-radius: 8px;
-      padding: 1.5rem; margin: 1.5rem 0; background: var(--bg-elevated);
-    }}
-    .card-prompt {{
-      border-left: 4px solid var(--accent); padding-left: 1rem; margin-bottom: 1rem;
-    }}
-    .card-answer {{
-      border-left: 4px solid var(--success, #16a34a); padding-left: 1rem;
-      display: none;
-    }}
-    .card-answer.revealed {{ display: block; }}
-    .card-meta {{ font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; }}
-    .card-type {{
-      display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px;
-      font-size: 0.75rem; font-weight: 600; background: var(--bg-surface); color: var(--accent);
-      margin-bottom: 0.5rem;
-    }}
-    .reveal-btn {{
-      background: var(--accent); color: var(--bg); border: none;
-      padding: 0.5rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem;
-    }}
-    .reveal-btn:hover {{ opacity: 0.85; }}
-    .rating {{ margin-top: 1rem; display: none; }}
-    .rating.revealed {{ display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }}
-    .rating p {{ margin: 0; font-size: 0.85rem; color: var(--text-muted); }}
-    .rating button {{
-      padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 4px;
-      cursor: pointer; background: var(--bg-surface); color: var(--text); font-size: 0.8rem;
-    }}
-    .rating button:hover {{ background: var(--bg-elevated); border-color: var(--accent); }}
-    .rating button.selected {{ background: color-mix(in srgb, var(--accent) 15%, var(--bg)); border-color: var(--accent); }}
-    .quiz-done {{
-      margin-top: 2rem; padding: 1.25rem; border-radius: 8px;
-      background: var(--bg-elevated); border: 1px solid var(--border);
-      text-align: center;
-    }}
-    .quiz-done a {{
-      display: inline-block; margin: 0.5rem; padding: 0.6rem 1rem;
-      border-radius: 6px; text-decoration: none; font-size: 0.9rem;
-      border: 1px solid var(--accent); color: var(--accent);
-    }}
-    .quiz-done a:hover {{ background: var(--bg-surface); }}
-  </style>
-</head>
-<body>
+    module_script = """
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { QuizView } from '../../assets/components/QuizView.js';
 
-<div class="quiz-container">
-  <nav class="quiz-nav">
-    <a href="../{html.escape(lesson_file)}">← Back to lesson</a>
-    <span class="quiz-progress">{len(questions)} questions</span>
-    <a href="../{html.escape(map_page)}">← Back to map</a>
-  </nav>
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
 
-  <h1>Quiz: {html.escape(title)}</h1>
-  <p style="color:var(--text-muted); margin-bottom:1.5rem;">Read each question, form your answer, then reveal to check. Rate your confidence honestly.</p>
+    render(
+      html`<${QuizView} questions=${data.questions} title=${data.title} />`,
+      document.getElementById('app')
+    );
+"""
 
-{cards_html}
+    css_extra = """
+    body { max-width: 700px; margin: 0 auto; padding: 2rem; }
+    .quiz-view h1 { font-size: 1.4rem; margin-bottom: 1.5rem; }
+    .quiz-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem; }
+    .quiz-progress { font-size: 0.8rem; color: var(--text-faint); margin-bottom: 0.75rem; }
+    .quiz-prompt { font-size: 1rem; line-height: 1.5; margin-bottom: 1rem; }
+    .quiz-answer { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+    .quiz-answer p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1rem; }
+    .assess-label { font-size: 0.8rem; color: var(--text-faint); margin-bottom: 0.5rem; }
+    .assess-buttons { display: flex; gap: 0.5rem; }
+    .quiz-summary { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem; text-align: center; }
+    .quiz-summary h2 { margin-bottom: 1rem; }
+    .summary-stats { display: flex; gap: 1rem; justify-content: center; margin-bottom: 1rem; }
+    .stat.got { color: var(--success); }
+    .stat.partial { color: var(--warning); }
+    .stat.missed { color: var(--error); }
+    .summary-note { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; }
+    .summary-actions { display: flex; gap: 0.5rem; justify-content: center; }
+    .empty { color: var(--text-muted); text-align: center; padding: 3rem; }
+"""
 
-  <div class="quiz-done">
-    <h3>Done!</h3>
-    <p>Review complete. How did you do?</p>
-    <a href="../{html.escape(lesson_file)}">← Review the lesson</a>
-    <a href="../{html.escape(map_page)}">← Back to map</a>
-  </div>
-</div>
-
-<script>
-function reveal(cardId) {{
-  document.querySelector(`#${{cardId}} .card-answer`).classList.add('revealed');
-  document.querySelector(`#${{cardId}} .reveal-btn`).style.display = 'none';
-  document.querySelector(`#${{cardId}}-rating`).classList.add('revealed');
-}}
-function rate(cardId, quality) {{
-  const buttons = document.querySelectorAll(`#${{cardId}}-rating button`);
-  buttons.forEach(b => b.classList.remove('selected'));
-  event.target.classList.add('selected');
-}}
-</script>
-<script src="../../assets/theme-toggle.js"></script>
-
-</body>
-</html>"""
+    return render_page(
+        title=f"Quiz: {title}",
+        data=data,
+        module_script=module_script,
+        css_extra=css_extra,
+        depth=2,  # lessons/quiz/ = 2 levels deep
+    )
 
 
 def main():
