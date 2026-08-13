@@ -2,7 +2,7 @@
 id: "098"
 title: "Convert generate-quiz-page.py to Preact output"
 type: feature
-status: open
+status: done
 priority: medium
 blocked_by: ["095"]
 work_order: 4
