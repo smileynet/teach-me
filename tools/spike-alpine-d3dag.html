@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spike 093: Alpine.js + d3-dag</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    body { padding: 2rem; min-height: 100vh; }
+    h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    .orientation { color: var(--text-muted); font-size: 0.9rem; max-width: 700px; margin-bottom: 1.5rem; line-height: 1.5; }
+    .dag-container { position: relative; width: 100%; overflow: auto; }
+    .dag-canvas { position: relative; }
+    .edge-layer { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1; }
+    .topic-card {
+      position: absolute; width: 380px; padding: 1rem 1.2rem;
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+      z-index: 2; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .topic-card:hover { border-color: var(--accent); box-shadow: 0 2px 16px rgba(203, 166, 247, 0.1); }
+    .topic-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text); }
+    .topic-card .why { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
+    .topic-card .prereq-label { font-size: 0.75rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.5rem; }
+    .topic-card .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .topic-card .actions button {
+      font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px;
+      border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+      cursor: pointer; transition: border-color 0.15s, color 0.15s;
+    }
+    .topic-card .actions button:hover { border-color: var(--accent); color: var(--accent); }
+    .topic-card .actions button.primary { border-color: var(--accent); color: var(--accent); }
+    .badge { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 3px; font-weight: 500; white-space: nowrap; }
+    .badge.not-started { background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    .badge.generating { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
+    .badge.complete { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
+    .gen-progress { font-size: 0.75rem; color: var(--warning); margin-top: 0.4rem; font-family: monospace; }
+    [x-cloak] { display: none !important; }
+  </style>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
+</head>
+<body>
+  <h1>Spike 093: Alpine.js + d3-dag</h1>
+  <p class="orientation">
+    You'll learn to create stylized 3D forest environments by combining Blender's shader nodes
+    for authoring with Godot's shader language for real-time rendering.
+  </p>
+
+  <div class="dag-container" x-data="mapState()" x-cloak>
+    <div class="dag-canvas" :style="`width:${canvasWidth}px; height:${canvasHeight}px; position:relative`">
+      <svg class="edge-layer" :width="canvasWidth" :height="canvasHeight" x-ref="edges"></svg>
+
+      <template x-for="topic in topics" :key="topic.id">
+        <div class="topic-card" :style="`left:${topic.x}px; top:${topic.y}px`">
+          <h3>
+            <span x-text="topic.title"></span>
+            <span class="badge" :class="topic.status" x-text="statusLabel(topic.status)"></span>
+          </h3>
+          <p class="why" x-text="topic.why"></p>
+          <p class="prereq-label" x-text="prereqLabel(topic)"></p>
+          <div class="actions">
+            <template x-if="topic.status === 'not-started'">
+              <button class="primary" @click="generate(topic)">Generate this topic</button>
+            </template>
+            <template x-if="topic.status === 'complete'">
+              <button>Open lesson →</button>
+            </template>
+            <button>Generate quiz</button>
+            <button>Explore subtopics</button>
+          </div>
+          <template x-if="topic.status === 'generating'">
+            <p class="gen-progress" x-text="topic.progress"></p>
+          </template>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <script>
+    // Topic data + dagre layout (synchronous, before Alpine init)
+    const topicData = [
+      { id: 'esoteric-ebb-breakdown', title: 'Esoteric Ebb Art Style Breakdown', why: 'You need a clear visual target before building shaders — understanding the projection-painting technique and palette philosophy grounds every decision', prereqs: [] },
+      { id: 'blender-npr-shaders', title: 'Blender NPR Shader Fundamentals', why: 'ShaderToRGB → ColorRamp is the foundation of every stylized material you\'ll build', prereqs: ['esoteric-ebb-breakdown'] },
+      { id: 'stylized-foliage-materials', title: 'Stylized Foliage & Environment Materials', why: 'Forests are foliage-heavy — radial normals, procedural color variation, and alpha masking are the core techniques', prereqs: ['blender-npr-shaders'] },
+      { id: 'baking-for-export', title: 'Baking Stylized Materials for Game Export', why: 'Blender\'s shader nodes don\'t export — you need to bake the look into textures that survive the pipeline', prereqs: ['stylized-foliage-materials'] },
+      { id: 'godot-shader-language', title: 'Godot Shader Language (GDShader)', why: 'Everything real-time — wind, toon lighting, fog — lives in Godot\'s shaders, and you haven\'t written them before', prereqs: ['esoteric-ebb-breakdown'] },
+      { id: 'blender-to-godot-pipeline', title: 'Blender → Godot Export Pipeline', why: 'Understanding what transfers via glTF (and what doesn\'t) determines where each piece of work belongs', prereqs: ['baking-for-export', 'godot-shader-language'] },
+      { id: 'godot-environment-shaders', title: 'Godot Environment Shaders (Wind, Fog, Toon, Outlines)', why: 'The final forest scene needs dynamic wind on foliage, atmospheric fog, and consistent stylized lighting', prereqs: ['blender-to-godot-pipeline'] }
+    ];
+
+    // Dagre layout (using dagre since d3-dag ESM + Alpine timing is problematic)
+    const CARD_W = 380, CARD_H = 220, PAD = 40;
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({ rankdir: 'TB', nodesep: PAD, ranksep: 60, marginx: 24, marginy: 24 });
+    g.setDefaultEdgeLabel(() => ({}));
+    topicData.forEach(t => g.setNode(t.id, { width: CARD_W, height: CARD_H }));
+    topicData.forEach(t => t.prereqs.forEach(p => g.setEdge(p, t.id)));
+    dagre.layout(g);
+
+    const positions = {};
+    topicData.forEach(t => {
+      const node = g.node(t.id);
+      positions[t.id] = { x: node.x - CARD_W / 2, y: node.y - CARD_H / 2 };
+    });
+    const graphInfo = g.graph();
+
+    // Edge data
+    const edgeData = [];
+    g.edges().forEach(e => {
+      const edge = g.edge(e);
+      edgeData.push(edge.points);
+    });
+
+    // Alpine component
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('mapState', () => ({
+        topics: topicData.map(t => ({
+          ...t,
+          status: 'not-started',
+          x: positions[t.id].x,
+          y: positions[t.id].y,
+          progress: ''
+        })),
+        canvasWidth: graphInfo.width,
+        canvasHeight: graphInfo.height,
+
+        init() {
+          this.$nextTick(() => this.drawEdges());
+        },
+
+        drawEdges() {
+          const svg = this.$refs.edges;
+          let html = '<defs><marker id="ah" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="var(--text-faint)"/></marker></defs>';
+          for (const points of edgeData) {
+            let d = `M ${points[0].x} ${points[0].y}`;
+            for (let i = 1; i < points.length - 1; i++) {
+              const cp = points[i];
+              const next = points[i + 1];
+              d += ` Q ${cp.x} ${cp.y} ${(cp.x + next.x) / 2} ${(cp.y + next.y) / 2}`;
+            }
+            d += ` L ${points[points.length - 1].x} ${points[points.length - 1].y}`;
+            html += `<path d="${d}" fill="none" stroke="var(--border)" stroke-width="1.5" marker-end="url(#ah)"/>`;
+          }
+          svg.innerHTML = html;
+        },
+
+        statusLabel(status) {
+          return { 'not-started': 'not started', 'generating': 'generating…', 'complete': '✓ complete' }[status] || status;
+        },
+
+        prereqLabel(topic) {
+          if (topic.prereqs.length === 0) return 'Start here';
+          const names = topic.prereqs.map(p => {
+            const parent = this.topics.find(t => t.id === p);
+            return parent ? parent.title.split('(')[0].trim() : p;
+          });
+          return 'After: ' + names.join(', ');
+        },
+
+        generate(topic) {
+          topic.status = 'generating';
+          topic.progress = 'Researching...';
+          const steps = ['Researching...', 'Writing lesson...', 'Generating diagrams...', 'Running quality checks...', '✓ Done'];
+          let i = 0;
+          const interval = setInterval(() => {
+            i++;
+            if (i < steps.length) {
+              topic.progress = steps[i];
+            } else {
+              clearInterval(interval);
+              topic.status = 'complete';
+              topic.progress = '';
+            }
+          }, 800);
+        }
+      }));
+    });
+  </script>
+  <script src="../assets/theme-toggle.js"></script>
+</body>
+</html>
