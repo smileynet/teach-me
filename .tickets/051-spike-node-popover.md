@@ -1,7 +1,7 @@
 ---
 id: "051"
 title: "Spike: SVG node hover popover — topic detail without scrolling"
-status: open
+status: done
 priority: low
 blocked_by: []
 type: spike
@@ -41,3 +41,7 @@ On hover (desktop) or tap (mobile):
 - **E2E (Playwright desktop):** Navigate to map page → hover a node → verify popover element appears with correct title/why text → verify popover disappears on mouseout
 - **E2E (Playwright mobile):** Resize to iPhone viewport → tap a node → verify popover appears → tap elsewhere → verify popover dismisses
 - **Regression:** After popover implementation, click a node → verify detail panel still appears (no interference)
+
+## Resolution (2026-08-13)
+
+TBD
