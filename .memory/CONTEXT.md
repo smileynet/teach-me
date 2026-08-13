@@ -73,3 +73,12 @@ _Avoid_: study tool, learning management system, course platform
 **Mask color (diagram cards)**:
 Slate gray #585b70 for occluded label masks. Neutral against all diagram layer colors (blue, amber, green). Never amber (clashes with diagram elements).
 _Avoid_: amber/orange masks, bright accent colors for masks
+
+**Preact singleton**:
+All Preact packages must resolve to the same instance. When using CDN (esm.sh), add `?external=preact`. In teach-me: vendored locally in `assets/vendor/` — import map handles resolution. Duplicate instances cause signals to silently not trigger re-renders.
+
+**GitHub Pages symlinks**:
+GitHub Pages forbids symlinks in deploy artifacts. Use `cp -rL` (dereference) when assembling the `_site/` directory. The `actions/upload-pages-artifact` rejects symlinks with "Artifact could not be deployed."
+
+**MAP.md domain field**:
+The `domain:` frontmatter field MUST match the MAP.md filename (without `.MAP.md`). The index page links to `{domain}-map.html` — a mismatch causes 404.

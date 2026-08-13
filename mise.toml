@@ -165,6 +165,24 @@ description = "Generate map pages. Auto-discovers MAP.md files, or pass a specif
 depends = ["setup"]
 run = "python tools/generate_map_page.py"
 
+
+[tasks."maps:regenerate"]
+description = "Regenerate ALL map pages (workspace + examples)"
+depends = ["setup"]
+run = """
+for map in examples/*/maps/*.MAP.md; do
+  ws=$(dirname $(dirname "$map"))
+  domain=$(basename "$map" .MAP.md)
+  python tools/generate_map_page.py "$map" --workspace "$ws" --output "$ws/lessons/${domain}-map.html"
+done
+if [ -d workspace/maps ]; then
+  for map in workspace/maps/*.MAP.md; do
+    domain=$(basename "$map" .MAP.md)
+    python tools/generate_map_page.py "$map" --workspace workspace --output "workspace/lessons/${domain}-map.html"
+  done
+fi
+"""
+
 [tasks."index:generate"]
 description = "Generate the All Lessons index page. Pass --scan-dir for custom location."
 depends = ["setup"]
