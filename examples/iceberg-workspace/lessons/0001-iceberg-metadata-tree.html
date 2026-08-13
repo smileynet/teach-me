@@ -6,6 +6,17 @@
   <title>Lesson 1: The Iceberg Metadata Tree</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/glossary.css">
+<script type="importmap">
+  {
+    "imports": {
+      "preact": "../assets/vendor/preact.module.js",
+      "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+      "@preact/signals": "../assets/vendor/preact-signals.module.js",
+      "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+      "htm": "../assets/vendor/htm.module.js"
+    }
+  }
+  </script>
 </head>
 <body>
 
@@ -317,8 +328,9 @@ function offerQuiz() {
 }
 </script>
 <script src="../assets/glossary.js"></script>
-<script src="../assets/lesson-actions.js" data-map-page="modern-data-analytics-stacks-map.html" data-domain="data-analytics" data-topic-slug="storage-and-table-formats"></script>
-<script src="../assets/theme-toggle.js"></script>
 
+<script type="module">
+  import '../assets/components/LessonActions.js';
+  </script>
 </body>
 </html>

@@ -6,6 +6,17 @@
   <title>Lesson 2: Recovery & Adaptation — When Gains Actually Happen</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/glossary.css">
+<script type="importmap">
+  {
+    "imports": {
+      "preact": "../assets/vendor/preact.module.js",
+      "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+      "@preact/signals": "../assets/vendor/preact-signals.module.js",
+      "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+      "htm": "../assets/vendor/htm.module.js"
+    }
+  }
+  </script>
 </head>
 <body>
 
@@ -139,11 +150,9 @@
 }
 </script>
 <script src="../assets/glossary.js"></script>
-<script src="../assets/lesson-actions.js"
-  data-map-page="workout-fundamentals-map.html"
-  data-domain="workout-fundamentals"
-  data-topic-slug="recovery-and-adaptation"></script>
-<script src="../assets/theme-toggle.js"></script>
 
+<script type="module">
+  import '../assets/components/LessonActions.js';
+  </script>
 </body>
 </html>

@@ -29,6 +29,17 @@
     .quiz-done a { display: inline-block; margin: 0.5rem; padding: 0.6rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.9rem; border: 1px solid var(--accent); color: var(--accent); }
     .quiz-done a:hover { background: var(--bg-surface); }
   </style>
+<script type="importmap">
+  {
+    "imports": {
+      "preact": "../../assets/vendor/preact.module.js",
+      "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
+      "@preact/signals": "../../assets/vendor/preact-signals.module.js",
+      "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
+      "htm": "../../assets/vendor/htm.module.js"
+    }
+  }
+  </script>
 </head>
 <body>
 <div class="quiz-container">
@@ -86,6 +97,8 @@
 function reveal(cardId) { document.querySelector(`#${cardId} .card-answer`).classList.add('revealed'); document.querySelector(`#${cardId} .reveal-btn`).style.display = 'none'; document.querySelector(`#${cardId}-rating`).classList.add('revealed'); }
 function rate(cardId, quality) { const buttons = document.querySelectorAll(`#${cardId}-rating button`); buttons.forEach(b => b.classList.remove('selected')); event.target.classList.add('selected'); }
 </script>
-<script src="../../assets/theme-toggle.js"></script>
+<script type="module">
+  import '../../assets/components/LessonActions.js';
+  </script>
 </body>
 </html>
