@@ -6,24 +6,19 @@
   <title>Spike 094: Preact + HTM + Signals + dagre</title>
   <link rel="stylesheet" href="../assets/style.css">
   <style>
-    body { padding: 2rem; min-height: 100vh; }
+    body { padding: 2rem; min-height: 100vh; max-width: none; }
     h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
     .orientation { color: var(--text-muted); font-size: 0.9rem; max-width: 700px; margin-bottom: 1.5rem; line-height: 1.5; }
-    .dag-container { position: relative; width: 100%; overflow: auto; }
-    .dag-canvas { position: relative; }
+    .dag-container { position: relative; width: 100%; overflow-x: auto; }
+    .dag-canvas { position: relative; min-width: min-content; }
     .edge-layer { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1; }
     .topic-card {
-      position: absolute;
-      width: 380px;
-      padding: 1rem 1.2rem;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      z-index: 2;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      position: absolute; width: 420px; padding: 1rem 1.2rem;
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+      z-index: 2; transition: border-color 0.2s, box-shadow 0.2s;
     }
     .topic-card:hover { border-color: var(--accent); box-shadow: 0 2px 16px rgba(203, 166, 247, 0.1); }
-    .topic-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text); }
+    .topic-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text); flex-wrap: wrap; }
     .topic-card .why { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
     .topic-card .prereq-label { font-size: 0.75rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.5rem; }
     .topic-card .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
@@ -40,6 +35,18 @@
     .badge.complete { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
     .gen-progress { font-size: 0.75rem; color: var(--warning); margin-top: 0.4rem; font-family: monospace; }
   </style>
+  <!-- Import map: force all packages to share one Preact instance -->
+  <script type="importmap">
+  {
+    "imports": {
+      "preact": "https://esm.sh/preact@10.23.1",
+      "preact/": "https://esm.sh/preact@10.23.1/",
+      "preact/hooks": "https://esm.sh/preact@10.23.1/hooks",
+      "@preact/signals": "https://esm.sh/@preact/signals@1.3.0?external=preact",
+      "htm": "https://esm.sh/htm@3.1.1"
+    }
+  }
+  </script>
 </head>
 <body>
   <h1>Spike 094: Preact + HTM + Signals + dagre</h1>
@@ -52,9 +59,10 @@
 
   <script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
   <script type="module">
-    import { h, render } from 'https://esm.sh/preact@10.22.1';
-    import { signal, computed } from 'https://esm.sh/@preact/signals@1.3.0';
-    import htm from 'https://esm.sh/htm@3.1.1';
+    import { h, render, Component } from 'preact';
+    import { useSignal, useComputed } from '@preact/signals';
+    import { signal } from '@preact/signals';
+    import htm from 'htm';
 
     const html = htm.bind(h);
 
@@ -69,16 +77,17 @@
       { id: 'godot-environment-shaders', title: 'Godot Environment Shaders (Wind, Fog, Toon, Outlines)', why: 'The final forest scene needs dynamic wind on foliage, atmospheric fog, and consistent stylized lighting', prereqs: ['blender-to-godot-pipeline'] }
     ];
 
-    // --- State (Signals) ---
-    const topicStates = Object.fromEntries(
-      topicData.map(t => [t.id, {
+    // --- State (Signals — one per topic) ---
+    const topicStates = {};
+    topicData.forEach(t => {
+      topicStates[t.id] = {
         status: signal('not-started'),
         progress: signal('')
-      }])
-    );
+      };
+    });
 
     // --- Layout (dagre) ---
-    const CARD_W = 380, CARD_H = 220, PAD = 40;
+    const CARD_W = 420, CARD_H = 220, PAD = 60;
 
     const g = new dagre.graphlib.Graph();
     g.setGraph({ rankdir: 'TB', nodesep: PAD, ranksep: 60, marginx: 24, marginy: 24 });
@@ -99,7 +108,8 @@
     const canvasH = graphData.height;
 
     // --- Components ---
-    function StatusBadge({ status }) {
+    function StatusBadge({ topicId }) {
+      const status = topicStates[topicId].status;
       const label = { 'not-started': 'not started', 'generating': 'generating…', 'complete': '✓ complete' }[status.value] || status.value;
       return html`<span class="badge ${status.value}">${label}</span>`;
     }
@@ -114,12 +124,12 @@
       function handleGenerate() {
         state.status.value = 'generating';
         state.progress.value = 'Researching...';
-        const steps = ['Researching...', 'Writing lesson...', 'Generating diagrams...', 'Running quality checks...', '✓ Done'];
+        const steps = ['Writing lesson...', 'Generating diagrams...', 'Running quality checks...', '✓ Done'];
         let i = 0;
         const interval = setInterval(() => {
-          i++;
           if (i < steps.length) {
             state.progress.value = steps[i];
+            i++;
           } else {
             clearInterval(interval);
             state.status.value = 'complete';
@@ -131,8 +141,8 @@
       return html`
         <div class="topic-card" style="left:${pos.x}px; top:${pos.y}px">
           <h3>
-            <span>${topic.title}</span>
-            <${StatusBadge} status=${state.status} />
+            ${topic.title}
+            <${StatusBadge} topicId=${topic.id} />
           </h3>
           <p class="why">${topic.why}</p>
           <p class="prereq-label">${prereqText}</p>
@@ -141,7 +151,7 @@
               <button class="primary" onClick=${handleGenerate}>Generate this topic</button>
             `}
             ${state.status.value === 'complete' && html`
-              <button>Open lesson →</button>
+              <button class="primary">Open lesson →</button>
             `}
             <button>Generate quiz</button>
             <button>Explore subtopics</button>
@@ -158,14 +168,14 @@
       g.edges().forEach(e => {
         const edge = g.edge(e);
         const points = edge.points;
-        let d = `M ${points[0].x} ${points[0].y}`;
+        let d = 'M ' + points[0].x + ' ' + points[0].y;
         for (let i = 1; i < points.length - 1; i++) {
           const cp = points[i];
           const next = points[i + 1];
-          d += ` Q ${cp.x} ${cp.y} ${(cp.x + next.x) / 2} ${(cp.y + next.y) / 2}`;
+          d += ' Q ' + cp.x + ' ' + cp.y + ' ' + ((cp.x + next.x) / 2) + ' ' + ((cp.y + next.y) / 2);
         }
         const last = points[points.length - 1];
-        d += ` L ${last.x} ${last.y}`;
+        d += ' L ' + last.x + ' ' + last.y;
         paths.push(d);
       });
 
