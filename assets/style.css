@@ -220,6 +220,35 @@ details summary {
 details summary:hover { color: var(--link); }
 details[open] summary { margin-bottom: 0.5rem; }
 
+/* --- Buttons (shared across all Preact components) --- */
+.btn {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.btn.primary {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.btn.primary:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.btn.done {
+  border-color: var(--success);
+  color: var(--success);
+}
+
 /* --- Print --- */
 @media print {
   body { max-width: 100%; padding: 1rem; color: #000; background: #fff; }
