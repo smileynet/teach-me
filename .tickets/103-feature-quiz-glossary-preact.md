@@ -26,3 +26,11 @@ Inline quiz interactions (embedded in lessons) and glossary term tooltips as Pre
 - [ ] Glossary terms show tooltip on hover/focus with definition
 - [ ] Both work in static lesson pages as progressive enhancement
 - [ ] Glossary data loaded from `glossary-data` JSON block in page
+
+## Context & Sources
+
+- **Pattern:** Preact island mount in static HTML — see `.scratch/research/migration-vanilla-to-framework.md`
+- **Current code:** `assets/quiz.js` (171 lines) — inline quiz interactions; `assets/glossary.js` (154 lines) — hover/click tooltips
+- **Data format:** Glossary terms come from `<script type="application/json" id="glossary-data">` in each lesson
+- **Components:** New `InlineQuiz`, `GlossaryTerm` in `assets/components/`
+- **Reference:** See `assets/components/store.js` for signal pattern

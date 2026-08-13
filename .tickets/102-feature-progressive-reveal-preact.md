@@ -25,3 +25,10 @@ Step-through diagram reveal as a Preact component. Signal tracks current step, D
 - [ ] Only elements up to current step are visible
 - [ ] aria-live announces new content for screen readers
 - [ ] Works in existing lesson pages via mount point
+
+## Context & Sources
+
+- **Pattern:** Preact island mount in static HTML — see `.scratch/research/migration-vanilla-to-framework.md`
+- **Current code:** `assets/progressive-reveal.js` (61 lines) — `data-step` attrs show/hide elements
+- **Components:** New `ProgressiveReveal` component with signal for current step
+- **A11y:** Must maintain `aria-live="polite"` on container — see `.kiro/steering/visual-teaching.md`

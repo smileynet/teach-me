@@ -28,3 +28,11 @@ Update `assets/scaffolds/*.html` templates to reference Preact import map + comp
 - [ ] Mount points clearly marked with comments
 - [ ] Data island pattern documented in scaffold comments
 - [ ] `mise run verify` passes (link checker finds vendored assets)
+
+## Context & Sources
+
+- **Current scaffolds:** `assets/scaffolds/` — lesson.html, quiz.html, quick-check.html, reference.html
+- **New pattern:** Import map + `<div id="app">` or `<div id="lesson-actions">` mount point + `<script type="module">`
+- **Helper:** `tools/lib/preact_page.py` — may be used directly or scaffold shows the manual pattern
+- **Reference:** `assets/components/` for the component catalog
+- **Depends on:** 101, 102, 103 completing first (so we know the final mount-point pattern)

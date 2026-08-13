@@ -2,7 +2,7 @@
 id: "092"
 title: "Spike: dagre + HTML cards DAG layout prototype"
 type: spike
-status: open
+status: done
 priority: high
 blocked_by: []
 ---
@@ -51,3 +51,7 @@ Build a standalone prototype HTML file (`tools/spike-dag-cards.html`) that:
 ## Output
 
 A single file at `tools/spike-dag-cards.html` we can open and compare against the current map page. Decision: adopt, modify, or reject the approach.
+
+## Resolution
+
+Superseded by spike 094 (Preact + dagre). The dagre + HTML cards approach proved correct. Preact was chosen over vanilla JS for reactivity. Production implementation in ticket 096.
