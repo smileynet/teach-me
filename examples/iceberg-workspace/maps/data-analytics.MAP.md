@@ -30,6 +30,7 @@ Every organization sits on operational data that only becomes useful when it flo
 - **why:** Nothing downstream works until data reliably moves from source systems into your analytics layer
 - **scope:** substantial
 - **prereqs:** []
+- **lesson_file:** 0002-data-ingestion-change-capture.html
 - **status:** complete
 
 ### storage-and-table-formats

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference: Data Ingestion & Change Capture</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<h1>Data Ingestion & Change Capture</h1>
+<p class="lesson-meta">Reference · Companion to <a href="../lessons/0002-data-ingestion-change-capture.html">Lesson 2</a></p>
+
+<h2>Core Concept</h2>
+<p><strong>Get data from source systems into your analytics layer reliably. The choice between batch, streaming, and CDC determines your latency, cost, and complexity tradeoffs.</strong></p>
+
+<h2>Write Mechanics</h2>
+<table>
+  <tr><th>Mode</th><th>How</th><th>When to use</th></tr>
+  <tr><td>Copy-on-Write (COW)</td><td>Rewrites affected data files on every write</td><td>Read-heavy workloads, fewer writes</td></tr>
+  <tr><td>Merge-on-Read (MOR)</td><td>Writes deltas, merges at query time</td><td>Write-heavy workloads, CDC streams</td></tr>
+</table>
+
+<h2>Ingestion Strategies</h2>
+<table>
+  <tr><th>Strategy</th><th>Latency</th><th>Complexity</th><th>Use when</th></tr>
+  <tr><td>Batch (scheduled)</td><td>Hours</td><td>Low</td><td>Reports, daily aggregates, historical loads</td></tr>
+  <tr><td>Micro-batch</td><td>Minutes</td><td>Medium</td><td>Near-real-time dashboards, frequent updates</td></tr>
+  <tr><td>Streaming</td><td>Seconds</td><td>High</td><td>Real-time alerts, live features, event processing</td></tr>
+  <tr><td>CDC</td><td>Seconds-minutes</td><td>Medium-High</td><td>Replicating operational DB changes into analytics</td></tr>
+</table>
+
+<h2>Change Data Capture (CDC)</h2>
+<ul>
+  <li><strong>What:</strong> Captures row-level changes (INSERT/UPDATE/DELETE) from source databases</li>
+  <li><strong>How:</strong> Reads the database's transaction log (WAL/binlog) — no source load</li>
+  <li><strong>Tools:</strong> Debezium, AWS DMS, Fivetran, Airbyte</li>
+  <li><strong>Output:</strong> Stream of change events → land in Iceberg as upserts via MOR</li>
+</ul>
+
+<h2>The Small Files Problem</h2>
+<ul>
+  <li>Streaming/CDC produces many small files (one per micro-batch)</li>
+  <li>Too many small files → slow query planning, high S3 API costs</li>
+  <li><strong>Fix:</strong> Run compaction regularly (merge small files into larger ones)</li>
+  <li>Rule of thumb: target 128-256 MB per data file</li>
+</ul>
+
+<h2>Decision Aid</h2>
+<p><strong>"What ingestion strategy should I use?"</strong></p>
+<ul>
+  <li>Data is in a database and you need near-real-time → <strong>CDC (Debezium/DMS)</strong></li>
+  <li>Data arrives as events/messages → <strong>Streaming (Kafka → Flink/Spark)</strong></li>
+  <li>Data is files or API dumps, daily is fine → <strong>Batch (Spark/Glue job)</strong></li>
+  <li>Need faster than daily but streaming is overkill → <strong>Micro-batch (5-15 min Spark jobs)</strong></li>
+</ul>
+
+<p><strong>"COW or MOR?"</strong></p>
+<ul>
+  <li>Mostly reading, few updates → <strong>COW</strong> (read performance, no merge overhead)</li>
+  <li>Heavy updates/deletes, CDC workload → <strong>MOR</strong> (fast writes, merge on read)</li>
+  <li>Not sure → <strong>Start with COW</strong>, switch if write latency becomes a problem</li>
+</ul>
+
+<script src="../assets/theme-toggle.js"></script>
+</body>
+</html>
