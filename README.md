@@ -1,81 +1,73 @@
 # teach-me
 
-An AI teaching system that researches topics, writes interactive lessons, and helps you build lasting understanding through quizzes and spaced repetition.
+Learn any topic through research-backed lessons, interactive diagrams, and spaced repetition — powered by your AI coding assistant.
 
-## For Learners
+## What it does
 
-Open this project in an AI coding assistant (Kiro CLI, Claude Code, Codex, Cursor, or any [Agent Skills-compatible](https://agentskills.io) client) and say what you want to learn. The agent will:
+You tell the agent what you want to learn. It researches the domain from real sources, generates interactive HTML lessons with diagrams you can open in any browser, quizzes you on understanding (not recall), and schedules reviews so knowledge sticks long-term.
 
-1. Ask about your goals and context
-2. Research the domain from verified sources
-3. Generate interactive HTML lessons with diagrams
-4. Create quizzes that test understanding (not recall)
-5. Track retention with spaced repetition
+| When I'm... | I want to... | So I can... |
+|-------------|-------------|-------------|
+| Curious about a new domain | Say what I want to learn | Get structured lessons without hunting for resources |
+| Reading a generated lesson | See visual diagrams and examples | Build mental models, not just memorize facts |
+| Finishing a lesson | Test my understanding | Know what I actually grasped vs what I just read |
+| Coming back after a few days | Review what's fading | Retain knowledge without re-reading entire lessons |
+| Stuck on a concept | Say "I don't understand" | Get a different explanation that actually lands |
+| Wanting to go deeper | Explore the topic map | See what connects to what and choose my path |
 
-**Quick start:**
+## Quick start
+
 ```bash
 mise install && mise run setup
 ```
-Then tell the agent: *"I want to learn about [topic]"*
 
-**Browse examples:** Open `lessons/index.html` in a browser, or run `mise run open-lesson`.
+Then open this project in [Kiro CLI](https://kiro.dev), [Claude Code](https://claude.ai), [Codex](https://openai.com/codex), [Cursor](https://cursor.sh), or any [Agent Skills-compatible](https://agentskills.io) client and say:
 
----
+> "I want to learn about [your topic]"
 
-## For Developers / Maintainers
+The agent will ask about your goals, research the domain, and generate your first lesson.
 
-This is a test bed for learning-oriented AI agent skills. The teaching system above is the product; the skills and tools below are the machinery.
-
-### Architecture
-
+**Already have lessons?** Open `lessons/index.html` in a browser, or:
 ```bash
-mise install        # set up Python, Node, uv
-mise run setup      # install dependencies
-mise run verify     # check everything works
-mise run open-lesson  # view the latest lesson
+mise run open-lesson
 ```
 
-## Example Topics
+## Example topics
 
-| Topic | Domain | Tests |
-|-------|--------|-------|
-| [Iceberg on AWS](examples/iceberg-workspace/) | Cloud data engineering | Retrofitted legacy — proves pipeline upgradability |
-| [OIDC in Rust](examples/oidc-rust/) | Security / protocols | Full pipeline output — protocol flows + implementation |
-| [Workout Fundamentals](examples/workout-fundamentals/) | Fitness / exercise science | Boundary: physical skills vs knowledge |
-| [Godot Game Dev](examples/godot-gamedev/) | Game development | Engine-specific — node architecture + scripting |
+| Domain | What's covered |
+|--------|---------------|
+| [Data Engineering](examples/iceberg-workspace/) | Apache Iceberg metadata, data ingestion, change capture |
+| [OIDC in Rust](examples/oidc-rust/) | Auth flows, PKCE, token validation, JWT anatomy |
+| [Fitness](examples/workout-fundamentals/) | Progressive overload, recovery science, program design |
+| [Game Dev](examples/godot-gamedev/) | Godot node architecture, GDScript, scene composition |
 
-## Key Commands
+Each has lessons, reference docs, quizzes, and spaced repetition cards ready to explore.
+
+## How it works
+
+1. **You say what to learn** → agent asks about your goals and context
+2. **Agent researches** → finds and verifies sources (never teaches from memory)
+3. **Lessons appear as HTML** → open in any browser, dark/light mode, inline diagrams
+4. **Quizzes test understanding** → "explain to a colleague why..." not "what is the definition of..."
+5. **Spaced repetition** → reviews scheduled at optimal intervals, exportable to Anki
+
+## Spaced repetition commands
 
 ```bash
 mise run sr              # what's due for review
-mise run sr:review       # review due cards (or: mise run sr:review -- topic-slug)
-mise run sr:quick-check  # generate quick-check review page (MC + diagram cards)
-mise run sr:export-anki  # export cards to Anki .apkg
-mise run sr:check        # validate question quality
-mise run sr:analytics    # knowledge state + what's decaying
-mise run map:generate    # generate interactive map pages from MAP.md files
-mise run index:generate  # regenerate the All Lessons dashboard
-mise run draw -- --type graph --backend graphviz --data '{...}'  # complex diagrams
-mise run visual-qa       # exercise all UI components
-mise run verify          # smoke test + link verification + source URL check
+mise run sr:review       # review due cards
+mise run sr:export-anki  # export to Anki .apkg
 ```
 
-## Design Decisions
+---
 
-- **Research-first** (ADR 0002): Every lesson requires domain research before writing. Prevents teaching from memory.
-- **Agent-complete pages** (ADR 0003): No build step. HTML pages with shared CSS variables for theming.
-- **Informal posture** (ADR 0001): Knowledgeable colleague at a whiteboard, not course instructor.
-- **MAP.md domain scaffolding** (ADR 0004): Big topics decompose into 5-9 subtopic maps with soft prerequisites.
+## For developers
 
-## Skills
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, project structure, and conventions.
 
-| Skill | What it does |
-|-------|-------------|
-| `teach` | Multi-session learning with stateful workspace |
-| `generate-topic` | Full pipeline: research → lesson → post-process → verify |
-| `quiz-me` | Socratic dialog — learner explains, agent probes |
-| `wait-what` | Re-explain when comprehension fails |
-| `jargon` | Annotate domain terms with tooltips |
-| `draw-diagram` | Generate inline SVG teaching diagrams |
-| `visual-qa` | Exercise components, capture screenshots |
-| `theme` | Preview and apply color palettes |
+```bash
+mise run verify     # links + lint + SVG theming check
+mise run visual-qa  # Playwright component exercise
+```
+
+MIT licensed. Skills are [Agent Skills-compatible](https://agentskills.io) — works across 40+ AI coding clients.
