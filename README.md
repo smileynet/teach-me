@@ -1,8 +1,32 @@
 # teach-me
 
-A test bed for learning-oriented AI agent skills. The agent teaches topics through stateful lessons, reference docs, spaced repetition, and Socratic dialog — grounded in researched sources, not parametric memory.
+An AI teaching system that researches topics, writes interactive lessons, and helps you build lasting understanding through quizzes and spaced repetition.
 
-## Quick Start
+## For Learners
+
+Open this project in an AI coding assistant (Kiro CLI, Claude Code, Codex, Cursor, or any [Agent Skills-compatible](https://agentskills.io) client) and say what you want to learn. The agent will:
+
+1. Ask about your goals and context
+2. Research the domain from verified sources
+3. Generate interactive HTML lessons with diagrams
+4. Create quizzes that test understanding (not recall)
+5. Track retention with spaced repetition
+
+**Quick start:**
+```bash
+mise install && mise run setup
+```
+Then tell the agent: *"I want to learn about [topic]"*
+
+**Browse examples:** Open `lessons/index.html` in a browser, or run `mise run open-lesson`.
+
+---
+
+## For Developers / Maintainers
+
+This is a test bed for learning-oriented AI agent skills. The teaching system above is the product; the skills and tools below are the machinery.
+
+### Architecture
 
 ```bash
 mise install        # set up Python, Node, uv
@@ -11,36 +35,14 @@ mise run verify     # check everything works
 mise run open-lesson  # view the latest lesson
 ```
 
-## What It Does
-
-You tell the agent what you want to learn and why. It:
-
-1. Researches the domain (dispatches subagents, verifies claims)
-2. Writes lessons as self-contained HTML pages with inline diagrams
-3. Generates reference docs (scannable lookup companions)
-4. Creates spaced repetition questions (criteria-based, not recall)
-5. Reviews your understanding via Socratic conversation
-
-## Teaching Workspaces
-
-Each topic lives in its own workspace:
-
-```
-MISSION.md          — why you're learning this
-RESOURCES.md        — verified sources with trust ratings
-lessons/*.html      — self-contained lessons (one concept each)
-reference/*.html    — lookup companions to each lesson
-learning-records/   — demonstrated understanding + SR question bank
-assets/             — shared CSS, JS components, scaffolds
-```
-
 ## Example Topics
 
 | Topic | Domain | Tests |
 |-------|--------|-------|
-| [Iceberg on AWS](lessons/0001-iceberg-metadata-tree.html) | Cloud data engineering | Core fixture — diagrams, glossary, SR, all components |
-| [Roguelike in Rust](examples/roguelike-rust/) | Game dev + programming | Code-heavy cards, research-first correction |
-| [Workout Fundamentals](examples/workout-fundamentals/) | Fitness / exercise science | Boundary: what SR can/can't cover for physical skills |
+| [Iceberg on AWS](examples/iceberg-workspace/) | Cloud data engineering | Retrofitted legacy — proves pipeline upgradability |
+| [OIDC in Rust](examples/oidc-rust/) | Security / protocols | Full pipeline output — protocol flows + implementation |
+| [Workout Fundamentals](examples/workout-fundamentals/) | Fitness / exercise science | Boundary: physical skills vs knowledge |
+| [Godot Game Dev](examples/godot-gamedev/) | Game development | Engine-specific — node architecture + scripting |
 
 ## Key Commands
 
@@ -70,6 +72,7 @@ mise run verify          # smoke test + link verification + source URL check
 | Skill | What it does |
 |-------|-------------|
 | `teach` | Multi-session learning with stateful workspace |
+| `generate-topic` | Full pipeline: research → lesson → post-process → verify |
 | `quiz-me` | Socratic dialog — learner explains, agent probes |
 | `wait-what` | Re-explain when comprehension fails |
 | `jargon` | Annotate domain terms with tooltips |
