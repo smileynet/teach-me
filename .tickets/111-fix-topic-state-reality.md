@@ -2,7 +2,7 @@
 id: "111"
 title: "Fix topic state logic — status must reflect actual generated content"
 type: fix
-status: open
+status: in_progress
 priority: high
 blocked_by: []
 ---
