@@ -2,7 +2,7 @@
 id: "112"
 title: "Publish examples on GitHub Pages as live demo"
 type: feature
-status: in_progress
+status: done
 priority: medium
 blocked_by: []
 ---
@@ -71,3 +71,7 @@ _site/
 - Example workspaces: `examples/iceberg-workspace/`, `examples/godot-gamedev/`, `examples/oidc-rust/`, `examples/workout-fundamentals/`
 - Assets: `assets/` (style.css, vendor/, components/, services/)
 - Existing CI: `.github/workflows/verify.yml`
+
+## Resolution (2026-08-13)
+
+TBD
