@@ -236,10 +236,12 @@ def generate_page(domains: list[dict], scan_dir: Path | None = None) -> str:
     body { max-width: 900px; margin: 0 auto; padding: 2rem; }
     .index-view h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
     .index-meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
-    .mission-block { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
-    .mission-why { font-size: 0.9rem; color: var(--text); line-height: 1.5; margin-bottom: 0.5rem; }
+    .mission-fold { margin-top: 0.75rem; border-top: 1px solid var(--border); padding-top: 0.5rem; }
+    .mission-fold summary { font-size: 0.8rem; color: var(--text-faint); cursor: pointer; }
+    .mission-fold summary:hover { color: var(--text-muted); }
+    .mission-why { font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; margin: 0.5rem 0; }
     .mission-criteria { padding-left: 1.2rem; margin: 0; }
-    .mission-criteria li { font-size: 0.83rem; color: var(--text-muted); line-height: 1.6; }
+    .mission-criteria li { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
     .domain-grid { display: flex; flex-direction: column; gap: 1rem; }
     .domain-card {
       display: block; padding: 1.25rem; background: var(--bg-elevated);
