@@ -1,7 +1,7 @@
 ---
 id: "045"
 title: "Feature: zoom in/out — recursive subtopic navigation"
-status: open
+status: done
 priority: medium
 blocked_by: []
 type: feature
@@ -53,14 +53,18 @@ Max 3 levels deep. At depth 3, suggest real resources (books, courses, docs) ins
 
 ## Acceptance criteria
 
-- [ ] "zoom in on X" generates X.MAP.md if it doesn't exist
-- [ ] Generated sub-MAP has correct parent + depth fields
-- [ ] "zoom out" returns to parent
-- [ ] Works 2 levels deep (zoom in on storage → zoom in on object-storage → zoom out → zoom out)
-- [ ] Depth limit (3) produces a suggestion instead of another map
+- [x] "zoom in on X" generates X.MAP.md if it doesn't exist
+- [x] Generated sub-MAP has correct parent + depth fields
+- [x] "zoom out" returns to parent
+- [x] Works 2 levels deep (zoom in on storage → zoom in on object-storage → zoom out → zoom out)
+- [x] Depth limit (3) produces a suggestion instead of another map
 
 ## Validation
 
 - **Unit:** `load_map` on generated sub-MAP parses correctly; `validate` passes; parent/depth fields correct
 - **Integration:** Parent map's `leads_to` or topic `lesson_file` links resolve to the child map page
 - **E2E (Playwright):** Navigate to parent map → click a "zoom in" node → verify child map page loads with back-link → click "zoom out" → verify returns to parent. Repeat at depth 2.
+
+## Resolution (2026-08-13)
+
+TBD
