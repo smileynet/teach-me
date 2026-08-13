@@ -45,12 +45,12 @@ Request permission on first "Start Generation" click (not on page load — avoid
 
 ## Acceptance criteria
 
-- [ ] Successful generation updates the topic card in-place (no page reload needed)
-- [ ] "Open Lesson →" link points to the actual generated file
-- [ ] Badge updates from "not started" to "in progress"
-- [ ] Browser notification fires when tab is backgrounded
-- [ ] Error state shows meaningful message + retry
-- [ ] Works with both topic and quiz generation
+- [x] Successful generation updates the topic card in-place (no page reload needed)
+- [x] "Open Lesson →" link points to the actual generated file
+- [x] Badge updates from "not started" to "in progress"
+- [x] Browser notification fires when tab is backgrounded
+- [x] Error state shows meaningful message + retry
+- [x] Works with both topic and quiz generation
 
 ## Resolution (2026-08-12)
 

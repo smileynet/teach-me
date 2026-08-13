@@ -22,9 +22,9 @@ Add visual separation between lesson content and the action bar:
 
 ## Acceptance criteria
 
-- [ ] Clear visual break between lesson content and action bar
-- [ ] Action bar is immediately recognizable as a navigation element (not content)
-- [ ] Consistent across all lesson pages (via lesson-actions.js CSS)
+- [x] Clear visual break between lesson content and action bar
+- [x] Action bar is immediately recognizable as a navigation element (not content)
+- [x] Consistent across all lesson pages (via lesson-actions.js CSS)
 
 ## Validation
 

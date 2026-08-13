@@ -81,14 +81,14 @@ const STEP_PATTERNS = [
 
 ## Acceptance criteria
 
-- [ ] "Generate" button shows confirmation modal first
-- [ ] On confirm: POST to server, open SSE connection
-- [ ] Checklist updates in real-time as steps are detected
-- [ ] Elapsed timer runs during generation
-- [ ] Collapsible log shows raw output
-- [ ] On completion: "Open Lesson →" button appears
-- [ ] On error: error message + retry button
-- [ ] Cancel button sends DELETE and shows cancelled state
+- [x] "Generate" button shows confirmation modal first
+- [x] On confirm: POST to server, open SSE connection
+- [x] Checklist updates in real-time as steps are detected
+- [x] Elapsed timer runs during generation
+- [x] Collapsible log shows raw output
+- [x] On completion: "Open Lesson →" button appears
+- [x] On error: error message + retry button
+- [x] Cancel button sends DELETE and shows cancelled state
 
 ## Validation
 

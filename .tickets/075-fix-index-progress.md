@@ -22,9 +22,9 @@ On page load, fetch `/api/map/{domain}` for each domain card and update:
 
 ## Acceptance criteria
 
-- [ ] Progress rings show actual complete count (not hardcoded 0)
-- [ ] Status text updates to reflect MAP.md state
-- [ ] Works without server (graceful fallback to static values)
+- [x] Progress rings show actual complete count (not hardcoded 0)
+- [x] Status text updates to reflect MAP.md state
+- [x] Works without server (graceful fallback to static values)
 
 ## Validation
 

@@ -26,7 +26,7 @@ SVG nodes link to `#generate-{slug}` but topic cards have `id="topic-{slug}"`. T
 
 ## Success criteria
 
-- [ ] SVG node click scrolls to matching topic card
-- [ ] Brief highlight on the target card (0.5s background flash)
-- [ ] Smooth scroll behavior (CSS `scroll-behavior: smooth`)
-- [ ] Works for all 7 nodes in the test map
+- [x] SVG node click scrolls to matching topic card
+- [x] Brief highlight on the target card (0.5s background flash)
+- [x] Smooth scroll behavior (CSS `scroll-behavior: smooth`)
+- [x] Works for all 7 nodes in the test map

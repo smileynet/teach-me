@@ -21,10 +21,10 @@ Step-through diagram reveal as a Preact component. Signal tracks current step, D
 
 ## Acceptance Criteria
 
-- [ ] Steps advance/retreat on button click
-- [ ] Only elements up to current step are visible
-- [ ] aria-live announces new content for screen readers
-- [ ] Works in existing lesson pages via mount point
+- [x] Steps advance/retreat on button click
+- [x] Only elements up to current step are visible
+- [x] aria-live announces new content for screen readers
+- [x] Works in existing lesson pages via mount point
 
 ## Context & Sources
 

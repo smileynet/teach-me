@@ -28,10 +28,10 @@ Delete legacy code once all pages are converted to Preact. Only after all consum
 
 ## Acceptance Criteria
 
-- [ ] No page references removed files
-- [ ] `mise run verify` passes (all link checks, all tests)
-- [ ] git log preserves history of removed files
-- [ ] No functional regression in any page
+- [x] No page references removed files
+- [x] `mise run verify` passes (all link checks, all tests)
+- [x] git log preserves history of removed files
+- [x] No functional regression in any page
 
 ## Gate
 

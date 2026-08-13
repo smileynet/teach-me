@@ -74,11 +74,11 @@ mise run sr:export-anki -- --exclude-suspended   # skip suspended cards
 ## Acceptance criteria
 
 - [x] Design approved (proposal reviewed 2026-08-10)
-- [ ] `genanki` added as dependency
-- [ ] `tools/export_anki.py` produces valid `.apkg` file
-- [ ] Both note types work (Explain + QuickCheck)
-- [ ] Cards preserve: prompt, expected answer, tags, source links
-- [ ] Exported deck importable into Anki desktop
-- [ ] Re-export updates cards (stable GUIDs), not duplicates
-- [ ] Suspended/mastered cards optionally excluded
-- [ ] `mise run sr:export-anki` task wired up
+- [x] `genanki` added as dependency
+- [x] `tools/export_anki.py` produces valid `.apkg` file
+- [x] Both note types work (Explain + QuickCheck)
+- [x] Cards preserve: prompt, expected answer, tags, source links
+- [x] Exported deck importable into Anki desktop
+- [x] Re-export updates cards (stable GUIDs), not duplicates
+- [x] Suspended/mastered cards optionally excluded
+- [x] `mise run sr:export-anki` task wired up

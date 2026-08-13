@@ -24,10 +24,10 @@ Update `assets/scaffolds/*.html` templates to reference Preact import map + comp
 
 ## Acceptance Criteria
 
-- [ ] All scaffolds use import map pointing to vendored deps
-- [ ] Mount points clearly marked with comments
-- [ ] Data island pattern documented in scaffold comments
-- [ ] `mise run verify` passes (link checker finds vendored assets)
+- [x] All scaffolds use import map pointing to vendored deps
+- [x] Mount points clearly marked with comments
+- [x] Data island pattern documented in scaffold comments
+- [x] `mise run verify` passes (link checker finds vendored assets)
 
 ## Context & Sources
 

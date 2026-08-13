@@ -24,13 +24,13 @@ Spaced repetition quick-check review page as Preact — card flip interaction, q
 
 ## Acceptance Criteria
 
-- [ ] Review page shows due cards one at a time
-- [ ] Click/tap reveals answer
-- [ ] Quality rating buttons record response
-- [ ] Progress shows cards remaining
-- [ ] Completion summary at end
-- [ ] Theme toggle works
-- [ ] Loads offline (vendored deps)
+- [x] Review page shows due cards one at a time
+- [x] Click/tap reveals answer
+- [x] Quality rating buttons record response
+- [x] Progress shows cards remaining
+- [x] Completion summary at end
+- [x] Theme toggle works
+- [x] Loads offline (vendored deps)
 
 ## Context & Sources
 

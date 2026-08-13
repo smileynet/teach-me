@@ -23,11 +23,11 @@ How do existing SR/flashcard systems handle rich content (diagrams, code, format
 
 ## Repos to clone and explore
 
-- [ ] `repeater` (https://github.com/shaankhosla/repeater) — how it handles note formatting
-- [ ] `cert-pepper` (https://github.com/cert-pepper/cert-pepper) — code-heavy cards + Claude explanations
-- [ ] Anki source (https://github.com/ankitects/anki) — HTML field rendering, media storage
-- [ ] Orbit (https://github.com/andymatuschak/orbit) — web component rendering of rich prompts
-- [ ] `rich` library examples (https://github.com/Textualize/rich) — terminal rendering of code, markdown, panels
+- [x] `repeater` (https://github.com/shaankhosla/repeater) — how it handles note formatting
+- [x] `cert-pepper` (https://github.com/cert-pepper/cert-pepper) — code-heavy cards + Claude explanations
+- [x] Anki source (https://github.com/ankitects/anki) — HTML field rendering, media storage
+- [x] Orbit (https://github.com/andymatuschak/orbit) — web component rendering of rich prompts
+- [x] `rich` library examples (https://github.com/Textualize/rich) — terminal rendering of code, markdown, panels
 
 ## Spikes to consider
 

@@ -67,14 +67,14 @@ export function createGenerationStream(prompt) {
 
 ## Acceptance Criteria
 
-- [ ] Service connects to `/api/generate`, streams lines via SSE
-- [ ] Status signal transitions: idle → connecting → streaming → done/error
-- [ ] Lines accumulate in signal array (batch updates)
-- [ ] Cancel closes EventSource and resets state
-- [ ] UI component shows scrollable output with phase coloring
-- [ ] Modal version auto-closes or reloads on completion
-- [ ] Reconnection on transient errors (with backoff)
-- [ ] Cleanup: EventSource closed when component unmounts
+- [x] Service connects to `/api/generate`, streams lines via SSE
+- [x] Status signal transitions: idle → connecting → streaming → done/error
+- [x] Lines accumulate in signal array (batch updates)
+- [x] Cancel closes EventSource and resets state
+- [x] UI component shows scrollable output with phase coloring
+- [x] Modal version auto-closes or reloads on completion
+- [x] Reconnection on transient errors (with backoff)
+- [x] Cleanup: EventSource closed when component unmounts
 
 ## Research references
 

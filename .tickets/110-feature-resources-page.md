@@ -29,12 +29,12 @@ A Preact page that renders RESOURCES.md as a themed, filterable table of verifie
 
 ## Acceptance Criteria
 
-- [ ] `python tools/generate_resources_page.py --workspace X --output Y` produces Preact page
-- [ ] Parses RESOURCES.md markdown table format into structured data
-- [ ] Sources rendered as cards with: title, URL, trust rating, what it covers
-- [ ] Dark/light theme works
-- [ ] Linked from index page
-- [ ] Linked from lesson action bar (LessonActions component)
+- [x] `python tools/generate_resources_page.py --workspace X --output Y` produces Preact page
+- [x] Parses RESOURCES.md markdown table format into structured data
+- [x] Sources rendered as cards with: title, URL, trust rating, what it covers
+- [x] Dark/light theme works
+- [x] Linked from index page
+- [x] Linked from lesson action bar (LessonActions component)
 
 ## Context
 

@@ -33,11 +33,11 @@ revealed_svg = svg  # original with all labels
 
 ## Success criteria
 
-- [ ] SVG renders correctly with masked labels in a browser
-- [ ] Reveal transition looks natural (not jarring)
-- [ ] Works with our existing draw-diagram.py output (viewBox, no fixed dimensions)
-- [ ] Answerable from context (remaining labels + structure give enough clues)
-- [ ] Terminal fallback: text description + prompt works without the image
+- [x] SVG renders correctly with masked labels in a browser
+- [x] Reveal transition looks natural (not jarring)
+- [x] Works with our existing draw-diagram.py output (viewBox, no fixed dimensions)
+- [x] Answerable from context (remaining labels + structure give enough clues)
+- [x] Terminal fallback: text description + prompt works without the image
 
 ## What this does NOT test
 

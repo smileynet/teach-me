@@ -38,11 +38,11 @@ Color vocabulary: blue = available now, gray = has unmet prereqs, green = comple
 
 ## Acceptance criteria
 
-- [ ] Generates a valid lesson HTML from any well-formed MAP.md
-- [ ] Diagram shows all topics with prerequisite edges
-- [ ] Topic descriptions come from MAP.md `why` fields
-- [ ] Lesson ends with "where do you want to start?" + suggestion
-- [ ] Follows existing lesson scaffold (CSS variables, theme toggle, accessibility)
+- [x] Generates a valid lesson HTML from any well-formed MAP.md
+- [x] Diagram shows all topics with prerequisite edges
+- [x] Topic descriptions come from MAP.md `why` fields
+- [x] Lesson ends with "where do you want to start?" + suggestion
+- [x] Follows existing lesson scaffold (CSS variables, theme toggle, accessibility)
 
 ## Validation
 

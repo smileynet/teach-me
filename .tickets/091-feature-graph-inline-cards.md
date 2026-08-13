@@ -33,14 +33,14 @@ The graph layout still shows edges (prereq arrows) between cards, preserving the
 
 ## Acceptance Criteria
 
-- [ ] Each topic renders as a self-contained card in the graph area
-- [ ] Cards show: title, why, prereq label, action buttons
-- [ ] Prereq arrows/edges still visible between cards
-- [ ] No separate "Topics" list section below the graph
-- [ ] Clicking "Generate this topic" still triggers live SSE generation
-- [ ] Status badge (not started / in progress / complete) visible on each card
-- [ ] Responsive on mobile (cards stack vertically if viewport is narrow)
-- [ ] All existing tests in `test_map_page.py` still pass (adapt assertions as needed)
+- [x] Each topic renders as a self-contained card in the graph area
+- [x] Cards show: title, why, prereq label, action buttons
+- [x] Prereq arrows/edges still visible between cards
+- [x] No separate "Topics" list section below the graph
+- [x] Clicking "Generate this topic" still triggers live SSE generation
+- [x] Status badge (not started / in progress / complete) visible on each card
+- [x] Responsive on mobile (cards stack vertically if viewport is narrow)
+- [x] All existing tests in `test_map_page.py` still pass (adapt assertions as needed)
 
 ## Research needed
 

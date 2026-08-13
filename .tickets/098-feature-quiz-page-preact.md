@@ -23,12 +23,12 @@ Quiz page as Preact components — question cards with answer reveal, score trac
 
 ## Acceptance Criteria
 
-- [ ] Quiz page renders questions from JSONL data
-- [ ] Click reveals answer with criteria-based evaluation
-- [ ] Progress indicator shows position in deck
-- [ ] Score summary at end
-- [ ] Theme toggle works
-- [ ] Loads offline (vendored deps)
+- [x] Quiz page renders questions from JSONL data
+- [x] Click reveals answer with criteria-based evaluation
+- [x] Progress indicator shows position in deck
+- [x] Score summary at end
+- [x] Theme toggle works
+- [x] Loads offline (vendored deps)
 
 ## Context & Sources
 

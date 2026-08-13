@@ -45,11 +45,11 @@ If they say "new material" — give them new material, no friction. If they say 
 
 ## Acceptance criteria
 
-- [ ] teach skill checks sr-status at session start
-- [ ] If cards due: one-line recommendation, ask preference
-- [ ] If learner asks for new content: provide it without friction
-- [ ] Recommendation strength scales with decay (mild at 85% R, firmer at <70%)
-- [ ] Never uses language like "you must", "required", "before you can"
+- [x] teach skill checks sr-status at session start
+- [x] If cards due: one-line recommendation, ask preference
+- [x] If learner asks for new content: provide it without friction
+- [x] Recommendation strength scales with decay (mild at 85% R, firmer at <70%)
+- [x] Never uses language like "you must", "required", "before you can"
 
 ## Resolution (closed 2026-08-10)
 

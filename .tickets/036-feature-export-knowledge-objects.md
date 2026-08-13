@@ -59,11 +59,11 @@ Unpacks into the target workspace, merges glossary, imports questions with fresh
 
 ## Acceptance criteria
 
-- [ ] Export command bundles lessons + references + questions + glossary
-- [ ] Output is self-contained (no broken relative links)
-- [ ] MANIFEST.md describes contents and prerequisites
-- [ ] Import into a fresh workspace works (questions get new UUIDs, glossary merges)
-- [ ] Lessons render correctly without the original workspace's assets
+- [x] Export command bundles lessons + references + questions + glossary
+- [x] Output is self-contained (no broken relative links)
+- [x] MANIFEST.md describes contents and prerequisites
+- [x] Import into a fresh workspace works (questions get new UUIDs, glossary merges)
+- [x] Lessons render correctly without the original workspace's assets
 
 ## Resolution (closed 2026-08-11)
 

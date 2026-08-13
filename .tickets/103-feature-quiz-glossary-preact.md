@@ -22,10 +22,10 @@ Inline quiz interactions (embedded in lessons) and glossary term tooltips as Pre
 
 ## Acceptance Criteria
 
-- [ ] Inline quiz renders question + choices, reveals answer on selection
-- [ ] Glossary terms show tooltip on hover/focus with definition
-- [ ] Both work in static lesson pages as progressive enhancement
-- [ ] Glossary data loaded from `glossary-data` JSON block in page
+- [x] Inline quiz renders question + choices, reveals answer on selection
+- [x] Glossary terms show tooltip on hover/focus with definition
+- [x] Both work in static lesson pages as progressive enhancement
+- [x] Glossary data loaded from `glossary-data` JSON block in page
 
 ## Context & Sources
 

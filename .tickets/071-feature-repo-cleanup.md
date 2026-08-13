@@ -53,12 +53,12 @@ workspace/
 
 ## Acceptance criteria
 
-- [ ] Fresh clone + `mise run init-workspace` produces a working empty workspace
-- [ ] `mise run serve` serves from workspace/ not root
-- [ ] Examples still work (map pages load from examples/)
-- [ ] Existing Iceberg content moved to examples/ as a reference
-- [ ] `mise run verify` still passes
-- [ ] No personal data in committed files (MISSION.md etc. are in workspace/)
+- [x] Fresh clone + `mise run init-workspace` produces a working empty workspace
+- [x] `mise run serve` serves from workspace/ not root
+- [x] Examples still work (map pages load from examples/)
+- [x] Existing Iceberg content moved to examples/ as a reference
+- [x] `mise run verify` still passes
+- [x] No personal data in committed files (MISSION.md etc. are in workspace/)
 
 ## Validation
 

@@ -38,17 +38,17 @@ dagre has no native rank-same constraint and needs actual node heights:
 
 ## Acceptance Criteria
 
-- [ ] `python tools/generate_map_page.py MAP.md --workspace X --output Y` produces a Preact page
-- [ ] Page loads without CDN (vendored deps)
-- [ ] 7 topic cards render in correct DAG layout with edges
-- [ ] No overlapping cards (two-pass measurement)
-- [ ] Cards wide enough for content (no clipping)
-- [ ] Click "Generate this topic" triggers live SSE via `/api/generate`
-- [ ] Status updates reactively (not-started → generating → complete)
-- [ ] Theme toggle works (dark/light)
-- [ ] "Where This Leads" section renders as buttons with descriptions
-- [ ] All `test_map_page.py` tests pass (update assertions for new output)
-- [ ] Existing example map pages regenerate successfully
+- [x] `python tools/generate_map_page.py MAP.md --workspace X --output Y` produces a Preact page
+- [x] Page loads without CDN (vendored deps)
+- [x] 7 topic cards render in correct DAG layout with edges
+- [x] No overlapping cards (two-pass measurement)
+- [x] Cards wide enough for content (no clipping)
+- [x] Click "Generate this topic" triggers live SSE via `/api/generate`
+- [x] Status updates reactively (not-started → generating → complete)
+- [x] Theme toggle works (dark/light)
+- [x] "Where This Leads" section renders as buttons with descriptions
+- [x] All `test_map_page.py` tests pass (update assertions for new output)
+- [x] Existing example map pages regenerate successfully
 
 ## Supersedes
 

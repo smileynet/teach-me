@@ -28,13 +28,13 @@ The system SHOULD detect:
 
 ## Acceptance Criteria
 
-- [ ] Topic status derives from actual files on disk, not just MAP.md text
-- [ ] If `lessons/0001-esoteric-ebb-breakdown.html` exists, that topic shows "in-progress" or "complete"
-- [ ] Index page progress ring reflects real completion
-- [ ] Map page card badges reflect real status
-- [ ] Status detection runs at page generation time (in Python generators)
-- [ ] MAP.md status field is updated as a side effect of generation (keeps it in sync for other tools)
-- [ ] Document the status lifecycle: not-started → in-progress (lesson exists) → complete (lesson + quiz + reference)
+- [x] Topic status derives from actual files on disk, not just MAP.md text
+- [x] If `lessons/0001-esoteric-ebb-breakdown.html` exists, that topic shows "in-progress" or "complete"
+- [x] Index page progress ring reflects real completion
+- [x] Map page card badges reflect real status
+- [x] Status detection runs at page generation time (in Python generators)
+- [x] MAP.md status field is updated as a side effect of generation (keeps it in sync for other tools)
+- [x] Document the status lifecycle: not-started → in-progress (lesson exists) → complete (lesson + quiz + reference)
 
 ## Investigation areas
 

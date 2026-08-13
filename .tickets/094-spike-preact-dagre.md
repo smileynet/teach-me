@@ -27,13 +27,13 @@ Build a standalone prototype at `tools/spike-preact-dagre.html` that:
 
 ## Evaluate
 
-- [ ] Does the component model (TopicCard, EdgeLayer, MapView) feel cleaner than Alpine directives?
-- [ ] Is HTM (tagged template literals) readable without JSX/build?
-- [ ] Do Signals provide a better mental model for SSE-driven state than Alpine's reactivity?
-- [ ] Is the Python generation story viable? (outputting ESM imports + HTM templates)
-- [ ] Does it feel snappy (sub-100ms render for 7-9 nodes)?
-- [ ] How does error handling work (component boundaries)?
-- [ ] Total page weight with CDN deps
+- [x] Does the component model (TopicCard, EdgeLayer, MapView) feel cleaner than Alpine directives?
+- [x] Is HTM (tagged template literals) readable without JSX/build?
+- [x] Do Signals provide a better mental model for SSE-driven state than Alpine's reactivity?
+- [x] Is the Python generation story viable? (outputting ESM imports + HTM templates)
+- [x] Does it feel snappy (sub-100ms render for 7-9 nodes)?
+- [x] How does error handling work (component boundaries)?
+- [x] Total page weight with CDN deps
 
 ## Evaluate vs Alpine spike (093)
 
@@ -46,14 +46,14 @@ Direct comparison:
 
 ## Acceptance Criteria
 
-- [ ] Single HTML file, opens in browser, no server needed (except CDN fetch)
-- [ ] 7 topic cards in correct DAG layout with edges
-- [ ] Click "Generate" → simulated progress state visible on card
-- [ ] Card status updates reactively via Signals
-- [ ] Dark/light theme toggle works
-- [ ] No overlapping cards
-- [ ] Cards wide enough for content
-- [ ] Components are separable (TopicCard could be reused in lesson pages)
+- [x] Single HTML file, opens in browser, no server needed (except CDN fetch)
+- [x] 7 topic cards in correct DAG layout with edges
+- [x] Click "Generate" → simulated progress state visible on card
+- [x] Card status updates reactively via Signals
+- [x] Dark/light theme toggle works
+- [x] No overlapping cards
+- [x] Cards wide enough for content
+- [x] Components are separable (TopicCard could be reused in lesson pages)
 
 ## NOT in scope
 

@@ -24,14 +24,14 @@ Build a standalone prototype HTML file (`tools/spike-dag-cards.html`) that:
 
 ## Acceptance Criteria
 
-- [ ] Single HTML file, opens in browser with no server needed
-- [ ] 7 topic cards rendered with correct DAG layout (branching, not linear)
-- [ ] Arrows/edges visible between cards following prereq relationships
-- [ ] Cards show: title, why (one sentence), prereq label, status badge, action button placeholders
-- [ ] Responsive: cards reflow or scroll gracefully on narrow viewport
-- [ ] Dark mode support (uses CSS variables from style.css vocabulary)
-- [ ] File size under 100KB (excluding CDN fetch)
-- [ ] Visual comparison: side-by-side with current map page for evaluation
+- [x] Single HTML file, opens in browser with no server needed
+- [x] 7 topic cards rendered with correct DAG layout (branching, not linear)
+- [x] Arrows/edges visible between cards following prereq relationships
+- [x] Cards show: title, why (one sentence), prereq label, status badge, action button placeholders
+- [x] Responsive: cards reflow or scroll gracefully on narrow viewport
+- [x] Dark mode support (uses CSS variables from style.css vocabulary)
+- [x] File size under 100KB (excluding CDN fetch)
+- [x] Visual comparison: side-by-side with current map page for evaluation
 
 ## What we're evaluating
 
