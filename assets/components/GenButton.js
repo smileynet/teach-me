@@ -1,47 +1,42 @@
 import { h } from 'preact';
+import { useState } from 'preact/hooks';
 import htm from 'htm';
 import { getTopicState, setTopicStatus, setTopicProgress } from './store.js';
+import { createGenerationStream } from '../services/generation.js';
+import { GenerationStream } from './GenerationStream.js';
 
 const html = htm.bind(h);
 
 export function GenButton({ topicId, topicTitle }) {
   const state = getTopicState(topicId);
+  const [stream, setStream] = useState(null);
+
   if (!state) return null;
 
   function handleGenerate() {
+    const s = createGenerationStream(`teach me about ${topicTitle}`);
+    setStream(s);
     setTopicStatus(topicId, 'generating');
     setTopicProgress(topicId, 'Connecting...');
 
-    fetch('/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: `teach me about ${topicTitle}`, mock: false })
-    })
-      .then(r => r.json())
-      .then(data => {
-        const es = new EventSource(data.stream_url);
-
-        es.addEventListener('line', e => {
-          const line = JSON.parse(e.data);
-          if (line.text) setTopicProgress(topicId, line.text);
-        });
-
-        es.addEventListener('done', () => {
-          es.close();
-          setTopicStatus(topicId, 'complete');
-          setTopicProgress(topicId, '');
-        });
-
-        es.addEventListener('error', () => {
-          es.close();
-          setTopicStatus(topicId, 'not-started');
-          setTopicProgress(topicId, 'Generation failed — try again');
-        });
-      })
-      .catch(() => {
+    // Subscribe to stream updates
+    const checkStatus = setInterval(() => {
+      if (s.status.value === 'streaming') {
+        const lastLine = s.lines.value[s.lines.value.length - 1];
+        if (lastLine?.text) setTopicProgress(topicId, lastLine.text);
+      } else if (s.status.value === 'done') {
+        clearInterval(checkStatus);
+        setTopicStatus(topicId, 'complete');
+        setTopicProgress(topicId, '');
+        setTimeout(() => location.reload(), 1500);
+      } else if (s.status.value === 'error') {
+        clearInterval(checkStatus);
         setTopicStatus(topicId, 'not-started');
-        setTopicProgress(topicId, 'Could not connect to server');
-      });
+        setTopicProgress(topicId, s.error.value || 'Generation failed');
+      }
+    }, 200);
+
+    s.start();
   }
 
   if (state.status.value === 'not-started') {
