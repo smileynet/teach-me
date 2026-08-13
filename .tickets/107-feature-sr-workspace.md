@@ -2,7 +2,7 @@
 id: "107"
 title: "SR tools: support workspace/ directory for questions and reviews"
 type: feature
-status: open
+status: in_progress
 priority: high
 blocked_by: []
 work_order: 3
