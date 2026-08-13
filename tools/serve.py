@@ -2,10 +2,10 @@
 Minimal generation server — spawns subprocess, streams stdout via SSE.
 
 Usage:
-    cd teach-me && python tools/serve.py [--port 8787]
+    cd teach-me && python tools/serve.py [--port 8787] [--workspace PATH] [--lan]
 
 Endpoints:
-    GET  /                          — static files from project root
+    GET  /                          — static files from workspace root
     POST /api/generate              — start generation, returns {id, stream_url}
     GET  /api/generate/{id}/stream  — SSE stream of subprocess output
     POST /api/generate/{id}/cancel  — cancel a running generation
@@ -93,10 +93,54 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 # Add tools/ to import path for map_parser
 sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 
-# Workspace: serve from workspace/ if it exists, else examples/iceberg-workspace/ for demo
-WORKSPACE = PROJECT_ROOT / "workspace"
-if not WORKSPACE.exists():
-    WORKSPACE = PROJECT_ROOT / "examples" / "iceberg-workspace"
+# ---------------------------------------------------------------------------
+# Arg parsing (early — needed before app mounts)
+# ---------------------------------------------------------------------------
+
+_KNOWN_FLAGS = {"--port", "--lan", "--workspace"}
+
+
+def _parse_args() -> tuple[str, int, Path]:
+    """Parse CLI args, return (host, port, workspace_path). Warns on unknown flags."""
+    host = "127.0.0.1"
+    port = 8787
+    workspace: Path | None = None
+    i = 1
+    while i < len(sys.argv):
+        arg = sys.argv[i]
+        if arg == "--lan":
+            host = "0.0.0.0"
+        elif arg == "--port" and i + 1 < len(sys.argv):
+            port = int(sys.argv[i + 1])
+            i += 1
+        elif arg == "--workspace" and i + 1 < len(sys.argv):
+            workspace = Path(sys.argv[i + 1])
+            i += 1
+        elif arg.startswith("--"):
+            print(f"⚠ Unknown flag: {arg} (known: {', '.join(sorted(_KNOWN_FLAGS))})")
+            sys.exit(1)
+        i += 1
+
+    # Resolve workspace
+    if workspace is not None:
+        # Resolve relative to cwd, not project root
+        resolved = Path.cwd() / workspace if not workspace.is_absolute() else workspace
+        if not resolved.exists():
+            # Try relative to project root
+            resolved = PROJECT_ROOT / workspace
+        if not resolved.exists():
+            print(f"✗ Workspace not found: {workspace}")
+            sys.exit(1)
+        ws = resolved
+    elif (PROJECT_ROOT / "workspace").exists():
+        ws = PROJECT_ROOT / "workspace"
+    else:
+        ws = PROJECT_ROOT / "examples" / "iceberg-workspace"
+
+    return host, port, ws
+
+
+_HOST, _PORT, WORKSPACE = _parse_args()
 
 MAPS_DIR = WORKSPACE / "maps"
 if not MAPS_DIR.exists():
@@ -396,7 +440,5 @@ app.mount("/", StaticFiles(directory=str(WORKSPACE), html=True), name="workspace
 if __name__ == "__main__":
     import uvicorn
 
-    port = int(sys.argv[sys.argv.index("--port") + 1]) if "--port" in sys.argv else 8787
-    host = "0.0.0.0" if "--lan" in sys.argv else "127.0.0.1"
-    print(f"Serving teach-me at http://{host}:{port}")
-    uvicorn.run(app, host=host, port=port, log_level="info")
+    print(f"Serving teach-me at http://{_HOST}:{_PORT} (workspace: {WORKSPACE.name})")
+    uvicorn.run(app, host=_HOST, port=_PORT, log_level="info")

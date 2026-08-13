@@ -39,9 +39,9 @@ if [ -n "$latest" ]; then xdg-open "$latest" 2>/dev/null || open "$latest"; else
 """
 
 [tasks.serve]
-description = "Start generation server (localhost:8787, or --lan for network access)"
+description = "Start generation server. Usage: mise run serve -- [--workspace PATH] [--lan]"
 depends = ["setup"]
-run = "python tools/serve.py"
+run = "python tools/serve.py \"$@\""
 
 [tasks."serve:dev"]
 description = "Start server with auto-reload on code changes"
@@ -49,9 +49,9 @@ depends = ["setup"]
 run = "uvicorn tools.serve:app --host 127.0.0.1 --port 8787 --reload --reload-dir tools"
 
 [tasks."serve:lan"]
-description = "Start server accessible on LAN (192.168.x.x:8787)"
+description = "Start server on LAN. Usage: mise run serve:lan -- [--workspace PATH]"
 depends = ["setup"]
-run = "python tools/serve.py --lan"
+run = "python tools/serve.py --lan \"$@\""
 
 [tasks.init-workspace]
 description = "Create a fresh learning workspace (workspace/)"

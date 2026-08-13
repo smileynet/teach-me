@@ -62,6 +62,30 @@ print(os.path.relpath('$ASSETS_ABS', '$WORKSPACE'))
   ln -s "$REL_PATH" "$WORKSPACE/assets"
 fi
 
+# Generate placeholder index page so the workspace is immediately browsable
+if [ ! -f "$WORKSPACE/lessons/index.html" ]; then
+  WORKSPACE_NAME=$(basename "$WORKSPACE")
+  cat > "$WORKSPACE/lessons/index.html" <<EOF
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lessons — $WORKSPACE_NAME</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <main class="lesson-container">
+    <h1>📚 $WORKSPACE_NAME</h1>
+    <p>No lessons yet. Generate a topic map to get started.</p>
+    <p><em>Run the teach skill or <code>mise run map:generate</code> to create your first map.</em></p>
+  </main>
+  <script src="../assets/lesson-actions.js" data-domain="$WORKSPACE_NAME"></script>
+</body>
+</html>
+EOF
+fi
+
 echo "✓ Workspace ready at: $WORKSPACE"
 echo ""
 echo "Next steps:"
