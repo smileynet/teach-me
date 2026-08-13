@@ -151,32 +151,32 @@
 <text x="135" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="var(--svg-primary)" font-weight="600">COPY-ON-WRITE</text>
 
 <rect x="30" y="45" width="90" height="35" rx="4" fill="var(--svg-error-fill)" stroke="var(--svg-error)" stroke-width="1"/>
-<text x="75" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11">Old file (1M rows)</text>
+<text x="75" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-error-text)">Old file (1M rows)</text>
 
 <text x="135" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16">→</text>
 
 <rect x="150" y="45" width="95" height="35" rx="4" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="1"/>
-<text x="197" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11">New file (999K)</text>
+<text x="197" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-success-text)">New file (999K)</text>
 
-<text x="135" y="100" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-success-text)">Write: Rewrite entire file</text>
+<text x="135" y="100" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-warning)">Write: Rewrite entire file</text>
 <text x="135" y="115" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-success)">Read: Fast (clean files)</text>
-<text x="135" y="145" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-success-text)">Best: read-heavy tables</text>
+<text x="135" y="145" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-text)">Best: read-heavy tables</text>
 
 <!-- MOR side -->
 <rect x="280" y="10" width="250" height="160" rx="6" fill="none" stroke="var(--svg-warning)" stroke-width="1.5" stroke-dasharray="4"/>
 <text x="405" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="var(--svg-warning)" font-weight="600">MERGE-ON-READ</text>
 
 <rect x="300" y="45" width="90" height="35" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1"/>
-<text x="345" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11">Data file (kept)</text>
+<text x="345" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-primary-text)">Data file (kept)</text>
 
 <text x="400" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14">+</text>
 
 <rect x="415" y="45" width="95" height="35" rx="4" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="1"/>
-<text x="462" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11">Delete file (tiny)</text>
+<text x="462" y="67" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-warning-text)">Delete file (tiny)</text>
 
 <text x="405" y="100" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-success)">Write: Fast (small file)</text>
-<text x="405" y="115" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-warning-text)">Read: Merge at scan time</text>
-<text x="405" y="145" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-warning-text)">Best: write-heavy tables</text>
+<text x="405" y="115" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-warning)">Read: Merge at scan time</text>
+<text x="405" y="145" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-text)">Best: write-heavy tables</text>
 </svg>
 
 <div class="callout">
