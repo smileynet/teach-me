@@ -6,14 +6,7 @@ Learn any topic through research-backed lessons, interactive diagrams, and space
 
 You tell the agent what you want to learn. It researches the domain from real sources, generates interactive HTML lessons with diagrams you can open in any browser, quizzes you on understanding (not recall), and schedules reviews so knowledge sticks long-term.
 
-| When I'm... | I want to... | So I can... |
-|-------------|-------------|-------------|
-| Curious about a new domain | Say what I want to learn | Get structured lessons without hunting for resources |
-| Reading a generated lesson | See visual diagrams and examples | Build mental models, not just memorize facts |
-| Finishing a lesson | Test my understanding | Know what I actually grasped vs what I just read |
-| Coming back after a few days | Review what's fading | Retain knowledge without re-reading entire lessons |
-| Stuck on a concept | Say "I don't understand" | Get a different explanation that actually lands |
-| Wanting to go deeper | Explore the topic map | See what connects to what and choose my path |
+You name a topic. The agent researches it, breaks it into a map of subtopics, and generates lessons one at a time. Each lesson comes with a reference doc for quick lookup, a quiz that asks you to explain concepts (not recite definitions), and spaced repetition cards that surface again when you're about to forget. If something doesn't land, say so — it'll re-explain differently.
 
 ## Quick start
 
