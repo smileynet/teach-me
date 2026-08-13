@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teach Me — Example Workspaces</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    body { max-width: 800px; margin: 0 auto; padding: 2rem; }
+    h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .subtitle { color: var(--text-muted); font-size: 1rem; margin-bottom: 2rem; line-height: 1.5; }
+    .workspace-grid { display: flex; flex-direction: column; gap: 1rem; }
+    .workspace-card {
+      display: block; padding: 1.25rem; background: var(--bg-elevated);
+      border: 1px solid var(--border); border-radius: 10px;
+      text-decoration: none; color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .workspace-card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(203, 166, 247, 0.1); }
+    .workspace-card h2 { font-size: 1.1rem; margin: 0 0 0.4rem; }
+    .workspace-card p { font-size: 0.85rem; color: var(--text-muted); margin: 0 0 0.3rem; line-height: 1.4; }
+    .workspace-card .meta { font-size: 0.75rem; color: var(--text-faint); }
+    .cta { margin-top: 2.5rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); }
+    .cta h3 { margin: 0 0 0.5rem; font-size: 1rem; }
+    .cta p { font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.5; }
+    .cta code { background: var(--code-bg); padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <h1>📚 Teach Me</h1>
+  <p class="subtitle">
+    Learn any topic through research-backed lessons, interactive diagrams, and spaced repetition — powered by your AI coding assistant. These are example workspaces showing what the tool produces.
+  </p>
+
+  <div class="workspace-grid">
+    <a href="examples/iceberg-workspace/lessons/index.html" class="workspace-card">
+      <h2>Data Engineering — Apache Iceberg</h2>
+      <p>How data moves from sources through storage layers. Covers metadata trees, ingestion patterns, and change data capture.</p>
+      <span class="meta">2 lessons · 2 quizzes · SR questions</span>
+    </a>
+
+    <a href="examples/godot-gamedev/lessons/godot-gamedev-map.html" class="workspace-card">
+      <h2>Game Dev with Godot</h2>
+      <p>Godot's node/scene architecture, GDScript fundamentals, 2D game mechanics, and scene composition patterns.</p>
+      <span class="meta">2 lessons · 2 quizzes · 8 topics mapped</span>
+    </a>
+
+    <a href="examples/oidc-rust/lessons/oidc-rust-map.html" class="workspace-card">
+      <h2>OIDC in Rust</h2>
+      <p>OpenID Connect auth flows, PKCE, token validation, JWT anatomy — building auth in Rust from first principles.</p>
+      <span class="meta">2 lessons · 2 quizzes · 6 topics mapped</span>
+    </a>
+
+    <a href="examples/workout-fundamentals/lessons/workout-fundamentals-map.html" class="workspace-card">
+      <h2>Workout Fundamentals</h2>
+      <p>Progressive overload, recovery science, and program design — proving the system works for physical domains too.</p>
+      <span class="meta">3 lessons · 3 quizzes · 6 topics mapped</span>
+    </a>
+  </div>
+
+  <div class="cta">
+    <h3>Try it yourself</h3>
+    <p>Clone the repo, run <code>mise run serve</code>, and tell the AI what you want to learn. It researches the domain, generates interactive lessons, and schedules reviews so knowledge sticks.</p>
+    <p style="margin-top: 0.5rem;"><a href="https://github.com/smileynet/teach-me" style="color: var(--link);">github.com/smileynet/teach-me</a></p>
+  </div>
+</body>
+</html>
