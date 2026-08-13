@@ -4,38 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Spike: DAG Cards Layout</title>
+  <link rel="stylesheet" href="../assets/style.css">
   <style>
-    :root {
-      --bg: #0f0f1a;
-      --bg-elevated: #1a1a2e;
-      --text: #e2e8f0;
-      --text-muted: #94a3b8;
-      --border: #334155;
-      --accent: #60a5fa;
-      --success: #4ade80;
-      --warning: #fbbf24;
-    }
-    [data-theme="light"] {
-      --bg: #ffffff;
-      --bg-elevated: #f8fafc;
-      --text: #1e293b;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --accent: #2563eb;
-      --success: #16a34a;
-      --warning: #d97706;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
       padding: 2rem;
       min-height: 100vh;
     }
     h1 {
       font-size: 1.4rem;
       margin-bottom: 0.5rem;
+      color: var(--text);
     }
     .orientation {
       color: var(--text-muted);
@@ -71,7 +49,7 @@
     }
     .topic-card:hover {
       border-color: var(--accent);
-      box-shadow: 0 2px 12px rgba(96, 165, 250, 0.1);
+      box-shadow: 0 2px 12px rgba(203, 166, 247, 0.12);
     }
     .topic-card h3 {
       font-size: 0.95rem;
@@ -80,6 +58,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      color: var(--text);
     }
     .topic-card .why {
       font-size: 0.82rem;
@@ -89,7 +68,7 @@
     }
     .topic-card .prereq-label {
       font-size: 0.75rem;
-      color: var(--text-muted);
+      color: var(--text-faint);
       font-style: italic;
       margin-bottom: 0.6rem;
     }
@@ -98,8 +77,7 @@
       gap: 0.4rem;
       flex-wrap: wrap;
     }
-    .topic-card .actions button,
-    .topic-card .actions a {
+    .topic-card .actions button {
       font-size: 0.75rem;
       padding: 0.3rem 0.6rem;
       border-radius: 4px;
@@ -107,11 +85,13 @@
       background: transparent;
       color: var(--text-muted);
       cursor: pointer;
-      text-decoration: none;
       transition: border-color 0.15s, color 0.15s;
     }
-    .topic-card .actions button:hover,
-    .topic-card .actions a:hover {
+    .topic-card .actions button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .topic-card .actions button.primary {
       border-color: var(--accent);
       color: var(--accent);
     }
@@ -120,37 +100,23 @@
       padding: 0.15rem 0.4rem;
       border-radius: 3px;
       font-weight: 500;
+      white-space: nowrap;
     }
     .badge.not-started {
-      background: rgba(148, 163, 184, 0.15);
+      background: color-mix(in srgb, var(--text-muted) 15%, transparent);
       color: var(--text-muted);
     }
     .badge.in-progress {
-      background: rgba(96, 165, 250, 0.15);
+      background: color-mix(in srgb, var(--accent) 15%, transparent);
       color: var(--accent);
     }
     .badge.complete {
-      background: rgba(74, 222, 128, 0.15);
+      background: color-mix(in srgb, var(--success) 15%, transparent);
       color: var(--success);
-    }
-    .theme-toggle {
-      position: fixed;
-      top: 1rem;
-      right: 1rem;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.4rem 0.7rem;
-      color: var(--text);
-      cursor: pointer;
-      font-size: 0.85rem;
-      z-index: 100;
     }
   </style>
 </head>
 <body>
-  <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
-
   <h1>Blender → Godot Shader Pipeline</h1>
   <p class="orientation">
     You'll learn to create stylized 3D forest environments by combining Blender's shader nodes
@@ -160,13 +126,11 @@
   <div class="dag-container">
     <div class="dag-canvas" id="dag-canvas">
       <svg class="edge-layer" id="edge-layer"></svg>
-      <!-- Cards injected by JS -->
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
   <script>
-    // Topic data
     const topics = [
       {
         id: 'esoteric-ebb-breakdown',
@@ -219,110 +183,129 @@
       }
     ];
 
-    // Build dagre graph
-    const g = new dagre.graphlib.Graph();
-    g.setGraph({ rankdir: 'TB', nodesep: 40, ranksep: 80, marginx: 20, marginy: 20 });
-    g.setDefaultEdgeLabel(() => ({}));
-
     const CARD_WIDTH = 320;
-    const CARD_HEIGHT = 160;
+    const CARD_PAD = 24; // padding around edges
 
-    topics.forEach(t => {
-      g.setNode(t.id, { width: CARD_WIDTH, height: CARD_HEIGHT });
-    });
-
-    topics.forEach(t => {
-      t.prereqs.forEach(prereq => {
-        g.setEdge(prereq, t.id);
-      });
-    });
-
-    dagre.layout(g);
-
-    // Render cards
+    // Phase 1: Render cards offscreen to measure actual heights
     const canvas = document.getElementById('dag-canvas');
-    const graphData = g.graph();
-    canvas.style.width = graphData.width + 'px';
-    canvas.style.height = graphData.height + 'px';
-
-    const svg = document.getElementById('edge-layer');
-    svg.setAttribute('width', graphData.width);
-    svg.setAttribute('height', graphData.height);
+    const cardElements = {};
+    const cardHeights = {};
 
     topics.forEach(t => {
-      const node = g.node(t.id);
-      const x = node.x - CARD_WIDTH / 2;
-      const y = node.y - CARD_HEIGHT / 2;
-
       const prereqLabel = t.prereqs.length === 0
         ? 'Start here'
-        : 'After: ' + t.prereqs.map(p => topics.find(tp => tp.id === p)?.title.split(' ').slice(0, 3).join(' ')).join(', ');
+        : 'After: ' + t.prereqs.map(p => {
+            const parent = topics.find(tp => tp.id === p);
+            return parent ? parent.title.split('(')[0].trim() : p;
+          }).join(', ');
 
-      const statusClass = t.status;
       const statusText = t.status === 'not-started' ? 'not started' : t.status;
 
       const card = document.createElement('div');
       card.className = 'topic-card';
-      card.style.left = x + 'px';
-      card.style.top = y + 'px';
       card.id = 'card-' + t.id;
       card.innerHTML = `
-        <h3>${t.title} <span class="badge ${statusClass}">${statusText}</span></h3>
+        <h3>${t.title} <span class="badge ${t.status}">${statusText}</span></h3>
         <p class="why">${t.why}</p>
         <p class="prereq-label">${prereqLabel}</p>
         <div class="actions">
-          <button>Generate this topic</button>
+          <button class="primary">Generate this topic</button>
           <button>Generate quiz</button>
           <button>Explore subtopics</button>
         </div>
       `;
+      // Temporarily render to measure
+      card.style.visibility = 'hidden';
+      card.style.position = 'absolute';
       canvas.appendChild(card);
+      cardElements[t.id] = card;
     });
 
-    // Draw edges
-    g.edges().forEach(e => {
-      const edge = g.edge(e);
-      const points = edge.points;
+    // Measure after DOM renders
+    requestAnimationFrame(() => {
+      topics.forEach(t => {
+        cardHeights[t.id] = cardElements[t.id].offsetHeight;
+      });
 
-      // Build a smooth bezier path through the points
-      let d = `M ${points[0].x} ${points[0].y}`;
-      if (points.length === 2) {
-        d += ` L ${points[1].x} ${points[1].y}`;
-      } else if (points.length >= 3) {
-        for (let i = 1; i < points.length - 1; i++) {
-          const cp = points[i];
-          const next = points[i + 1];
-          d += ` Q ${cp.x} ${cp.y} ${(cp.x + next.x) / 2} ${(cp.y + next.y) / 2}`;
+      // Phase 2: Build dagre graph with measured heights
+      const g = new dagre.graphlib.Graph();
+      g.setGraph({
+        rankdir: 'TB',
+        nodesep: 50,
+        ranksep: 60,
+        marginx: CARD_PAD,
+        marginy: CARD_PAD
+      });
+      g.setDefaultEdgeLabel(() => ({}));
+
+      topics.forEach(t => {
+        g.setNode(t.id, { width: CARD_WIDTH, height: cardHeights[t.id] });
+      });
+
+      topics.forEach(t => {
+        t.prereqs.forEach(prereq => {
+          g.setEdge(prereq, t.id);
+        });
+      });
+
+      dagre.layout(g);
+
+      // Phase 3: Position cards at computed locations
+      const graphData = g.graph();
+      canvas.style.width = graphData.width + 'px';
+      canvas.style.height = graphData.height + 'px';
+
+      topics.forEach(t => {
+        const node = g.node(t.id);
+        const card = cardElements[t.id];
+        const h = cardHeights[t.id];
+        card.style.left = (node.x - CARD_WIDTH / 2) + 'px';
+        card.style.top = (node.y - h / 2) + 'px';
+        card.style.visibility = 'visible';
+      });
+
+      // Phase 4: Draw edges
+      const svg = document.getElementById('edge-layer');
+      svg.setAttribute('width', graphData.width);
+      svg.setAttribute('height', graphData.height);
+
+      // Arrowhead marker
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      defs.innerHTML = `
+        <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="var(--text-faint)" />
+        </marker>
+      `;
+      svg.appendChild(defs);
+
+      g.edges().forEach(e => {
+        const edge = g.edge(e);
+        const points = edge.points;
+
+        let d = `M ${points[0].x} ${points[0].y}`;
+        if (points.length === 2) {
+          d += ` L ${points[1].x} ${points[1].y}`;
+        } else {
+          // Smooth curve through control points
+          for (let i = 1; i < points.length - 1; i++) {
+            const cp = points[i];
+            const next = points[i + 1];
+            d += ` Q ${cp.x} ${cp.y} ${(cp.x + next.x) / 2} ${(cp.y + next.y) / 2}`;
+          }
+          const last = points[points.length - 1];
+          d += ` L ${last.x} ${last.y}`;
         }
-        const last = points[points.length - 1];
-        d += ` L ${last.x} ${last.y}`;
-      }
 
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', d);
-      path.setAttribute('fill', 'none');
-      path.setAttribute('stroke', 'var(--border)');
-      path.setAttribute('stroke-width', '2');
-      path.setAttribute('marker-end', 'url(#arrowhead)');
-      svg.appendChild(path);
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', 'var(--border)');
+        path.setAttribute('stroke-width', '1.5');
+        path.setAttribute('marker-end', 'url(#arrowhead)');
+        svg.appendChild(path);
+      });
     });
-
-    // Add arrowhead marker
-    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    defs.innerHTML = `
-      <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-        <polygon points="0 0, 10 3.5, 0 7" fill="var(--text-muted)" />
-      </marker>
-    `;
-    svg.prepend(defs);
-
-    // Theme toggle
-    function toggleTheme() {
-      const html = document.documentElement;
-      const current = html.getAttribute('data-theme');
-      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
-      document.querySelector('.theme-toggle').textContent = current === 'dark' ? '☀️' : '🌙';
-    }
   </script>
+  <script src="../assets/theme-toggle.js"></script>
 </body>
 </html>
