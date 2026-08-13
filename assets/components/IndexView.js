@@ -23,7 +23,7 @@ function ProgressRing({ complete, total, size = 48 }) {
   `;
 }
 
-function DomainCard({ domain }) {
+function DomainCard({ domain, mission }) {
   const mapUrl = `${domain.domain}-map.html`;
   const remaining = domain.total - domain.complete;
 
@@ -35,6 +35,17 @@ function DomainCard({ domain }) {
       </div>
       <p class="domain-desc">${domain.description}</p>
       <span class="domain-stat">${remaining > 0 ? remaining + ' to explore' : '✓ Complete'}</span>
+      ${mission && mission.why && html`
+        <details class="mission-fold">
+          <summary>Mission</summary>
+          <p class="mission-why">${mission.why}</p>
+          ${mission.criteria && mission.criteria.length > 0 && html`
+            <ul class="mission-criteria">
+              ${mission.criteria.map(c => html`<li>${c}</li>`)}
+            </ul>
+          `}
+        </details>
+      `}
     </a>
   `;
 }
@@ -44,20 +55,9 @@ export function IndexView({ domains, stats, mission }) {
     <div class="index-view">
       <h1>📚 All Lessons</h1>
       <p class="index-meta">${stats.domainCount} domain${stats.domainCount !== 1 ? 's' : ''} · ${stats.topicCount} topics · ${stats.completeCount} complete</p>
-      
-      ${mission && mission.why && html`
-        <div class="mission-block">
-          <p class="mission-why">${mission.why}</p>
-          ${mission.criteria && mission.criteria.length > 0 && html`
-            <ul class="mission-criteria">
-              ${mission.criteria.map(c => html`<li>${c}</li>`)}
-            </ul>
-          `}
-        </div>
-      `}
 
       <div class="domain-grid">
-        ${domains.map(d => html`<${DomainCard} domain=${d} key=${d.domain} />`)}
+        ${domains.map(d => html`<${DomainCard} domain=${d} mission=${mission} key=${d.domain} />`)}
       </div>
     </div>
   `;
