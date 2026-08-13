@@ -40,6 +40,33 @@ The current directory is the workspace. State lives in:
 - **Visuals:** Every conceptual section has a diagram. Labels ON the diagram.
 - **Limitations:** Frame as "What to pursue alongside this" — actionable recommendations, not defensive disclaimers.
 
+## Session Start (new learner)
+
+Detection: No workspace with populated MISSION.md found (all contain template placeholders or don't exist).
+
+This is the first-contact flow. The user opened this project in their AI assistant and either said something vague or asked to learn something.
+
+1. **Orient** (one sentence): "This is a teaching workspace — I research topics, write interactive lessons with diagrams, and help you build lasting understanding through quizzes and spaced repetition. What would you like to learn?"
+
+2. **Elicit mission** (conversational):
+   - "What's driving you to learn this?" (grounds everything in a real reason)
+   - "What should you be able to DO after learning this?" (defines success)
+   - "Any constraints — time pressure, prior knowledge, must-cover areas?"
+
+3. **Scaffold** (automatic): Run `tools/init-workspace.sh --path workspace` (or `examples/{slug}` for demos). Write MISSION.md from their answers.
+
+4. **Offer customization** (brief, don't block):
+   - "Before I research, any preferences? Detailed walkthroughs or jump-to-the-point? Lots of diagrams or mostly text?"
+   - Write preferences to `NOTES.md` in the workspace
+   - If they say "just start" — use defaults (direct, diagrams, dark mode)
+
+5. **Mention the experience ahead**:
+   - "I'll research the domain, then break it into a map of 5-7 topics you can explore in any order."
+   - "After a lesson or two, I'll offer Socratic review — you explain concepts back and I probe your understanding. It's how we make knowledge stick."
+   - "The lessons are interactive HTML pages you open in your browser. I generate them, you read and explore, then come back for quizzes or new material."
+
+6. **Begin**: Dispatch research subagents → generate MAP.md → offer first topic.
+
 ## Session Start (returning learner)
 
 1. Run `python tools/sr-status.py` — check if cards are due
