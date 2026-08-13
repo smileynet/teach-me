@@ -5,6 +5,7 @@ type: feature
 status: open
 priority: medium
 blocked_by: ["101", "102", "103"]
+work_order: 8
 ---
 
 # Update scaffolds for Preact mount points

@@ -5,6 +5,7 @@ type: feature
 status: open
 priority: low
 blocked_by: ["095"]
+work_order: 6
 ---
 
 # Convert progressive-reveal.js to Preact component

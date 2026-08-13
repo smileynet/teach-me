@@ -5,6 +5,7 @@ type: feature
 status: open
 priority: high
 blocked_by: ["095"]
+work_order: 1
 ---
 
 # Shared SSE generation stream component
