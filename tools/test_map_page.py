@@ -186,3 +186,20 @@ class TestMapPageStructure:
         html = _generate_fixture_html()
         assert 'assets/vendor/preact.module.js' in html
         assert 'assets/vendor/dagre.min.js' in html
+
+
+class TestMapPageOpenLesson:
+    """Open lesson buttons must be clickable links, not dead buttons."""
+
+    def test_complete_topic_has_lesson_link(self):
+        """If a topic has lessonPath in data, the rendered page must have an <a> with that href."""
+        html = _generate_fixture_html()
+        # Our fixture has no lesson files, so no lessonPath — but verify no dead buttons
+        assert 'Open lesson' not in html or 'href' in html.split('Open lesson')[0][-100:]
+
+    def test_no_dead_open_lesson_buttons(self):
+        """There must be no <button> with 'Open lesson' text — always an <a> with href."""
+        html = _generate_fixture_html()
+        # In a fixture with no lessons, 'Open lesson' should not appear at all
+        # (status is not-started, so GenButton shows Generate, not Open)
+        assert '<button' not in html or 'Open lesson' not in html

@@ -26,7 +26,7 @@ export function TopicCard({ topic, allTopics, position }) {
       <p class="why">${topic.why}</p>
       <p class="prereq-label">${prereqText}</p>
       <div class="actions">
-        <${GenButton} topicId=${topic.id} topicTitle=${topic.title} />
+        <${GenButton} topicId=${topic.id} topicTitle=${topic.title} lessonPath=${topic.lessonPath} />
         <button class="btn">Generate quiz</button>
         <button class="btn">Explore subtopics</button>
       </div>
