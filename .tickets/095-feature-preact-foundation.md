@@ -2,7 +2,7 @@
 id: "095"
 title: "Preact foundation: vendor deps, import map, shared components"
 type: feature
-status: open
+status: done
 priority: high
 blocked_by: []
 ---
