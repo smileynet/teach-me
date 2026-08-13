@@ -2,7 +2,7 @@
 id: "101"
 title: "Convert lesson-actions.js to Preact component"
 type: feature
-status: open
+status: done
 priority: medium
 blocked_by: ["095"]
 work_order: 3
