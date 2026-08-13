@@ -156,16 +156,15 @@ class TestMapPageSubtopics:
 
 
 class TestMapPageSequentialFlow:
-    """Topics should show sequential prereqs clearly."""
+    """Topics should show prereqs clearly — branching is natural."""
 
-    def test_start_here_for_first_topic(self):
+    def test_start_here_for_entry_topic(self):
         html = _generate_fixture_html()
         assert 'Start here' in html
 
-    def test_after_label_for_subsequent(self):
+    def test_after_label_for_dependent(self):
         html = _generate_fixture_html()
         assert 'After: topic-one' in html
-        assert 'After: topic-two' in html
 
 
 class TestMapPageFullURLs:

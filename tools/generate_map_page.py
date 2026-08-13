@@ -343,7 +343,7 @@ def generate_page(map_data: dict, svg: str, index_link: str = "index.html", maps
             items += f'<button class="leads-to-btn" data-domain="{slug}">{label}{desc_html}</button>'
         leads_html = f"""
     <div class="leads-to">
-      <h2>🚀 Where This Leads</h2>
+      <h2>Where This Leads</h2>
       <p>After this domain, these open up:</p>
       <div class="leads-to-grid">{items}</div>
     </div>"""
