@@ -147,6 +147,17 @@
     .mask-group.revealed { cursor: default; }
 
   </style>
+<script type="importmap">
+  {
+    "imports": {
+      "preact": "../assets/vendor/preact.module.js",
+      "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+      "@preact/signals": "../assets/vendor/preact-signals.module.js",
+      "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+      "htm": "../assets/vendor/htm.module.js"
+    }
+  }
+  </script>
 </head>
 <body>
 
@@ -345,7 +356,9 @@ function showSummary() {
   el.classList.add('show');
 }
 </script>
-<script src="../../assets/theme-toggle.js"></script>
 
+<script type="module">
+  import '../assets/components/LessonActions.js';
+  </script>
 </body>
 </html>

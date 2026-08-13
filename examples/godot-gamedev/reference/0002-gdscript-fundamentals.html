@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reference: GDScript Fundamentals</title>
   <link rel="stylesheet" href="../assets/style.css">
+<script type="importmap">
+  {
+    "imports": {
+      "preact": "../assets/vendor/preact.module.js",
+      "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+      "@preact/signals": "../assets/vendor/preact-signals.module.js",
+      "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+      "htm": "../assets/vendor/htm.module.js"
+    }
+  }
+  </script>
 </head>
 <body>
 
@@ -75,6 +86,8 @@ if dir.x != 0:
   <li>Never combine both on same variable (onready overwrites export)</li>
 </ul>
 
-<script src="../assets/theme-toggle.js"></script>
+<script type="module">
+  import '../assets/components/LessonActions.js';
+  </script>
 </body>
 </html>

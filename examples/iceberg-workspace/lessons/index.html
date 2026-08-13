@@ -1,198 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>All Lessons — teach-me</title>
   <link rel="stylesheet" href="../assets/style.css">
   <style>
-    .index-container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 1.5rem;
-    }
-    .index-header {
-      margin-bottom: 2rem;
-    }
-    .index-header h1 {
-      margin-bottom: 0.25rem;
-    }
-    .index-meta {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-    }
-    .domain-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1rem;
-    }
+
+    body { max-width: 900px; margin: 0 auto; padding: 2rem; }
+    .index-view h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
+    .index-meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .mission-fold { margin-top: 0.75rem; border-top: 1px solid var(--border); padding-top: 0.5rem; }
+    .mission-fold summary { font-size: 0.8rem; color: var(--text-faint); cursor: pointer; }
+    .mission-fold summary:hover { color: var(--text-muted); }
+    .mission-why { font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; margin: 0.5rem 0; }
+    .mission-criteria { padding-left: 1.2rem; margin: 0; }
+    .mission-criteria li { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
+    .domain-grid { display: flex; flex-direction: column; gap: 1rem; }
     .domain-card {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.25rem;
-      background: var(--bg-elevated);
-      text-decoration: none;
-      color: inherit;
-      transition: border-color 0.2s, transform 0.2s;
-      display: block;
+      display: block; padding: 1.25rem; background: var(--bg-elevated);
+      border: 1px solid var(--border); border-radius: 10px; text-decoration: none;
+      color: var(--text); transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .domain-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 0.5rem;
-    }
-    .card-header h2 {
-      font-size: 1rem;
-      margin: 0;
-      color: var(--text);
-    }
-    .progress-ring {
-      flex-shrink: 0;
-    }
-    .card-desc {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin: 0.25rem 0;
-      line-height: 1.4;
-    }
-    .card-status {
-      font-size: 0.8rem;
-      color: var(--text-faint, #888);
-      margin: 0.5rem 0 0;
-    }
-    .empty-state {
-      text-align: center;
-      padding: 3rem;
-      color: var(--text-muted);
-    }
-    .empty-state p {
-      margin: 0.5rem 0;
-    }
-    .empty-state code {
-      background: var(--code-bg);
-      padding: 0.2rem 0.5rem;
-      border-radius: 3px;
-      font-size: 0.85rem;
-    }
+    .domain-card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(203, 166, 247, 0.1); }
+    .domain-card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
+    .domain-card-header h2 { font-size: 1.1rem; margin: 0; }
+    .domain-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
+    .domain-stat { font-size: 0.8rem; color: var(--text-faint); }
+    .progress-ring { flex-shrink: 0; }
+
   </style>
+  <script type="importmap">
+{
+  "imports": {
+    "preact": "../assets/vendor/preact.module.js",
+    "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+    "@preact/signals": "../assets/vendor/preact-signals.module.js",
+    "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+    "htm": "../assets/vendor/htm.module.js"
+  }
+}
+  </script>
 </head>
 <body>
+  <script type="application/json" id="page-data">{"domains": [{"domain": "modern-data-analytics-stacks", "title": "Modern Data Analytics Stacks", "description": "Every organization sits on operational data that only becomes useful when it flows through a deliberate pipeline: captured, stored in queryable formats, transformed into business concepts, orchestrated reliably, and served to the people making decisions.", "total": 7, "complete": 2, "inProgress": 0}], "mission": {"title": "Mission: Apache Iceberg Data Lakehouse on AWS", "why": null, "criteria": []}, "stats": {"domainCount": 1, "topicCount": 7, "completeCount": 2}}</script>
+  
+  <div id="app"></div>
+  
 
-<div class="index-container">
-  <div class="index-header">
-    <h1>📚 All Lessons</h1>
-    <p class="index-meta">3 domains · 24 topics · 0 complete</p>
-  </div>
+  <script type="module">
 
-  <div class="domain-grid">
-    
-    <a href="godot-gamedev-map.html" class="domain-card" data-domain="godot">
-      <div class="card-header">
-        <svg width="48" height="48" viewBox="0 0 48 48" class="progress-ring">
-      <circle cx="24.0" cy="24.0" r="21.0" fill="none" stroke="var(--border)" stroke-width="4"/>
-      <circle cx="24.0" cy="24.0" r="21.0" fill="none" stroke="#6b7280" stroke-width="4"
-        stroke-dasharray="0.0 131.9" stroke-linecap="round"
-        transform="rotate(-90 24.0 24.0)"/>
-      <text x="24.0" y="24.0" text-anchor="middle" dominant-baseline="central"
-        font-size="12" font-weight="600" fill="#6b7280">0/8</text>
-    </svg>
-        <h2>Game Development with Godot</h2>
-      </div>
-      <p class="card-desc">Godot is a free, open-source game engine whose node/scene architecture makes it unusually learnable — every game object is a composable tree of small, focused nodes.</p>
-      <p class="card-status">8 to explore</p>
-    </a>
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { IndexView } from '../assets/components/IndexView.js';
 
-    <a href="modern-data-analytics-stacks-map.html" class="domain-card" data-domain="data-analytics">
-      <div class="card-header">
-        <svg width="48" height="48" viewBox="0 0 48 48" class="progress-ring">
-      <circle cx="24.0" cy="24.0" r="21.0" fill="none" stroke="var(--border)" stroke-width="4"/>
-      <circle cx="24.0" cy="24.0" r="21.0" fill="none" stroke="#6b7280" stroke-width="4"
-        stroke-dasharray="0.0 131.9" stroke-linecap="round"
-        transform="rotate(-90 24.0 24.0)"/>
-      <text x="24.0" y="24.0" text-anchor="middle" dominant-baseline="central"
-        font-size="12" font-weight="600" fill="#6b7280">0/7</text>
-    </svg>
-        <h2>Modern Data Analytics Stacks</h2>
-      </div>
-      <p class="card-desc">Every organization sits on operational data that only becomes useful when it flows through a deliberate pipeline: captured, stored in queryable formats, transformed into business concepts, orchestrated reliably, and served to the people making decisions.</p>
-      <p class="card-status">1 in progress · 6 to explore</p>
-    </a>
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
 
-    <a href="web-application-security-map.html" class="domain-card" data-domain="web-security">
-      <div class="card-header">
-        <svg width="48" height="48" viewBox="0 0 48 48" class="progress-ring">
-      <circle cx="24.0" cy="24.0" r="21.0" fill="none" stroke="var(--border)" stroke-width="4"/>
-      <circle cx="24.0" cy="24.0" r="21.0" fill="none" stroke="#6b7280" stroke-width="4"
-        stroke-dasharray="0.0 131.9" stroke-linecap="round"
-        transform="rotate(-90 24.0 24.0)"/>
-      <text x="24.0" y="24.0" text-anchor="middle" dominant-baseline="central"
-        font-size="12" font-weight="600" fill="#6b7280">0/9</text>
-    </svg>
-        <h2>Web Application Security</h2>
-      </div>
-      <p class="card-desc">Every web app you ship is exposed to the entire internet the moment it goes live — bots probe it within hours.</p>
-      <p class="card-status">9 to explore</p>
-    </a>
-  </div>
-</div>
+    render(
+      html`<${IndexView} domains=${data.domains} stats=${data.stats} mission=${data.mission} />`,
+      document.getElementById('app')
+    );
 
-<script>
-(async function updateProgress() {
-  let totalComplete = 0, totalTopics = 0;
-  const cards = document.querySelectorAll('.domain-card[data-domain]');
-  for (const card of cards) {
-    const domain = card.dataset.domain;
-    try {
-      const res = await fetch(`/api/map/${domain}`);
-      if (!res.ok) continue;
-      const data = await res.json();
-      const total = data.topic_count;
-      const complete = data.topics.filter(t => t.status === 'complete').length;
-      const inProgress = data.topics.filter(t => t.status === 'in-progress').length;
-      totalTopics += total;
-      totalComplete += complete;
-
-      // Update ring
-      const ring = card.querySelector('.progress-ring');
-      if (ring) {
-        const r = 21;
-        const circ = 2 * Math.PI * r;
-        const filled = (complete / total) * circ;
-        const progressCircle = ring.querySelectorAll('circle')[1];
-        const text = ring.querySelector('text');
-        if (progressCircle) {
-          progressCircle.setAttribute('stroke-dasharray', `${filled} ${circ}`);
-          progressCircle.setAttribute('stroke', complete > 0 ? '#16a34a' : '#6b7280');
-        }
-        if (text) {
-          text.textContent = `${complete}/${total}`;
-          if (complete > 0) text.setAttribute('fill', '#16a34a');
-        }
-      }
-
-      // Update status text
-      const status = card.querySelector('.card-status');
-      if (status) {
-        const parts = [];
-        if (complete > 0) parts.push(`${complete} complete`);
-        if (inProgress > 0) parts.push(`${inProgress} in progress`);
-        const remaining = total - complete - inProgress;
-        if (remaining > 0) parts.push(`${remaining} to explore`);
-        status.textContent = parts.join(' · ');
-      }
-    } catch(e) {}
-  }
-
-  // Update header meta
-  const meta = document.querySelector('.index-meta');
-  if (meta) meta.textContent = `${cards.length} domains · ${totalTopics} topics · ${totalComplete} complete`;
-})();
-</script>
-<script src="../assets/theme-toggle.js"></script>
+  </script>
 </body>
 </html>
