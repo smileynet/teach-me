@@ -835,6 +835,29 @@ def generate_preact_map_page(map_data: dict, output_path: Path) -> str:
     .badge.complete {{ background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }}
     .badge.in-progress {{ background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }}
     .gen-progress {{ font-size: 0.75rem; color: var(--warning); margin-top: 0.4rem; font-family: monospace; }}
+    .gen-stream {{ margin-top: 0.5rem; }}
+    .gen-stream-header {{ font-size: 0.8rem; margin-bottom: 0.3rem; }}
+    .gen-status.connecting {{ color: var(--text-muted); }}
+    .gen-status.streaming {{ color: var(--warning); }}
+    .gen-status.done {{ color: var(--success); }}
+    .gen-status.error {{ color: var(--error); }}
+    .gen-stream-output {{
+      background: var(--code-bg); padding: 0.5rem; border-radius: 4px;
+      font-size: 0.72rem; font-family: monospace; max-height: 150px;
+      overflow-y: auto; line-height: 1.4;
+    }}
+    .gen-stream-output .line {{ padding: 1px 0; }}
+    .gen-stream-output .phase-tool {{ color: var(--accent); }}
+    .gen-stream-output .phase-writing {{ color: var(--success); }}
+    .gen-modal-overlay {{
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex;
+      align-items: center; justify-content: center; z-index: 1000;
+    }}
+    .gen-modal {{
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1.5rem; max-width: 550px; width: 90%;
+    }}
+    .gen-modal-actions {{ display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: flex-end; }}
     .leads-to {{ margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); }}
     .leads-to-grid {{ display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }}
     .leads-to-btn {{
