@@ -54,7 +54,10 @@ export function IndexView({ domains, stats, mission }) {
   return html`
     <div class="index-view">
       <h1>📚 All Lessons</h1>
-      <p class="index-meta">${stats.domainCount} domain${stats.domainCount !== 1 ? 's' : ''} · ${stats.topicCount} topics · ${stats.completeCount} complete</p>
+      <p class="index-meta">
+        ${stats.domainCount} domain${stats.domainCount !== 1 ? 's' : ''} · ${stats.topicCount} topics · ${stats.completeCount} complete
+        ${' · '}<a href="resources.html" class="resources-link">Sources</a>
+      </p>
 
       <div class="domain-grid">
         ${domains.map(d => html`<${DomainCard} domain=${d} mission=${mission} key=${d.domain} />`)}
