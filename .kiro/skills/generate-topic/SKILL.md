@@ -88,6 +88,23 @@ The pipeline is idempotent. Running against a topic that already has all artifac
 
 This is how you audit existing content: `generate-topic --workspace X --topic Y` should pass silently if everything is correct.
 
+## Multiple Topics
+
+**Topics generate sequentially, one at a time.** Each topic completes the full 4-phase pipeline before the next begins. This ensures:
+
+1. **No dilution:** Each topic gets full research depth and verification attention
+2. **Prereq awareness:** Later topics can reference what earlier ones established
+3. **Early failure detection:** A broken topic blocks further generation (don't accumulate debt)
+4. **Quality over throughput:** 2 excellent topics > 5 mediocre ones
+
+The parallel fan-out happens WITHIN each topic (research agents, verify agents) — never ACROSS topics. If you need 3 topics generated, that's 3 sequential runs of the full pipeline, not one run with 3 topics batched.
+
+```
+Topic 1: research (parallel) → generate → post-process (parallel) → verify (parallel) → ✓ complete
+Topic 2: research (parallel) → generate → post-process (parallel) → verify (parallel) → ✓ complete
+Topic 3: research (parallel) → generate → post-process (parallel) → verify (parallel) → ✓ complete
+```
+
 ## Does NOT
 
 - Replace the teach skill (teach is the creative engine; this is the assembly line)

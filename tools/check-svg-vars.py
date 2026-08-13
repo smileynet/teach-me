@@ -62,7 +62,10 @@ def main():
         ws = Path(args.workspace)
         if not ws.is_absolute():
             ws = Path.cwd() / ws
-        files.extend(sorted(ws.glob("lessons/*.html")))
+        # Check lesson files only (map pages use Graphviz SVG which can't use CSS vars)
+        for f in sorted(ws.glob("lessons/*.html")):
+            if not f.stem.endswith("-map"):
+                files.append(f)
     if args.files:
         files.extend(Path(f) for f in args.files)
 

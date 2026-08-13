@@ -15,8 +15,12 @@ import sys
 from pathlib import Path
 
 
-def find_lesson(workspace: Path, topic_slug: str) -> Path | None:
-    """Find a lesson file matching the topic slug."""
+def find_lesson(workspace: Path, topic_slug: str, lesson_file: str | None = None) -> Path | None:
+    """Find a lesson file matching the topic slug or explicit filename."""
+    if lesson_file:
+        path = workspace / "lessons" / lesson_file
+        if path.exists():
+            return path
     for f in sorted(workspace.glob("lessons/*.html")):
         if topic_slug in f.stem and not f.stem.endswith("-map"):
             return f
@@ -92,12 +96,12 @@ def check_sr_questions(workspace: Path, topic_slug: str) -> dict:
     return {"count": count, "has_questions": count > 0}
 
 
-def check_topic(workspace: Path, topic_slug: str) -> dict:
+def check_topic(workspace: Path, topic_slug: str, lesson_file: str | None = None) -> dict:
     """Run all checks for one topic."""
     result = {"topic": topic_slug, "artifacts": {}, "features": {}, "status": "pass"}
 
     # Artifact existence
-    lesson = find_lesson(workspace, topic_slug)
+    lesson = find_lesson(workspace, topic_slug, lesson_file)
     reference = find_reference(workspace, topic_slug)
     quiz = find_quiz(workspace, topic_slug)
 
@@ -136,20 +140,28 @@ def check_topic(workspace: Path, topic_slug: str) -> dict:
     return result
 
 
-def get_topics_from_map(workspace: Path) -> list[str]:
-    """Extract topic slugs from MAP.md files in the workspace."""
+def get_topics_from_map(workspace: Path) -> list[dict]:
+    """Extract topic slugs and metadata from MAP.md files in the workspace."""
     topics = []
     for map_file in workspace.glob("maps/*.MAP.md"):
         content = map_file.read_text(encoding="utf-8")
         # Find ### slug lines
         for match in re.finditer(r'^### (\S+)', content, re.MULTILINE):
             slug = match.group(1)
-            # Only include topics marked complete
-            # Find the status line after this heading
+            # Find the status and lesson_file after this heading
             rest = content[match.end():]
-            status_match = re.search(r'\*\*status:\*\*\s*(\S+)', rest)
+            # Stop at next ### or end
+            next_heading = re.search(r'^### ', rest, re.MULTILINE)
+            section = rest[:next_heading.start()] if next_heading else rest
+
+            status_match = re.search(r'\*\*status:\*\*\s*(\S+)', section)
+            lesson_file_match = re.search(r'\*\*lesson_file:\*\*\s*(\S+)', section)
+
             if status_match and status_match.group(1) == "complete":
-                topics.append(slug)
+                topics.append({
+                    "slug": slug,
+                    "lesson_file": lesson_file_match.group(1) if lesson_file_match else None,
+                })
     return topics
 
 
@@ -166,7 +178,7 @@ def main():
         workspace = Path.cwd() / workspace
 
     if args.topic:
-        topics = [args.topic]
+        topics = [{"slug": args.topic, "lesson_file": None}]
     elif args.all:
         topics = get_topics_from_map(workspace)
         if not topics:
@@ -177,8 +189,8 @@ def main():
         sys.exit(1)
 
     results = []
-    for slug in topics:
-        result = check_topic(workspace, slug)
+    for t in topics:
+        result = check_topic(workspace, t["slug"], t.get("lesson_file"))
         results.append(result)
 
     if args.json:

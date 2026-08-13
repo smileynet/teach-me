@@ -62,10 +62,19 @@ Produce alongside every lesson. The reference is what the learner pulls up at wo
 
 ## Before Publishing
 
+Pre-flight gate — check BEFORE presenting the lesson to the user:
+
+- [ ] SVG diagram present with `var(--svg-*)` colors (no hardcoded hex)
+- [ ] glossary-data JSON block with 3+ defined terms
+- [ ] 3+ source citations (specific URLs, not generic base paths)
+- [ ] Exercise with `<details>` hint AND criteria-based answer
+- [ ] lesson-actions.js included with correct data attributes
+- [ ] Reference doc written alongside
+
+Full checklist (verify after user accepts):
+
 - [ ] Context at top — why this matters for the mission
-- [ ] At least one diagram for conceptual content
 - [ ] Claims cited or framed as general
-- [ ] Reference doc generated alongside
 - [ ] SR questions generated (3-5, criteria-based)
 - [ ] `mise run sr:check` passes
 - [ ] "What's Next" section present
