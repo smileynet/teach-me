@@ -29,3 +29,11 @@ Quiz page as Preact components — question cards with answer reveal, score trac
 - [ ] Score summary at end
 - [ ] Theme toggle works
 - [ ] Loads offline (vendored deps)
+
+## Context & Sources
+
+- **Pattern:** Data island (questions JSON in page) — see `.scratch/research/python-to-preact-templating.md`
+- **Helper:** `tools/lib/preact_page.py` — `render_page()` with quiz data serialized
+- **Current code:** `tools/generate-quiz-page.py` (217 lines) — produces vanilla HTML quiz from JSONL
+- **Questions format:** `learning-records/questions/<topic>.jsonl` — one JSON object per line with prompt, criteria, source
+- **Components:** New `QuizCard`, `QuizProgress` components in `assets/components/`

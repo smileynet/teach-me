@@ -31,3 +31,11 @@ Spaced repetition quick-check review page as Preact — card flip interaction, q
 - [ ] Completion summary at end
 - [ ] Theme toggle works
 - [ ] Loads offline (vendored deps)
+
+## Context & Sources
+
+- **Pattern:** Data island (due cards JSON in page) — see `.scratch/research/python-to-preact-templating.md`
+- **Helper:** `tools/lib/preact_page.py` — `render_page()` with SR card data
+- **Current code:** `tools/quick-check.py` (397 lines) — generates vanilla HTML review page from due cards
+- **SR engine:** `tools/sm2.py` — SM-2 algorithm, `tools/questions.py` — card/review data model
+- **Components:** New `ReviewCard`, `QualityRating`, `ReviewDeck` in `assets/components/`

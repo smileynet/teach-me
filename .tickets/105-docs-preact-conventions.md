@@ -32,3 +32,12 @@ Document the Preact conventions so the agent (and future developers) know how to
 - [ ] Conventions documented: file naming, import patterns, signal usage, testing
 - [ ] Commands table in AGENTS.md updated
 - [ ] Glossary terms added to CONTEXT.md
+
+## Context & Sources
+
+- **Research:** `.scratch/research/preact-no-build-patterns.md` — project structure, dev workflow
+- **Research:** `.scratch/research/preact-component-library-cdn.md` — individual files, signal stores
+- **Research:** `.scratch/research/testing-preact-no-build.md` — Playwright e2e strategy
+- **Research:** `.scratch/research/asset-management-no-bundler.md` — vendoring, cache busting
+- **Components catalog:** `assets/components/` — all components live here
+- **Existing conventions:** AGENTS.md, `.kiro/skills/teach/SKILL.md`

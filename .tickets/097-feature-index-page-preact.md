@@ -28,3 +28,11 @@ Index page (All Lessons dashboard) as Preact components — domain cards with pr
 - [ ] Links to map pages work
 - [ ] Theme toggle works
 - [ ] Loads offline (vendored deps)
+
+## Context & Sources
+
+- **Pattern:** Data island (Python serializes JSON, Preact reads at runtime) — see `.scratch/research/python-to-preact-templating.md`
+- **Helper:** `tools/lib/preact_page.py` — `render_page()` generates the HTML shell
+- **Components:** `assets/components/` — TopicCard, StatusBadge, store.js patterns to follow
+- **Current code:** `tools/generate_index_page.py` (322 lines) — produces vanilla HTML with progress rings
+- **Import map:** `assets/import-map.json` — resolved relative paths for vendored deps
