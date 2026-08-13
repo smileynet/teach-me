@@ -2,7 +2,7 @@
 id: "100"
 title: "Shared SSE generation stream component"
 type: feature
-status: open
+status: done
 priority: high
 blocked_by: ["095"]
 work_order: 1
