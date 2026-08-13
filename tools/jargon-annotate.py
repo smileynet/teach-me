@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 
 
-def extract_glossary_data(content: str) -> dict:
+def extract_glossary_data(content: str, filename: str = "") -> dict:
     """Extract the glossary-data JSON from the HTML content."""
     match = re.search(
         r'<script\s+type="application/json"\s+id="glossary-data">\s*(\{.*?\})\s*</script>',
@@ -32,7 +32,8 @@ def extract_glossary_data(content: str) -> dict:
         return {}
     try:
         return json.loads(match.group(1))
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
+        print(f"  ⚠ {filename}: malformed glossary-data JSON: {e}", file=sys.stderr)
         return {}
 
 
@@ -116,7 +117,7 @@ def annotate_term(content: str, key: str, body_start: int, body_end: int) -> str
 def annotate_file(path: Path, dry_run: bool = False) -> dict:
     """Annotate all glossary terms in a file. Returns report."""
     content = path.read_text(encoding="utf-8")
-    glossary = extract_glossary_data(content)
+    glossary = extract_glossary_data(content, path.name)
 
     if not glossary:
         return {"file": str(path), "status": "skip", "reason": "no glossary-data block"}
@@ -178,6 +179,7 @@ def main():
     total_annotated = 0
     for f in files:
         if not f.exists():
+            print(f"  ⚠ {f}: file not found (skipped)", file=sys.stderr)
             continue
         result = annotate_file(f, dry_run=args.dry_run)
         if result["status"] == "annotated":

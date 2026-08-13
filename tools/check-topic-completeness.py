@@ -177,6 +177,14 @@ def main():
     if not workspace.is_absolute():
         workspace = Path.cwd() / workspace
 
+    if not workspace.exists():
+        print(f"Error: workspace not found: {workspace}", file=sys.stderr)
+        sys.exit(2)
+
+    if not workspace.is_dir():
+        print(f"Error: not a directory: {workspace}", file=sys.stderr)
+        sys.exit(2)
+
     if args.topic:
         topics = [{"slug": args.topic, "lesson_file": None}]
     elif args.all:

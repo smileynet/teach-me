@@ -46,6 +46,10 @@ if [[ "${1:-}" == "--workspace" ]]; then
     [[ "$(basename "$f")" == index.html ]] && continue
     migrate_file "$f"
   done
+elif [[ $# -eq 0 ]]; then
+  echo "Usage: migrate-svg-vars.sh <file> [file...]"
+  echo "       migrate-svg-vars.sh --workspace <path>"
+  exit 1
 else
   for f in "$@"; do
     migrate_file "$f"

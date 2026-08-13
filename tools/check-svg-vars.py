@@ -16,8 +16,8 @@ import sys
 from pathlib import Path
 
 # Hex colors that are acceptable (not in SVG context, or intentionally static)
-# None currently — all SVG colors should use variables
-ALLOWED_HEX = set()
+# Currently none — all SVG colors should use variables.
+# Add entries here if a specific hex is deliberately static (e.g., a brand logo).
 
 HEX_PATTERN = re.compile(r'(?:fill|stroke)="(#[0-9a-fA-F]{6})"')
 
@@ -40,13 +40,12 @@ def check_file(path: Path) -> list[dict]:
         if in_svg:
             for match in HEX_PATTERN.finditer(line):
                 hex_val = match.group(1)
-                if hex_val.lower() not in ALLOWED_HEX:
-                    violations.append({
-                        "file": str(path),
-                        "line": i,
-                        "hex": hex_val,
-                        "context": line.strip()[:80],
-                    })
+                violations.append({
+                    "file": str(path),
+                    "line": i,
+                    "hex": hex_val,
+                    "context": line.strip()[:80],
+                })
 
     return violations
 
@@ -76,6 +75,7 @@ def main():
     total_violations = 0
     for f in files:
         if not f.exists():
+            print(f"  ⚠ {f}: file not found (skipped)", file=sys.stderr)
             continue
         violations = check_file(f)
         if violations:
