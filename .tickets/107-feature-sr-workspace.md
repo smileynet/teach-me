@@ -2,7 +2,7 @@
 id: "107"
 title: "SR tools: support workspace/ directory for questions and reviews"
 type: feature
-status: in_progress
+status: done
 priority: high
 blocked_by: []
 work_order: 3
@@ -35,3 +35,7 @@ The simplest fix: update `tools/questions.py` `QUESTIONS_DIR` and `REVIEWS_LOG` 
 - **Current code:** `tools/questions.py` lines 26-27 define the paths
 - **Workspace convention:** AGENTS.md documents `workspace/` as THE live directory
 - **Questions already there:** `workspace/learning-records/questions/blender-godot-shaders.jsonl` (4 cards)
+
+## Resolution (2026-08-13)
+
+TBD
