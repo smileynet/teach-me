@@ -2,7 +2,7 @@
 id: "112"
 title: "Publish examples on GitHub Pages as live demo"
 type: feature
-status: open
+status: in_progress
 priority: medium
 blocked_by: []
 ---
