@@ -2,7 +2,7 @@
 id: "111"
 title: "Fix topic state logic — status must reflect actual generated content"
 type: fix
-status: in_progress
+status: done
 priority: high
 blocked_by: []
 ---
@@ -51,3 +51,7 @@ The system SHOULD detect:
 - Quiz exists: `workspace/lessons/quiz/0001-esoteric-ebb-breakdown-quiz.html`
 - Questions exist: `workspace/learning-records/questions/blender-godot-shaders.jsonl` (4 cards)
 - `tools/map_parser.py` has `update_status(path, slug, new_status)` — it's just never called
+
+## Resolution (2026-08-13)
+
+TBD
