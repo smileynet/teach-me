@@ -129,6 +129,17 @@ For the full pipeline (research → lesson → jargon → quiz → reference →
 
 When the learner wants to go deeper on a topic, use recursive sub-maps.
 
+### Map Generation Rules (all maps)
+
+These apply every time you generate or edit a MAP.md:
+
+1. **Natural branching** — prereqs express genuine dependencies. If two topics can be learned in parallel, don't chain them. The DAG branches and converges based on actual knowledge dependencies.
+2. **No scope markers** — don't include `scope:` fields. The learner doesn't need effort estimates.
+3. **leads_to needs descriptions** — every `leads_to` item has a `slug` and a `why` (one sentence). Bare slugs are useless to the learner.
+4. **leads_to renders as buttons** — each one is actionable with a description of what it opens up.
+5. **Generation is live** — "Generate this topic" buttons hit `/api/generate` and stream progress via SSE. Never show copy-paste commands.
+6. **"Explore subtopics"** — the button for drilling into a sub-map. Not "Zoom in" (unclear to users).
+
 ### Trigger Phrases
 
 | Phrase | Action |
