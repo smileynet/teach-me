@@ -23,8 +23,15 @@ from sm2 import CardSchedule, review, is_due, EASE_DEFAULT
 
 # Resolve relative to project root (parent of tools/)
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
-QUESTIONS_DIR = _PROJECT_ROOT / "learning-records" / "questions"
-REVIEWS_LOG = _PROJECT_ROOT / "learning-records" / "reviews.jsonl"
+
+# Workspace-first resolution: use workspace/ if it exists, fall back to project root
+_WORKSPACE = _PROJECT_ROOT / "workspace"
+if _WORKSPACE.exists() and (_WORKSPACE / "learning-records").exists():
+    QUESTIONS_DIR = _WORKSPACE / "learning-records" / "questions"
+    REVIEWS_LOG = _WORKSPACE / "learning-records" / "reviews.jsonl"
+else:
+    QUESTIONS_DIR = _PROJECT_ROOT / "learning-records" / "questions"
+    REVIEWS_LOG = _PROJECT_ROOT / "learning-records" / "reviews.jsonl"
 
 
 @dataclass
