@@ -163,8 +163,73 @@ def render_card(meta: dict) -> str:
 
 
 def generate_page(domains: list[dict]) -> str:
-    """Generate the full index HTML."""
-    cards = "\n".join(render_card(d) for d in domains)
+    """Generate the Preact index page."""
+    sys.path.insert(0, str(PROJECT_ROOT / "tools"))
+    from lib.preact_page import render_page
+
+    # Build data island
+    domain_data = []
+    for d in domains:
+        domain_data.append({
+            "domain": d["domain"],
+            "title": d["title"],
+            "description": d["description"],
+            "total": d["total"],
+            "complete": d["complete"],
+            "inProgress": d.get("in_progress", 0),
+        })
+
+    total_topics = sum(d["total"] for d in domains)
+    total_complete = sum(d["complete"] for d in domains)
+
+    data = {
+        "domains": domain_data,
+        "stats": {
+            "domainCount": len(domains),
+            "topicCount": total_topics,
+            "completeCount": total_complete,
+        }
+    }
+
+    module_script = """
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { IndexView } from '../assets/components/IndexView.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    render(
+      html`<${IndexView} domains=${data.domains} stats=${data.stats} />`,
+      document.getElementById('app')
+    );
+"""
+
+    css_extra = """
+    body { max-width: 900px; margin: 0 auto; padding: 2rem; }
+    .index-view h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
+    .index-meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .domain-grid { display: flex; flex-direction: column; gap: 1rem; }
+    .domain-card {
+      display: block; padding: 1.25rem; background: var(--bg-elevated);
+      border: 1px solid var(--border); border-radius: 10px; text-decoration: none;
+      color: var(--text); transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .domain-card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(203, 166, 247, 0.1); }
+    .domain-card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
+    .domain-card-header h2 { font-size: 1.1rem; margin: 0; }
+    .domain-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
+    .domain-stat { font-size: 0.8rem; color: var(--text-faint); }
+    .progress-ring { flex-shrink: 0; }
+"""
+
+    return render_page(
+        title="All Lessons — teach-me",
+        data=data,
+        module_script=module_script,
+        css_extra=css_extra,
+        depth=1,
+    )
 
     total_topics = sum(d["total"] for d in domains)
     total_complete = sum(d["complete"] for d in domains)
