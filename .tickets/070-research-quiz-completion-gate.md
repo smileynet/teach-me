@@ -3,7 +3,7 @@ id: "070"
 title: "Research: quiz as completion validation — should passing a quiz auto-mark complete?"
 status: open
 priority: low
-blocked_by: ["069"]
+blocked_by: []
 type: research
 ---
 
