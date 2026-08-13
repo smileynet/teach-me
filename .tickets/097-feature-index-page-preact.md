@@ -5,6 +5,7 @@ type: feature
 status: open
 priority: medium
 blocked_by: ["095"]
+work_order: 2
 ---
 
 # Convert generate_index_page.py to Preact output

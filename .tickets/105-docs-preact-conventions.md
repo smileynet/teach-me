@@ -5,6 +5,7 @@ type: docs
 status: open
 priority: medium
 blocked_by: ["095", "096"]
+work_order: 9
 ---
 
 # Update teach skill + AGENTS.md for Preact conventions
