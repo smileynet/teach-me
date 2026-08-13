@@ -90,7 +90,7 @@ export function MapView({ topics, leadsTo }) {
 
     ${leadsTo && leadsTo.length > 0 && html`
       <div class="leads-to">
-        <h2>Where This Leads</h2>
+        <h2>Related Topics</h2>
         <div class="leads-to-grid">
           ${leadsTo.map(lt => html`
             <button class="leads-to-btn" data-domain=${lt.slug}>
