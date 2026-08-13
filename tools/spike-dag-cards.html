@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spike: DAG Cards Layout</title>
+  <style>
+    :root {
+      --bg: #0f0f1a;
+      --bg-elevated: #1a1a2e;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --accent: #60a5fa;
+      --success: #4ade80;
+      --warning: #fbbf24;
+    }
+    [data-theme="light"] {
+      --bg: #ffffff;
+      --bg-elevated: #f8fafc;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #2563eb;
+      --success: #16a34a;
+      --warning: #d97706;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+    .orientation {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      max-width: 700px;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .dag-container {
+      position: relative;
+      width: 100%;
+      overflow: auto;
+    }
+    .dag-canvas {
+      position: relative;
+    }
+    .edge-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .topic-card {
+      position: absolute;
+      width: 320px;
+      padding: 1rem 1.2rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      z-index: 2;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .topic-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 2px 12px rgba(96, 165, 250, 0.1);
+    }
+    .topic-card h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .topic-card .why {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-bottom: 0.6rem;
+    }
+    .topic-card .prereq-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-bottom: 0.6rem;
+    }
+    .topic-card .actions {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    .topic-card .actions button,
+    .topic-card .actions a {
+      font-size: 0.75rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .topic-card .actions button:hover,
+    .topic-card .actions a:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .badge {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      font-weight: 500;
+    }
+    .badge.not-started {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--text-muted);
+    }
+    .badge.in-progress {
+      background: rgba(96, 165, 250, 0.15);
+      color: var(--accent);
+    }
+    .badge.complete {
+      background: rgba(74, 222, 128, 0.15);
+      color: var(--success);
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.7rem;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.85rem;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+
+  <h1>Blender → Godot Shader Pipeline</h1>
+  <p class="orientation">
+    You'll learn to create stylized 3D forest environments by combining Blender's shader nodes
+    for authoring with Godot's shader language for real-time rendering.
+  </p>
+
+  <div class="dag-container">
+    <div class="dag-canvas" id="dag-canvas">
+      <svg class="edge-layer" id="edge-layer"></svg>
+      <!-- Cards injected by JS -->
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
+  <script>
+    // Topic data
+    const topics = [
+      {
+        id: 'esoteric-ebb-breakdown',
+        title: 'Esoteric Ebb Art Style Breakdown',
+        why: 'You need a clear visual target before building shaders — understanding the projection-painting technique and palette philosophy grounds every decision',
+        prereqs: [],
+        status: 'not-started'
+      },
+      {
+        id: 'blender-npr-shaders',
+        title: 'Blender NPR Shader Fundamentals',
+        why: 'ShaderToRGB → ColorRamp is the foundation of every stylized material you\'ll build',
+        prereqs: ['esoteric-ebb-breakdown'],
+        status: 'not-started'
+      },
+      {
+        id: 'stylized-foliage-materials',
+        title: 'Stylized Foliage & Environment Materials',
+        why: 'Forests are foliage-heavy — radial normals, procedural color variation, and alpha masking are the core techniques',
+        prereqs: ['blender-npr-shaders'],
+        status: 'not-started'
+      },
+      {
+        id: 'baking-for-export',
+        title: 'Baking Stylized Materials for Game Export',
+        why: 'Blender\'s shader nodes don\'t export — you need to bake the look into textures that survive the pipeline',
+        prereqs: ['stylized-foliage-materials'],
+        status: 'not-started'
+      },
+      {
+        id: 'godot-shader-language',
+        title: 'Godot Shader Language (GDShader)',
+        why: 'Everything real-time — wind, toon lighting, fog — lives in Godot\'s shaders, and you haven\'t written them before',
+        prereqs: ['esoteric-ebb-breakdown'],
+        status: 'not-started'
+      },
+      {
+        id: 'blender-to-godot-pipeline',
+        title: 'Blender → Godot Export Pipeline',
+        why: 'Understanding what transfers via glTF (and what doesn\'t) determines where each piece of work belongs',
+        prereqs: ['baking-for-export', 'godot-shader-language'],
+        status: 'not-started'
+      },
+      {
+        id: 'godot-environment-shaders',
+        title: 'Godot Environment Shaders (Wind, Fog, Toon, Outlines)',
+        why: 'The final forest scene needs dynamic wind on foliage, atmospheric fog, and consistent stylized lighting',
+        prereqs: ['blender-to-godot-pipeline'],
+        status: 'not-started'
+      }
+    ];
+
+    // Build dagre graph
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({ rankdir: 'TB', nodesep: 40, ranksep: 80, marginx: 20, marginy: 20 });
+    g.setDefaultEdgeLabel(() => ({}));
+
+    const CARD_WIDTH = 320;
+    const CARD_HEIGHT = 160;
+
+    topics.forEach(t => {
+      g.setNode(t.id, { width: CARD_WIDTH, height: CARD_HEIGHT });
+    });
+
+    topics.forEach(t => {
+      t.prereqs.forEach(prereq => {
+        g.setEdge(prereq, t.id);
+      });
+    });
+
+    dagre.layout(g);
+
+    // Render cards
+    const canvas = document.getElementById('dag-canvas');
+    const graphData = g.graph();
+    canvas.style.width = graphData.width + 'px';
+    canvas.style.height = graphData.height + 'px';
+
+    const svg = document.getElementById('edge-layer');
+    svg.setAttribute('width', graphData.width);
+    svg.setAttribute('height', graphData.height);
+
+    topics.forEach(t => {
+      const node = g.node(t.id);
+      const x = node.x - CARD_WIDTH / 2;
+      const y = node.y - CARD_HEIGHT / 2;
+
+      const prereqLabel = t.prereqs.length === 0
+        ? 'Start here'
+        : 'After: ' + t.prereqs.map(p => topics.find(tp => tp.id === p)?.title.split(' ').slice(0, 3).join(' ')).join(', ');
+
+      const statusClass = t.status;
+      const statusText = t.status === 'not-started' ? 'not started' : t.status;
+
+      const card = document.createElement('div');
+      card.className = 'topic-card';
+      card.style.left = x + 'px';
+      card.style.top = y + 'px';
+      card.id = 'card-' + t.id;
+      card.innerHTML = `
+        <h3>${t.title} <span class="badge ${statusClass}">${statusText}</span></h3>
+        <p class="why">${t.why}</p>
+        <p class="prereq-label">${prereqLabel}</p>
+        <div class="actions">
+          <button>Generate this topic</button>
+          <button>Generate quiz</button>
+          <button>Explore subtopics</button>
+        </div>
+      `;
+      canvas.appendChild(card);
+    });
+
+    // Draw edges
+    g.edges().forEach(e => {
+      const edge = g.edge(e);
+      const points = edge.points;
+
+      // Build a smooth bezier path through the points
+      let d = `M ${points[0].x} ${points[0].y}`;
+      if (points.length === 2) {
+        d += ` L ${points[1].x} ${points[1].y}`;
+      } else if (points.length >= 3) {
+        for (let i = 1; i < points.length - 1; i++) {
+          const cp = points[i];
+          const next = points[i + 1];
+          d += ` Q ${cp.x} ${cp.y} ${(cp.x + next.x) / 2} ${(cp.y + next.y) / 2}`;
+        }
+        const last = points[points.length - 1];
+        d += ` L ${last.x} ${last.y}`;
+      }
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', 'var(--border)');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('marker-end', 'url(#arrowhead)');
+      svg.appendChild(path);
+    });
+
+    // Add arrowhead marker
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    defs.innerHTML = `
+      <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="var(--text-muted)" />
+      </marker>
+    `;
+    svg.prepend(defs);
+
+    // Theme toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+      document.querySelector('.theme-toggle').textContent = current === 'dark' ? '☀️' : '🌙';
+    }
+  </script>
+</body>
+</html>
