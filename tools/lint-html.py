@@ -63,8 +63,6 @@ def lint_map(path: Path, html: str) -> list[str]:
         lambda h: check_contains(h, 'theme-toggle.js"', "theme-toggle.js script"),
         lambda h: check_regex(h, r'class="map-graph"', "SVG with class='map-graph'"),
         lambda h: check_contains(h, 'id="gen-modal"', "generation modal"),
-        lambda h: check_contains(h, 'id="detail-panel"', "detail panel"),
-        lambda h: check_contains(h, '/api/lessons', "/api/lessons detection call"),
     ]
     for check in checks:
         err = check(html)

@@ -340,3 +340,118 @@ def update_status(path: str | Path, topic_slug: str, new_status: str) -> None:
             raise ValueError(f"Topic '{topic_slug}' not found in {path}")
 
         path.write_text(new_text, encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# Sub-map Navigation (Zoom)
+# ---------------------------------------------------------------------------
+
+MAX_DEPTH = 3
+
+
+def find_child_map(maps_dir: str | Path, topic_slug: str) -> Path | None:
+    """Find an existing child MAP.md for a topic slug.
+
+    Searches for:
+      - {topic_slug}.MAP.md (depth 1 child of a depth-0 root)
+      - Any file matching *--{topic_slug}.MAP.md (deeper children)
+    """
+    maps_dir = Path(maps_dir)
+    if not maps_dir.is_dir():
+        return None
+
+    # Direct match: topic_slug.MAP.md
+    direct = maps_dir / f"{topic_slug}.MAP.md"
+    if direct.exists():
+        return direct
+
+    # Deeper match: parent--topic_slug.MAP.md
+    for f in maps_dir.glob(f"*--{topic_slug}.MAP.md"):
+        return f
+
+    return None
+
+
+def get_parent_map(maps_dir: str | Path, domain_map: DomainMap) -> Path | None:
+    """Find the parent MAP.md for a given domain map using its `parent` field.
+
+    Scans maps_dir for a MAP.md whose domain matches the parent field.
+    """
+    maps_dir = Path(maps_dir)
+    if not maps_dir.is_dir() or domain_map.parent is None:
+        return None
+
+    for f in maps_dir.glob("*.MAP.md"):
+        try:
+            parent = load_map(f)
+            if parent.domain == domain_map.parent:
+                return f
+        except (ValueError, FileNotFoundError):
+            continue
+
+    return None
+
+
+def resolve_map_filename(parent_domain: str, topic_slug: str, depth: int) -> str:
+    """Compute the filename for a new sub-map at a given depth.
+
+    Naming convention (flat in maps/):
+      depth 0: {domain}.MAP.md
+      depth 1: {topic_slug}.MAP.md
+      depth 2+: {parent_topic}--{topic_slug}.MAP.md
+
+    The parent_domain arg is only used at depth 0 (root map creation).
+    For depth 1+, we use the topic slug directly.
+    """
+    if depth == 0:
+        return f"{parent_domain}.MAP.md"
+    return f"{topic_slug}.MAP.md"
+
+
+def get_breadcrumb_chain(maps_dir: str | Path, domain_map: DomainMap) -> list[tuple[str, Path | None]]:
+    """Build a breadcrumb chain from root to the current map.
+
+    Returns: list of (title, map_file_path) tuples from root to current.
+    The last entry (current) has path=None (it's the active page).
+    """
+    maps_dir = Path(maps_dir)
+    chain: list[tuple[str, Path | None]] = []
+
+    # Walk up from current to root
+    current = domain_map
+    ancestors: list[tuple[str, Path | None]] = []
+
+    while current.parent is not None:
+        parent_path = get_parent_map(maps_dir, current)
+        if parent_path is None:
+            # Can't resolve further — use domain name as label
+            ancestors.append((current.parent.replace("-", " ").title(), None))
+            break
+        parent_map = load_map(parent_path)
+        ancestors.append((parent_map.domain.replace("-", " ").title(), parent_path))
+        current = parent_map
+
+    # Reverse to get root-first order, then append current
+    ancestors.reverse()
+    chain = ancestors
+    chain.append((domain_map.domain.replace("-", " ").title(), None))
+    return chain
+
+
+def has_child_maps(maps_dir: str | Path, domain_map: DomainMap) -> dict[str, Path]:
+    """For each topic in the map, check if a child sub-map exists.
+
+    Returns: dict mapping topic_slug → child MAP.md path (only for those that have one).
+    """
+    maps_dir = Path(maps_dir)
+    result = {}
+    for topic in domain_map.topics:
+        child = find_child_map(maps_dir, topic.slug)
+        if child is not None:
+            result[topic.slug] = child
+    return result
+
+
+def can_zoom_in(domain_map: DomainMap) -> bool:
+    """Whether this map's topics can have sub-maps (depth < MAX_DEPTH)."""
+    return domain_map.depth < MAX_DEPTH

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Map: Storage & Open Table Formats</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    html { scroll-behavior: smooth; }
+    .lesson-nav {
+      padding: 0.5rem 0;
+      margin-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .lesson-nav a {
+      color: var(--link);
+      text-decoration: none;
+    }
+    .lesson-nav a:hover { text-decoration: underline; }
+    .lesson-nav .nav-position {
+      color: var(--text-muted);
+    }
+    .map-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    .map-graph {
+      max-width: 100%;
+      height: auto;
+      cursor: pointer;
+    }
+    .map-graph a:hover polygon,
+    .map-graph a:hover path {
+      filter: brightness(0.9);
+    }
+    .orientation {
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      border-left: 4px solid var(--accent);
+      padding-left: 1rem;
+    }
+    .topic-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 0.75rem 0;
+      background: var(--bg-elevated);
+      scroll-margin-top: 1rem;
+      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+    .topic-card:target {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+    }
+    .topic-card h3 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1rem;
+    }
+    .topic-why {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin: 0.25rem 0;
+    }
+    .topic-scope {
+      font-size: 0.8rem;
+      color: var(--text-faint, #888);
+    }
+    .badge {
+      font-size: 0.7rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+    .badge.complete { background: #dcfce7; color: #166534; }
+    .badge.in-progress { background: #dbeafe; color: #1e40af; }
+    .badge.not-started { background: #f3f4f6; color: #6b7280; }
+    .topic-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      color: var(--link);
+      font-size: 0.9rem;
+    }
+    .topic-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin-top: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .quiz-link {
+      color: var(--success, #16a34a);
+    }
+    .quiz-gen {
+      border-color: var(--success, #16a34a);
+      color: var(--success, #16a34a);
+    }
+    .generate-btn {
+      margin-top: 0.5rem;
+      padding: 0.4rem 0.8rem;
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      background: var(--bg-surface);
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .generate-btn:hover { background: var(--bg-elevated); }
+    .breadcrumb {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 0.5rem 0 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .breadcrumb a {
+      color: var(--link);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb-sep { color: var(--text-faint, #999); }
+    .breadcrumb-current { font-weight: 500; }
+    .zoom-link {
+      color: var(--accent);
+      font-size: 0.85rem;
+    }
+    .zoom-gen {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .depth-limit {
+      font-size: 0.8rem;
+      color: var(--text-faint, #888);
+      font-style: italic;
+    }
+    .leads-to {
+      margin-top: 2rem;
+      padding: 1.25rem;
+      border-radius: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+    }
+    .leads-to ul {
+      padding-left: 1.5rem;
+      margin: 0.5rem 0 0;
+    }
+    .leads-to li {
+      color: var(--text-muted);
+      margin: 0.25rem 0;
+    }
+    .legend {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid;
+    }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      max-width: 500px;
+      width: 90%;
+    }
+    .modal h3 { margin-top: 0; }
+    .modal pre {
+      background: var(--code-bg);
+      padding: 0.75rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      overflow-x: auto;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .modal-actions button {
+      padding: 0.4rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .modal-actions .primary {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+<div class="map-container">
+  <nav class="lesson-nav">
+    <a href="../../../lessons/index.html" class="back-to-map">← All Lessons</a>
+    <span class="nav-position">5 topics · 0 complete</span>
+  </nav>
+  
+  <nav class="breadcrumb" aria-label="Map navigation">
+    <a href="modern-data-analytics-stacks-map.html">← Modern Data Analytics Stacks</a>
+    <span class="breadcrumb-sep">›</span>
+    <span class="breadcrumb-current">Storage & Open Table Formats</span>
+  </nav>
+  <h1>🗺️ Storage & Open Table Formats</h1>
+  <p class="orientation">Your data has to live somewhere, and HOW it's stored determines everything downstream: what queries are fast, what operations are possible, how much you pay, and how much operational burden you carry. This sub-map breaks storage into its constituent concerns — from the physical file layout on object storage to the metadata layer that makes it behave like a database table.</p>
+
+  <div class="legend">
+    <span class="legend-item"><span class="legend-swatch" style="background:#dcfce7;border-color:#16a34a"></span> Complete</span>
+    <span class="legend-item"><span class="legend-swatch" style="background:#dbeafe;border-color:#2563eb"></span> In progress</span>
+    <span class="legend-item"><span class="legend-swatch" style="background:#f3f4f6;border-color:#6b7280"></span> Not started</span>
+    <span class="legend-item">○ lightweight · ◐ substantial · ● deep</span>
+  </div>
+
+  <!-- Generated by graphviz version 14.1.5 (20260411.2331)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg class="map-graph"
+ viewBox="0.00 0.00 590.00 345.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 341.2)">
+<title>G</title>
+<!-- object&#45;storage&#45;fundamentals -->
+<g id="node1" class="node">
+<title>object&#45;storage&#45;fundamentals</title>
+<g id="a_node1"><a xlink:href="#topic-object-storage-fundamentals" xlink:title="Every modern analytics stack sits on object storage (S3, GCS, ADLS) — understanding its constraints and strengths is prerequisite to everything else">
+<path fill="#f3f4f6" stroke="#6b7280" d="M404.7,-337.2C404.7,-337.2 207.75,-337.2 207.75,-337.2 201.75,-337.2 195.75,-331.2 195.75,-325.2 195.75,-325.2 195.75,-291.9 195.75,-291.9 195.75,-285.9 201.75,-279.9 207.75,-279.9 207.75,-279.9 404.7,-279.9 404.7,-279.9 410.7,-279.9 416.7,-285.9 416.7,-291.9 416.7,-291.9 416.7,-325.2 416.7,-325.2 416.7,-331.2 410.7,-337.2 404.7,-337.2"/>
+<text xml:space="preserve" text-anchor="middle" x="306.23" y="-311.4" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Object Storage Fundamentals</text>
+<text xml:space="preserve" text-anchor="middle" x="306.23" y="-297.15" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">◐ substantial</text>
+</a>
+</g>
+</g>
+<!-- columnar&#45;file&#45;formats -->
+<g id="node2" class="node">
+<title>columnar&#45;file&#45;formats</title>
+<g id="a_node2"><a xlink:href="#topic-columnar-file-formats" xlink:title="The file format determines compression ratios, read patterns, and which queries can skip data — it&#39;s the physical foundation of performance">
+<path fill="#f3f4f6" stroke="#6b7280" d="M428.7,-243.9C428.7,-243.9 183.75,-243.9 183.75,-243.9 177.75,-243.9 171.75,-237.9 171.75,-231.9 171.75,-231.9 171.75,-198.6 171.75,-198.6 171.75,-192.6 177.75,-186.6 183.75,-186.6 183.75,-186.6 428.7,-186.6 428.7,-186.6 434.7,-186.6 440.7,-192.6 440.7,-198.6 440.7,-198.6 440.7,-231.9 440.7,-231.9 440.7,-237.9 434.7,-243.9 428.7,-243.9"/>
+<text xml:space="preserve" text-anchor="middle" x="306.23" y="-218.1" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Columnar File Formats (Parquet, ORC)</text>
+<text xml:space="preserve" text-anchor="middle" x="306.23" y="-203.85" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">◐ substantial</text>
+</a>
+</g>
+</g>
+<!-- object&#45;storage&#45;fundamentals&#45;&gt;columnar&#45;file&#45;formats -->
+<g id="edge1" class="edge">
+<title>object&#45;storage&#45;fundamentals&#45;&gt;columnar&#45;file&#45;formats</title>
+<path fill="none" stroke="#6b7280" d="M306.23,-279.66C306.23,-271.16 306.23,-261.68 306.23,-252.7"/>
+<polygon fill="#6b7280" stroke="#6b7280" points="308.68,-252.8 306.23,-245.8 303.78,-252.8 308.68,-252.8"/>
+</g>
+<!-- table&#45;format&#45;metadata -->
+<g id="node3" class="node">
+<title>table&#45;format&#45;metadata</title>
+<g id="a_node3"><a xlink:href="#topic-table-format-metadata" xlink:title="Open table formats add transactional semantics, schema evolution, and time travel on top of raw files — this is where &quot;data lake&quot; becomes &quot;lakehouse&quot;">
+<path fill="#f3f4f6" stroke="#6b7280" d="M300.45,-150.6C300.45,-150.6 12,-150.6 12,-150.6 6,-150.6 0,-144.6 0,-138.6 0,-138.6 0,-105.3 0,-105.3 0,-99.3 6,-93.3 12,-93.3 12,-93.3 300.45,-93.3 300.45,-93.3 306.45,-93.3 312.45,-99.3 312.45,-105.3 312.45,-105.3 312.45,-138.6 312.45,-138.6 312.45,-144.6 306.45,-150.6 300.45,-150.6"/>
+<text xml:space="preserve" text-anchor="middle" x="156.23" y="-124.8" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Table Format Metadata (Iceberg, Delta, Hudi)</text>
+<text xml:space="preserve" text-anchor="middle" x="156.23" y="-110.55" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">● deep</text>
+</a>
+</g>
+</g>
+<!-- columnar&#45;file&#45;formats&#45;&gt;table&#45;format&#45;metadata -->
+<g id="edge2" class="edge">
+<title>columnar&#45;file&#45;formats&#45;&gt;table&#45;format&#45;metadata</title>
+<path fill="none" stroke="#6b7280" d="M260,-186.11C243.95,-176.35 225.84,-165.32 209.29,-155.25"/>
+<polygon fill="#6b7280" stroke="#6b7280" points="210.85,-153.33 203.59,-151.78 208.3,-157.51 210.85,-153.33"/>
+</g>
+<!-- partitioning&#45;strategies -->
+<g id="node4" class="node">
+<title>partitioning&#45;strategies</title>
+<g id="a_node4"><a xlink:href="#topic-partitioning-strategies" xlink:title="How you partition data determines whether queries read megabytes or terabytes — the single biggest lever for query cost and speed">
+<path fill="#f3f4f6" stroke="#6b7280" d="M570.08,-150.6C570.08,-150.6 342.38,-150.6 342.38,-150.6 336.38,-150.6 330.38,-144.6 330.38,-138.6 330.38,-138.6 330.38,-105.3 330.38,-105.3 330.38,-99.3 336.38,-93.3 342.38,-93.3 342.38,-93.3 570.08,-93.3 570.08,-93.3 576.08,-93.3 582.08,-99.3 582.08,-105.3 582.08,-105.3 582.08,-138.6 582.08,-138.6 582.08,-144.6 576.08,-150.6 570.08,-150.6"/>
+<text xml:space="preserve" text-anchor="middle" x="456.23" y="-124.8" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Partitioning &amp; Clustering Strategies</text>
+<text xml:space="preserve" text-anchor="middle" x="456.23" y="-110.55" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">◐ substantial</text>
+</a>
+</g>
+</g>
+<!-- columnar&#45;file&#45;formats&#45;&gt;partitioning&#45;strategies -->
+<g id="edge3" class="edge">
+<title>columnar&#45;file&#45;formats&#45;&gt;partitioning&#45;strategies</title>
+<path fill="none" stroke="#6b7280" d="M352.45,-186.11C368.5,-176.35 386.61,-165.32 403.16,-155.25"/>
+<polygon fill="#6b7280" stroke="#6b7280" points="404.15,-157.51 408.86,-151.78 401.6,-153.33 404.15,-157.51"/>
+</g>
+<!-- compaction&#45;and&#45;maintenance -->
+<g id="node5" class="node">
+<title>compaction&#45;and&#45;maintenance</title>
+<g id="a_node5"><a xlink:href="#topic-compaction-and-maintenance" xlink:title="Without regular maintenance, small files accumulate and metadata bloats — turning fast queries into slow, expensive ones over time">
+<path fill="#f3f4f6" stroke="#6b7280" d="M265.95,-57.3C265.95,-57.3 46.5,-57.3 46.5,-57.3 40.5,-57.3 34.5,-51.3 34.5,-45.3 34.5,-45.3 34.5,-12 34.5,-12 34.5,-6 40.5,0 46.5,0 46.5,0 265.95,0 265.95,0 271.95,0 277.95,-6 277.95,-12 277.95,-12 277.95,-45.3 277.95,-45.3 277.95,-51.3 271.95,-57.3 265.95,-57.3"/>
+<text xml:space="preserve" text-anchor="middle" x="156.23" y="-31.5" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">Compaction &amp; Table Maintenance</text>
+<text xml:space="preserve" text-anchor="middle" x="156.23" y="-17.25" font-family="system-ui, sans-serif" font-size="12.00" fill="#374151">○ lightweight</text>
+</a>
+</g>
+</g>
+<!-- table&#45;format&#45;metadata&#45;&gt;compaction&#45;and&#45;maintenance -->
+<g id="edge4" class="edge">
+<title>table&#45;format&#45;metadata&#45;&gt;compaction&#45;and&#45;maintenance</title>
+<path fill="none" stroke="#6b7280" d="M156.23,-93.06C156.23,-84.56 156.23,-75.08 156.23,-66.1"/>
+<polygon fill="#6b7280" stroke="#6b7280" points="158.68,-66.2 156.23,-59.2 153.78,-66.2 158.68,-66.2"/>
+</g>
+</g>
+</svg>
+
+
+  <h2>Topics</h2>
+  
+    <div class="topic-card" id="topic-object-storage-fundamentals">
+      <h3>Object Storage Fundamentals <span class="badge not-started">○ not started</span></h3>
+      <p class="topic-why">Every modern analytics stack sits on object storage (S3, GCS, ADLS) — understanding its constraints and strengths is prerequisite to everything else</p>
+      <p class="topic-scope">Scope: substantial · Prereqs: none</p>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('object-storage-fundamentals', 'Object Storage Fundamentals')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('object-storage-fundamentals', 'Object Storage Fundamentals')">Generate quiz</button> <button class="generate-btn zoom-gen" onclick="offerZoomIn('object-storage-fundamentals', 'Object Storage Fundamentals')">🔍 Zoom in</button></div>
+    </div>
+    <div class="topic-card" id="topic-columnar-file-formats">
+      <h3>Columnar File Formats (Parquet, ORC) <span class="badge not-started">○ not started</span></h3>
+      <p class="topic-why">The file format determines compression ratios, read patterns, and which queries can skip data — it's the physical foundation of performance</p>
+      <p class="topic-scope">Scope: substantial · Prereqs: object-storage-fundamentals</p>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('columnar-file-formats', 'Columnar File Formats (Parquet, ORC)')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('columnar-file-formats', 'Columnar File Formats (Parquet, ORC)')">Generate quiz</button> <button class="generate-btn zoom-gen" onclick="offerZoomIn('columnar-file-formats', 'Columnar File Formats (Parquet, ORC)')">🔍 Zoom in</button></div>
+    </div>
+    <div class="topic-card" id="topic-table-format-metadata">
+      <h3>Table Format Metadata (Iceberg, Delta, Hudi) <span class="badge not-started">○ not started</span></h3>
+      <p class="topic-why">Open table formats add transactional semantics, schema evolution, and time travel on top of raw files — this is where "data lake" becomes "lakehouse"</p>
+      <p class="topic-scope">Scope: deep · Prereqs: columnar-file-formats</p>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('table-format-metadata', 'Table Format Metadata (Iceberg, Delta, Hudi)')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('table-format-metadata', 'Table Format Metadata (Iceberg, Delta, Hudi)')">Generate quiz</button> <button class="generate-btn zoom-gen" onclick="offerZoomIn('table-format-metadata', 'Table Format Metadata (Iceberg, Delta, Hudi)')">🔍 Zoom in</button></div>
+    </div>
+    <div class="topic-card" id="topic-partitioning-strategies">
+      <h3>Partitioning & Clustering Strategies <span class="badge not-started">○ not started</span></h3>
+      <p class="topic-why">How you partition data determines whether queries read megabytes or terabytes — the single biggest lever for query cost and speed</p>
+      <p class="topic-scope">Scope: substantial · Prereqs: columnar-file-formats</p>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('partitioning-strategies', 'Partitioning & Clustering Strategies')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('partitioning-strategies', 'Partitioning & Clustering Strategies')">Generate quiz</button> <button class="generate-btn zoom-gen" onclick="offerZoomIn('partitioning-strategies', 'Partitioning & Clustering Strategies')">🔍 Zoom in</button></div>
+    </div>
+    <div class="topic-card" id="topic-compaction-and-maintenance">
+      <h3>Compaction & Table Maintenance <span class="badge not-started">○ not started</span></h3>
+      <p class="topic-why">Without regular maintenance, small files accumulate and metadata bloats — turning fast queries into slow, expensive ones over time</p>
+      <p class="topic-scope">Scope: lightweight · Prereqs: table-format-metadata</p>
+      <div class="topic-actions"><button class="generate-btn" onclick="offerGenerate('compaction-and-maintenance', 'Compaction & Table Maintenance')">Generate this topic</button> <button class="generate-btn quiz-gen" onclick="offerGenerateQuiz('compaction-and-maintenance', 'Compaction & Table Maintenance')">Generate quiz</button> <button class="generate-btn zoom-gen" onclick="offerZoomIn('compaction-and-maintenance', 'Compaction & Table Maintenance')">🔍 Zoom in</button></div>
+    </div>
+
+  
+    <div class="leads-to">
+      <h2>🚀 Where This Leads</h2>
+      <p>After exploring this domain, these become accessible:</p>
+      <ul><li>Slug: Lakehouse Architecture</li><li>Slug: Storage Cost Optimization</li></ul>
+    </div>
+</div>
+
+<!-- Generation modal -->
+<div class="modal-overlay" id="gen-modal">
+  <div class="modal">
+    <h3 id="gen-title">Generate topic</h3>
+    <p id="gen-desc">This topic hasn't been created yet. Generate it with:</p>
+    <pre id="gen-command"></pre>
+    <div class="modal-actions">
+      <button onclick="copyCommand()">📋 Copy command</button>
+      <button onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function offerGenerate(slug, title) {
+  document.getElementById('gen-title').textContent = 'Generate: ' + title;
+  document.getElementById('gen-command').textContent = 'kiro-cli chat "teach me about ' + title + '"';
+  document.getElementById('gen-modal').classList.add('show');
+}
+
+function offerGenerateQuiz(slug, title) {
+  document.getElementById('gen-title').textContent = 'Generate Quiz: ' + title;
+  document.getElementById('gen-command').textContent = 'kiro-cli chat "generate quick-check questions for ' + title + '"';
+  document.getElementById('gen-modal').classList.add('show');
+}
+
+function offerZoomIn(slug, title) {
+  document.getElementById('gen-title').textContent = 'Zoom in: ' + title;
+  document.getElementById('gen-desc').textContent = 'Generate a sub-map to explore this topic in more depth:';
+  document.getElementById('gen-command').textContent = 'kiro-cli chat "zoom in on ' + title + '"';
+  document.getElementById('gen-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('gen-modal').classList.remove('show');
+}
+
+function copyCommand() {
+  const cmd = document.getElementById('gen-command').textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    document.querySelector('.modal-actions .primary')
+  });
+}
+
+// Close modal on overlay click
+document.getElementById('gen-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+<script src="../assets/theme-toggle.js"></script>
+
+</body>
+</html>
