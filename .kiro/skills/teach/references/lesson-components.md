@@ -62,3 +62,27 @@ When a topic has things the system can't teach (physical skills, subjective judg
 
 - ✓ "Get 2-3 coaching sessions for compound lifts"
 - ✗ "This system cannot teach you form"
+
+## Footer Scripts (Required)
+
+Every lesson page ends with:
+
+```html
+<script type="importmap">
+{
+  "imports": {
+    "preact": "../assets/vendor/preact.module.js",
+    "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+    "@preact/signals": "../assets/vendor/preact-signals.module.js",
+    "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+    "htm": "../assets/vendor/htm.module.js"
+  }
+}
+</script>
+<script src="../assets/glossary.js"></script>
+<script type="module">
+  import '../assets/components/LessonActions.js';
+</script>
+```
+
+This provides: glossary tooltips (from `#glossary-data` JSON block) and the lesson action bar (← Back to map, Generate quiz, Mark complete). The import map MUST appear before any `type="module"` script.
