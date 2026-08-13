@@ -2,7 +2,7 @@
 id: "110"
 title: "Themed resources page with source trust ratings"
 type: feature
-status: in_progress
+status: done
 priority: high
 blocked_by: []
 ---
@@ -42,3 +42,7 @@ A Preact page that renders RESOURCES.md as a themed, filterable table of verifie
 - Pattern: data island + Preact page (same as quiz/review pages)
 - Helper: `tools/lib/preact_page.py`
 - Workspace file: `workspace/RESOURCES.md`
+
+## Resolution (2026-08-13)
+
+TBD
