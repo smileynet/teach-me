@@ -1,7 +1,7 @@
 ---
 id: "130"
 title: "Confirm and address Codex review findings through f7a8087"
-status: open
+status: done
 blocked_by: []
 priority: high
 ---
