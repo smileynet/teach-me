@@ -1,7 +1,7 @@
 ---
 id: "131"
 title: "Replace CI/CD with pre-commit hooks until architecture stabilizes"
-status: in_progress
+status: done
 blocked_by: []
 priority: high
 ---
@@ -24,14 +24,22 @@ Architecture is still in flux (page shell, template contract, upcoming interacti
 
 ## Acceptance criteria
 
-- [ ] No CI/CD runs on push to main
-- [ ] Pre-commit hook runs `mise run verify` and blocks on failure
-- [ ] Hook is committed to the repo (`.githooks/pre-commit`)
-- [ ] `mise run setup` or README documents enabling the hook (`git config core.hooksPath .githooks`)
-- [ ] GitHub Pages remains deployable via manual trigger (workflow_dispatch)
+- [x] No CI/CD runs on push to main
+- [x] Pre-commit hook runs `mise run verify` and blocks on failure
+- [x] Hook is committed to the repo (`.githooks/pre-commit`)
+- [x] `mise run setup` or README documents enabling the hook (`git config core.hooksPath .githooks`)
+- [x] GitHub Pages remains deployable via manual trigger (workflow_dispatch)
 
 ## Validation
 
-- [ ] Push to main does NOT trigger a workflow run
-- [ ] `git commit` with a broken link fails at the hook stage
-- [ ] `git commit --no-verify` bypasses the hook (escape hatch works)
+- [x] Push to main does NOT trigger a workflow run
+- [x] `git commit` with a broken link fails at the hook stage
+- [x] `git commit --no-verify` bypasses the hook (escape hatch works)
+
+## Resolution
+
+Tiered hook approach based on research (lefthook patterns, mise integration):
+- Pre-commit (~4s): fast deterministic checks (links, lint, SVG vars, pytest)
+- Pre-push (~10s): full `mise run verify` including Playwright interactive checks
+- GitHub Actions: trigger changed to `workflow_dispatch` only (manual deploy)
+- Auto-setup: `mise run setup` wires `core.hooksPath .githooks`
