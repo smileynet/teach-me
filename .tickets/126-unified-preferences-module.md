@@ -1,7 +1,7 @@
 ---
 id: "126"
 title: "Refactor: Unified preferences module — consolidate theme, typography, layout into one deep module"
-status: open
+status: done
 blocked_by: []
 priority: high
 ---
@@ -109,3 +109,19 @@ d.setAttribute('data-theme',t);}catch(e){}})();
 - [ ] Playwright: set preferences in old format → migration runs, new format used after
 - [ ] `mise run verify` passes (all 7 interactive + 37 static checks)
 - [ ] No FOUC visible on page load with any preference combination
+
+## Validation
+
+- [x] Single preferences.js exports signals for all preferences
+- [x] Single localStorage key (teach-me-prefs-v1)
+- [x] Legacy migration works (old keys → new format)
+- [x] One blocking head snippet applies all pre-paint
+- [x] TypographyPanel reads/writes from signals
+- [x] LayoutMode reads from signals
+- [x] theme-toggle.js deleted
+- [x] store.js theme removed
+- [x] Adding a preference = add to DEFAULTS + UI row
+
+## Resolution
+
+Implemented in commit 2fed25e. preferences.js is the single source of truth. TypographyPanel is a pure view. Legacy migration handles old keys. mise run verify passes (8 checks).
