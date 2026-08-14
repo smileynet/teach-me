@@ -318,6 +318,32 @@ details[open]:not(.lesson-section) summary { margin-bottom: 0.5rem; }
   color: var(--success);
 }
 
+/* --- Quiz answer criteria --- */
+.answer-criteria {
+  margin-bottom: 1rem;
+}
+.criteria-heading {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+.criteria-list {
+  padding-left: 1.5rem;
+  margin: 0 0 0.75rem;
+}
+.criteria-list li {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.6;
+  margin-bottom: 0.3rem;
+}
+.criteria-bonus {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 /* --- Lesson action bar --- */
 .lesson-actions-bar {
   display: flex;
