@@ -68,14 +68,14 @@ After this ticket:
 
 ## Acceptance criteria
 
-- [ ] Theme row in preferences panel with Dark / Light / Auto buttons
-- [ ] Dark mode: dark background, light text, dark SVG fills
-- [ ] Light mode: light background, dark text, light SVG fills
-- [ ] Auto mode: follows system preference (respects OS dark/light setting)
-- [ ] No flash on page load (blocking script resolves theme before paint)
-- [ ] Preference persists across sessions (part of unified prefs key)
-- [ ] `theme-toggle.js` deleted from repository
-- [ ] `store.js` theme signal/toggleTheme removed
+- [x] Theme row in preferences panel with Dark / Light / Auto buttons
+- [x] Dark mode: dark background, light text, dark SVG fills
+- [x] Light mode: light background, dark text, light SVG fills
+- [x] Auto mode: follows system preference (respects OS dark/light setting)
+- [x] No flash on page load (blocking script resolves theme before paint)
+- [x] Preference persists across sessions (part of unified prefs key)
+- [x] `theme-toggle.js` deleted from repository
+- [x] `store.js` theme signal/toggleTheme removed
 
 ## Validation
 
