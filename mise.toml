@@ -18,7 +18,10 @@ _.python.venv = { path = ".venv", create = true, python = "3.12" }
 
 [tasks.setup]
 description = "Install Python dependencies (fast, via uv)"
-run = "uv pip install drawsvg playwright graphviz rich genanki fastapi uvicorn pytest"
+run = """
+uv pip install drawsvg playwright graphviz rich genanki fastapi uvicorn pytest
+git config core.hooksPath .githooks 2>/dev/null || true
+"""
 sources = ["mise.toml"]
 
 [tasks.draw]
