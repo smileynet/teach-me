@@ -1,6 +1,0 @@
-[close]
-allow_force = false
-require_checked_acs = true
-require_validation_criteria = true
-require_validation_evidence = "true"
-
