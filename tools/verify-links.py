@@ -76,11 +76,15 @@ def check_duplicate_links(html_path: Path) -> list[tuple[str, str]]:
     
     Flags when 3+ distinct <a href> elements point to the same URL
     (suggests a hardcoded link that should vary per item).
+    Excludes breadcrumb nav links (those intentionally repeat parent page links).
     """
     failures = []
     content = html_path.read_text(encoding="utf-8")
 
-    hrefs = [m.group(1) for m in NAV_LINK_PATTERN.finditer(content)]
+    # Remove breadcrumb nav before counting (breadcrumbs legitimately link to parent pages)
+    content_no_nav = re.sub(r'<nav class="page-nav"[^>]*>.*?</nav>', '', content, flags=re.DOTALL)
+
+    hrefs = [m.group(1) for m in NAV_LINK_PATTERN.finditer(content_no_nav)]
     # Filter to relative links only (skip external, anchors, assets)
     nav_hrefs = [h for h in hrefs if not h.startswith(("http://", "https://", "#", "data:", "//", "javascript:"))
                  and not h.endswith((".css", ".js"))]

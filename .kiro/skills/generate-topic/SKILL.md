@@ -52,11 +52,11 @@ Dispatch simultaneously:
 
 Each step depends on the previous:
 
-1. **Read the scaffold** — `assets/scaffolds/lesson.html`
-2. **Write the lesson** — using synthesized research. Follow teach skill conventions (SVG diagram with CSS vars, citations, key-concept blocks, exercise with hint + answer).
-3. **Write the reference doc** — read `assets/scaffolds/reference.html`. Scannable lookup format: Core Concept, factual tables, Decision Aid.
+1. **Body content only** — produce ONLY the lesson body (h2 sections, paragraphs, SVGs, tables, exercises). Do NOT write `<!DOCTYPE>`, `<html>`, `<head>`, script tags, or import statements. The `page_template.py` handles all boilerplate.
+2. **Write the lesson** — using synthesized research. Follow teach skill conventions (SVG diagram with CSS vars, citations, key-concept blocks, exercise with hint + answer). Call `python3 -c "from tools.lib.page_template import render_lesson_page; ..."` or have the agent write the body to a temp file and wrap with the template.
+3. **Write the reference doc** — produce body content only (tables, lists, one-sentence summaries). Wrap with `render_reference_page()` from `tools/lib/page_template.py`.
 4. **Write SR questions** — append to `learning-records/questions/{domain}.jsonl`. 4-8 questions, criteria-based answers, mix of explain/apply/predict/quick-check types.
-5. **Generate quiz page** — `python3 tools/generate-quiz-page.py --workspace {workspace} --lesson-id {slug} --title "{title}" --lesson-file {filename} --map-page {map-page}`
+5. **Generate quiz page** — `python3 tools/generate-quiz-page.py --workspace {workspace} --lesson-id {slug} --title "{title}" --lesson-file {filename} --map-page {map-page} --domain "{domain}" --domain-slug {domain-slug}`
 
 ### Phase 3: Post-process (PARALLEL — fan out 2-3 subagents)
 
