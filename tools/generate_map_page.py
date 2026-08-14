@@ -213,7 +213,6 @@ def topic_has_questions(slug: str) -> int:
 def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path | None = None) -> str:
     """Generate a Preact-based map page from parsed MAP.md data."""
     sys.path.insert(0, str(PROJECT_ROOT / "tools"))
-    from lib.preact_page import render_page
 
     title = map_data["title"]
     orientation = map_data["orientation"]
@@ -358,14 +357,18 @@ def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path |
     <p class="orientation">{orientation}</p>
   </div>"""
 
-    return render_page(
-        title=f"Map: {title}",
+    from lib.page_template import render_map_page
+    domain_slug = map_data["frontmatter"].get("domain", "")
+
+    return render_map_page(
+        title=title,
+        domain=title,
+        domain_slug=domain_slug,
+        body_content=body_before + '\n  <div id="app"></div>',
         data=data,
         module_script=module_script,
         css_extra=css_extra,
-        body_before=body_before,
         depth=depth,
-        include_dagre=True,
     )
 
 
