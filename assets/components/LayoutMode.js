@@ -15,12 +15,28 @@ function getSections() {
   const allH2s = Array.from(document.querySelectorAll('h2'));
   if (allH2s.length === 0) return [];
 
+  // Elements that should never be captured into sections
+  const exclude = new Set(['SCRIPT', 'STYLE', 'LINK']);
+  const excludeIds = new Set(['typo-panel', 'lesson-actions']);
+  const excludeClasses = ['lesson-actions-bar', 'typo-panel-container'];
+
+  function shouldExclude(el) {
+    if (exclude.has(el.tagName)) return true;
+    if (excludeIds.has(el.id)) return true;
+    for (const cls of excludeClasses) {
+      if (el.classList?.contains(cls)) return true;
+    }
+    return false;
+  }
+
   const sections = [];
   for (const h2 of allH2s) {
     const section = { heading: h2, content: [] };
     let sibling = h2.nextElementSibling;
     while (sibling && sibling.tagName !== 'H2') {
-      section.content.push(sibling);
+      if (!shouldExclude(sibling)) {
+        section.content.push(sibling);
+      }
       sibling = sibling.nextElementSibling;
     }
     sections.push(section);
