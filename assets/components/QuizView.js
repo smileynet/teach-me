@@ -8,6 +8,45 @@ const currentIndex = signal(0);
 const revealed = signal(false);
 const scores = signal([]);
 
+/**
+ * AnswerCriteria — formats criteria text into a readable checklist.
+ *
+ * Parses: "Should mention: (1) point one, (2) point two. Bonus: extra."
+ * Renders as: heading + numbered list + optional bonus line.
+ */
+function AnswerCriteria({ text }) {
+  if (!text) return null;
+
+  // Extract bonus section if present
+  const bonusMatch = text.match(/\b[Bb]onus:?\s*(.+?)$/);
+  const bonus = bonusMatch ? bonusMatch[1].trim() : null;
+  const mainText = bonus ? text.slice(0, bonusMatch.index).trim() : text;
+
+  // Extract numbered points: (1) ..., (2) ..., etc.
+  const pointsMatch = mainText.match(/\(\d+\)\s*[^(]+/g);
+
+  if (pointsMatch && pointsMatch.length > 1) {
+    const points = pointsMatch.map(p => p.replace(/^\(\d+\)\s*/, '').replace(/[,;]\s*$/, '').trim());
+    return html`
+      <div class="answer-criteria">
+        <p class="criteria-heading">Key points to check your answer against:</p>
+        <ol class="criteria-list">
+          ${points.map(p => html`<li>${p}</li>`)}
+        </ol>
+        ${bonus && html`<p class="criteria-bonus"><strong>Bonus:</strong> ${bonus}</p>`}
+      </div>
+    `;
+  }
+
+  // Fallback: no numbered points detected, show as plain text
+  return html`
+    <div class="answer-criteria">
+      <p class="criteria-heading">Key points:</p>
+      <p>${text}</p>
+    </div>
+  `;
+}
+
 function QuizCard({ question, index, total }) {
   return html`
     <div class="quiz-card">
@@ -18,7 +57,7 @@ function QuizCard({ question, index, total }) {
       `}
       ${revealed.value && html`
         <div class="quiz-answer">
-          <p>${question.criteria || question.expected_answer || ''}</p>
+          <${AnswerCriteria} text=${question.criteria || question.expected_answer || ''} />
           <div class="quiz-self-assess">
             <p class="assess-label">How well did you answer?</p>
             <div class="assess-buttons">
