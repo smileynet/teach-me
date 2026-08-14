@@ -252,20 +252,6 @@ svg[role="img"] text {
 }
 
 /* --- Theme toggle --- */
-.theme-toggle {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  background: var(--code-bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.4rem 0.6rem;
-  cursor: pointer;
-  font-size: 1.1rem;
-  line-height: 1;
-  z-index: 100;
-}
-.theme-toggle:hover { border-color: var(--link); }
 
 /* --- Details/collapsible --- */
 details:not(.lesson-section) {
@@ -468,6 +454,5 @@ body[data-layout="sections"] .lesson-section[open] > .section-heading::before {
   body { max-width: 100%; padding: 1rem; color: #000; background: #fff; }
   a { color: #000; }
   .next-steps { border: 1px solid #ccc; }
-  .theme-toggle { display: none; }
   .typo-panel-container { display: none; }
 }
