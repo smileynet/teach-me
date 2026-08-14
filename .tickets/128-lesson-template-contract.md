@@ -1,7 +1,7 @@
 ---
 id: "128"
 title: "Refactor: Lesson template contract — generators produce data, template provides shell"
-status: open
+status: in_progress
 blocked_by: ["127"]
 priority: high
 ---
