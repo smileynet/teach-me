@@ -1,18 +1,10 @@
 import { h, render } from 'preact';
-import { useState, useEffect, useRef } from 'preact/hooks';
+import { useRef, useEffect } from 'preact/hooks';
+import { useSignal } from '@preact/signals';
 import htm from 'htm';
+import { prefs, set, reset, DEFAULTS, FONT_FAMILY_MAP } from '../preferences.js';
 
 const html = htm.bind(h);
-
-const STORAGE_KEY = 'teach-me-typography';
-
-const DEFAULTS = {
-  fontSize: '16px',
-  fontFamily: "'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif",
-  lineHeight: '1.7',
-  maxWidth: '740px',
-  layout: 'flow',
-};
 
 const FONT_SIZES = [
   { label: 'S', value: '14px' },
@@ -23,9 +15,9 @@ const FONT_SIZES = [
 ];
 
 const FONT_FAMILIES = [
-  { label: 'Serif', value: "'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif" },
-  { label: 'Sans', value: "system-ui, -apple-system, 'Segoe UI', sans-serif" },
-  { label: 'Dyslexic', value: "'OpenDyslexic', sans-serif" },
+  { label: 'Serif', value: 'serif' },
+  { label: 'Sans', value: 'sans' },
+  { label: 'Dyslexic', value: 'dyslexic' },
 ];
 
 const LINE_HEIGHTS = [
@@ -40,81 +32,80 @@ const WIDTHS = [
   { label: 'Wide', value: '900px' },
 ];
 
-const LAYOUTS = [
-  { label: 'Expanded', value: 'flow' },
-  { label: 'Collapsed', value: 'sections' },
+const SECTIONS = [
+  { label: 'Expanded', value: false },
+  { label: 'Collapsed', value: true },
 ];
 
-function loadPrefs() {
-  try {
-    return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(STORAGE_KEY)) };
-  } catch { return { ...DEFAULTS }; }
-}
-
-function savePrefs(prefs) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)); } catch {}
-}
-
-function applyPrefs(prefs) {
-  const s = document.documentElement.style;
-  s.setProperty('--font-size-base', prefs.fontSize);
-  s.setProperty('--font-family-body', prefs.fontFamily);
-  s.setProperty('--line-height-body', prefs.lineHeight);
-  s.setProperty('--max-width-content', prefs.maxWidth);
-}
+const THEMES = [
+  { label: 'Dark', value: 'dark' },
+  { label: 'Light', value: 'light' },
+  { label: 'Auto', value: 'auto' },
+];
 
 function TypographyPanel() {
-  const [open, setOpen] = useState(false);
-  const [prefs, setPrefs] = useState(loadPrefs);
+  const open = useSignal(false);
   const panelRef = useRef(null);
 
-  useEffect(() => { applyPrefs(prefs); savePrefs(prefs); }, [prefs]);
-
-  // Close on outside click
+  // Close on outside click or Escape
   useEffect(() => {
-    if (!open) return;
+    if (!open.value) return;
     function handleClick(e) {
-      if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false);
+      if (panelRef.current && !panelRef.current.contains(e.target)) open.value = false;
     }
-    function handleKey(e) { if (e.key === 'Escape') setOpen(false); }
+    function handleKey(e) { if (e.key === 'Escape') open.value = false; }
     document.addEventListener('mousedown', handleClick);
     document.addEventListener('keydown', handleKey);
     return () => {
       document.removeEventListener('mousedown', handleClick);
       document.removeEventListener('keydown', handleKey);
     };
-  }, [open]);
+  }, [open.value]);
 
   function update(key, value) {
-    setPrefs(p => ({ ...p, [key]: value }));
-    if (key === 'layout') {
-      window.dispatchEvent(new CustomEvent('layout-change', { detail: { layout: value } }));
+    set(key, value);
+    if (key === 'sectionsCollapsed') {
+      window.dispatchEvent(new CustomEvent('layout-change', { detail: { collapsed: value } }));
     }
   }
 
-  function reset() {
-    setPrefs({ ...DEFAULTS });
-    window.dispatchEvent(new CustomEvent('layout-change', { detail: { layout: 'flow' } }));
+  function handleReset() {
+    reset();
+    window.dispatchEvent(new CustomEvent('layout-change', { detail: { collapsed: false } }));
   }
+
+  const p = prefs.value;
 
   return html`
     <div class="typo-panel-container" ref=${panelRef}>
       <button
         class="typo-trigger"
-        onClick=${() => setOpen(!open)}
-        aria-label="Typography settings"
-        aria-expanded=${open}
-        title="Typography settings"
+        onClick=${() => { open.value = !open.value; }}
+        aria-label="Reading preferences"
+        aria-expanded=${open.value}
+        title="Reading preferences"
       >Aa</button>
 
-      ${open && html`
-        <div class="typo-panel" role="dialog" aria-label="Typography preferences">
+      ${open.value && html`
+        <div class="typo-panel" role="dialog" aria-label="Reading preferences">
+          <div class="typo-section">
+            <label class="typo-label">Theme</label>
+            <div class="typo-options">
+              ${THEMES.map(t => html`
+                <button
+                  class="typo-opt ${p.theme === t.value ? 'active' : ''}"
+                  onClick=${() => update('theme', t.value)}
+                >${t.label}</button>
+              `)}
+            </div>
+          </div>
+
           <div class="typo-section">
             <label class="typo-label">Size</label>
             <div class="typo-options">
               ${FONT_SIZES.map(s => html`
                 <button
-                  class="typo-opt ${prefs.fontSize === s.value ? 'active' : ''}"
+                  class="typo-opt ${p.fontSize === s.value ? 'active' : ''}"
                   onClick=${() => update('fontSize', s.value)}
                 >${s.label}</button>
               `)}
@@ -126,7 +117,7 @@ function TypographyPanel() {
             <div class="typo-options">
               ${FONT_FAMILIES.map(f => html`
                 <button
-                  class="typo-opt ${prefs.fontFamily === f.value ? 'active' : ''}"
+                  class="typo-opt ${p.fontFamily === f.value ? 'active' : ''}"
                   onClick=${() => update('fontFamily', f.value)}
                 >${f.label}</button>
               `)}
@@ -138,7 +129,7 @@ function TypographyPanel() {
             <div class="typo-options">
               ${LINE_HEIGHTS.map(l => html`
                 <button
-                  class="typo-opt ${prefs.lineHeight === l.value ? 'active' : ''}"
+                  class="typo-opt ${p.lineHeight === l.value ? 'active' : ''}"
                   onClick=${() => update('lineHeight', l.value)}
                 >${l.label}</button>
               `)}
@@ -150,7 +141,7 @@ function TypographyPanel() {
             <div class="typo-options">
               ${WIDTHS.map(w => html`
                 <button
-                  class="typo-opt ${prefs.maxWidth === w.value ? 'active' : ''}"
+                  class="typo-opt ${p.maxWidth === w.value ? 'active' : ''}"
                   onClick=${() => update('maxWidth', w.value)}
                 >${w.label}</button>
               `)}
@@ -160,16 +151,16 @@ function TypographyPanel() {
           <div class="typo-section">
             <label class="typo-label">Sections</label>
             <div class="typo-options">
-              ${LAYOUTS.map(l => html`
+              ${SECTIONS.map(s => html`
                 <button
-                  class="typo-opt ${prefs.layout === l.value ? 'active' : ''}"
-                  onClick=${() => update('layout', l.value)}
-                >${l.label}</button>
+                  class="typo-opt ${p.sectionsCollapsed === s.value ? 'active' : ''}"
+                  onClick=${() => update('sectionsCollapsed', s.value)}
+                >${s.label}</button>
               `)}
             </div>
           </div>
 
-          <button class="typo-reset" onClick=${reset}>Reset to defaults</button>
+          <button class="typo-reset" onClick=${handleReset}>Reset to defaults</button>
         </div>
       `}
     </div>
@@ -193,4 +184,4 @@ if (document.readyState === 'loading') {
   mount();
 }
 
-export { TypographyPanel };
+export { TypographyPanel, mount as mountTypographyPanel };
