@@ -89,14 +89,3 @@ export function applyLayout(collapsed) {
 window.addEventListener('layout-change', (e) => {
   applySections(e.detail.collapsed);
 });
-
-// Apply on load
-function init() {
-  applySections(prefs.value.sectionsCollapsed);
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}

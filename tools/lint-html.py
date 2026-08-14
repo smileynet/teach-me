@@ -42,7 +42,7 @@ def lint_lesson(path: Path, html: str) -> list[str]:
     errors = []
     checks = [
         lambda h: check_contains(h, 'assets/style.css"', "style.css link"),
-        lambda h: check_contains(h, 'LessonActions', "LessonActions component import"),
+        lambda h: check_contains(h, 'page-shell.js', "page-shell.js entry point"),
         lambda h: check_regex(h, r"<h1[^>]*>.+</h1>", "<h1> element"),
         lambda h: check_contains(h, 'id="glossary-data"', "glossary-data JSON block"),
     ]

@@ -97,8 +97,6 @@
 function reveal(cardId) { document.querySelector(`#${cardId} .card-answer`).classList.add('revealed'); document.querySelector(`#${cardId} .reveal-btn`).style.display = 'none'; document.querySelector(`#${cardId}-rating`).classList.add('revealed'); }
 function rate(cardId, quality) { const buttons = document.querySelectorAll(`#${cardId}-rating button`); buttons.forEach(b => b.classList.remove('selected')); event.target.classList.add('selected'); }
 </script>
-<script type="module">
-  import '../../assets/components/LessonActions.js';
-  </script>
+<script type="module" src="../../assets/page-shell.js"></script>
 </body>
 </html>

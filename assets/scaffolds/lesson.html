@@ -98,16 +98,8 @@
 }
 </script>
 
-<!-- REQUIRED: glossary hover/click tooltip behavior (non-module, self-initializing) -->
-<script src="../assets/glossary.js"></script>
-
-<!-- REQUIRED: Preact components (glossary a11y + lesson action bar + typography panel) -->
-<script type="module">
-  import '../assets/components/GlossaryQuiz.js';
-  import '../assets/components/LessonActions.js';
-  import '../assets/components/TypographyPanel.js';
-  import '../assets/components/LayoutMode.js';
-</script>
+<!-- REQUIRED: page-shell.js — single entry point for all components -->
+<script type="module" src="../assets/page-shell.js"></script>
 
 </body>
 </html>
