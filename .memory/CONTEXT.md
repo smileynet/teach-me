@@ -82,3 +82,15 @@ GitHub Pages forbids symlinks in deploy artifacts. Use `cp -rL` (dereference) wh
 
 **MAP.md domain field**:
 The `domain:` frontmatter field MUST match the MAP.md filename (without `.MAP.md`). The index page links to `{domain}-map.html` — a mismatch causes 404.
+
+**Preferences module**:
+The single source of truth for all user reading preferences (theme, font, spacing, layout). Signal-based (`assets/preferences.js`), auto-persists to `teach-me-prefs-v1` localStorage key, auto-applies CSS vars + `data-theme`.
+_Avoid_: settings store, config (those imply server-side)
+
+**Page shell**:
+A planned single entry point (`assets/page-shell.js`) that orchestrates all component mounting on lesson pages. Components register with the shell rather than self-mounting. Not yet implemented (ticket 127).
+_Avoid_: app shell (implies SPA), framework
+
+**Blocking head script**:
+A synchronous `<script>` in `<head>` that runs before CSS paints — reads preferences from localStorage and applies CSS custom properties to prevent FOUC (flash of unstyled content). Currently `typography-prefs.js`.
+_Avoid_: inline script (it's a separate file, loaded synchronously)
