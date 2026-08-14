@@ -263,6 +263,9 @@ def main():
             try:
                 urllib.request.urlopen(base_url, timeout=0.5)
                 break
+            except urllib.error.HTTPError:
+                # Server is running (returned 404 or similar) — that's fine
+                break
             except Exception:
                 time.sleep(0.2)
         else:
