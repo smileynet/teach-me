@@ -1,7 +1,7 @@
 ---
 id: "131"
 title: "Replace CI/CD with pre-commit hooks until architecture stabilizes"
-status: open
+status: in_progress
 blocked_by: []
 priority: high
 ---
