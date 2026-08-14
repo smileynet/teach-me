@@ -68,6 +68,16 @@ def is_inside_tag(content: str, pos: int) -> bool:
     return False
 
 
+def is_inside_svg(content: str, pos: int) -> bool:
+    """Check if position is inside an SVG element. Spans are not valid in SVG."""
+    before = content[:pos]
+    last_svg_open = before.rfind("<svg")
+    last_svg_close = before.rfind("</svg>")
+    if last_svg_open == -1:
+        return False
+    return last_svg_open > last_svg_close
+
+
 def is_already_annotated(content: str, pos: int) -> bool:
     """Check if this position is already inside a <span class="term"> tag."""
     # Look backwards for closing </span> or opening <span class="term"
@@ -104,6 +114,8 @@ def annotate_term(content: str, key: str, body_start: int, body_end: int) -> str
 
     # Skip if inside a tag or already annotated
     if is_inside_tag(content, abs_pos):
+        return content
+    if is_inside_svg(content, abs_pos):
         return content
     if is_already_annotated(content, abs_pos):
         return content
