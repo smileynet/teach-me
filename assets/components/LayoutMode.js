@@ -2,24 +2,15 @@
  * LayoutMode.js — Restructures lesson content into collapsible sections.
  *
  * Sections are ALWAYS collapsible (headings become <details>/<summary>).
- * The user preference controls whether they start expanded or collapsed:
- *   "flow"     — all sections start expanded (default)
- *   "sections" — all sections start collapsed
+ * The user preference (sectionsCollapsed) controls whether they start
+ * expanded or collapsed.
  *
- * Uses native <details>/<summary> for accessibility:
- *   - Keyboard: Enter/Space to toggle
- *   - Screen readers: expanded/collapsed state announced
- *   - Ctrl+F: works in collapsed sections (hidden="until-found")
- *
- * Reads/writes the "layout" key in the teach-me-typography localStorage object.
- * Listens for a custom "layout-change" event dispatched by TypographyPanel.
+ * Reads from preferences.js signal. Listens for 'layout-change' event
+ * dispatched by TypographyPanel for immediate toggle.
  */
 
-const STORAGE_KEY = 'teach-me-typography';
+import { prefs } from '../preferences.js';
 
-/**
- * Get content elements between headings, grouped by h2.
- */
 function getSections() {
   const allH2s = Array.from(document.querySelectorAll('h2'));
   if (allH2s.length === 0) return [];
@@ -64,11 +55,9 @@ function applySections(startCollapsed) {
     summary.setAttribute('aria-level', '2');
 
     details.appendChild(summary);
-
     for (const el of content) {
       details.appendChild(el);
     }
-
     heading.replaceWith(details);
   }
 
@@ -76,27 +65,18 @@ function applySections(startCollapsed) {
   applied = true;
 }
 
-function applyLayout(mode) {
-  const startCollapsed = (mode === 'sections');
-  applySections(startCollapsed);
-}
-
-function getLayout() {
-  try {
-    const prefs = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return prefs?.layout || 'flow';
-  } catch { return 'flow'; }
+export function applyLayout(collapsed) {
+  applySections(collapsed);
 }
 
 // Listen for layout changes from the typography panel
 window.addEventListener('layout-change', (e) => {
-  applyLayout(e.detail.layout);
+  applySections(e.detail.collapsed);
 });
 
 // Apply on load
 function init() {
-  const layout = getLayout();
-  applySections(layout === 'sections');
+  applySections(prefs.value.sectionsCollapsed);
 }
 
 if (document.readyState === 'loading') {
@@ -104,5 +84,3 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
-
-export { applyLayout, getLayout };

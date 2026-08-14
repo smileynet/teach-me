@@ -32,13 +32,3 @@ export function setTopicProgress(topicId, text) {
 export function batchUpdate(fn) {
   batch(fn);
 }
-
-// --- Theme ---
-export const theme = signal(
-  document.documentElement.getAttribute('data-theme') || 'dark'
-);
-
-export function toggleTheme() {
-  theme.value = theme.value === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', theme.value);
-}
