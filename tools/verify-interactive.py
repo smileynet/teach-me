@@ -126,7 +126,47 @@ def run_checks(page, url: str) -> list[dict]:
         "detail": "Aa button opens panel" if typo_works else "Typography panel not found"
     })
 
-    # 5. No JS errors (ignore favicon 404 and quiz 404)
+    # 5. Quiz button has correct label (Take quiz if exists, Generate if not)
+    quiz_btn = page.query_selector('.lesson-actions-bar button:first-child')
+    quiz_label_ok = False
+    if quiz_btn:
+        label = quiz_btn.text_content().strip()
+        # Either "Take quiz" (quiz exists) or "Generate quiz" (no quiz) — both valid
+        # but NOT empty or "…" (loading state stuck)
+        quiz_label_ok = label in ("📝 Take quiz", "+ Generate quiz")
+    checks.append({
+        "name": "quiz_button_label",
+        "pass": quiz_label_ok,
+        "detail": f"Quiz button: '{quiz_btn.text_content().strip()}'" if quiz_btn else "No quiz button found"
+    })
+
+    # 6. Typography applies (change font size, verify computed style changes)
+    typo_applies = False
+    if typo_trigger:
+        typo_trigger.click()
+        page.wait_for_timeout(200)
+        xl_btn = page.query_selector('.typo-opt:has-text("XL")')
+        if xl_btn:
+            # Get initial font size
+            initial_size = page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--font-size-base').trim()")
+            xl_btn.click()
+            page.wait_for_timeout(100)
+            new_size = page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--font-size-base').trim()")
+            typo_applies = (new_size == "20px")
+            # Reset back
+            reset_btn = page.query_selector('.typo-reset')
+            if reset_btn:
+                reset_btn.click()
+                page.wait_for_timeout(100)
+        page.keyboard.press('Escape')
+        page.wait_for_timeout(100)
+    checks.append({
+        "name": "typography_applies",
+        "pass": typo_applies,
+        "detail": "Font size changes on XL click" if typo_applies else "Typography change not applied"
+    })
+
+    # 7. No JS errors (ignore favicon 404 and quiz 404)
     real_errors = [e for e in console_errors if "favicon" not in e.lower() and "quiz" not in e.lower()]
     checks.append({
         "name": "no_js_errors",

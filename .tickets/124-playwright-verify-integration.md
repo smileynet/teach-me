@@ -41,12 +41,12 @@ Add a Playwright interactive check step that exercises key behaviors on a runnin
 
 ## Acceptance criteria
 
-- [ ] `mise run verify` includes interactive Playwright checks
-- [ ] Checks cover: tooltip hover, action bar, typography panel, SVG visibility, no JS errors
-- [ ] Passes in < 10 seconds total (fast enough to run every time)
-- [ ] Failure output names the specific check that failed
-- [ ] Works headless (no X server required)
-- [ ] Server auto-starts if not running, auto-stops after
+- [x] `mise run verify` includes interactive Playwright checks
+- [x] Checks cover: tooltip hover, action bar, typography panel, quiz button, typography-applies, SVG visibility, no JS errors (7 checks)
+- [x] Passes in < 5 seconds total (fast enough to run every time)
+- [x] Failure output names the specific check that failed
+- [x] Works headless (no X server required)
+- [x] Server auto-starts if not running, auto-stops after
 
 ## Validation
 
