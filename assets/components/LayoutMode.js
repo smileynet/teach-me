@@ -1,9 +1,10 @@
 /**
  * LayoutMode.js — Restructures lesson content into collapsible sections.
  *
- * Modes:
- *   "flow"     — no transformation (default, current behavior)
- *   "sections" — each h2 + its content wrapped in <details> elements
+ * Sections are ALWAYS collapsible (headings become <details>/<summary>).
+ * The user preference controls whether they start expanded or collapsed:
+ *   "flow"     — all sections start expanded (default)
+ *   "sections" — all sections start collapsed
  *
  * Uses native <details>/<summary> for accessibility:
  *   - Keyboard: Enter/Space to toggle
@@ -18,18 +19,12 @@ const STORAGE_KEY = 'teach-me-typography';
 
 /**
  * Get content elements between headings, grouped by h2.
- * Returns array of { heading: Element, content: Element[] }
  */
 function getSections() {
-  const body = document.body;
-  const sections = [];
-  let current = null;
-
-  // Walk direct children and top-level elements looking for h2 boundaries
-  // We only restructure the main lesson content (skip lesson-meta, key-concept at top, scripts at bottom)
   const allH2s = Array.from(document.querySelectorAll('h2'));
-  if (allH2s.length === 0) return sections;
+  if (allH2s.length === 0) return [];
 
+  const sections = [];
   for (const h2 of allH2s) {
     const section = { heading: h2, content: [] };
     let sibling = h2.nextElementSibling;
@@ -42,21 +37,25 @@ function getSections() {
   return sections;
 }
 
-let originalDOM = null;
+let applied = false;
 
-function applySections() {
-  if (document.body.getAttribute('data-layout') === 'sections') return; // already applied
+function applySections(startCollapsed) {
+  if (applied) {
+    // Already restructured — just toggle open/closed state
+    document.querySelectorAll('details.lesson-section').forEach(d => {
+      d.open = !startCollapsed;
+    });
+    document.body.setAttribute('data-layout', 'sections');
+    return;
+  }
 
   const sections = getSections();
   if (sections.length === 0) return;
 
-  // Save original DOM state for revert
-  originalDOM = document.body.innerHTML;
-
   for (const { heading, content } of sections) {
     const details = document.createElement('details');
     details.className = 'lesson-section';
-    details.open = true;
+    details.open = !startCollapsed;
 
     const summary = document.createElement('summary');
     summary.className = 'section-heading';
@@ -66,50 +65,20 @@ function applySections() {
 
     details.appendChild(summary);
 
-    // Move content into details
     for (const el of content) {
       details.appendChild(el);
     }
 
-    // Replace the h2 with the details element
     heading.replaceWith(details);
   }
 
   document.body.setAttribute('data-layout', 'sections');
-}
-
-function applyFlow() {
-  if (document.body.getAttribute('data-layout') !== 'sections') return;
-
-  if (originalDOM) {
-    // Restore original DOM
-    document.body.innerHTML = originalDOM;
-    originalDOM = null;
-
-    // Re-run component mounts (glossary, lesson actions, typography panel)
-    // Dispatch event so other components know to re-mount
-    document.body.removeAttribute('data-layout');
-    window.dispatchEvent(new CustomEvent('layout-restored'));
-
-    // Re-import components to trigger their auto-mount logic
-    import('./GlossaryQuiz.js');
-    import('./LessonActions.js');
-    import('./TypographyPanel.js');
-    // Re-run glossary.js
-    const glossaryScript = document.createElement('script');
-    glossaryScript.src = '../assets/glossary.js';
-    document.body.appendChild(glossaryScript);
-  } else {
-    document.body.removeAttribute('data-layout');
-  }
+  applied = true;
 }
 
 function applyLayout(mode) {
-  if (mode === 'sections') {
-    applySections();
-  } else {
-    applyFlow();
-  }
+  const startCollapsed = (mode === 'sections');
+  applySections(startCollapsed);
 }
 
 function getLayout() {
@@ -124,12 +93,10 @@ window.addEventListener('layout-change', (e) => {
   applyLayout(e.detail.layout);
 });
 
-// Apply on load (after DOM ready)
+// Apply on load
 function init() {
   const layout = getLayout();
-  if (layout === 'sections') {
-    applySections();
-  }
+  applySections(layout === 'sections');
 }
 
 if (document.readyState === 'loading') {

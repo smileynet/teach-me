@@ -41,8 +41,8 @@ const WIDTHS = [
 ];
 
 const LAYOUTS = [
-  { label: 'Flow', value: 'flow' },
-  { label: 'Sections', value: 'sections' },
+  { label: 'Expanded', value: 'flow' },
+  { label: 'Collapsed', value: 'sections' },
 ];
 
 function loadPrefs() {
@@ -158,7 +158,7 @@ function TypographyPanel() {
           </div>
 
           <div class="typo-section">
-            <label class="typo-label">Layout</label>
+            <label class="typo-label">Sections</label>
             <div class="typo-options">
               ${LAYOUTS.map(l => html`
                 <button
