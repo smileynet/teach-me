@@ -1,7 +1,7 @@
 ---
 id: "125"
 title: "Confirm and address Codex review findings through 28383c"
-status: open
+status: done
 blocked_by: []
 priority: high
 ---
@@ -54,3 +54,7 @@ each finding against current code before changing it.
 - [ ] Regression tests cover confirmed defects where practical
 - [ ] Relevant build, test, and lint checks pass
 - [ ] Corrected changes receive a fresh review
+
+## Resolution (2026-08-14)
+
+All 3 findings confirmed and corrected. Phase 4 logic fixed, interactive checks expanded, ticket ACs checked.
