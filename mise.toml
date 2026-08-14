@@ -13,7 +13,8 @@ lockfile = true
 
 [env]
 PYTHONDONTWRITEBYTECODE = "1"
-_.python.venv = { path = ".venv", create = true }
+# Venv pinned to mise's Python — recreate with: rm -rf .venv && mise run setup
+_.python.venv = { path = ".venv", create = true, python = "3.12" }
 
 [tasks.setup]
 description = "Install Python dependencies (fast, via uv)"
