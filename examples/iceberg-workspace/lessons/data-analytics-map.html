@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Map: Modern Data Analytics Stacks</title>
   <script src="../assets/typography-prefs.js"></script>
@@ -76,29 +76,28 @@
   </style>
   <script type="importmap">
 {
-  "imports": {
-    "preact": "../assets/vendor/preact.module.js",
-    "preact/hooks": "../assets/vendor/preact-hooks.module.js",
-    "@preact/signals": "../assets/vendor/preact-signals.module.js",
-    "@preact/signals-core": "../assets/vendor/signals-core.module.js",
-    "htm": "../assets/vendor/htm.module.js"
-  }
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
 }
   </script>
+  <script src="../assets/vendor/dagre.min.js"></script>
 </head>
 <body>
 
 <nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <span>Modern Data Analytics Stacks</span></nav>
-  <script src="../assets/vendor/dagre.min.js"></script>
-  <script type="application/json" id="page-data">{"title": "Modern Data Analytics Stacks", "orientation": "Every organization sits on operational data that only becomes useful when it flows through a deliberate pipeline: captured, stored in queryable formats, transformed into business concepts, orchestrated reliably, and served to the people making decisions. You'll understand each layer of this stack, the tradeoffs driving tool choices, and how they compose into a coherent platform — so you can evaluate architectures, not just memorize vendor names.", "topics": [{"id": "ingestion", "title": "Data Ingestion & Change Capture", "why": "Nothing downstream works until data reliably moves from source systems into your analytics layer", "prereqs": [], "status": "complete", "lessonPath": "0002-data-ingestion-change-capture.html"}, {"id": "storage-and-table-formats", "title": "Storage & Open Table Formats", "why": "Where and how data is stored determines query performance, cost, and what operations are even possible", "prereqs": ["ingestion"], "status": "complete", "lessonPath": "0001-iceberg-metadata-tree.html"}, {"id": "compute-engines", "title": "Compute & Query Engines", "why": "The engine you pick decides what workloads are fast, what's expensive, and how your storage is actually read", "prereqs": ["storage-and-table-formats"], "status": "not-started", "lessonPath": null}, {"id": "transformation-and-modeling", "title": "Transformation & Data Modeling", "why": "Raw ingested data is unusable for analysis — transformation turns it into trusted, business-meaningful tables", "prereqs": ["storage-and-table-formats"], "status": "not-started", "lessonPath": null}, {"id": "orchestration", "title": "Orchestration & Pipeline Management", "why": "Pipelines fail, dependencies shift, schedules slip — orchestration is what makes the whole stack run without manual intervention", "prereqs": ["ingestion", "transformation-and-modeling"], "status": "not-started", "lessonPath": null}, {"id": "serving-and-bi", "title": "Serving, BI & the Semantic Layer", "why": "The entire stack exists to put trustworthy answers in front of decision-makers — this is where value is realized", "prereqs": ["transformation-and-modeling"], "status": "not-started", "lessonPath": null}, {"id": "governance-and-observability", "title": "Data Governance & Observability", "why": "Without quality checks, lineage, and access controls, your stack produces confident wrong answers — the most dangerous kind", "prereqs": ["transformation-and-modeling", "orchestration"], "status": "not-started", "lessonPath": null}], "leadsTo": [{"slug": "streaming-architectures", "why": "Real-time version of batch ingestion — same concepts, tighter latency constraints"}, {"slug": "data-governance-at-scale", "why": "The observability topic here, expanded to org-wide policy and compliance"}, {"slug": "platform-engineering", "why": "Who builds, operates, and abstracts the stack you just learned"}, {"slug": "ml-feature-engineering", "why": "Uses the same storage and transformation layers to feed ML models"}, {"slug": "data-mesh-organizational-patterns", "why": "Decentralizes ownership of the pipeline you learned as a single team's concern"}]}</script>
-  <div class="map-header">
+<div class="map-header">
     <h1>Modern Data Analytics Stacks</h1>
     <p class="orientation">Every organization sits on operational data that only becomes useful when it flows through a deliberate pipeline: captured, stored in queryable formats, transformed into business concepts, orchestrated reliably, and served to the people making decisions. You'll understand each layer of this stack, the tradeoffs driving tool choices, and how they compose into a coherent platform — so you can evaluate architectures, not just memorize vendor names.</p>
   </div>
   <div id="app"></div>
-  
 
-  <script type="module">
+<script type="application/json" id="page-data">{"title": "Modern Data Analytics Stacks", "orientation": "Every organization sits on operational data that only becomes useful when it flows through a deliberate pipeline: captured, stored in queryable formats, transformed into business concepts, orchestrated reliably, and served to the people making decisions. You'll understand each layer of this stack, the tradeoffs driving tool choices, and how they compose into a coherent platform — so you can evaluate architectures, not just memorize vendor names.", "topics": [{"id": "ingestion", "title": "Data Ingestion & Change Capture", "why": "Nothing downstream works until data reliably moves from source systems into your analytics layer", "prereqs": [], "status": "complete", "lessonPath": "0002-data-ingestion-change-capture.html"}, {"id": "storage-and-table-formats", "title": "Storage & Open Table Formats", "why": "Where and how data is stored determines query performance, cost, and what operations are even possible", "prereqs": ["ingestion"], "status": "complete", "lessonPath": "0001-iceberg-metadata-tree.html"}, {"id": "compute-engines", "title": "Compute & Query Engines", "why": "The engine you pick decides what workloads are fast, what's expensive, and how your storage is actually read", "prereqs": ["storage-and-table-formats"], "status": "not-started", "lessonPath": null}, {"id": "transformation-and-modeling", "title": "Transformation & Data Modeling", "why": "Raw ingested data is unusable for analysis — transformation turns it into trusted, business-meaningful tables", "prereqs": ["storage-and-table-formats"], "status": "not-started", "lessonPath": null}, {"id": "orchestration", "title": "Orchestration & Pipeline Management", "why": "Pipelines fail, dependencies shift, schedules slip — orchestration is what makes the whole stack run without manual intervention", "prereqs": ["ingestion", "transformation-and-modeling"], "status": "not-started", "lessonPath": null}, {"id": "serving-and-bi", "title": "Serving, BI & the Semantic Layer", "why": "The entire stack exists to put trustworthy answers in front of decision-makers — this is where value is realized", "prereqs": ["transformation-and-modeling"], "status": "not-started", "lessonPath": null}, {"id": "governance-and-observability", "title": "Data Governance & Observability", "why": "Without quality checks, lineage, and access controls, your stack produces confident wrong answers — the most dangerous kind", "prereqs": ["transformation-and-modeling", "orchestration"], "status": "not-started", "lessonPath": null}], "leadsTo": [{"slug": "streaming-architectures", "why": "Real-time version of batch ingestion — same concepts, tighter latency constraints"}, {"slug": "data-governance-at-scale", "why": "The observability topic here, expanded to org-wide policy and compliance"}, {"slug": "platform-engineering", "why": "Who builds, operates, and abstracts the stack you just learned"}, {"slug": "ml-feature-engineering", "why": "Uses the same storage and transformation layers to feed ML models"}, {"slug": "data-mesh-organizational-patterns", "why": "Decentralizes ownership of the pipeline you learned as a single team's concern"}]}</script>
+<script type="module">
 
     import { h, render } from 'preact';
     import htm from 'htm';
@@ -112,6 +111,7 @@
       document.getElementById('app')
     );
 
-  </script>
+</script>
+
 </body>
 </html>

@@ -105,8 +105,8 @@ def inject_breadcrumb(path: Path, content: str, domain: str, domain_slug: str) -
         lesson_id = path.stem.replace("-quiz", "")
         crumbs = []
         if domain and domain_slug:
-            crumbs.append(("All Lessons", "../../index.html"))
-            crumbs.append((domain, f"../../{domain_slug}-map.html"))
+            crumbs.append(("All Lessons", "../index.html"))
+            crumbs.append((domain, f"../{domain_slug}-map.html"))
         crumbs.append((title or lesson_id, f"../{lesson_id}.html"))
         crumbs.append(("Quiz", None))
     else:
