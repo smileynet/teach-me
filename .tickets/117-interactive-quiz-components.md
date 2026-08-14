@@ -2,10 +2,12 @@
 id: "117"
 title: "Feature: Interactive quiz components — drag-and-drop, fill-in-blanks, matching"
 status: open
-blocked_by: []
+blocked_by: ["127"]
 ---
 
 # Feature: Interactive quiz components — drag-and-drop, fill-in-blanks, matching
+
+> **Note:** This ticket absorbs the scope of ticket 078 (quiz question type system: MC, open-answer, interactive SVG). All interactive question types are consolidated here.
 
 ## What to build
 

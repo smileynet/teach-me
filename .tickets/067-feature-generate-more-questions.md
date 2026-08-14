@@ -1,7 +1,7 @@
 ---
 id: "067"
 title: "Feature: generate more — add quiz questions to existing topics"
-status: open
+status: done
 priority: low
 blocked_by: []
 type: feature
@@ -37,3 +37,7 @@ Currently quiz generation is all-or-nothing. Once questions exist for a topic, t
 
 - **E2E (Playwright):** Load lesson with existing quiz → click "Generate more" → verify count increases after generation completes → verify no duplicate prompts in JSONL
 - **Integration:** POST generation with a "more questions" prompt → verify JSONL grows (not replaced)
+
+## Resolution
+
+Subsumed by ticket 122 (User-configurable quiz question mix and on-demand generation). Ticket 122 includes "generate more on request" as a core feature plus configurable type/difficulty preferences. Closing as duplicate scope.

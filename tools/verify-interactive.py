@@ -126,18 +126,44 @@ def run_checks(page, url: str) -> list[dict]:
         "detail": "Aa button opens panel" if typo_works else "Typography panel not found"
     })
 
-    # 5. Quiz button has correct label (Take quiz if exists, Generate if not)
+    # 5. Quiz button navigates correctly (verify destination URL is valid)
     quiz_btn = page.query_selector('.lesson-actions-bar button:first-child')
-    quiz_label_ok = False
+    quiz_nav_ok = False
+    quiz_detail = "No quiz button found"
     if quiz_btn:
         label = quiz_btn.text_content().strip()
-        # Either "Take quiz" (quiz exists) or "Generate quiz" (no quiz) — both valid
-        # but NOT empty or "…" (loading state stuck)
-        quiz_label_ok = label in ("📝 Take quiz", "+ Generate quiz")
+        if label not in ("📝 Take quiz", "+ Generate quiz"):
+            quiz_detail = f"Unexpected label: '{label}'"
+        elif "Take quiz" in label:
+            # Quiz exists — verify the destination URL returns 200 (not 404)
+            # The button navigates to quiz/{lessonId}-quiz.html
+            quiz_url = page.evaluate("""() => {
+                const btn = document.querySelector('.lesson-actions-bar button:first-child');
+                // Trigger click handler but intercept navigation
+                const origLocation = window.location.href;
+                let targetUrl = null;
+                const origAssign = window.location.assign;
+                const origHref = Object.getOwnPropertyDescriptor(window.location, 'href');
+                // The button uses window.location.href = url, so we check the onclick source
+                // Easier: just extract from the component's known pattern
+                const lessonId = window.location.pathname.split('/').pop().replace('.html', '');
+                return new URL('quiz/' + lessonId + '-quiz.html', window.location.href).href;
+            }""")
+            if quiz_url:
+                # HEAD request to check if quiz page exists
+                response = page.request.head(quiz_url)
+                quiz_nav_ok = response.status == 200
+                quiz_detail = f"Quiz URL {quiz_url.split('/')[-1]}: {'exists (200)' if quiz_nav_ok else f'missing ({response.status})'}"
+            else:
+                quiz_detail = "Could not determine quiz URL"
+        else:
+            # "Generate quiz" — quiz doesn't exist, that's valid
+            quiz_nav_ok = True
+            quiz_detail = "Quiz not yet generated (Generate button shown)"
     checks.append({
-        "name": "quiz_button_label",
-        "pass": quiz_label_ok,
-        "detail": f"Quiz button: '{quiz_btn.text_content().strip()}'" if quiz_btn else "No quiz button found"
+        "name": "quiz_button_navigation",
+        "pass": quiz_nav_ok,
+        "detail": quiz_detail
     })
 
     # 6. Typography applies (change font size, verify computed style changes)

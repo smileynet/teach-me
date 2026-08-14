@@ -1,7 +1,7 @@
 ---
 id: "078"
 title: "Feature: quiz question type system — MC, open-answer, interactive SVG"
-status: open
+status: done
 priority: medium
 blocked_by: []
 type: feature
@@ -66,3 +66,7 @@ Each render type gets its own card template in the quiz page:
 
 - **E2E (Playwright):** Load a quiz page with mixed question types → click MC option → verify feedback → reveal open answer → verify rating → click SVG label → verify reveal animation
 - **Integration:** JSONL with all 3 question types → generate quiz page → verify HTML contains all 3 card templates
+
+## Resolution
+
+Merged into ticket 117 (Interactive quiz components). Ticket 117 has broader scope covering all interactive question types including MC, open-answer, and interactive SVG from this ticket plus drag-drop, fill-blanks, and matching. Closing as subsumed.
