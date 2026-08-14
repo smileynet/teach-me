@@ -1,7 +1,7 @@
 ---
 id: "127"
 title: "Refactor: Page shell orchestrator — single entry point replaces self-mounting components"
-status: open
+status: in_progress
 blocked_by: ["126"]
 priority: high
 ---
