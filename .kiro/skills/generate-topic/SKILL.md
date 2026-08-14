@@ -41,6 +41,15 @@ Dispatch simultaneously:
 
 ### Phase 2: Generate (SEQUENTIAL — main context)
 
+**Before writing:** Check the topic's current status in MAP.md. If it's `complete`, this is a **rewrite**:
+1. Reset status to `in-progress` via `map_parser.update_status(map_path, slug, "in-progress")`
+2. Delete the existing quiz page for this topic (will be regenerated below)
+3. Remove existing SR questions for this topic from the domain JSONL (filter out lines where `"topic": "{slug}"`)
+4. Regenerate the map page (reflects the status change immediately)
+5. Inform the user: "Topic was complete — reset to in-progress for rewrite. Mark complete again once you've reviewed the new lesson."
+
+**Note:** The pipeline does NOT auto-mark the topic complete after generation. The user marks it complete themselves (via the lesson page button) after reviewing the rewritten content.
+
 Each step depends on the previous:
 
 1. **Read the scaffold** — `assets/scaffolds/lesson.html`
@@ -80,13 +89,23 @@ Dispatch simultaneously:
 
 ## Running Against Existing Topics
 
-The pipeline is idempotent. Running against a topic that already has all artifacts:
+The pipeline handles existing topics differently based on whether content changes:
+
+**Verification-only (no `--force`, files exist):**
 - Research phase: skips (or refreshes if sources are stale)
-- Generate phase: skips (files exist) — unless `--force` regenerates
+- Generate phase: skips (files exist, no content change)
 - Post-process phase: re-checks (jargon overwrites existing spans safely)
 - Verify phase: always runs (confirms current state is compliant)
+- **Status: NOT reset** — no content changed, no reason to un-complete
 
-This is how you audit existing content: `generate-topic --workspace X --topic Y` should pass silently if everything is correct.
+**Rewrite (`--force` or user explicitly asks to regenerate):**
+- Status resets to `in-progress` at the start of Phase 2
+- Old quiz page and SR questions for this topic are deleted
+- Full generation runs (new lesson, ref, quiz, SR)
+- Status remains `in-progress` after pipeline completes
+- **User marks complete** after reviewing the new content
+
+This is how you audit existing content: `generate-topic --workspace X --topic Y` should pass silently if everything is correct. To rewrite: ask to regenerate or use `--force`.
 
 ## Multiple Topics
 

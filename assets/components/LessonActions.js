@@ -19,7 +19,11 @@ function LessonActions({ lessonId, domain, mapPage, topicTitle }) {
 
   function handleMarkComplete() {
     setStatus('completing');
-    fetch(`/api/map/${domain}/complete/${lessonId}`, { method: 'POST' })
+    fetch(`/api/map/${domain}/${lessonId}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'complete' }),
+    })
       .then(() => setStatus('complete'))
       .catch(() => setStatus('complete'));
   }
