@@ -1,7 +1,7 @@
 ---
 id: "129"
 title: "Feature: Theme toggle (dark/light/auto) integrated into preferences panel"
-status: open
+status: done
 blocked_by: ["126"]
 priority: high
 ---
@@ -85,3 +85,18 @@ After this ticket:
 - [ ] Playwright: toggle Dark→Light→Auto via panel, verify background changes each time
 - [ ] `mise run verify` passes
 - [ ] `git log --diff-filter=D -- assets/theme-toggle.js` shows deletion
+
+## Validation
+
+- [x] Theme row in panel (Dark/Light/Auto)
+- [x] Dark mode works
+- [x] Light mode works
+- [x] Auto follows system preference
+- [x] No flash on page load (blocking script resolves)
+- [x] Preference persists (teach-me-prefs-v1)
+- [x] theme-toggle.js deleted
+- [x] store.js theme signal removed
+
+## Resolution
+
+Shipped as part of ticket 126 (unified preferences module). Theme is one of the preferences in the panel. Auto mode uses matchMedia for system detection.
