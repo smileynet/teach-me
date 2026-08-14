@@ -17,7 +17,7 @@ const html = htm.bind(h);
  */
 
 function LessonActions({ lessonId, domain, mapPage, topicTitle }) {
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState('loading');
   const [quizExists, setQuizExists] = useState(null);
 
   const resolvedMapPage = mapPage || (domain ? `${domain}-map.html` : null);
@@ -29,15 +29,28 @@ function LessonActions({ lessonId, domain, mapPage, topicTitle }) {
       .catch(() => setQuizExists(false));
   }, [quizUrl]);
 
-  function handleMarkComplete() {
-    setStatus('completing');
-    fetch(`/api/map/${domain}/${lessonId}/status`, {
+  // Check current completion status on mount
+  useEffect(() => {
+    if (!domain) { setStatus('idle'); return; }
+    // Try full lessonId, then without number prefix (MAP.md uses slug without NNNN-)
+    const slug = lessonId.replace(/^\d+-/, '');
+    fetch(`/api/map/${domain}/${slug}/status`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => setStatus(data?.status === 'complete' ? 'complete' : 'idle'))
+      .catch(() => setStatus('idle'));
+  }, [domain, lessonId]);
+
+  function handleToggleComplete() {
+    const slug = lessonId.replace(/^\d+-/, '');
+    const newStatus = status === 'complete' ? 'in-progress' : 'complete';
+    setStatus('saving');
+    fetch(`/api/map/${domain}/${slug}/status`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'complete' }),
+      body: JSON.stringify({ status: newStatus }),
     })
-      .then(() => setStatus('complete'))
-      .catch(() => setStatus('complete'));
+      .then(() => setStatus(newStatus === 'complete' ? 'complete' : 'idle'))
+      .catch(() => setStatus(newStatus === 'complete' ? 'complete' : 'idle'));
   }
 
   const quizLabel = quizExists === null ? '…' : quizExists ? '📝 Take quiz' : '+ Generate quiz';
@@ -48,11 +61,17 @@ function LessonActions({ lessonId, domain, mapPage, topicTitle }) {
         <a href=${resolvedMapPage} class="btn">← Back to map</a>
       `}
       <button class="btn" onClick=${() => { window.location.href = quizUrl; }}>${quizLabel}</button>
+      ${status === 'loading' && html`
+        <span class="btn">…</span>
+      `}
       ${status === 'idle' && html`
-        <button class="btn primary" onClick=${handleMarkComplete}>✓ Mark complete</button>
+        <button class="btn primary" onClick=${handleToggleComplete}>✓ Mark complete</button>
       `}
       ${status === 'complete' && html`
-        <span class="btn done">✓ Complete</span>
+        <button class="btn done" onClick=${handleToggleComplete}>✓ Complete</button>
+      `}
+      ${status === 'saving' && html`
+        <span class="btn">…</span>
       `}
     </div>
   `;

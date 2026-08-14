@@ -419,6 +419,23 @@ class StatusUpdateRequest(BaseModel):
     status: str  # not-started | in-progress | complete
 
 
+@app.get("/api/map/{domain}/{slug}/status")
+async def get_topic_status(domain: str, slug: str) -> JSONResponse:
+    """Get a topic's current status from its MAP.md file."""
+    from map_parser import load_map
+
+    candidates = list(MAPS_DIR.glob(f"*{domain}*MAP.md")) + list(MAPS_DIR.glob(f"{domain}*"))
+    if not candidates:
+        raise HTTPException(status_code=404, detail=f"No MAP.md found for domain '{domain}'")
+
+    m = load_map(candidates[0])
+    for t in m.topics:
+        if t.slug == slug:
+            return JSONResponse({"domain": domain, "slug": slug, "status": t.status})
+
+    raise HTTPException(status_code=404, detail=f"Topic '{slug}' not found in domain '{domain}'")
+
+
 @app.post("/api/map/{domain}/{slug}/status")
 async def update_topic_status(domain: str, slug: str, req: StatusUpdateRequest) -> JSONResponse:
     """Update a topic's status in its MAP.md file."""
