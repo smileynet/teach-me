@@ -192,7 +192,37 @@ def run_checks(page, url: str) -> list[dict]:
         "detail": "Font size changes on XL click" if typo_applies else "Typography change not applied"
     })
 
-    # 7. No JS errors (ignore favicon 404 and quiz 404)
+    # 7. Collapsed sections mode doesn't hide panel or action bar
+    collapsed_ok = False
+    if typo_trigger:
+        # Switch to collapsed mode
+        typo_trigger.click()
+        page.wait_for_timeout(200)
+        collapsed_btn = page.query_selector('.typo-opt:has-text("Collapsed")')
+        if collapsed_btn:
+            collapsed_btn.click()
+            page.wait_for_timeout(300)
+            # Verify panel is still visible
+            panel_visible = page.query_selector('.typo-trigger')
+            panel_visible = panel_visible.is_visible() if panel_visible else False
+            # Verify action bar is still visible (not inside a closed details)
+            action_bar = page.query_selector('.lesson-actions-bar')
+            action_visible = action_bar.is_visible() if action_bar else False
+            collapsed_ok = panel_visible and action_visible
+            # Reset back to expanded
+            expanded_btn = page.query_selector('.typo-opt:has-text("Expanded")')
+            if expanded_btn:
+                expanded_btn.click()
+                page.wait_for_timeout(200)
+        page.keyboard.press('Escape')
+        page.wait_for_timeout(100)
+    checks.append({
+        "name": "collapsed_mode_safe",
+        "pass": collapsed_ok,
+        "detail": "Panel + action bar visible in collapsed mode" if collapsed_ok else "Panel or action bar hidden when sections collapsed"
+    })
+
+    # 8. No JS errors (ignore favicon 404 and quiz 404)
     real_errors = [e for e in console_errors if "favicon" not in e.lower() and "quiz" not in e.lower()]
     checks.append({
         "name": "no_js_errors",

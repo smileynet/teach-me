@@ -71,3 +71,13 @@ Every informative SVG requires:
 - Use `draw-diagram.py` for standard types — outputs accessible, responsive SVG to stdout
 - For complex auto-layout (sequence diagrams, state machines), use D2: `d2 input.d2 output.svg`
 - Render `.mmd`/`.d2` batch files with `tools/render-diagrams.sh` (outputs to `assets/generated/`)
+
+## Single-Axis Preferences
+
+When adding user preferences to the reading panel, each control should modify ONE behavior axis — not introduce modal switching. Apply this when:
+
+- A proposed toggle would change the DOM structure (e.g., "Flow vs Sections" was wrong; "start collapsed" was right)
+- A proposed mode switch can be decomposed into independent booleans (e.g., "cards + collapsible" is two axes, not one mode)
+- Two options share most behavior and differ only in a default value (that's a preference, not a mode)
+
+Don't apply this to genuinely distinct page types (map page vs lesson page) or features that require coordinated multi-property changes (theme dark/light is one axis despite changing many CSS vars).
