@@ -62,9 +62,13 @@ def extract_domain_from_map_files(workspace: Path) -> tuple[str, str]:
 
 
 def extract_lesson_title(content: str) -> str:
-    """Extract title from <h1> tag."""
+    """Extract title from <h1> tag, stripping any inner HTML markup."""
     match = re.search(r'<h1[^>]*>(.+?)</h1>', content)
-    return match.group(1).strip() if match else ""
+    if not match:
+        return ""
+    # Strip HTML tags (e.g., jargon <span> annotations) to get plain text
+    raw = match.group(1).strip()
+    return re.sub(r'<[^>]+>', '', raw)
 
 
 def inject_breadcrumb(path: Path, content: str, domain: str, domain_slug: str) -> str | None:
