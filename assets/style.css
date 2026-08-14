@@ -1,7 +1,23 @@
 /* teach-me shared styles — dark-first, readable, printable */
 
+/* --- Self-hosted fonts --- */
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('vendor/OpenDyslexic-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* --- Dark mode (default): Purple Night --- */
 :root {
+  /* Typography preferences (overridden by user via localStorage) */
+  --font-size-base: 16px;
+  --font-family-body: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  --font-family-code: 'Menlo', 'Consolas', monospace;
+  --line-height-body: 1.7;
+  --max-width-content: 740px;
+
   --bg: #13111C;
   --bg-elevated: #1C1A2E;
   --bg-surface: #252340;
@@ -123,15 +139,15 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { font-size: 16px; }
+html { font-size: var(--font-size-base); }
 body {
-  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  font-family: var(--font-family-body);
   color: var(--text);
   background: var(--bg);
-  max-width: 740px;
+  max-width: var(--max-width-content);
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
-  line-height: 1.7;
+  line-height: var(--line-height-body);
   transition: background 0.2s, color 0.2s;
 }
 
@@ -146,8 +162,8 @@ a { color: var(--link); text-decoration: underline; }
 a:hover { color: var(--accent); }
 
 code {
-  font-family: 'Menlo', 'Consolas', monospace;
-  font-size: 0.85rem;
+  font-family: var(--font-family-code);
+  font-size: 0.85em;
   background: var(--code-bg);
   padding: 0.15rem 0.35rem;
   border-radius: 3px;
@@ -306,10 +322,84 @@ details[open] summary { margin-bottom: 0.5rem; }
   border-top: 1px solid var(--border);
 }
 
+/* --- Typography panel --- */
+.typo-panel-container {
+  position: fixed;
+  top: 1rem;
+  right: 4rem;
+  z-index: 101;
+}
+.typo-trigger {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-muted);
+  transition: border-color 0.15s, color 0.15s;
+}
+.typo-trigger:hover { border-color: var(--link); color: var(--link); }
+.typo-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  width: 250px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.typo-section { margin-bottom: 0.75rem; }
+.typo-section:last-of-type { margin-bottom: 0.5rem; }
+.typo-label {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+.typo-options { display: flex; gap: 0.3rem; }
+.typo-opt {
+  flex: 1;
+  padding: 0.35rem 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.typo-opt:hover { border-color: var(--link); color: var(--link); }
+.typo-opt.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.typo-reset {
+  width: 100%;
+  padding: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 0.7rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+.typo-reset:hover { color: var(--text-muted); border-color: var(--text-muted); }
+
 /* --- Print --- */
 @media print {
   body { max-width: 100%; padding: 1rem; color: #000; background: #fff; }
   a { color: #000; }
   .next-steps { border: 1px solid #ccc; }
   .theme-toggle { display: none; }
+  .typo-panel-container { display: none; }
 }

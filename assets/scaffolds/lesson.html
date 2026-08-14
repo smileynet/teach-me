@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lesson {{N}}: {{TITLE}}</title>
+  <!-- REQUIRED: typography preferences (MUST be before style.css to prevent FOUC) -->
+  <script src="../assets/typography-prefs.js"></script>
   <!-- REQUIRED: style.css for all layout and color variables -->
   <link rel="stylesheet" href="../assets/style.css">
   <!-- REQUIRED: glossary.css for term tooltip styling -->
@@ -100,6 +102,7 @@
 <script type="module">
   import '../assets/components/GlossaryQuiz.js';
   import '../assets/components/LessonActions.js';
+  import '../assets/components/TypographyPanel.js';
 </script>
 
 </body>
