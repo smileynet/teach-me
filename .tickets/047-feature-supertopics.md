@@ -1,7 +1,7 @@
 ---
 id: "047"
 title: "Feature: supertopics — 'where does this lead?' discovery"
-status: done
+status: open
 priority: low
 blocked_by: []
 type: feature
@@ -46,7 +46,7 @@ Learner: "start data-governance" → agent generates a new root MAP.md for that 
 
 ## Acceptance criteria
 
-- [ ] leads_to in MAP.md frontmatter parsed and accessible
+- [x] leads_to in MAP.md frontmatter parsed and accessible (map_parser.py line 205-212)
 - [ ] Presented at domain completion with one-line descriptions
 - [ ] "where does this lead?" works mid-domain too
 - [ ] Learner can start a leads_to domain (generates new MAP.md)
@@ -58,6 +58,6 @@ Learner: "start data-governance" → agent generates a new root MAP.md for that 
 - **Integration:** `/api/map/{domain}` response includes `leads_to` field. POST to generate a leads_to domain creates a new MAP.md file detectable by `load_map`.
 - **E2E (Playwright):** Navigate to map page → scroll to "Where This Leads" → click a domain → verify generation modal appears → after mock generation → verify new map page loads. Verify language uses "accessible" / "becomes possible" not "you should" / "required".
 
-## Resolution (2026-08-13)
+## Resolution
 
-TBD
+Reopened: parsing works (leads_to in MAP.md frontmatter), but presentation, conversation handling, and new MAP generation are unverified. Marked done prematurely.

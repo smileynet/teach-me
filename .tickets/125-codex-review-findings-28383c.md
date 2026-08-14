@@ -14,7 +14,7 @@ priority: high
 - Review run: `04EE026A-B69A-46C8-AD7F-792B2904F68C`
 - Review target: `28383c627825d559ca79f64bc4c86c0bdab1fcf2`
 - Review coverage: `d02d6125dc503503d069b9c046eca82b60cb3c20..28383c627825d559ca79f64bc4c86c0bdab1fcf2`
-- Confirmation status: unconfirmed
+- Confirmation status: confirmed
 
 These findings were produced by Codex. They are reviewer hypotheses, not
 established defects. The agent working this ticket must reproduce and confirm
@@ -48,12 +48,12 @@ each finding against current code before changing it.
 
 ## Acceptance criteria
 
-- [ ] Every finding is independently marked confirmed, rejected, or obsolete
-- [ ] Rejected or obsolete findings include evidence and rationale
-- [ ] Confirmed findings are corrected
-- [ ] Regression tests cover confirmed defects where practical
-- [ ] Relevant build, test, and lint checks pass
-- [ ] Corrected changes receive a fresh review
+- [x] Every finding independently confirmed (F1 high, F2 medium, F3 medium — all confirmed)
+- [x] N/A — no findings rejected or obsolete
+- [x] F1: Phase 4 conditional mark-complete. F2: quiz+typo checks added (now F1 of 130 strengthens further). F3: ACs checked on 116/118/123/124.
+- [x] verify-interactive.py covers F2 defects (quiz button, typography applies)
+- [x] mise run verify: 37 static + 7 interactive checks pass
+- [x] Codex review run 9528C703 covers commit 7da84a6 (the fix commit)
 
 ## Resolution (2026-08-14)
 
