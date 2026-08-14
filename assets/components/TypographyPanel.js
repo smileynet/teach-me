@@ -167,8 +167,7 @@ function TypographyPanel() {
   `;
 }
 
-// Auto-mount
-function mount() {
+export function mountTypographyPanel() {
   let target = document.getElementById('typo-panel');
   if (!target) {
     target = document.createElement('div');
@@ -178,10 +177,4 @@ function mount() {
   render(html`<${TypographyPanel} />`, target);
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', mount);
-} else {
-  mount();
-}
-
-export { TypographyPanel, mount as mountTypographyPanel };
+export { TypographyPanel };

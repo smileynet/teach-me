@@ -4,6 +4,18 @@ import htm from 'htm';
 
 const html = htm.bind(h);
 
+/**
+ * LessonActions — bottom navigation bar with map link, quiz button, and mark-complete.
+ *
+ * Exports:
+ *   mountLessonActions() — creates mount point and renders the component.
+ *
+ * Called by page-shell.js. Reads props from:
+ *   1. A script tag with data-domain/data-lesson-id attributes
+ *   2. A #lesson-actions div with data attributes
+ *   3. Falls back to URL-derived lessonId and page h1
+ */
+
 function LessonActions({ lessonId, domain, mapPage, topicTitle }) {
   const [status, setStatus] = useState('idle');
   const [quizExists, setQuizExists] = useState(null);
@@ -46,19 +58,14 @@ function LessonActions({ lessonId, domain, mapPage, topicTitle }) {
   `;
 }
 
-// Auto-mount: find the script tag or mount point and render
-function mount() {
-  // Look for a mount div first
+export function mountLessonActions() {
   let target = document.getElementById('lesson-actions');
-
-  // If no mount div, create one at the end of body
   if (!target) {
     target = document.createElement('div');
     target.id = 'lesson-actions';
     document.body.appendChild(target);
   }
 
-  // Get data from the script tag that loaded us, or from the mount div's data attrs
   const script = document.querySelector('script[data-domain]');
   const source = script || target;
 
@@ -70,13 +77,6 @@ function mount() {
   };
 
   render(html`<${LessonActions} ...${props} />`, target);
-}
-
-// Mount when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', mount);
-} else {
-  mount();
 }
 
 export { LessonActions };
