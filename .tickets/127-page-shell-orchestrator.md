@@ -105,8 +105,8 @@ Each component loses its auto-mount IIFE and exports a pure function instead:
 
 ## Validation
 
-- [x] `mise run verify` passes (all 7 interactive checks + 37 static)
-- [x] Playwright: tooltips work after switching sections collapsed→expanded
-- [x] Playwright: all components mount correctly on fresh page load
-- [x] Lesson HTML files contain exactly ONE `<script type="module">` tag (the shell)
-- [x] No `import '../assets/components/...'` in lesson HTML files
+- [ ] `mise run verify` passes (all 7 interactive checks + 37 static)
+- [ ] Playwright: tooltips work after switching sections collapsed→expanded
+- [ ] Playwright: all components mount correctly on fresh page load
+- [ ] Lesson HTML files contain exactly ONE `<script type="module">` tag (the shell)
+- [ ] No `import '../assets/components/...'` in lesson HTML files
