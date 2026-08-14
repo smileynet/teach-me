@@ -13,11 +13,11 @@ When the user asks to regenerate/rewrite a lesson that was previously marked com
 
 ## Acceptance criteria
 
-- [ ] When generate-topic runs on an already-complete topic, status resets to in-progress
-- [ ] MAP.md is updated and map page is regenerated
-- [ ] The quiz and SR questions for that topic are also regenerated (not stale from old content)
-- [ ] User is informed of the status reset ("Rewrote lesson — reset status to in-progress")
-- [ ] Does NOT reset status if running verification-only (idempotent check, no content change)
+- [x] When generate-topic runs on an already-complete topic, status resets to in-progress
+- [x] MAP.md is updated and map page is regenerated
+- [x] The quiz and SR questions for that topic are also regenerated (not stale from old content)
+- [x] User is informed of the status reset ("Rewrote lesson — reset status to in-progress")
+- [x] Does NOT reset status if running verification-only (idempotent check, no content change)
 
 ## Resolution (2026-08-14)
 

@@ -54,16 +54,16 @@ A typography preferences panel accessible from any lesson page. Uses CSS custom 
 
 ## Acceptance criteria
 
-- [ ] "Aa" button visible on all lesson pages (fixed position, top-right area)
-- [ ] Panel shows font size, font family, line spacing, and content width controls
-- [ ] Changes apply immediately without page reload
-- [ ] Preferences persist across page loads and sessions (localStorage)
-- [ ] No FOUC — preferences applied before first paint via blocking head script
-- [ ] Doesn't break layout, diagrams, or code blocks at any setting combination
-- [ ] WCAG compliant: supports 200% browser zoom on top of largest font setting without overflow
-- [ ] Works on mobile (touch targets ≥ 44px, panel responsive)
-- [ ] OpenDyslexic font self-hosted in assets/vendor/ (no external requests)
-- [ ] Blocking script weighs < 1KB (inline, no network request)
+- [x] "Aa" button visible on all lesson pages (fixed position, top-right area)
+- [x] Panel shows font size, font family, line spacing, and content width controls
+- [x] Changes apply immediately without page reload
+- [x] Preferences persist across page loads and sessions (localStorage)
+- [x] No FOUC — preferences applied before first paint via blocking head script
+- [x] Doesn't break layout, diagrams, or code blocks at any setting combination
+- [x] WCAG compliant: supports 200% browser zoom on top of largest font setting without overflow
+- [x] Works on mobile (touch targets ≥ 44px, panel responsive)
+- [x] OpenDyslexic font self-hosted in assets/vendor/ (no external requests)
+- [x] Blocking script weighs < 1KB (inline, no network request)
 
 ## Implementation Plan
 

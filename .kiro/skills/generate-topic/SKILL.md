@@ -83,7 +83,7 @@ Dispatch simultaneously:
 **Gate:** ALL must pass. Any failure blocks the topic from being marked complete.
 
 **After all pass:**
-1. Update MAP.md — set topic status to `complete`, add `lesson_file:` field
+1. Update MAP.md — if this is a **new topic** (was `not-started` or `in-progress` before generation started), set status to `complete` and add `lesson_file:` field. If this is a **rewrite** (was `complete` before, reset to `in-progress` in Phase 2), leave status as `in-progress` — the user marks complete after reviewing.
 2. Regenerate map page — `python3 tools/generate_map_page.py {map.MAP.md} --workspace {workspace} --output {workspace}/lessons/{domain}-map.html`
 3. Regenerate index — `python3 tools/generate_index_page.py --scan-dir examples`
 

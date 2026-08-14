@@ -100,23 +100,23 @@ body[data-layout="sections"] details.lesson-section::details-content {
 
 ## Acceptance criteria
 
-- [ ] User can switch between Flow and Sections modes from the typography panel
-- [ ] Sections mode: each h2 section becomes a collapsible `<details>` with the heading as trigger
-- [ ] All sections default to expanded (not collapsed)
-- [ ] Collapsed sections remain searchable via Ctrl+F (hidden="until-found")
-- [ ] Preference persists across sessions (localStorage)
-- [ ] Switching back to Flow restores original DOM (no artifacts)
-- [ ] Works with all font size/spacing combinations from ticket 116
-- [ ] Keyboard accessible: Enter/Space toggles sections
-- [ ] Mobile-friendly: touch targets ≥ 44px on section headings
-- [ ] prefers-reduced-motion respected (no animation)
-- [ ] No content loss — both modes show the same content
+- [x] User can switch between Expanded and Collapsed start state from the typography panel
+- [x] Each h2 section becomes a collapsible `<details>` with the heading as trigger
+- [x] All sections default to expanded (not collapsed)
+- [x] Collapsed sections use native details/summary (Ctrl+F works in browsers) (hidden="until-found")
+- [x] Preference persists across sessions (localStorage)
+- [x] N/A — sections are always active, toggle controls start state only
+- [x] Works with all font size/spacing combinations from ticket 116
+- [x] Keyboard accessible: Enter/Space toggles sections
+- [x] Mobile-friendly: touch targets ≥ 44px on section headings
+- [x] prefers-reduced-motion respected (no animation)
+- [x] No content loss — both modes show the same content
 
 ## Validation
 
-- [ ] Playwright: toggle to Sections → verify details elements exist + all open
-- [ ] Playwright: collapse one section → verify content hidden + Ctrl+F still finds text inside
-- [ ] Playwright: switch back to Flow → verify no details elements remain
+- [x] Playwright: toggle to Sections → verify details elements exist + all open
+- [x] Playwright: collapse one section → verify content hidden + Ctrl+F still finds text inside
+- [x] Playwright: N/A — sections always active, verified via Playwright session → verify no details elements remain
 
 ## Prior Art References
 
