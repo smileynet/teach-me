@@ -165,7 +165,7 @@ def render_card(meta: dict) -> str:
 def generate_page(domains: list[dict], scan_dir: Path | None = None) -> str:
     """Generate the Preact index page."""
     sys.path.insert(0, str(PROJECT_ROOT / "tools"))
-    from lib.preact_page import render_page
+    from lib.page_template import render_index_page
 
     # Parse MISSION.md if it exists
     mission = None
@@ -256,8 +256,9 @@ def generate_page(domains: list[dict], scan_dir: Path | None = None) -> str:
     .progress-ring { flex-shrink: 0; }
 """
 
-    return render_page(
-        title="All Lessons — teach-me",
+    return render_index_page(
+        title="All Lessons",
+        body_content='<div id="app"></div>',
         data=data,
         module_script=module_script,
         css_extra=css_extra,

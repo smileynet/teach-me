@@ -71,10 +71,10 @@ def parse_resources_md(path: Path) -> dict:
     return {"title": title, "sections": sections}
 
 
-def generate_page(resources_data: dict) -> str:
+def generate_page(resources_data: dict, domain: str = "", domain_slug: str = "") -> str:
     """Generate the Preact resources page."""
     sys.path.insert(0, str(PROJECT_ROOT / "tools"))
-    from lib.preact_page import render_page
+    from lib.page_template import render_resources_page
 
     data = resources_data
 
@@ -116,8 +116,15 @@ def generate_page(resources_data: dict) -> str:
     .trust-note { font-size: 0.7rem; color: var(--text-faint); margin-left: 0.3rem; }
 """
 
-    return render_page(
-        title=data["title"],
+    # Use title from RESOURCES.md as domain name if domain not provided
+    effective_domain = domain or data.get("title", "Resources")
+    effective_slug = domain_slug
+
+    return render_resources_page(
+        title=data.get("title", "Resources"),
+        domain=effective_domain,
+        domain_slug=effective_slug,
+        body_content='<div id="app"></div>',
         data=data,
         module_script=module_script,
         css_extra=css_extra,
@@ -136,6 +143,18 @@ def main():
             if not workspace.is_absolute():
                 workspace = PROJECT_ROOT / workspace
 
+    domain = ""
+    if "--domain" in args:
+        idx = args.index("--domain")
+        if idx + 1 < len(args):
+            domain = args[idx + 1]
+
+    domain_slug = ""
+    if "--domain-slug" in args:
+        idx = args.index("--domain-slug")
+        if idx + 1 < len(args):
+            domain_slug = args[idx + 1]
+
     resources_path = workspace / "RESOURCES.md"
     if not resources_path.exists():
         print(f"RESOURCES.md not found at {resources_path}")
@@ -150,7 +169,7 @@ def main():
                 output = PROJECT_ROOT / output
 
     resources_data = parse_resources_md(resources_path)
-    html = generate_page(resources_data)
+    html = generate_page(resources_data, domain=domain, domain_slug=domain_slug)
 
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(html, encoding="utf-8")

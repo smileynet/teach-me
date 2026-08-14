@@ -368,19 +368,24 @@ def render_resources_page(
     domain: str,
     domain_slug: str,
     body_content: str,
+    data: dict | list | None = None,
+    module_script: str = "",
+    css_extra: str = "",
     depth: int = 1,
 ) -> str:
     """Render a resources/further reading page."""
-    crumbs = [
-        ("All Lessons", "index.html"),
-        (domain, f"{domain_slug}-map.html"),
-        ("Resources", None),
-    ]
+    crumbs: list[tuple[str, str | None]] = [("All Lessons", "index.html")]
+    if domain_slug:
+        crumbs.append((domain, f"{domain_slug}-map.html"))
+    crumbs.append(("Resources", None))
 
     return _base_page(
         title=f"Resources: {domain}",
         depth=depth,
         body_content=body_content,
         breadcrumb_html=_breadcrumb(crumbs),
-        include_page_shell=True,
+        data_islands={"page-data": data} if data else None,
+        include_page_shell=False,
+        module_script=module_script,
+        css_extra=css_extra,
     )
