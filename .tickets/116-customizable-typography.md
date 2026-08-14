@@ -1,7 +1,7 @@
 ---
 id: "116"
 title: "Feature: Customizable fonts and text size"
-status: open
+status: done
 blocked_by: []
 ---
 
@@ -80,3 +80,17 @@ A typography preferences panel accessible from any lesson page. Uses CSS custom 
 - Readium: CSS custom properties architecture, Preferences API
 - Apple Books: named themes, A+/A- buttons, slider for spacing
 - Research: < 15% of users keep publisher defaults (Readium data)
+
+## Validation
+
+- [x] Aa button visible on lesson page (fixed top-right)
+- [x] Clicking Aa opens panel with Size, Font, Spacing, Width controls
+- [x] Changing font size applies immediately (verified: 16px → 20px)
+- [x] Changing font family applies immediately (serif → sans → dyslexic)
+- [x] Preferences persist after page reload (localStorage)
+- [x] No layout breakage at any combination (including XXL + Dyslexic + Wide)
+- [x] mise run verify passes
+
+## Resolution (2026-08-14)
+
+Typography panel: CSS vars, blocking head script, Preact component, OpenDyslexic. All 29 lessons updated.
