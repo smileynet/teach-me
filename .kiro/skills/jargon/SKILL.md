@@ -11,6 +11,10 @@ metadata:
 
 Review a written lesson and annotate domain-specific terms with glossary tooltips so newcomers can look up jargon without leaving the page.
 
+## Hard Rules
+
+- **Never annotate terms inside SVG elements.** HTML `<span>` is invalid inside SVG `<text>` — browsers eject content, creating orphaned text nodes. The `is_inside_svg()` check in `jargon-annotate.py` enforces this mechanically.
+
 ## When to run
 
 After a lesson is written and content is finalized. This is a post-processing pass — don't annotate while writing (it interrupts flow).
