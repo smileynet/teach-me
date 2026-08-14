@@ -1,7 +1,7 @@
 ---
 id: "124"
 title: "Feature: Add interactive Playwright checks to mise run verify pipeline"
-status: open
+status: done
 blocked_by: []
 priority: high
 ---
@@ -51,3 +51,7 @@ Add a Playwright interactive check step that exercises key behaviors on a runnin
 ## Validation
 
 - [x] Manually verify each check catches its corresponding bug (e.g., remove glossary.js → tooltip check fails)
+
+## Resolution (2026-08-14)
+
+Created tools/verify-interactive.py, integrated into mise.toml verify task. Auto-detects running server, gracefully skips without Playwright.
