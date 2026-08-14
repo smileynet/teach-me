@@ -1,7 +1,7 @@
 ---
 id: "118"
 title: "Feature: Rewriting a lesson auto-resets its complete status"
-status: open
+status: done
 blocked_by: []
 ---
 
@@ -18,3 +18,7 @@ When the user asks to regenerate/rewrite a lesson that was previously marked com
 - [ ] The quiz and SR questions for that topic are also regenerated (not stale from old content)
 - [ ] User is informed of the status reset ("Rewrote lesson — reset status to in-progress")
 - [ ] Does NOT reset status if running verification-only (idempotent check, no content change)
+
+## Resolution (2026-08-14)
+
+Phase 2 of generate-topic now resets complete→in-progress on rewrite. Old quiz/SR deleted. User marks complete after review.
