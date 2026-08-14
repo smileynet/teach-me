@@ -1,6 +1,9 @@
 import { h } from 'preact';
 import { signal } from '@preact/signals';
 import htm from 'htm';
+import { SequenceQuestion } from './quiz/SequenceQuestion.js';
+import { MatchQuestion } from './quiz/MatchQuestion.js';
+import { FillQuestion } from './quiz/FillQuestion.js';
 
 const html = htm.bind(h);
 
@@ -101,6 +104,27 @@ function QuizSummary({ questions }) {
   `;
 }
 
+function interactiveNext(score) {
+  scores.value = [...scores.value, score];
+  revealed.value = false;
+  currentIndex.value++;
+}
+
+function QuestionRouter({ question, index, total }) {
+  const type = question.type || 'open';
+
+  switch (type) {
+    case 'sequence':
+      return html`<${SequenceQuestion} question=${question} index=${index} total=${total} onComplete=${interactiveNext} />`;
+    case 'match':
+      return html`<${MatchQuestion} question=${question} index=${index} total=${total} onComplete=${interactiveNext} />`;
+    case 'fill':
+      return html`<${FillQuestion} question=${question} index=${index} total=${total} onComplete=${interactiveNext} />`;
+    default:
+      return html`<${QuizCard} question=${question} index=${index} total=${total} />`;
+  }
+}
+
 export function QuizView({ questions, title }) {
   if (!questions || !questions.length) {
     return html`<p class="empty">No questions available for this topic.</p>`;
@@ -118,7 +142,7 @@ export function QuizView({ questions, title }) {
   return html`
     <div class="quiz-view">
       <h1>${title || 'Quiz'}</h1>
-      <${QuizCard}
+      <${QuestionRouter}
         question=${questions[currentIndex.value]}
         index=${currentIndex.value}
         total=${questions.length}
