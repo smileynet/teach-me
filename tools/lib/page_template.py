@@ -258,8 +258,9 @@ def render_quiz_page(
 
     crumbs_list: list[tuple[str, str | None]] = []
     if domain:
-        index_url = "../../index.html" if depth == 2 else "../index.html"
-        map_url = f"../../{domain_slug}-map.html" if depth == 2 else f"../{domain_slug}-map.html"
+        # Quiz is in lessons/quiz/ — index and map are in lessons/ (one dir up)
+        index_url = "../index.html"
+        map_url = f"../{domain_slug}-map.html"
         crumbs_list = [
             ("All Lessons", index_url),
             (domain, map_url),

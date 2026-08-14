@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Map: Storage & Open Table Formats</title>
+  <title>Map: Storage &amp; Open Table Formats</title>
   <script src="../assets/typography-prefs.js"></script>
   <link rel="stylesheet" href="../assets/style.css">
   <style>
@@ -76,29 +76,28 @@
   </style>
   <script type="importmap">
 {
-  "imports": {
-    "preact": "../assets/vendor/preact.module.js",
-    "preact/hooks": "../assets/vendor/preact-hooks.module.js",
-    "@preact/signals": "../assets/vendor/preact-signals.module.js",
-    "@preact/signals-core": "../assets/vendor/signals-core.module.js",
-    "htm": "../assets/vendor/htm.module.js"
-  }
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
 }
   </script>
+  <script src="../assets/vendor/dagre.min.js"></script>
 </head>
 <body>
 
-<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <span>Modern Data Analytics Stacks</span></nav>
-  <script src="../assets/vendor/dagre.min.js"></script>
-  <script type="application/json" id="page-data">{"title": "Storage & Open Table Formats", "orientation": "Your data has to live somewhere, and HOW it's stored determines everything downstream: what queries are fast, what operations are possible, how much you pay, and how much operational burden you carry. This sub-map breaks storage into its constituent concerns — from the physical file layout on object storage to the metadata layer that makes it behave like a database table.", "topics": [{"id": "object-storage-fundamentals", "title": "Object Storage Fundamentals", "why": "Every modern analytics stack sits on object storage (S3, GCS, ADLS) — understanding its constraints and strengths is prerequisite to everything else", "prereqs": [], "status": "not-started", "lessonPath": null}, {"id": "columnar-file-formats", "title": "Columnar File Formats (Parquet, ORC)", "why": "The file format determines compression ratios, read patterns, and which queries can skip data — it's the physical foundation of performance", "prereqs": ["object-storage-fundamentals"], "status": "not-started", "lessonPath": null}, {"id": "table-format-metadata", "title": "Table Format Metadata (Iceberg, Delta, Hudi)", "why": "Open table formats add transactional semantics, schema evolution, and time travel on top of raw files — this is where \"data lake\" becomes \"lakehouse\"", "prereqs": ["columnar-file-formats"], "status": "not-started", "lessonPath": null}, {"id": "partitioning-strategies", "title": "Partitioning & Clustering Strategies", "why": "How you partition data determines whether queries read megabytes or terabytes — the single biggest lever for query cost and speed", "prereqs": ["columnar-file-formats"], "status": "not-started", "lessonPath": null}, {"id": "compaction-and-maintenance", "title": "Compaction & Table Maintenance", "why": "Without regular maintenance, small files accumulate and metadata bloats — turning fast queries into slow, expensive ones over time", "prereqs": ["table-format-metadata"], "status": "not-started", "lessonPath": null}], "leadsTo": [{"slug": "lakehouse-architecture", "why": "Combines the best of data lakes and warehouses — the natural evolution of open table formats"}, {"slug": "storage-cost-optimization", "why": "Once you understand formats and compaction, optimizing storage cost becomes tractable"}]}</script>
-  <div class="map-header">
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <span>Storage &amp; Open Table Formats</span></nav>
+<div class="map-header">
     <h1>Storage & Open Table Formats</h1>
     <p class="orientation">Your data has to live somewhere, and HOW it's stored determines everything downstream: what queries are fast, what operations are possible, how much you pay, and how much operational burden you carry. This sub-map breaks storage into its constituent concerns — from the physical file layout on object storage to the metadata layer that makes it behave like a database table.</p>
   </div>
   <div id="app"></div>
-  
 
-  <script type="module">
+<script type="application/json" id="page-data">{"title": "Storage & Open Table Formats", "orientation": "Your data has to live somewhere, and HOW it's stored determines everything downstream: what queries are fast, what operations are possible, how much you pay, and how much operational burden you carry. This sub-map breaks storage into its constituent concerns — from the physical file layout on object storage to the metadata layer that makes it behave like a database table.", "topics": [{"id": "object-storage-fundamentals", "title": "Object Storage Fundamentals", "why": "Every modern analytics stack sits on object storage (S3, GCS, ADLS) — understanding its constraints and strengths is prerequisite to everything else", "prereqs": [], "status": "not-started", "lessonPath": null}, {"id": "columnar-file-formats", "title": "Columnar File Formats (Parquet, ORC)", "why": "The file format determines compression ratios, read patterns, and which queries can skip data — it's the physical foundation of performance", "prereqs": ["object-storage-fundamentals"], "status": "not-started", "lessonPath": null}, {"id": "table-format-metadata", "title": "Table Format Metadata (Iceberg, Delta, Hudi)", "why": "Open table formats add transactional semantics, schema evolution, and time travel on top of raw files — this is where \"data lake\" becomes \"lakehouse\"", "prereqs": ["columnar-file-formats"], "status": "not-started", "lessonPath": null}, {"id": "partitioning-strategies", "title": "Partitioning & Clustering Strategies", "why": "How you partition data determines whether queries read megabytes or terabytes — the single biggest lever for query cost and speed", "prereqs": ["columnar-file-formats"], "status": "not-started", "lessonPath": null}, {"id": "compaction-and-maintenance", "title": "Compaction & Table Maintenance", "why": "Without regular maintenance, small files accumulate and metadata bloats — turning fast queries into slow, expensive ones over time", "prereqs": ["table-format-metadata"], "status": "not-started", "lessonPath": null}], "leadsTo": [{"slug": "lakehouse-architecture", "why": "Combines the best of data lakes and warehouses — the natural evolution of open table formats"}, {"slug": "storage-cost-optimization", "why": "Once you understand formats and compaction, optimizing storage cost becomes tractable"}]}</script>
+<script type="module">
 
     import { h, render } from 'preact';
     import htm from 'htm';
@@ -112,6 +111,7 @@
       document.getElementById('app')
     );
 
-  </script>
+</script>
+
 </body>
 </html>
