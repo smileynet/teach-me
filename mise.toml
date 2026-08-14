@@ -97,7 +97,7 @@ echo "=== References ==="
 """
 
 [tasks.verify]
-description = "Smoke-test the diagram tool + verify HTML asset links + lint structure + SVG theme check + map page tests"
+description = "Smoke-test the diagram tool + verify HTML asset links + lint structure + SVG theme check + map page tests + interactive component checks"
 depends = ["setup"]
 run = """
 python tools/draw-diagram.py --type flow --data '{"nodes":[{"label":"A","color":"blue"},{"label":"B","color":"green"}],"arrows":["test"]}' > /dev/null
@@ -106,6 +106,7 @@ python tools/verify-links.py
 python tools/lint-html.py
 python tools/check-svg-vars.py --workspace examples/oidc-rust --workspace examples/workout-fundamentals --workspace examples/godot-gamedev
 python -m pytest tools/test_map_page.py tools/test_map_parser.py -q
+python tools/verify-interactive.py
 """
 
 [tasks."visual-qa"]
