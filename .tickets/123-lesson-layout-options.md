@@ -1,7 +1,7 @@
 ---
 id: "123"
 title: "Feature: Lesson layout options — cards, collapsible sections, content chunking"
-status: open
+status: done
 blocked_by: []
 ---
 
@@ -125,3 +125,7 @@ body[data-layout="sections"] details.lesson-section::details-content {
 - W3C APG accordion pattern: aria-expanded, keyboard nav, focus management
 - `hidden="until-found"`: Chrome/FF/Safari 2026 — searchable collapsed content
 - Heydon Pickering's Inclusive Components: progressive enhancement accordion pattern
+
+## Resolution (2026-08-14)
+
+Two-mode layout (Flow/Sections) via native details/summary. Toggle in typography panel. CSS animation with progressive enhancement. All lessons updated.
