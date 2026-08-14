@@ -22,21 +22,16 @@ export function initGlossary() {
     return;
   }
 
-  // Find all term elements or create them from text matches
+  // Add accessibility attributes to term elements.
+  // Tooltip hover/click behavior is handled by glossary.js (non-module script).
   document.querySelectorAll('[data-term]').forEach(el => {
     const term = el.getAttribute('data-term');
     const def = glossary[term];
     if (!def) return;
 
     el.classList.add('glossary-term');
-    el.setAttribute('tabindex', '0');
-    el.setAttribute('aria-label', `${term}: ${def}`);
-
-    // Create tooltip
-    const tooltip = document.createElement('span');
-    tooltip.className = 'glossary-tooltip';
-    tooltip.textContent = def;
-    el.appendChild(tooltip);
+    if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+    el.setAttribute('aria-label', `${term.replace(/-/g, ' ')}: ${def}`);
   });
 }
 
