@@ -1,7 +1,9 @@
 name: Deploy to GitHub Pages
 
 on:
-  workflow_dispatch:  # Manual deploy only — CI disabled while architecture stabilizes
+  push:
+    tags: ['v*']  # Deploy on tagged releases only — stable example set
+  workflow_dispatch:
 
 permissions:
   contents: read
