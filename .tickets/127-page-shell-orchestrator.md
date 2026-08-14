@@ -95,18 +95,18 @@ Each component loses its auto-mount IIFE and exports a pure function instead:
 
 ## Acceptance criteria
 
-- [ ] Single `page-shell.js` is the only module import in lesson HTML
-- [ ] Components export mount/init functions (no self-mounting logic)
-- [ ] Initialization order is explicit and documented in page-shell.js
-- [ ] Adding a new component = register in page-shell.js, zero HTML file changes
-- [ ] Removing `glossary.js` non-module script from lessons (functionality in shell)
-- [ ] Layout changes don't break other components (shell re-initializes after restructuring)
-- [ ] All existing functionality preserved (tooltips, action bar, typography, sections)
+- [x] Single `page-shell.js` is the only module import in lesson HTML
+- [x] Components export mount/init functions (no self-mounting logic)
+- [x] Initialization order is explicit and documented in page-shell.js
+- [x] Adding a new component = register in page-shell.js, zero HTML file changes
+- [x] Removing `glossary.js` non-module script from lessons (functionality in shell)
+- [x] Layout changes don't break other components (shell re-initializes after restructuring)
+- [x] All existing functionality preserved (tooltips, action bar, typography, sections)
 
 ## Validation
 
-- [ ] `mise run verify` passes (all 7 interactive checks + 37 static)
-- [ ] Playwright: tooltips work after switching sections collapsed→expanded
-- [ ] Playwright: all components mount correctly on fresh page load
-- [ ] Lesson HTML files contain exactly ONE `<script type="module">` tag (the shell)
-- [ ] No `import '../assets/components/...'` in lesson HTML files
+- [x] `mise run verify` passes (all 7 interactive checks + 37 static)
+- [x] Playwright: tooltips work after switching sections collapsed→expanded
+- [x] Playwright: all components mount correctly on fresh page load
+- [x] Lesson HTML files contain exactly ONE `<script type="module">` tag (the shell)
+- [x] No `import '../assets/components/...'` in lesson HTML files
