@@ -1,7 +1,7 @@
 ---
 id: "127"
 title: "Refactor: Page shell orchestrator — single entry point replaces self-mounting components"
-status: in_progress
+status: done
 blocked_by: ["126"]
 priority: high
 ---
@@ -105,8 +105,12 @@ Each component loses its auto-mount IIFE and exports a pure function instead:
 
 ## Validation
 
-- [ ] `mise run verify` passes (all 7 interactive checks + 37 static)
-- [ ] Playwright: tooltips work after switching sections collapsed→expanded
-- [ ] Playwright: all components mount correctly on fresh page load
-- [ ] Lesson HTML files contain exactly ONE `<script type="module">` tag (the shell)
-- [ ] No `import '../assets/components/...'` in lesson HTML files
+- [x] `mise run verify` passes (all 7 interactive checks + 37 static)
+- [x] Playwright: tooltips work after switching sections collapsed→expanded
+- [x] Playwright: all components mount correctly on fresh page load
+- [x] Lesson HTML files contain exactly ONE `<script type="module">` tag (the shell)
+- [x] No `import '../assets/components/...'` in lesson HTML files
+
+## Resolution
+
+Created `assets/page-shell.js` as the single orchestrator. Refactored GlossaryQuiz, LessonActions, TypographyPanel, and LayoutMode to export pure mount/init functions (no self-mounting). Absorbed `glossary.js` IIFE hover/click/tray behavior into the GlossaryQuiz module. Updated 36 tracked HTML files to use `<script type="module" src="page-shell.js">`. All 8 Playwright interactive checks pass, 44 link checks pass, 37 pytest pass.
