@@ -91,24 +91,24 @@ d.setAttribute('data-theme',t);}catch(e){}})();
 
 ## Acceptance criteria
 
-- [ ] Single `preferences.js` module exports signals for all preferences
-- [ ] Single localStorage key (`teach-me-prefs-v1`) replaces both legacy keys
-- [ ] Legacy key migration works (old preferences preserved on first load)
-- [ ] One blocking head snippet (< 300 bytes) handles all pre-paint application
-- [ ] `TypographyPanel.js` reads/writes from signals (no local useState for prefs)
-- [ ] `LayoutMode.js` reads from signals (no independent localStorage read)
-- [ ] `theme-toggle.js` deleted (functionality moved to panel)
-- [ ] `store.js` theme signal removed (consolidated into preferences.js)
-- [ ] Adding a new preference = add to DEFAULTS + add UI row. No other files touched.
+- [x] Single `preferences.js` module exports signals for all preferences
+- [x] Single localStorage key (`teach-me-prefs-v1`) replaces both legacy keys
+- [x] Legacy key migration works (old preferences preserved on first load)
+- [x] One blocking head snippet (< 300 bytes) handles all pre-paint application
+- [x] `TypographyPanel.js` reads/writes from signals (no local useState for prefs)
+- [x] `LayoutMode.js` reads from signals (no independent localStorage read)
+- [x] `theme-toggle.js` deleted (functionality moved to panel)
+- [x] `store.js` theme signal removed (consolidated into preferences.js)
+- [x] Adding a new preference = add to DEFAULTS + add UI row. No other files touched.
 
 ## Validation
 
-- [ ] Playwright: change theme → persists on reload
-- [ ] Playwright: change font size → persists on reload
-- [ ] Playwright: open in fresh incognito → defaults applied, no errors
-- [ ] Playwright: set preferences in old format → migration runs, new format used after
-- [ ] `mise run verify` passes (all 7 interactive + 37 static checks)
-- [ ] No FOUC visible on page load with any preference combination
+- [x] Playwright: change theme → persists on reload
+- [x] Playwright: change font size → persists on reload
+- [x] Playwright: open in fresh incognito → defaults applied, no errors
+- [x] Playwright: set preferences in old format → migration runs, new format used after
+- [x] `mise run verify` passes (all 7 interactive + 37 static checks)
+- [x] No FOUC visible on page load with any preference combination
 
 ## Validation
 
