@@ -11,5 +11,6 @@
     if (prefs.fontFamily) s.setProperty('--font-family-body', prefs.fontFamily);
     if (prefs.lineHeight) s.setProperty('--line-height-body', prefs.lineHeight);
     if (prefs.maxWidth) s.setProperty('--max-width-content', prefs.maxWidth);
+    // Layout mode applied by LayoutMode.js after DOM ready (needs content to exist)
   } catch(e) {}
 })();

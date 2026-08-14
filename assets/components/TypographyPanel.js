@@ -11,6 +11,7 @@ const DEFAULTS = {
   fontFamily: "'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif",
   lineHeight: '1.7',
   maxWidth: '740px',
+  layout: 'flow',
 };
 
 const FONT_SIZES = [
@@ -37,6 +38,11 @@ const WIDTHS = [
   { label: 'Narrow', value: '600px' },
   { label: 'Default', value: '740px' },
   { label: 'Wide', value: '900px' },
+];
+
+const LAYOUTS = [
+  { label: 'Flow', value: 'flow' },
+  { label: 'Sections', value: 'sections' },
 ];
 
 function loadPrefs() {
@@ -81,10 +87,14 @@ function TypographyPanel() {
 
   function update(key, value) {
     setPrefs(p => ({ ...p, [key]: value }));
+    if (key === 'layout') {
+      window.dispatchEvent(new CustomEvent('layout-change', { detail: { layout: value } }));
+    }
   }
 
   function reset() {
     setPrefs({ ...DEFAULTS });
+    window.dispatchEvent(new CustomEvent('layout-change', { detail: { layout: 'flow' } }));
   }
 
   return html`
@@ -143,6 +153,18 @@ function TypographyPanel() {
                   class="typo-opt ${prefs.maxWidth === w.value ? 'active' : ''}"
                   onClick=${() => update('maxWidth', w.value)}
                 >${w.label}</button>
+              `)}
+            </div>
+          </div>
+
+          <div class="typo-section">
+            <label class="typo-label">Layout</label>
+            <div class="typo-options">
+              ${LAYOUTS.map(l => html`
+                <button
+                  class="typo-opt ${prefs.layout === l.value ? 'active' : ''}"
+                  onClick=${() => update('layout', l.value)}
+                >${l.label}</button>
               `)}
             </div>
           </div>
