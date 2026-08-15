@@ -73,6 +73,25 @@ export function MatchQuestion({ question, index, total, onComplete }) {
     return shuffledDefs[defIdx] === correctDefs[termIdx];
   }
 
+  function getPairIndex(termIdx) {
+    // Return the order this match was made (0-based) for color coding
+    const entries = Object.entries(matches);
+    for (let i = 0; i < entries.length; i++) {
+      if (parseInt(entries[i][0]) === termIdx) return i;
+    }
+    return -1;
+  }
+
+  function getDefPairIndex(defIdx) {
+    const entries = Object.entries(matches);
+    for (let i = 0; i < entries.length; i++) {
+      if (entries[i][1] === defIdx) return i;
+    }
+    return -1;
+  }
+
+  const PAIR_LABELS = ['A', 'B', 'C', 'D', 'E', 'F'];
+
   const allMatched = Object.keys(matches).length === terms.length;
 
   return html`
@@ -82,28 +101,34 @@ export function MatchQuestion({ question, index, total, onComplete }) {
       <p class="match-hint">Click a term, then click its matching definition.</p>
       <div class="match-container">
         <div class="match-column" role="list" aria-label="Terms">
-          ${terms.map((term, idx) => html`
-            <button
-              key=${'t' + idx}
-              class="match-item term ${selectedTerm === idx ? 'selected' : ''} ${matches[idx] !== undefined ? 'matched' : ''} ${submitted && matches[idx] !== undefined ? (isCorrect(idx) ? 'correct' : 'incorrect') : ''}"
-              onClick=${() => selectTerm(idx)}
-              disabled=${submitted}
-            >
-              ${term}
-            </button>
-          `)}
+          ${terms.map((term, idx) => {
+            const pairIdx = getPairIndex(idx);
+            return html`
+              <button
+                key=${'t' + idx}
+                class="match-item term ${selectedTerm === idx ? 'selected' : ''} ${matches[idx] !== undefined ? 'matched pair-' + pairIdx : ''} ${submitted && matches[idx] !== undefined ? (isCorrect(idx) ? 'correct' : 'incorrect') : ''}"
+                onClick=${() => selectTerm(idx)}
+                disabled=${submitted}
+              >
+                ${term}${pairIdx >= 0 && !submitted ? html`<span class="pair-label">${PAIR_LABELS[pairIdx]}</span>` : ''}
+              </button>
+            `;
+          })}
         </div>
         <div class="match-column" role="list" aria-label="Definitions">
-          ${shuffledDefs.map((def, idx) => html`
-            <button
-              key=${'d' + idx}
-              class="match-item def ${Object.values(matches).includes(idx) ? 'matched' : ''} ${selectedTerm !== null ? 'selectable' : ''}"
-              onClick=${() => selectDef(idx)}
-              disabled=${submitted || selectedTerm === null}
-            >
-              ${def}
-            </button>
-          `)}
+          ${shuffledDefs.map((def, idx) => {
+            const pairIdx = getDefPairIndex(idx);
+            return html`
+              <button
+                key=${'d' + idx}
+                class="match-item def ${pairIdx >= 0 ? 'matched pair-' + pairIdx : ''} ${selectedTerm !== null ? 'selectable' : ''}"
+                onClick=${() => selectDef(idx)}
+                disabled=${submitted || selectedTerm === null}
+              >
+                ${def}${pairIdx >= 0 && !submitted ? html`<span class="pair-label">${PAIR_LABELS[pairIdx]}</span>` : ''}
+              </button>
+            `;
+          })}
         </div>
       </div>
       ${!submitted && html`
