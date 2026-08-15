@@ -455,7 +455,14 @@ details[open]:not(.lesson-section) summary { margin-bottom: 0.5rem; }
 }
 .match-item:hover:not(:disabled) { border-color: var(--accent); }
 .match-item.selected { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--bg)); }
-.match-item.matched { border-color: var(--text-muted); opacity: 0.7; }
+.match-item.matched { opacity: 0.7; }
+.match-item.matched.pair-0 { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--bg)); opacity: 1; }
+.match-item.matched.pair-1 { border-color: var(--success); background: color-mix(in srgb, var(--success) 12%, var(--bg)); opacity: 1; }
+.match-item.matched.pair-2 { border-color: var(--warning); background: color-mix(in srgb, var(--warning) 12%, var(--bg)); opacity: 1; }
+.match-item.matched.pair-3 { border-color: var(--link); background: color-mix(in srgb, var(--link) 12%, var(--bg)); opacity: 1; }
+.match-item.matched.pair-4 { border-color: var(--error); background: color-mix(in srgb, var(--error) 12%, var(--bg)); opacity: 1; }
+.match-item.matched.pair-5 { border-color: var(--text-muted); background: color-mix(in srgb, var(--text-muted) 12%, var(--bg)); opacity: 1; }
+.match-item.matched .pair-label { font-size: 0.7rem; font-weight: 600; margin-left: 0.4rem; }
 .match-item.correct { border-color: var(--success); background: color-mix(in srgb, var(--success) 10%, var(--bg)); opacity: 1; }
 .match-item.incorrect { border-color: var(--error); background: color-mix(in srgb, var(--error) 10%, var(--bg)); opacity: 1; }
 .match-item:disabled { cursor: default; }
