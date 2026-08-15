@@ -344,6 +344,39 @@ details[open]:not(.lesson-section) summary { margin-bottom: 0.5rem; }
   font-style: italic;
 }
 
+/* Another angle callout */
+.another-angle {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg));
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border));
+  border-radius: 8px;
+}
+.another-angle-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+.another-angle-content {
+  flex: 1;
+  min-width: 0;
+}
+.another-angle-heading {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.another-angle-text {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.6;
+}
+
 /* --- Interactive quiz components --- */
 .interactive-card {
   background: var(--bg-elevated);

@@ -13,12 +13,10 @@ const scores = signal([]);
 const showAll = signal(false);
 
 /**
- * AnswerCriteria — formats criteria text into a readable checklist.
- *
- * Parses: "Should mention: (1) point one, (2) point two. Bonus: extra."
- * Renders as: heading + numbered list + optional bonus line.
+ * AnswerCriteria — formats criteria text into a readable checklist,
+ * plus "Another angle" companion explanation if available.
  */
-function AnswerCriteria({ text }) {
+function AnswerCriteria({ text, anotherAngle }) {
   if (!text) return null;
 
   // Extract bonus section if present
@@ -29,25 +27,34 @@ function AnswerCriteria({ text }) {
   // Extract numbered points: (1) ..., (2) ..., etc.
   const pointsMatch = mainText.match(/\(\d+\)\s*[^(]+/g);
 
-  if (pointsMatch && pointsMatch.length > 1) {
-    const points = pointsMatch.map(p => p.replace(/^\(\d+\)\s*/, '').replace(/[,;]\s*$/, '').trim());
-    return html`
-      <div class="answer-criteria">
-        <p class="criteria-heading">Key points to check your answer against:</p>
-        <ol class="criteria-list">
-          ${points.map(p => html`<li>${p}</li>`)}
-        </ol>
-        ${bonus && html`<p class="criteria-bonus"><strong>Bonus:</strong> ${bonus}</p>`}
-      </div>
-    `;
-  }
+  const criteriaBlock = pointsMatch && pointsMatch.length > 1
+    ? html`
+        <div class="answer-criteria">
+          <p class="criteria-heading">Key points to check your answer against:</p>
+          <ol class="criteria-list">
+            ${pointsMatch.map(p => html`<li>${p.replace(/^\(\d+\)\s*/, '').replace(/[,;]\s*$/, '').trim()}</li>`)}
+          </ol>
+          ${bonus && html`<p class="criteria-bonus"><strong>Bonus:</strong> ${bonus}</p>`}
+        </div>
+      `
+    : html`
+        <div class="answer-criteria">
+          <p class="criteria-heading">Key points:</p>
+          <p>${text}</p>
+        </div>
+      `;
 
-  // Fallback: no numbered points detected, show as plain text
   return html`
-    <div class="answer-criteria">
-      <p class="criteria-heading">Key points:</p>
-      <p>${text}</p>
-    </div>
+    ${criteriaBlock}
+    ${anotherAngle && html`
+      <div class="another-angle">
+        <span class="another-angle-icon">💡</span>
+        <div class="another-angle-content">
+          <p class="another-angle-heading">Another angle</p>
+          <p class="another-angle-text">${anotherAngle}</p>
+        </div>
+      </div>
+    `}
   `;
 }
 
@@ -61,7 +68,7 @@ function QuizCard({ question, index, total }) {
       `}
       ${revealed.value && html`
         <div class="quiz-answer">
-          <${AnswerCriteria} text=${question.criteria || question.expected_answer || ''} />
+          <${AnswerCriteria} text=${question.criteria || question.expected_answer || ''} anotherAngle=${question.eli5 || question.another_angle || null} />
           <div class="quiz-self-assess">
             <p class="assess-label">How well did you answer?</p>
             <div class="assess-buttons">
