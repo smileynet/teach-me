@@ -1,141 +1,122 @@
 import { h } from 'preact';
-import { signal } from '@preact/signals';
+import { useState } from 'preact/hooks';
 import htm from 'htm';
 
 const html = htm.bind(h);
 
 /**
  * MatchQuestion — connect terms to definitions by clicking pairs.
- *
- * Props:
- *   question.prompt — instruction text
- *   question.pairs — array of [term, definition] tuples
- *   onComplete(score) — called with 'got-it' | 'partial' | 'miss'
  */
 export function MatchQuestion({ question, index, total, onComplete }) {
-  // Shuffle definitions independently of terms
   const terms = question.pairs.map(([t]) => t);
-  const shuffledDefs = signal(shuffleArray(question.pairs.map(([, d]) => d)));
-  const matches = signal({}); // { termIndex: defIndex }
-  const selectedTerm = signal(null);
-  const submitted = signal(false);
-  const result = signal(null);
+  const correctDefs = question.pairs.map(([, d]) => d);
 
-  function shuffleArray(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
+  function initDefs() {
+    const arr = [...correctDefs];
+    for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-    return a;
+    return arr;
   }
 
+  const [shuffledDefs] = useState(initDefs);
+  const [matches, setMatches] = useState({}); // { termIndex: defIndex }
+  const [selectedTerm, setSelectedTerm] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [result, setResult] = useState(null);
+
   function selectTerm(idx) {
-    if (submitted.value) return;
-    selectedTerm.value = idx;
+    if (submitted) return;
+    if (matches[idx] !== undefined) {
+      // Click matched term to unmatch
+      const next = { ...matches };
+      delete next[idx];
+      setMatches(next);
+      return;
+    }
+    setSelectedTerm(idx);
   }
 
   function selectDef(idx) {
-    if (submitted.value || selectedTerm.value === null) return;
-    // Check if this def is already matched to another term — remove that match
-    const current = { ...matches.value };
-    for (const [k, v] of Object.entries(current)) {
-      if (v === idx) delete current[k];
+    if (submitted || selectedTerm === null) return;
+    // Remove any existing match to this def
+    const next = { ...matches };
+    for (const [k, v] of Object.entries(next)) {
+      if (v === idx) delete next[k];
     }
-    current[selectedTerm.value] = idx;
-    matches.value = current;
-    selectedTerm.value = null;
-  }
-
-  function removeMatch(termIdx) {
-    if (submitted.value) return;
-    const current = { ...matches.value };
-    delete current[termIdx];
-    matches.value = current;
+    next[selectedTerm] = idx;
+    setMatches(next);
+    setSelectedTerm(null);
   }
 
   function checkAnswer() {
-    const correctDefs = question.pairs.map(([, d]) => d);
     let correctCount = 0;
-    for (const [termIdx, defIdx] of Object.entries(matches.value)) {
-      const correctDef = correctDefs[parseInt(termIdx)];
-      if (shuffledDefs.value[defIdx] === correctDef) {
+    for (const [termIdx, defIdx] of Object.entries(matches)) {
+      if (shuffledDefs[defIdx] === correctDefs[parseInt(termIdx)]) {
         correctCount++;
       }
     }
-    const totalPairs = terms.length;
-    submitted.value = true;
-    if (correctCount === totalPairs) {
-      result.value = 'got-it';
-    } else if (correctCount >= totalPairs * 0.5) {
-      result.value = 'partial';
+    setSubmitted(true);
+    if (correctCount === terms.length) {
+      setResult('got-it');
+    } else if (correctCount >= terms.length * 0.5) {
+      setResult('partial');
     } else {
-      result.value = 'miss';
+      setResult('miss');
     }
   }
 
-  function isDefMatched(defIdx) {
-    return Object.values(matches.value).includes(defIdx);
-  }
-
-  function getMatchForTerm(termIdx) {
-    const defIdx = matches.value[termIdx];
+  function isCorrect(termIdx) {
+    const defIdx = matches[termIdx];
     if (defIdx === undefined) return null;
-    return shuffledDefs.value[defIdx];
+    return shuffledDefs[defIdx] === correctDefs[termIdx];
   }
 
-  function isCorrectMatch(termIdx) {
-    const defIdx = matches.value[termIdx];
-    if (defIdx === undefined) return null;
-    const correctDef = question.pairs[termIdx][1];
-    return shuffledDefs.value[defIdx] === correctDef;
-  }
-
-  const allMatched = Object.keys(matches.value).length === terms.length;
+  const allMatched = Object.keys(matches).length === terms.length;
 
   return html`
     <div class="quiz-card interactive-card">
       <div class="quiz-progress">${index + 1} / ${total}</div>
       <p class="quiz-prompt">${question.prompt}</p>
+      <p class="match-hint">Click a term, then click its matching definition.</p>
       <div class="match-container">
         <div class="match-column" role="list" aria-label="Terms">
           ${terms.map((term, idx) => html`
             <button
-              class="match-item term ${selectedTerm.value === idx ? 'selected' : ''} ${matches.value[idx] !== undefined ? 'matched' : ''} ${submitted.value && matches.value[idx] !== undefined ? (isCorrectMatch(idx) ? 'correct' : 'incorrect') : ''}"
-              onClick=${() => matches.value[idx] !== undefined && !submitted.value ? removeMatch(idx) : selectTerm(idx)}
-              disabled=${submitted.value}
-              role="listitem"
-              aria-label="${term}${getMatchForTerm(idx) ? ' → ' + getMatchForTerm(idx) : ''}"
+              key=${'t' + idx}
+              class="match-item term ${selectedTerm === idx ? 'selected' : ''} ${matches[idx] !== undefined ? 'matched' : ''} ${submitted && matches[idx] !== undefined ? (isCorrect(idx) ? 'correct' : 'incorrect') : ''}"
+              onClick=${() => selectTerm(idx)}
+              disabled=${submitted}
             >
-              <span class="match-text">${term}</span>
-              ${getMatchForTerm(idx) && html`<span class="match-indicator">→ ${getMatchForTerm(idx)}</span>`}
+              ${term}
             </button>
           `)}
         </div>
         <div class="match-column" role="list" aria-label="Definitions">
-          ${shuffledDefs.value.map((def, idx) => html`
+          ${shuffledDefs.map((def, idx) => html`
             <button
-              class="match-item def ${isDefMatched(idx) ? 'matched' : ''}"
+              key=${'d' + idx}
+              class="match-item def ${Object.values(matches).includes(idx) ? 'matched' : ''} ${selectedTerm !== null ? 'selectable' : ''}"
               onClick=${() => selectDef(idx)}
-              disabled=${submitted.value || selectedTerm.value === null}
-              role="listitem"
+              disabled=${submitted || selectedTerm === null}
             >
               ${def}
             </button>
           `)}
         </div>
       </div>
-      ${!submitted.value && html`
+      ${!submitted && html`
         <button class="btn primary" onClick=${checkAnswer} disabled=${!allMatched}>
-          ${allMatched ? 'Check Matches' : `Match all pairs (${Object.keys(matches.value).length}/${terms.length})`}
+          ${allMatched ? 'Check Matches' : 'Match all pairs (' + Object.keys(matches).length + '/' + terms.length + ')'}
         </button>
       `}
-      ${submitted.value && html`
+      ${submitted && html`
         <div class="match-feedback">
-          <p class="feedback-result ${result.value}">
-            ${result.value === 'got-it' ? '✓ All matched correctly!' : result.value === 'partial' ? '◐ Some matches correct' : '✗ Most matches incorrect'}
+          <p class="feedback-result ${result}">
+            ${result === 'got-it' ? '✓ All matched correctly!' : result === 'partial' ? '◐ Some correct' : '✗ Most incorrect'}
           </p>
-          ${result.value !== 'got-it' && html`
+          ${result !== 'got-it' && html`
             <details class="correct-answer">
               <summary>Show correct matches</summary>
               <ul class="correct-list">
@@ -143,7 +124,7 @@ export function MatchQuestion({ question, index, total, onComplete }) {
               </ul>
             </details>
           `}
-          <button class="btn primary" onClick=${() => onComplete(result.value)}>Continue</button>
+          <button class="btn primary" onClick=${() => onComplete(result)}>Continue</button>
         </div>
       `}
     </div>

@@ -1,267 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quiz: Iceberg Metadata Tree</title>
   <script src="../../assets/typography-prefs.js"></script>
   <link rel="stylesheet" href="../../assets/style.css">
-  <style>
-    .quiz-container { max-width: 700px; margin: 0 auto; padding: 1rem; }
-    .quiz-nav {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 0.5rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border);
-      font-size: 0.85rem;
-    }
-    .quiz-nav a { color: var(--link); text-decoration: none; }
-    .quiz-nav a:hover { text-decoration: underline; }
-    .quiz-progress { color: var(--text-muted); }
-    .card {
-      border: 2px solid var(--border); border-radius: 8px;
-      padding: 1.5rem; margin: 1.5rem 0; background: var(--bg-elevated);
-    }
-    .card-prompt {
-      border-left: 4px solid var(--accent); padding-left: 1rem; margin-bottom: 1rem;
-    }
-    .card-answer {
-      border-left: 4px solid var(--success, #16a34a); padding-left: 1rem;
-      display: none;
-    }
-    .card-answer.revealed { display: block; }
-    .card-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; }
-    .card-type {
-      display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px;
-      font-size: 0.75rem; font-weight: 600; background: var(--bg-surface); color: var(--accent);
-      margin-bottom: 0.5rem;
-    }
-    .reveal-btn {
-      background: var(--accent); color: var(--bg); border: none;
-      padding: 0.5rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem;
-    }
-    .reveal-btn:hover { opacity: 0.85; }
-    .rating { margin-top: 1rem; display: none; }
-    .rating.revealed { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-    .rating p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
-    .rating button {
-      padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 4px;
-      cursor: pointer; background: var(--bg-surface); color: var(--text); font-size: 0.8rem;
-    }
-    .rating button:hover { background: var(--bg-elevated); border-color: var(--accent); }
-    .rating button.selected { background: color-mix(in srgb, var(--accent) 15%, var(--bg)); border-color: var(--accent); }
-    .quiz-done {
-      margin-top: 2rem; padding: 1.25rem; border-radius: 8px;
-      background: var(--bg-elevated); border: 1px solid var(--border);
-      text-align: center;
-    }
-    .quiz-done a {
-      display: inline-block; margin: 0.5rem; padding: 0.6rem 1rem;
-      border-radius: 6px; text-decoration: none; font-size: 0.9rem;
-      border: 1px solid var(--accent); color: var(--accent);
-    }
-    .quiz-done a:hover { background: var(--bg-surface); }
-  </style>
-<script type="importmap">
-  {
+  <script type="importmap">
+{
     "imports": {
-      "preact": "../../assets/vendor/preact.module.js",
-      "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
-      "@preact/signals": "../../assets/vendor/preact-signals.module.js",
-      "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
-      "htm": "../../assets/vendor/htm.module.js"
+        "preact": "../../assets/vendor/preact.module.js",
+        "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
+        "htm": "../../assets/vendor/htm.module.js"
     }
-  }
+}
   </script>
 </head>
 <body>
 
+<nav class="page-nav" aria-label="Breadcrumb"><a href="../index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../data-analytics-map.html">Modern Data Analytics Stacks</a> <span class="nav-sep">›</span> <a href="../0001-iceberg-metadata-tree.html">Iceberg Metadata Tree</a> <span class="nav-sep">›</span> <span>Quiz</span></nav>
+  <div id="app"></div>
 
-<nav class="page-nav" aria-label="Breadcrumb"><a href="../index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../data-analytics-map.html">Modern Data Analytics Stacks</a> <span class="nav-sep">›</span> <a href="../0001-iceberg-metadata-tree.html">Quiz: Iceberg Metadata Tree</a> <span class="nav-sep">›</span> <span>Quiz</span></nav>
-<div class="quiz-container">
-  <nav class="quiz-nav">
-    <a href="../0001-iceberg-metadata-tree.html">← Back to lesson</a>
-    <span class="quiz-progress">9 questions</span>
-    <a href="../data-analytics-map.html">← Back to map</a>
-  </nav>
+<script type="application/json" id="page-data">{"questions": [{"type": "sequence", "topic": "iceberg-metadata-tree", "prompt": "Put the Iceberg metadata hierarchy in order from broadest to most specific:", "items": ["Catalog (Nessie/Glue/Hive)", "Table metadata file (metadata.json)", "Manifest list (snap-*.avro)", "Manifest file (*.avro)", "Data files (Parquet)"], "correct_order": [0, 1, 2, 3, 4]}, {"type": "match", "topic": "iceberg-metadata-tree", "prompt": "Match each metadata layer to what it tracks:", "pairs": [["Catalog", "Table locations and current metadata pointer"], ["Metadata file", "Schema, partitioning, snapshot history"], ["Manifest list", "Which manifests belong to a snapshot"], ["Manifest", "Individual data file paths, stats, and partition values"]]}], "title": "Iceberg Metadata Tree", "lessonFile": "0001-iceberg-metadata-tree.html", "mapPage": "data-analytics-map.html"}</script>
+<script type="module" src="../../assets/page-shell.js"></script>
+<script type="module">
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { QuizView } from '../../assets/components/QuizView.js';
 
-  <h1>Quiz: Iceberg Metadata Tree</h1>
-  <p style="color:var(--text-muted); margin-bottom:1.5rem;">Read each question, form your answer, then reveal to check. Rate your confidence honestly.</p>
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
 
-
-    <div class="card" id="card1">
-      <div class="card-prompt">
-        <span class="card-type">explain</span>
-        <p><strong>Why does Iceberg need a separate manifest list layer between the metadata file and the manifest files?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card1')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) groups manifests into an atomic set for one snapshot — the metadata file points to ONE manifest list per snapshot, not N manifests, (2) enables atomic commit — swapping the catalog pointer changes the entire file set in one operation. Bonus: without this indirection, adding/removing manifests during a commit would require multiple pointer updates (non-atomic).</p>
-      </div>
-      <div class="rating" id="card1-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card1', 1)">Not at all</button>
-        <button onclick="rate('card1', 3)">Roughly</button>
-        <button onclick="rate('card1', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: The Metadata Tree · Tags: iceberg, metadata, manifest-list, atomicity</div>
-    </div>
-    <div class="card" id="card2">
-      <div class="card-prompt">
-        <span class="card-type">predict</span>
-        <p><strong>What would happen to query planning if you skipped table maintenance (compaction) for several months on a heavily-written Iceberg table?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card2')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) manifests accumulate — each write adds new ones, so query planning must read more files to discover which data to scan, (2) planning latency grows (30+ seconds in extreme cases), (3) S3 API costs climb linearly with metadata volume. Bonus: small data files also accumulate, hurting scan performance even after planning.</p>
-      </div>
-      <div class="rating" id="card2-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card2', 1)">Not at all</button>
-        <button onclick="rate('card2', 3)">Roughly</button>
-        <button onclick="rate('card2', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: Limitations Worth Knowing · Tags: iceberg, maintenance, compaction, operational</div>
-    </div>
-    <div class="card" id="card3">
-      <div class="card-prompt">
-        <span class="card-type">apply</span>
-        <p><strong>Your customer has a 50 GB table with simple append-only writes and no concurrent readers. They&#x27;re evaluating Iceberg. What would you advise?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card3')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) Iceberg adds metadata overhead with zero benefit at this scale — plain Parquet + Athena is simpler, (2) the maintenance burden (5 mandatory operations) isn&#x27;t justified for a small append-only workload. Key insight: Iceberg&#x27;s value appears at scale (concurrent access, schema evolution, time travel) — not every table needs it.</p>
-      </div>
-      <div class="rating" id="card3-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card3', 1)">Not at all</button>
-        <button onclick="rate('card3', 3)">Roughly</button>
-        <button onclick="rate('card3', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: Limitations Worth Knowing · Tags: iceberg, alternatives, when-not-to-use, tradeoffs</div>
-    </div>
-    <div class="card" id="card4">
-      <div class="card-prompt">
-        <span class="card-type">explain</span>
-        <p><strong>Where do snapshots actually live in the Iceberg metadata tree? Why does this matter?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card4')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) snapshots are JSON objects INSIDE the table metadata file (not a separate layer or file), (2) each snapshot contains a timestamp, sequence number, and pointer to a manifest list. Why it matters: the metadata file IS the version history — reading one file gives you access to all past states of the table (time travel).</p>
-      </div>
-      <div class="rating" id="card4-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card4', 1)">Not at all</button>
-        <button onclick="rate('card4', 3)">Roughly</button>
-        <button onclick="rate('card4', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: The Metadata Tree · Tags: iceberg, snapshots, metadata-file, time-travel</div>
-    </div>
-    <div class="card" id="card5">
-      <div class="card-prompt">
-        <span class="card-type">explain</span>
-        <p><strong>Why can&#x27;t two Iceberg writers commit at exactly the same time on AWS? What limits the throughput?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card5')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) the catalog pointer update is serialized — optimistic concurrency with compare-and-swap, (2) on AWS Glue, this is capped at ~15 TPS. Key insight: the catalog is a single-writer bottleneck by design — it&#x27;s what makes commits atomic. High-throughput writes need fewer, larger commits (batch), not many small ones.</p>
-      </div>
-      <div class="rating" id="card5-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card5', 1)">Not at all</button>
-        <button onclick="rate('card5', 3)">Roughly</button>
-        <button onclick="rate('card5', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: Limitations Worth Knowing · Tags: iceberg, concurrency, aws, catalog, throughput</div>
-    </div>
-    <div class="card" id="card6">
-      <div class="card-prompt">
-        <span class="card-type">quick-check</span>
-        <p><strong>Which layer of Iceberg&#x27;s metadata tree stores column-level statistics (min/max, null counts)?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card6')">Show Answer</button>
-      <div class="card-answer">
-        <p>Manifest files store per-data-file column statistics.</p>
-      </div>
-      <div class="rating" id="card6-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card6', 1)">Not at all</button>
-        <button onclick="rate('card6', 3)">Roughly</button>
-        <button onclick="rate('card6', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: The Metadata Tree · Tags: iceberg, manifests, query-planning</div>
-    </div>
-    <div class="card" id="card7">
-      <div class="card-prompt">
-        <span class="card-type">quick-check</span>
-        <p><strong>What concurrency model does Iceberg use for multi-writer access?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card7')">Show Answer</button>
-      <div class="card-answer">
-        <p>Optimistic concurrency control with compare-and-swap on the metadata pointer.</p>
-      </div>
-      <div class="rating" id="card7-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card7', 1)">Not at all</button>
-        <button onclick="rate('card7', 3)">Roughly</button>
-        <button onclick="rate('card7', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: MVCC · Tags: iceberg, concurrency, mvcc</div>
-    </div>
-    <div class="card" id="card8">
-      <div class="card-prompt">
-        <span class="card-type">quick-check</span>
-        <p><strong>What happens to query planning latency if you skip compaction on a heavily-written Iceberg table?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card8')">Show Answer</button>
-      <div class="card-answer">
-        <p>Planning latency grows because the planner must read an increasing number of manifest files.</p>
-      </div>
-      <div class="rating" id="card8-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card8', 1)">Not at all</button>
-        <button onclick="rate('card8', 3)">Roughly</button>
-        <button onclick="rate('card8', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: Limitations Worth Knowing · Tags: iceberg, maintenance, compaction</div>
-    </div>
-    <div class="card" id="card9">
-      <div class="card-prompt">
-        <span class="card-type">quick-check</span>
-        <p><strong>Name the four layers of Iceberg&#x27;s metadata tree (top to bottom):</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card9')">Show Answer</button>
-      <div class="card-answer">
-        <p>AWS Glue Data Catalog → Metadata Files (JSON) → Manifest Files (Avro) → Data Files (Parquet)</p>
-      </div>
-      <div class="rating" id="card9-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card9', 1)">Not at all</button>
-        <button onclick="rate('card9', 3)">Roughly</button>
-        <button onclick="rate('card9', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: The Metadata Tree · Tags: iceberg, metadata, architecture, diagram</div>
-    </div>
-
-  <div class="quiz-done">
-    <h3>Done!</h3>
-    <p>Review complete. How did you do?</p>
-    <a href="../0001-iceberg-metadata-tree.html">← Review the lesson</a>
-    <a href="../data-analytics-map.html">← Back to map</a>
-  </div>
-</div>
-
-<script>
-function reveal(cardId) {
-  document.querySelector(`#${cardId} .card-answer`).classList.add('revealed');
-  document.querySelector(`#${cardId} .reveal-btn`).style.display = 'none';
-  document.querySelector(`#${cardId}-rating`).classList.add('revealed');
-}
-function rate(cardId, quality) {
-  const buttons = document.querySelectorAll(`#${cardId}-rating button`);
-  buttons.forEach(b => b.classList.remove('selected'));
-  event.target.classList.add('selected');
-}
+    render(
+      html`<${QuizView} questions=${data.questions} title=${data.title} />`,
+      document.getElementById('app')
+    );
 </script>
 
-<script type="module" src="../../assets/page-shell.js"></script>
 </body>
 </html>

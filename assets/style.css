@@ -352,6 +352,46 @@ details[open]:not(.lesson-section) summary { margin-bottom: 0.5rem; }
   padding: 1.5rem;
 }
 
+.quiz-mode-toggle {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.25rem;
+  background: var(--bg-elevated);
+  border-radius: 6px;
+  padding: 0.2rem;
+  width: fit-content;
+}
+.mode-btn {
+  padding: 0.35rem 0.75rem;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.mode-btn.active {
+  background: var(--accent);
+  color: var(--bg);
+}
+.mode-btn:hover:not(.active) {
+  color: var(--text);
+}
+
+.quiz-all {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.match-hint {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  margin-bottom: 0.75rem;
+  font-style: italic;
+}
+
 .feedback-result {
   font-weight: 600;
   font-size: 1rem;
@@ -396,7 +436,7 @@ details[open]:not(.lesson-section) summary { margin-bottom: 0.5rem; }
   border: 1px solid var(--border); background: var(--bg-elevated);
   color: var(--text-muted); cursor: pointer; font-size: 0.8rem;
   display: flex; align-items: center; justify-content: center;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, color 0.15s;
 }
 .seq-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .seq-btn:disabled { opacity: 0.3; cursor: not-allowed; }
@@ -410,6 +450,7 @@ details[open]:not(.lesson-section) summary { margin-bottom: 0.5rem; }
   padding: 0.6rem 0.75rem; border-radius: 6px;
   background: var(--bg); border: 1px solid var(--border);
   cursor: pointer; font-size: 0.85rem; text-align: left;
+  color: var(--text);
   transition: border-color 0.15s, background 0.15s;
 }
 .match-item:hover:not(:disabled) { border-color: var(--accent); }
