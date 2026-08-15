@@ -35,7 +35,7 @@ First use of a domain term → wrap in tooltip:
 ```html
 <span class="term" data-term="snapshot">snapshot</span>
 ```
-Include glossary JSON block + `glossary.js` at bottom. After lesson, add terms to `.memory/CONTEXT.md`.
+Include glossary JSON block at bottom (before page-shell.js). After lesson, add terms to `.memory/CONTEXT.md`.
 
 ## Collapsible Details
 
@@ -79,10 +79,7 @@ Every lesson page ends with:
   }
 }
 </script>
-<script src="../assets/glossary.js"></script>
-<script type="module">
-  import '../assets/components/LessonActions.js';
-</script>
+<script type="module" src="../assets/page-shell.js"></script>
 ```
 
-This provides: glossary tooltips (from `#glossary-data` JSON block) and the lesson action bar (← Back to map, Generate quiz, Mark complete). The import map MUST appear before any `type="module"` script.
+This provides: glossary tooltips, collapsible sections, typography panel, and the lesson action bar (← Back to map, Take quiz, Mark complete). The import map MUST appear before the module script. `page-shell.js` is the single entry point — never import components individually.

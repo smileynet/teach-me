@@ -115,7 +115,7 @@ The `workspace/` directory is the single live workspace per machine. All topics 
 | Don't teach from parametric memory | Cite sources in every lesson |
 | Don't invent specific numbers | Cite or frame as general |
 | Don't ask recall questions in gates | Ask "explain to [person] why..." |
-| Don't omit lesson-actions.js | Every lesson includes `import '../assets/components/LessonActions.js'` in a module script — provides nav + quiz buttons |
+| Don't omit page-shell.js | Every lesson includes `<script type="module" src="../assets/page-shell.js"></script>` — single entry point for nav, glossary, typography, layout |
 | Don't ship silent buttons | Interactive buttons must have visible hover state + click feedback (animation, color change, or navigation) |
 | Don't give partial URLs | When a server is running, always provide full clickable URLs (http://host:port/path) |
 | Don't context-switch to content during infrastructure | Finish the migration/ticket in progress before generating lessons or teaching |
