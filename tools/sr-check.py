@@ -68,13 +68,18 @@ def check_card(card: Card, lapse_counts: dict[str, int]) -> list[str]:
     if len(card.expected_answer) > 300:
         warnings.append(f"expected_answer is {len(card.expected_answer)} chars — may not be atomic (split into multiple cards?)")
 
-    # Check for script-style answers (should use criteria format)
+    # Check for numbered criteria format (required)
     answer_lower = card.expected_answer.lower()
+    has_numbered = "(1)" in card.expected_answer and "(2)" in card.expected_answer
     has_criteria = any(marker in answer_lower for marker in [
         "should mention", "key idea", "check:", "bonus:", "e.g.", "core:"
     ])
-    if len(card.expected_answer) > 80 and not has_criteria and "\n" not in card.expected_answer:
-        warnings.append("expected_answer looks like a script, not criteria — use 'Should mention: (1)...' format")
+
+    if not has_numbered and len(card.expected_answer) > 30:
+        warnings.append("criteria missing numbered points — use 'Should mention: (1)... (2)...' format")
+
+    if len(card.expected_answer) > 80 and not has_criteria and not has_numbered and "\n" not in card.expected_answer:
+        warnings.append("expected_answer looks like prose, not criteria — use 'Should mention: (1)...' format")
 
     # Check prompt length (too short = vague)
     if len(card.prompt) < 20:
@@ -178,6 +183,9 @@ def cmd_check(topic: str | None = None) -> None:
         long_count = sum(1 for _, _, ws in all_issues if any("atomic" in w for w in ws))
         if long_count > 0:
             print(f"  • {long_count} non-atomic answer(s): consider splitting into multiple cards")
+        criteria_count = sum(1 for _, _, ws in all_issues if any("numbered points" in w for w in ws))
+        if criteria_count > 0:
+            print(f"  • {criteria_count} card(s) missing numbered criteria: add (1)... (2)... format")
     else:
         print("\n  ✅ All cards pass quality checks!")
 
