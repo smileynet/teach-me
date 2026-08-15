@@ -75,7 +75,7 @@ export function FillQuestion({ question, index, total, onComplete }) {
         <button class="btn primary" onClick=${checkAnswer} disabled=${!allFilled}>Check Answers</button>
       `}
       ${submitted && html`
-        <div class="fill-feedback">
+        <div class="fill-feedback" role="status" aria-live="polite">
           <p class="feedback-result ${result}">
             ${result === 'got-it' ? '✓ All correct!' : result === 'partial' ? '◐ Some correct' : '✗ Not quite'}
           </p>

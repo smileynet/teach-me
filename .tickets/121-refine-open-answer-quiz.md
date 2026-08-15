@@ -21,9 +21,9 @@ Areas to examine:
 
 ## Acceptance criteria
 
-- [ ] Audit existing questions across all example workspaces for variety and quality
-- [ ] Identify patterns that work well and patterns that are repetitive/weak
-- [ ] Update the quiz-me skill and SR question generation guidance with refined strategy
-- [ ] Define 4-6 distinct question archetypes with examples and when to use each
-- [ ] Generated questions use varied framing (not all "explain to a colleague")
-- [ ] Criteria answers include clear "must mention" items AND "bonus" stretch items
+- [x] Audit existing questions across all example workspaces for variety and quality
+- [x] Identify patterns that work well and patterns that are repetitive/weak
+- [x] Update the quiz-me skill and SR question generation guidance with refined strategy
+- [x] Define 4-6 distinct question archetypes with examples and when to use each
+- [x] Generated questions use varied framing (not all "explain to a colleague")
+- [x] Criteria answers include clear "must mention" items AND "bonus" stretch items

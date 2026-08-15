@@ -1,4 +1,5 @@
 import { h } from 'preact';
+import { useState } from 'preact/hooks';
 import { signal } from '@preact/signals';
 import htm from 'htm';
 import { SequenceQuestion } from './quiz/SequenceQuestion.js';
@@ -8,7 +9,6 @@ import { FillQuestion } from './quiz/FillQuestion.js';
 const html = htm.bind(h);
 
 const currentIndex = signal(0);
-const revealed = signal(false);
 const scores = signal([]);
 const showAll = signal(false);
 
@@ -58,25 +58,38 @@ function AnswerCriteria({ text, anotherAngle }) {
   `;
 }
 
-function QuizCard({ question, index, total }) {
+function QuizCard({ question, index, total, onComplete }) {
+  const [revealed, setRevealed] = useState(false);
+  const [scored, setScored] = useState(false);
+
+  function handleScore(score) {
+    setScored(true);
+    if (onComplete) onComplete(score);
+  }
+
   return html`
     <div class="quiz-card">
       <div class="quiz-progress">${index + 1} / ${total}</div>
       <p class="quiz-prompt">${question.prompt}</p>
-      ${!revealed.value && html`
-        <button class="btn primary" onClick=${() => { revealed.value = true; }}>Show Answer</button>
+      ${!revealed && html`
+        <button class="btn primary" onClick=${() => setRevealed(true)}>Show Answer</button>
       `}
-      ${revealed.value && html`
-        <div class="quiz-answer">
+      ${revealed && html`
+        <div class="quiz-answer" role="status" aria-live="polite">
           <${AnswerCriteria} text=${question.criteria || question.expected_answer || ''} anotherAngle=${question.eli5 || question.another_angle || null} />
-          <div class="quiz-self-assess">
-            <p class="assess-label">How well did you answer?</p>
-            <div class="assess-buttons">
-              <button class="btn" onClick=${() => next('miss')}>Missed it</button>
-              <button class="btn" onClick=${() => next('partial')}>Partial</button>
-              <button class="btn primary" onClick=${() => next('got-it')}>Got it</button>
+          ${!scored && html`
+            <div class="quiz-self-assess">
+              <p class="assess-label">How well did you answer?</p>
+              <div class="assess-buttons">
+                <button class="btn" onClick=${() => handleScore('miss')}>Missed it</button>
+                <button class="btn" onClick=${() => handleScore('partial')}>Partial</button>
+                <button class="btn primary" onClick=${() => handleScore('got-it')}>Got it</button>
+              </div>
             </div>
-          </div>
+          `}
+          ${scored && html`
+            <p class="assess-done">✓ Recorded</p>
+          `}
         </div>
       `}
     </div>
@@ -85,7 +98,6 @@ function QuizCard({ question, index, total }) {
 
 function next(score) {
   scores.value = [...scores.value, score];
-  revealed.value = false;
   currentIndex.value++;
 }
 
@@ -114,22 +126,22 @@ function QuizSummary({ questions }) {
 
 function interactiveNext(score) {
   scores.value = [...scores.value, score];
-  revealed.value = false;
   currentIndex.value++;
 }
 
-function QuestionRouter({ question, index, total }) {
+function QuestionRouter({ question, index, total, onComplete }) {
   const type = question.type || 'open';
+  const handler = onComplete || interactiveNext;
 
   switch (type) {
     case 'sequence':
-      return html`<${SequenceQuestion} question=${question} index=${index} total=${total} onComplete=${interactiveNext} />`;
+      return html`<${SequenceQuestion} question=${question} index=${index} total=${total} onComplete=${handler} />`;
     case 'match':
-      return html`<${MatchQuestion} question=${question} index=${index} total=${total} onComplete=${interactiveNext} />`;
+      return html`<${MatchQuestion} question=${question} index=${index} total=${total} onComplete=${handler} />`;
     case 'fill':
-      return html`<${FillQuestion} question=${question} index=${index} total=${total} onComplete=${interactiveNext} />`;
+      return html`<${FillQuestion} question=${question} index=${index} total=${total} onComplete=${handler} />`;
     default:
-      return html`<${QuizCard} question=${question} index=${index} total=${total} />`;
+      return html`<${QuizCard} question=${question} index=${index} total=${total} onComplete=${handler} />`;
   }
 }
 
@@ -157,7 +169,7 @@ export function QuizView({ questions, title }) {
       ${showAll.value ? html`
         <div class="quiz-all">
           ${questions.map((q, i) => html`
-            <${QuestionRouter} question=${q} index=${i} total=${questions.length} key=${i} />
+            <${QuestionRouter} question=${q} index=${i} total=${questions.length} key=${i} onComplete=${(score) => { scores.value = [...scores.value, score]; }} />
           `)}
         </div>
       ` : html`

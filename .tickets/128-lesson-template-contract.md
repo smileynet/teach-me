@@ -84,7 +84,7 @@ page_template.py
 - [x] Lesson HTML files have identical boilerplate (head, scripts, structure)
 - [x] Adding a global script/component = edit template once. Regenerated pages pick it up.
 - [x] Existing pages can be regenerated via template without content loss
-- [ ] `assets/scaffolds/` directory can be deleted (template is the source of truth)
+- [ ] `assets/scaffolds/` directory can be deleted — DEFERRED: retained as agent-readable content structure examples (template is source of truth for boilerplate, scaffolds show content patterns)
 - [x] Agent skill (generate-topic) guidance updated: produce body content + data, call template
 
 ## Validation

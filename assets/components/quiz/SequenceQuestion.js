@@ -96,7 +96,7 @@ export function SequenceQuestion({ question, index, total, onComplete }) {
         <button class="btn primary" onClick=${checkAnswer}>Check Order</button>
       `}
       ${submitted && html`
-        <div class="sequence-feedback">
+        <div class="sequence-feedback" role="status" aria-live="polite">
           <p class="feedback-result ${result}">
             ${result === 'got-it' ? '✓ Perfect order!' : result === 'partial' ? '◐ Partially correct' : '✗ Not quite'}
           </p>
