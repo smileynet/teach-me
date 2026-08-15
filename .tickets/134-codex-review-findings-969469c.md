@@ -1,7 +1,7 @@
 ---
 id: "134"
 title: "Confirm and address Codex review findings through 969469c"
-status: in_progress
+status: done
 blocked_by: []
 priority: high
 ---
