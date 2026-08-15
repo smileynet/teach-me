@@ -1,7 +1,7 @@
 ---
 id: "117"
 title: "Feature: Interactive quiz components — drag-and-drop, fill-in-blanks, matching"
-status: in_progress
+status: done
 blocked_by: ["127"]
 ---
 
