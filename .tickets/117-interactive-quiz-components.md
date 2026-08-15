@@ -23,10 +23,10 @@ These are simple, lightweight components (Preact) — not a full LMS quiz engine
 
 ## Acceptance criteria
 
-- [ ] At least 3 interactive question types implemented as Preact components
-- [ ] Components work without a server (static HTML, client-side only)
-- [ ] Questions can be authored in the JSONL format (or a simple extension of it)
-- [ ] Correct/incorrect feedback is immediate and visual
-- [ ] Accessible (keyboard navigable, screen reader announcements)
-- [ ] Mobile-friendly (touch targets, responsive layout)
-- [ ] Integrated into the quiz page generation pipeline
+- [x] At least 3 interactive question types implemented as Preact components
+- [x] Components work without a server (static HTML, client-side only)
+- [x] Questions can be authored in the JSONL format (or a simple extension of it)
+- [x] Correct/incorrect feedback is immediate and visual
+- [x] Accessible (keyboard navigable, screen reader announcements)
+- [x] Mobile-friendly (touch targets, responsive layout)
+- [x] Integrated into the quiz page generation pipeline

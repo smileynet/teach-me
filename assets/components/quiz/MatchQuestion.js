@@ -137,7 +137,7 @@ export function MatchQuestion({ question, index, total, onComplete }) {
         </button>
       `}
       ${submitted && html`
-        <div class="match-feedback">
+        <div class="match-feedback" role="status" aria-live="polite">
           <p class="feedback-result ${result}">
             ${result === 'got-it' ? '✓ All matched correctly!' : result === 'partial' ? '◐ Some correct' : '✗ Most incorrect'}
           </p>
