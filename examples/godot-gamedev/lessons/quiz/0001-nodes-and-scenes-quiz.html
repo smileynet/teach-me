@@ -1,105 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz: Nodes, Scenes & the Scene Tree</title>
+  <title>Quiz: Nodes, Scenes &amp; the Scene Tree</title>
   <script src="../../assets/typography-prefs.js"></script>
   <link rel="stylesheet" href="../../assets/style.css">
-  <style>
-    .quiz-container { max-width: 700px; margin: 0 auto; padding: 1rem; }
-    .quiz-nav { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-    .quiz-nav a { color: var(--link); text-decoration: none; }
-    .quiz-nav a:hover { text-decoration: underline; }
-    .quiz-progress { color: var(--text-muted); }
-    .card { border: 2px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; background: var(--bg-elevated); }
-    .card-prompt { border-left: 4px solid var(--accent); padding-left: 1rem; margin-bottom: 1rem; }
-    .card-answer { border-left: 4px solid var(--success, #16a34a); padding-left: 1rem; display: none; }
-    .card-answer.revealed { display: block; }
-    .card-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; }
-    .card-type { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: var(--bg-surface); color: var(--accent); margin-bottom: 0.5rem; }
-    .reveal-btn { background: var(--accent); color: var(--bg); border: none; padding: 0.5rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
-    .reveal-btn:hover { opacity: 0.85; }
-    .rating { margin-top: 1rem; display: none; }
-    .rating.revealed { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-    .rating p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
-    .rating button { padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg-surface); color: var(--text); font-size: 0.8rem; }
-    .rating button:hover { background: var(--bg-elevated); border-color: var(--accent); }
-    .rating button.selected { background: color-mix(in srgb, var(--accent) 15%, var(--bg)); border-color: var(--accent); }
-    .quiz-done { margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); text-align: center; }
-    .quiz-done a { display: inline-block; margin: 0.5rem; padding: 0.6rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.9rem; border: 1px solid var(--accent); color: var(--accent); }
-    .quiz-done a:hover { background: var(--bg-surface); }
-  </style>
-<script type="importmap">
-  {
+  <script type="importmap">
+{
     "imports": {
-      "preact": "../../assets/vendor/preact.module.js",
-      "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
-      "@preact/signals": "../../assets/vendor/preact-signals.module.js",
-      "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
-      "htm": "../../assets/vendor/htm.module.js"
+        "preact": "../../assets/vendor/preact.module.js",
+        "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
+        "htm": "../../assets/vendor/htm.module.js"
     }
-  }
+}
   </script>
 </head>
 <body>
 
-<nav class="page-nav" aria-label="Breadcrumb"><a href="../index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../godot-gamedev-map.html">Game Development with Godot</a> <span class="nav-sep">›</span> <a href="../0001-nodes-and-scenes.html">Quiz: Nodes, Scenes &amp; the Scene Tree</a> <span class="nav-sep">›</span> <span>Quiz</span></nav>
-<div class="quiz-container">
-  <nav class="quiz-nav">
-    <a href="../0001-nodes-and-scenes.html">← Back to lesson</a>
-    <span class="quiz-progress">5 questions</span>
-    <a href="../godot-gamedev-map.html">← Back to map</a>
-  </nav>
-  <h1>Quiz: Nodes, Scenes & the Scene Tree</h1>
-  <p style="color:var(--text-muted); margin-bottom:1.5rem;">Read each question, form your answer, then reveal to check.</p>
+<nav class="page-nav" aria-label="Breadcrumb"><a href="../index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../godot-gamedev-map.html">Game Development with Godot</a> <span class="nav-sep">›</span> <a href="../0001-nodes-and-scenes.html">Nodes, Scenes &amp; the Scene Tree</a> <span class="nav-sep">›</span> <span>Quiz</span></nav>
+  <div id="app"></div>
 
-  <div class="card" id="card1">
-    <div class="card-prompt"><span class="card-type">explain</span><p><strong>Why does Godot prefer composition (combining nodes) over inheritance (deep class hierarchies)?</strong></p></div>
-    <button class="reveal-btn" onclick="reveal('card1')">Show Answer</button>
-    <div class="card-answer"><p>Should mention: (1) composition keeps scenes self-contained and reusable — each component has one job, (2) Has-A is more flexible than Is-A, (3) a character doesn't inherit from Damageable — it HAS a Health component as a child.</p></div>
-    <div class="rating" id="card1-rating"><p>How well could you explain this?</p><button onclick="rate('card1', 1)">Not at all</button><button onclick="rate('card1', 3)">Roughly</button><button onclick="rate('card1', 5)">Confidently</button></div>
-    <div class="card-meta">Section: Composition · Tags: composition, architecture, nodes</div>
-  </div>
-
-  <div class="card" id="card2">
-    <div class="card-prompt"><span class="card-type">explain</span><p><strong>Explain the "signal up, call down" rule and why it matters for scene reusability.</strong></p></div>
-    <button class="reveal-btn" onclick="reveal('card2')">Show Answer</button>
-    <div class="card-answer"><p>Should mention: (1) children emit signals (observer pattern — don't know who listens), (2) parents call $Child.method() directly, (3) siblings never talk directly. Why: keeps scenes self-contained — a Health node works in any game because it signals rather than referencing specific objects.</p></div>
-    <div class="rating" id="card2-rating"><p>How well could you explain this?</p><button onclick="rate('card2', 1)">Not at all</button><button onclick="rate('card2', 3)">Roughly</button><button onclick="rate('card2', 5)">Confidently</button></div>
-    <div class="card-meta">Section: Communication · Tags: signals, decoupling, architecture</div>
-  </div>
-
-  <div class="card" id="card3">
-    <div class="card-prompt"><span class="card-type">apply</span><p><strong>Design a chest that opens when the player approaches. What nodes would you compose and how would it communicate?</strong></p></div>
-    <button class="reveal-btn" onclick="reveal('card3')">Show Answer</button>
-    <div class="card-answer"><p>Should mention: (1) Area2D for proximity detection, (2) Sprite2D for visuals, (3) AnimationPlayer for open animation, (4) emits an "opened" signal — level/spawner listens. The chest doesn't spawn loot itself — it signals what happened.</p></div>
-    <div class="rating" id="card3-rating"><p>How well could you explain this?</p><button onclick="rate('card3', 1)">Not at all</button><button onclick="rate('card3', 3)">Roughly</button><button onclick="rate('card3', 5)">Confidently</button></div>
-    <div class="card-meta">Section: Composition · Tags: area2d, signals, design</div>
-  </div>
-
-  <div class="card" id="card4">
-    <div class="card-prompt"><span class="card-type">predict</span><p><strong>What happens if you add a child node to a scene at runtime but forget to call add_child()? Where does it exist?</strong></p></div>
-    <button class="reveal-btn" onclick="reveal('card4')">Show Answer</button>
-    <div class="card-answer"><p>Should mention: (1) the node exists in memory but is NOT in the SceneTree, (2) it won't receive _ready(), _process(), or any callbacks, (3) it won't be visible, process physics, or respond to input. It's an orphan — allocated but inactive. You must add_child() to make it live.</p></div>
-    <div class="rating" id="card4-rating"><p>How well could you explain this?</p><button onclick="rate('card4', 1)">Not at all</button><button onclick="rate('card4', 3)">Roughly</button><button onclick="rate('card4', 5)">Confidently</button></div>
-    <div class="card-meta">Section: Scene Tree · Tags: scene-tree, add-child, lifecycle</div>
-  </div>
-
-  <div class="card" id="card5">
-    <div class="card-prompt"><span class="card-type">quick-check</span><p><strong>Name the 3 lifecycle callbacks and when each fires:</strong></p></div>
-    <button class="reveal-btn" onclick="reveal('card5')">Show Answer</button>
-    <div class="card-answer"><p>_ready(): once when node + children enter tree. _process(delta): every rendered frame. _physics_process(delta): every physics tick (fixed 60/s).</p></div>
-    <div class="rating" id="card5-rating"><p>How well could you explain this?</p><button onclick="rate('card5', 1)">Not at all</button><button onclick="rate('card5', 3)">Roughly</button><button onclick="rate('card5', 5)">Confidently</button></div>
-    <div class="card-meta">Section: Lifecycle · Tags: ready, process, physics-process</div>
-  </div>
-
-  <div class="quiz-done"><h3>Done!</h3><p>Review complete.</p><a href="../0001-nodes-and-scenes.html">← Review the lesson</a><a href="../godot-gamedev-map.html">← Back to map</a></div>
-</div>
-<script>
-function reveal(cardId) { document.querySelector(`#${cardId} .card-answer`).classList.add('revealed'); document.querySelector(`#${cardId} .reveal-btn`).style.display = 'none'; document.querySelector(`#${cardId}-rating`).classList.add('revealed'); }
-function rate(cardId, quality) { const buttons = document.querySelectorAll(`#${cardId}-rating button`); buttons.forEach(b => b.classList.remove('selected')); event.target.classList.add('selected'); }
-</script>
+<script type="application/json" id="page-data">{"questions": [{"type": "sequence", "topic": "nodes-and-scenes", "prompt": "Order these from most general to most specific in Godot's class hierarchy:", "items": ["Object", "Node", "Node2D", "Sprite2D"], "correct_order": [0, 1, 2, 3]}, {"type": "fill", "topic": "nodes-and-scenes", "prompt": "Complete this Godot statement:", "template": "In Godot, a ___ is saved as a .tscn file and can be ___ to create multiple independent copies at runtime.", "answers": ["scene", "instantiated"]}], "title": "Nodes, Scenes & the Scene Tree", "lessonFile": "0001-nodes-and-scenes.html", "mapPage": "godot-gamedev-map.html"}</script>
 <script type="module" src="../../assets/page-shell.js"></script>
+<script type="module">
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { QuizView } from '../../assets/components/QuizView.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    render(
+      html`<${QuizView} questions=${data.questions} title=${data.title} />`,
+      document.getElementById('app')
+    );
+</script>
+
 </body>
 </html>

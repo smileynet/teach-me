@@ -1,238 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz: Token Anatomy — ID Tokens, Access Tokens & Validation</title>
+  <title>Quiz: Token Anatomy</title>
   <script src="../../assets/typography-prefs.js"></script>
   <link rel="stylesheet" href="../../assets/style.css">
-  <style>
-    .quiz-container { max-width: 700px; margin: 0 auto; padding: 1rem; }
-    .quiz-nav {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 0.5rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border);
-      font-size: 0.85rem;
-    }
-    .quiz-nav a { color: var(--link); text-decoration: none; }
-    .quiz-nav a:hover { text-decoration: underline; }
-    .quiz-progress { color: var(--text-muted); }
-    .card {
-      border: 2px solid var(--border); border-radius: 8px;
-      padding: 1.5rem; margin: 1.5rem 0; background: var(--bg-elevated);
-    }
-    .card-prompt {
-      border-left: 4px solid var(--accent); padding-left: 1rem; margin-bottom: 1rem;
-    }
-    .card-answer {
-      border-left: 4px solid var(--success, #16a34a); padding-left: 1rem;
-      display: none;
-    }
-    .card-answer.revealed { display: block; }
-    .card-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; }
-    .card-type {
-      display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px;
-      font-size: 0.75rem; font-weight: 600; background: var(--bg-surface); color: var(--accent);
-      margin-bottom: 0.5rem;
-    }
-    .reveal-btn {
-      background: var(--accent); color: var(--bg); border: none;
-      padding: 0.5rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem;
-    }
-    .reveal-btn:hover { opacity: 0.85; }
-    .rating { margin-top: 1rem; display: none; }
-    .rating.revealed { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-    .rating p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
-    .rating button {
-      padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 4px;
-      cursor: pointer; background: var(--bg-surface); color: var(--text); font-size: 0.8rem;
-    }
-    .rating button:hover { background: var(--bg-elevated); border-color: var(--accent); }
-    .rating button.selected { background: color-mix(in srgb, var(--accent) 15%, var(--bg)); border-color: var(--accent); }
-    .quiz-done {
-      margin-top: 2rem; padding: 1.25rem; border-radius: 8px;
-      background: var(--bg-elevated); border: 1px solid var(--border);
-      text-align: center;
-    }
-    .quiz-done a {
-      display: inline-block; margin: 0.5rem; padding: 0.6rem 1rem;
-      border-radius: 6px; text-decoration: none; font-size: 0.9rem;
-      border: 1px solid var(--accent); color: var(--accent);
-    }
-    .quiz-done a:hover { background: var(--bg-surface); }
-  </style>
-<script type="importmap">
-  {
+  <script type="importmap">
+{
     "imports": {
-      "preact": "../../assets/vendor/preact.module.js",
-      "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
-      "@preact/signals": "../../assets/vendor/preact-signals.module.js",
-      "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
-      "htm": "../../assets/vendor/htm.module.js"
+        "preact": "../../assets/vendor/preact.module.js",
+        "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
+        "htm": "../../assets/vendor/htm.module.js"
     }
-  }
+}
   </script>
 </head>
 <body>
 
+<nav class="page-nav" aria-label="Breadcrumb"><a href="../index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../oidc-rust-map.html">OIDC Authentication in Rust</a> <span class="nav-sep">›</span> <a href="../0002-token-anatomy.html">Token Anatomy</a> <span class="nav-sep">›</span> <span>Quiz</span></nav>
+  <div id="app"></div>
 
-<nav class="page-nav" aria-label="Breadcrumb"><a href="../index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../oidc-rust-map.html">OIDC Authentication in Rust</a> <span class="nav-sep">›</span> <a href="../0002-token-anatomy.html">Quiz: Token Anatomy &amp; Validation</a> <span class="nav-sep">›</span> <span>Quiz</span></nav>
-<div class="quiz-container">
-  <nav class="quiz-nav">
-    <a href="../0002-token-anatomy.html">← Back to lesson</a>
-    <span class="quiz-progress">7 questions</span>
-    <a href="../../maps/oidc-rust.MAP.md">← Back to map</a>
-  </nav>
+<script type="application/json" id="page-data">{"questions": [{"type": "match", "topic": "token-anatomy", "prompt": "Match each JWT section to its content:", "pairs": [["Header", "Algorithm and token type (alg, typ)"], ["Payload", "Claims — sub, iss, exp, custom data"], ["Signature", "HMAC or RSA verification of header+payload"]]}], "title": "Token Anatomy", "lessonFile": "0002-token-anatomy.html", "mapPage": "oidc-rust-map.html"}</script>
+<script type="module" src="../../assets/page-shell.js"></script>
+<script type="module">
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { QuizView } from '../../assets/components/QuizView.js';
 
-  <h1>Quiz: Token Anatomy & Validation</h1>
-  <p style="color:var(--text-muted); margin-bottom:1.5rem;">Read each question, form your answer, then reveal to check. Rate your confidence honestly.</p>
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
 
-    <div class="card" id="card1">
-      <div class="card-prompt">
-        <span class="card-type">explain</span>
-        <p><strong>Why should you never send an ID token to an API as a bearer token?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card1')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) ID tokens prove identity TO YOUR APP — their audience (aud) is your client_id, not the API, (2) access tokens are what authorize API calls — their audience is the resource server. Sending an ID token to an API means the API can't properly validate the audience claim, and you're using a credential outside its intended scope.</p>
-      </div>
-      <div class="rating" id="card1-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card1', 1)">Not at all</button>
-        <button onclick="rate('card1', 3)">Roughly</button>
-        <button onclick="rate('card1', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: Two Tokens, Two Audiences · Tags: id-token, access-token, audience, security</div>
-    </div>
-
-    <div class="card" id="card2">
-      <div class="card-prompt">
-        <span class="card-type">apply</span>
-        <p><strong>Your API suddenly returns 401 for tokens that worked 5 minutes ago. Users haven't logged out. What's your debugging checklist?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card2')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) check exp claim vs current time — token probably expired, (2) check if kid in token header matches your cached JWKS — IdP may have rotated keys, (3) check server clock drift (clock skew beyond your leeway tolerance). Less likely: iss URL changed, aud changed. Fix: JWKS cache refresh on kid miss + 60s clock skew tolerance.</p>
-      </div>
-      <div class="rating" id="card2-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card2', 1)">Not at all</button>
-        <button onclick="rate('card2', 3)">Roughly</button>
-        <button onclick="rate('card2', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: Production Gotchas · Tags: debugging, 401, key-rotation, clock-skew, expiration</div>
-    </div>
-
-    <div class="card" id="card3">
-      <div class="card-prompt">
-        <span class="card-type">explain</span>
-        <p><strong>What is the <code>kid</code> claim in a JWT header, and why does your validation code need it?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card3')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) kid = Key ID — identifies which public key from the JWKS was used to sign this token, (2) your code uses it to look up the correct key for signature verification — IdPs publish multiple keys (for rotation), so you need to match the right one. If kid isn't in your cached JWKS, refetch — the IdP probably rotated.</p>
-      </div>
-      <div class="rating" id="card3-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card3', 1)">Not at all</button>
-        <button onclick="rate('card3', 3)">Roughly</button>
-        <button onclick="rate('card3', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: JWKS · Tags: kid, jwks, key-rotation, signature-verification</div>
-    </div>
-
-    <div class="card" id="card4">
-      <div class="card-prompt">
-        <span class="card-type">predict</span>
-        <p><strong>What happens if you skip the <code>aud</code> (audience) validation in your token middleware?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card4')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) tokens issued for OTHER applications at the same IdP would be accepted by your API, (2) this means any app sharing the same IdP could forge authorized requests to your API using their own tokens. The aud check ensures a token was specifically issued FOR your service, not just by a trusted issuer.</p>
-      </div>
-      <div class="rating" id="card4-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card4', 1)">Not at all</button>
-        <button onclick="rate('card4', 3)">Roughly</button>
-        <button onclick="rate('card4', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: 8-Step Validation · Tags: audience, aud, security, cross-app</div>
-    </div>
-
-    <div class="card" id="card5">
-      <div class="card-prompt">
-        <span class="card-type">explain</span>
-        <p><strong>Why does the openidconnect crate handle validation differently than jsonwebtoken for your use case?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card5')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) openidconnect is for the login flow — it does discovery, PKCE, token exchange, AND validates ID tokens as part of the exchange (all-in-one), (2) jsonwebtoken is for resource servers validating incoming bearer tokens on every request — lower-level, you manage JWKS fetching/caching yourself. Different roles: openidconnect = client doing login, jsonwebtoken = API checking credentials.</p>
-      </div>
-      <div class="rating" id="card5-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card5', 1)">Not at all</button>
-        <button onclick="rate('card5', 3)">Roughly</button>
-        <button onclick="rate('card5', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: Token Validation in Rust · Tags: openidconnect, jsonwebtoken, crate-selection, architecture</div>
-    </div>
-
-    <div class="card" id="card6">
-      <div class="card-prompt">
-        <span class="card-type">explain</span>
-        <p><strong>What's the <code>nonce</code> claim, and why is it only relevant for ID tokens (not access tokens)?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card6')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) nonce is a random value YOUR app sends in the auth request — the IdP echoes it in the ID token, (2) you verify it matches to prevent replay attacks (someone reusing an old ID token), (3) it's for ID tokens specifically because they prove identity in a request-response flow where freshness matters. Access tokens are short-lived and validated differently (exp is sufficient).</p>
-      </div>
-      <div class="rating" id="card6-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card6', 1)">Not at all</button>
-        <button onclick="rate('card6', 3)">Roughly</button>
-        <button onclick="rate('card6', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: Standard Claims · Tags: nonce, replay-protection, id-token, freshness</div>
-    </div>
-
-    <div class="card" id="card7">
-      <div class="card-prompt">
-        <span class="card-type">quick-check</span>
-        <p><strong>List the 8 steps of token validation in order:</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card7')">Show Answer</button>
-      <div class="card-answer">
-        <p>(1) Decode header → find kid + alg, (2) Fetch public keys from jwks_uri, (3) Verify signature with matching key, (4) Check iss matches issuer, (5) Check aud contains client_id, (6) Check exp > now, (7) Check nonce matches stored value, (8) Optionally check iat is recent.</p>
-      </div>
-      <div class="rating" id="card7-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card7', 1)">Not at all</button>
-        <button onclick="rate('card7', 3)">Roughly</button>
-        <button onclick="rate('card7', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: 8-Step Validation · Tags: validation, checklist, jwt, security</div>
-    </div>
-
-  <div class="quiz-done">
-    <h3>Done!</h3>
-    <p>Review complete. How did you do?</p>
-    <a href="../0002-token-anatomy.html">← Review the lesson</a>
-    <a href="../../maps/oidc-rust.MAP.md">← Back to map</a>
-  </div>
-</div>
-
-<script>
-function reveal(cardId) {
-  document.querySelector(`#${cardId} .card-answer`).classList.add('revealed');
-  document.querySelector(`#${cardId} .reveal-btn`).style.display = 'none';
-  document.querySelector(`#${cardId}-rating`).classList.add('revealed');
-}
-function rate(cardId, quality) {
-  const buttons = document.querySelectorAll(`#${cardId}-rating button`);
-  buttons.forEach(b => b.classList.remove('selected'));
-  event.target.classList.add('selected');
-}
+    render(
+      html`<${QuizView} questions=${data.questions} title=${data.title} />`,
+      document.getElementById('app')
+    );
 </script>
 
-<script type="module" src="../../assets/page-shell.js"></script>
 </body>
 </html>

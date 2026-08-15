@@ -1,113 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz: Recovery & Adaptation</title>
+  <title>Quiz: Recovery &amp; Adaptation</title>
   <script src="../../assets/typography-prefs.js"></script>
   <link rel="stylesheet" href="../../assets/style.css">
-  <style>
-    .quiz-container { max-width: 700px; margin: 0 auto; padding: 1rem; }
-    .quiz-nav { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-    .quiz-nav a { color: var(--link); text-decoration: none; }
-    .quiz-nav a:hover { text-decoration: underline; }
-    .quiz-progress { color: var(--text-muted); }
-    .card { border: 2px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; background: var(--bg-elevated); }
-    .card-prompt { border-left: 4px solid var(--accent); padding-left: 1rem; margin-bottom: 1rem; }
-    .card-answer { border-left: 4px solid var(--success, #16a34a); padding-left: 1rem; display: none; }
-    .card-answer.revealed { display: block; }
-    .card-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; }
-    .card-type { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: var(--bg-surface); color: var(--accent); margin-bottom: 0.5rem; }
-    .reveal-btn { background: var(--accent); color: var(--bg); border: none; padding: 0.5rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
-    .reveal-btn:hover { opacity: 0.85; }
-    .rating { margin-top: 1rem; display: none; }
-    .rating.revealed { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-    .rating p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
-    .rating button { padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg-surface); color: var(--text); font-size: 0.8rem; }
-    .rating button:hover { background: var(--bg-elevated); border-color: var(--accent); }
-    .rating button.selected { background: color-mix(in srgb, var(--accent) 15%, var(--bg)); border-color: var(--accent); }
-    .quiz-done { margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); text-align: center; }
-    .quiz-done a { display: inline-block; margin: 0.5rem; padding: 0.6rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.9rem; border: 1px solid var(--accent); color: var(--accent); }
-    .quiz-done a:hover { background: var(--bg-surface); }
-  </style>
-<script type="importmap">
-  {
+  <script type="importmap">
+{
     "imports": {
-      "preact": "../../assets/vendor/preact.module.js",
-      "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
-      "@preact/signals": "../../assets/vendor/preact-signals.module.js",
-      "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
-      "htm": "../../assets/vendor/htm.module.js"
+        "preact": "../../assets/vendor/preact.module.js",
+        "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
+        "htm": "../../assets/vendor/htm.module.js"
     }
-  }
+}
   </script>
 </head>
 <body>
 
-<nav class="page-nav" aria-label="Breadcrumb"><a href="../index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../workout-fundamentals-map.html">Workout Fundamentals</a> <span class="nav-sep">›</span> <a href="../0002-recovery-and-adaptation.html">Quiz: Recovery &amp; Adaptation</a> <span class="nav-sep">›</span> <span>Quiz</span></nav>
-<div class="quiz-container">
-  <nav class="quiz-nav">
-    <a href="../0002-recovery-and-adaptation.html">← Back to lesson</a>
-    <span class="quiz-progress">6 questions</span>
-    <a href="../../maps/workout-fundamentals.MAP.md">← Back to map</a>
-  </nav>
-  <h1>Quiz: Recovery & Adaptation</h1>
-  <p style="color:var(--text-muted); margin-bottom:1.5rem;">Read each question, form your answer, then reveal to check.</p>
+<nav class="page-nav" aria-label="Breadcrumb"><a href="../index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../workout-fundamentals-map.html">Workout Fundamentals</a> <span class="nav-sep">›</span> <a href="../0002-recovery-and-adaptation.html">Recovery &amp; Adaptation</a> <span class="nav-sep">›</span> <span>Quiz</span></nav>
+  <div id="app"></div>
 
-  <div class="card" id="card1">
-    <div class="card-prompt"><span class="card-type">apply</span><p><strong>Your training partner says they're sore so they're skipping today. What's the right question to ask?</strong></p></div>
-    <button class="reveal-btn" onclick="reveal('card1')">Show Answer</button>
-    <div class="card-answer"><p>Should mention: (1) ask whether it's localized soreness (DOMS) or systemic fatigue (everything heavy, poor sleep, motivation gone), (2) mild DOMS is fine to train through — active movement helps, (3) systemic fatigue might warrant a deload.</p></div>
-    <div class="rating" id="card1-rating"><p>How well could you explain this?</p><button onclick="rate('card1', 1)">Not at all</button><button onclick="rate('card1', 3)">Roughly</button><button onclick="rate('card1', 5)">Confidently</button></div>
-    <div class="card-meta">Section: Soreness vs Fatigue · Tags: doms, fatigue, recovery</div>
-  </div>
-
-  <div class="card" id="card2">
-    <div class="card-prompt"><span class="card-type">explain</span><p><strong>Why is sleep the single highest-leverage recovery factor?</strong></p></div>
-    <button class="reveal-btn" onclick="reveal('card2')">Show Answer</button>
-    <div class="card-answer"><p>Should mention: (1) ~70% of daily growth hormone secretion happens during deep sleep, (2) sleep deprivation reduces testosterone, impairs muscle protein synthesis, increases cortisol. No supplement compensates for bad sleep.</p></div>
-    <div class="rating" id="card2-rating"><p>How well could you explain this?</p><button onclick="rate('card2', 1)">Not at all</button><button onclick="rate('card2', 3)">Roughly</button><button onclick="rate('card2', 5)">Confidently</button></div>
-    <div class="card-meta">Section: Sleep · Tags: sleep, growth-hormone, recovery</div>
-  </div>
-
-  <div class="card" id="card3">
-    <div class="card-prompt"><span class="card-type">apply</span><p><strong>Your lifts have stalled for 2 weeks and you feel sluggish. A gym buddy says "push harder." What's actually happening?</strong></p></div>
-    <button class="reveal-btn" onclick="reveal('card3')">Show Answer</button>
-    <div class="card-answer"><p>Should mention: (1) likely overreaching — accumulated fatigue exceeding recovery, (2) "push harder" is the exact wrong response, (3) correct: deload week (reduce volume 40-60%, keep moderate intensity, 5-7 days). Doing LESS produces better results because fatigue dissipates.</p></div>
-    <div class="rating" id="card3-rating"><p>How well could you explain this?</p><button onclick="rate('card3', 1)">Not at all</button><button onclick="rate('card3', 3)">Roughly</button><button onclick="rate('card3', 5)">Confidently</button></div>
-    <div class="card-meta">Section: When to Back Off · Tags: overreaching, deload, stalling</div>
-  </div>
-
-  <div class="card" id="card4">
-    <div class="card-prompt"><span class="card-type">explain</span><p><strong>Explain the supercompensation cycle and why training timing matters.</strong></p></div>
-    <button class="reveal-btn" onclick="reveal('card4')">Show Answer</button>
-    <div class="card-answer"><p>Should mention: (1) four phases: baseline → training drops capacity → recovery → overshoot past baseline, (2) train in the supercompensation window = stack gains, (3) too soon = fatigue, too late = back to baseline. For beginners: ~48-72h per muscle group → 3×/week full-body.</p></div>
-    <div class="rating" id="card4-rating"><p>How well could you explain this?</p><button onclick="rate('card4', 1)">Not at all</button><button onclick="rate('card4', 3)">Roughly</button><button onclick="rate('card4', 5)">Confidently</button></div>
-    <div class="card-meta">Section: Supercompensation · Tags: supercompensation, timing, adaptation</div>
-  </div>
-
-  <div class="card" id="card5">
-    <div class="card-prompt"><span class="card-type">predict</span><p><strong>A beginner trains the same muscles every day (no rest days) and eats plenty of protein. What will happen over 4 weeks?</strong></p></div>
-    <button class="reveal-btn" onclick="reveal('card5')">Show Answer</button>
-    <div class="card-answer"><p>Should mention: (1) initial progress from neural adaptation, then stalling, (2) training before recovery completes means they're always in the fatigue phase — never reaching supercompensation, (3) likely outcome: overreaching symptoms (persistent fatigue, joint ache, motivation drop) within 2-3 weeks. Protein doesn't fix insufficient rest time.</p></div>
-    <div class="rating" id="card5-rating"><p>How well could you explain this?</p><button onclick="rate('card5', 1)">Not at all</button><button onclick="rate('card5', 3)">Roughly</button><button onclick="rate('card5', 5)">Confidently</button></div>
-    <div class="card-meta">Section: Supercompensation · Tags: overreaching, rest-days, recovery-timing</div>
-  </div>
-
-  <div class="card" id="card6">
-    <div class="card-prompt"><span class="card-type">quick-check</span><p><strong>Name the two highest-leverage recovery factors and the target for each:</strong></p></div>
-    <button class="reveal-btn" onclick="reveal('card6')">Show Answer</button>
-    <div class="card-answer"><p>(1) Sleep: 7-9 hours/night (70% of GH secreted during deep sleep; non-negotiable). (2) Protein: 1.6-2.2 g/kg body weight per day, distributed across 3-5 meals.</p></div>
-    <div class="rating" id="card6-rating"><p>How well could you explain this?</p><button onclick="rate('card6', 1)">Not at all</button><button onclick="rate('card6', 3)">Roughly</button><button onclick="rate('card6', 5)">Confidently</button></div>
-    <div class="card-meta">Section: Two Things That Matter · Tags: sleep, protein, recovery-factors</div>
-  </div>
-
-  <div class="quiz-done"><h3>Done!</h3><p>Review complete.</p><a href="../0002-recovery-and-adaptation.html">← Review the lesson</a><a href="../../maps/workout-fundamentals.MAP.md">← Back to map</a></div>
-</div>
-<script>
-function reveal(cardId) { document.querySelector(`#${cardId} .card-answer`).classList.add('revealed'); document.querySelector(`#${cardId} .reveal-btn`).style.display = 'none'; document.querySelector(`#${cardId}-rating`).classList.add('revealed'); }
-function rate(cardId, quality) { const buttons = document.querySelectorAll(`#${cardId}-rating button`); buttons.forEach(b => b.classList.remove('selected')); event.target.classList.add('selected'); }
-</script>
+<script type="application/json" id="page-data">{"questions": [{"type": "match", "topic": "recovery-and-adaptation", "prompt": "Match each recovery signal to what it indicates:", "pairs": [["Performance increase", "Adaptation complete — ready to overload"], ["Persistent soreness (>72h)", "Insufficient recovery — reduce volume"], ["Sleep disruption", "CNS fatigue — reduce intensity"], ["Plateaued performance", "Stimulus is no longer novel — vary the overload method"]]}], "title": "Recovery & Adaptation", "lessonFile": "0002-recovery-and-adaptation.html", "mapPage": "workout-fundamentals-map.html"}</script>
 <script type="module" src="../../assets/page-shell.js"></script>
+<script type="module">
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { QuizView } from '../../assets/components/QuizView.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    render(
+      html`<${QuizView} questions=${data.questions} title=${data.title} />`,
+      document.getElementById('app')
+    );
+</script>
+
 </body>
 </html>

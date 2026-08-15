@@ -10,6 +10,7 @@ const html = htm.bind(h);
 const currentIndex = signal(0);
 const revealed = signal(false);
 const scores = signal([]);
+const showAll = signal(false);
 
 /**
  * AnswerCriteria — formats criteria text into a readable checklist.
@@ -130,7 +131,7 @@ export function QuizView({ questions, title }) {
     return html`<p class="empty">No questions available for this topic.</p>`;
   }
 
-  if (currentIndex.value >= questions.length) {
+  if (!showAll.value && currentIndex.value >= questions.length) {
     return html`
       <div class="quiz-view">
         <h1>${title || 'Quiz'}</h1>
@@ -142,11 +143,23 @@ export function QuizView({ questions, title }) {
   return html`
     <div class="quiz-view">
       <h1>${title || 'Quiz'}</h1>
-      <${QuestionRouter}
-        question=${questions[currentIndex.value]}
-        index=${currentIndex.value}
-        total=${questions.length}
-      />
+      <div class="quiz-mode-toggle">
+        <button class="mode-btn ${!showAll.value ? 'active' : ''}" onClick=${() => { showAll.value = false; }}>One at a time</button>
+        <button class="mode-btn ${showAll.value ? 'active' : ''}" onClick=${() => { showAll.value = true; }}>Show all</button>
+      </div>
+      ${showAll.value ? html`
+        <div class="quiz-all">
+          ${questions.map((q, i) => html`
+            <${QuestionRouter} question=${q} index=${i} total=${questions.length} key=${i} />
+          `)}
+        </div>
+      ` : html`
+        <${QuestionRouter}
+          question=${questions[currentIndex.value]}
+          index=${currentIndex.value}
+          total=${questions.length}
+        />
+      `}
     </div>
   `;
 }

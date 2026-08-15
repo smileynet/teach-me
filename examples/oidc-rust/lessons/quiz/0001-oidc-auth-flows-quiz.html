@@ -1,238 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz: OIDC Authorization Code Flow & PKCE</title>
+  <title>Quiz: OIDC Authentication Flows</title>
   <script src="../../assets/typography-prefs.js"></script>
   <link rel="stylesheet" href="../../assets/style.css">
-  <style>
-    .quiz-container { max-width: 700px; margin: 0 auto; padding: 1rem; }
-    .quiz-nav {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 0.5rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border);
-      font-size: 0.85rem;
-    }
-    .quiz-nav a { color: var(--link); text-decoration: none; }
-    .quiz-nav a:hover { text-decoration: underline; }
-    .quiz-progress { color: var(--text-muted); }
-    .card {
-      border: 2px solid var(--border); border-radius: 8px;
-      padding: 1.5rem; margin: 1.5rem 0; background: var(--bg-elevated);
-    }
-    .card-prompt {
-      border-left: 4px solid var(--accent); padding-left: 1rem; margin-bottom: 1rem;
-    }
-    .card-answer {
-      border-left: 4px solid var(--success, #16a34a); padding-left: 1rem;
-      display: none;
-    }
-    .card-answer.revealed { display: block; }
-    .card-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; }
-    .card-type {
-      display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px;
-      font-size: 0.75rem; font-weight: 600; background: var(--bg-surface); color: var(--accent);
-      margin-bottom: 0.5rem;
-    }
-    .reveal-btn {
-      background: var(--accent); color: var(--bg); border: none;
-      padding: 0.5rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem;
-    }
-    .reveal-btn:hover { opacity: 0.85; }
-    .rating { margin-top: 1rem; display: none; }
-    .rating.revealed { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-    .rating p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
-    .rating button {
-      padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 4px;
-      cursor: pointer; background: var(--bg-surface); color: var(--text); font-size: 0.8rem;
-    }
-    .rating button:hover { background: var(--bg-elevated); border-color: var(--accent); }
-    .rating button.selected { background: color-mix(in srgb, var(--accent) 15%, var(--bg)); border-color: var(--accent); }
-    .quiz-done {
-      margin-top: 2rem; padding: 1.25rem; border-radius: 8px;
-      background: var(--bg-elevated); border: 1px solid var(--border);
-      text-align: center;
-    }
-    .quiz-done a {
-      display: inline-block; margin: 0.5rem; padding: 0.6rem 1rem;
-      border-radius: 6px; text-decoration: none; font-size: 0.9rem;
-      border: 1px solid var(--accent); color: var(--accent);
-    }
-    .quiz-done a:hover { background: var(--bg-surface); }
-  </style>
-<script type="importmap">
-  {
+  <script type="importmap">
+{
     "imports": {
-      "preact": "../../assets/vendor/preact.module.js",
-      "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
-      "@preact/signals": "../../assets/vendor/preact-signals.module.js",
-      "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
-      "htm": "../../assets/vendor/htm.module.js"
+        "preact": "../../assets/vendor/preact.module.js",
+        "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
+        "htm": "../../assets/vendor/htm.module.js"
     }
-  }
+}
   </script>
 </head>
 <body>
 
+<nav class="page-nav" aria-label="Breadcrumb"><a href="../index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../oidc-rust-map.html">OIDC Authentication in Rust</a> <span class="nav-sep">›</span> <a href="../0001-oidc-auth-flows.html">OIDC Authentication Flows</a> <span class="nav-sep">›</span> <span>Quiz</span></nav>
+  <div id="app"></div>
 
-<nav class="page-nav" aria-label="Breadcrumb"><a href="../index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../oidc-rust-map.html">OIDC Authentication in Rust</a> <span class="nav-sep">›</span> <a href="../0001-oidc-auth-flows.html">Quiz: OIDC Authorization Code Flow &amp; PKCE</a> <span class="nav-sep">›</span> <span>Quiz</span></nav>
-<div class="quiz-container">
-  <nav class="quiz-nav">
-    <a href="../0001-oidc-auth-flows.html">← Back to lesson</a>
-    <span class="quiz-progress">7 questions</span>
-    <a href="../../maps/oidc-rust.MAP.md">← Back to map</a>
-  </nav>
+<script type="application/json" id="page-data">{"questions": [{"type": "sequence", "topic": "oidc-auth-flows", "prompt": "Put the Authorization Code + PKCE flow steps in order:", "items": ["Generate code_verifier and code_challenge", "Redirect user to /authorize with challenge", "User authenticates and consents", "Provider redirects back with auth code", "Exchange code + verifier for tokens"], "correct_order": [0, 1, 2, 3, 4]}, {"type": "fill", "topic": "oidc-auth-flows", "prompt": "Complete this PKCE description:", "template": "PKCE prevents authorization code interception by requiring the client to prove it created the original request using a ___ derived from a ___.", "answers": ["code_challenge", "code_verifier"]}], "title": "OIDC Authentication Flows", "lessonFile": "0001-oidc-auth-flows.html", "mapPage": "oidc-rust-map.html"}</script>
+<script type="module" src="../../assets/page-shell.js"></script>
+<script type="module">
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { QuizView } from '../../assets/components/QuizView.js';
 
-  <h1>Quiz: OIDC Authorization Code Flow & PKCE</h1>
-  <p style="color:var(--text-muted); margin-bottom:1.5rem;">Read each question, form your answer, then reveal to check. Rate your confidence honestly.</p>
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
 
-    <div class="card" id="card1">
-      <div class="card-prompt">
-        <span class="card-type">explain</span>
-        <p><strong>Why does the authorization code flow exchange a code server-to-server instead of returning tokens directly in the browser redirect?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card1')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) tokens in the redirect URL would be exposed in browser history, logs, and Referer headers, (2) server-to-server exchange means tokens never transit through the browser — they go directly from IdP to your backend. Key insight: the code is useless without the code_verifier (PKCE) or client_secret, so intercepting it alone isn't enough.</p>
-      </div>
-      <div class="rating" id="card1-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card1', 1)">Not at all</button>
-        <button onclick="rate('card1', 3)">Roughly</button>
-        <button onclick="rate('card1', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: The Authorization Code Flow · Tags: oidc, auth-code, security, token-exposure</div>
-    </div>
-
-    <div class="card" id="card2">
-      <div class="card-prompt">
-        <span class="card-type">explain</span>
-        <p><strong>What does PKCE prevent, and how does it work mechanically?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card2')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) prevents authorization code interception — an attacker who captures the code from the redirect can't exchange it, (2) mechanism: generate random code_verifier → hash it to code_challenge → send challenge in auth request → send verifier at token exchange → server confirms hash matches. The verifier never goes through the browser, so interceptors don't have it.</p>
-      </div>
-      <div class="rating" id="card2-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card2', 1)">Not at all</button>
-        <button onclick="rate('card2', 3)">Roughly</button>
-        <button onclick="rate('card2', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: PKCE · Tags: pkce, code-interception, security, rfc7636</div>
-    </div>
-
-    <div class="card" id="card3">
-      <div class="card-prompt">
-        <span class="card-type">apply</span>
-        <p><strong>Your Rust callback handler receives a request with <code>?code=abc&amp;state=xyz</code>. Before exchanging the code, what must you verify and why?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card3')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) verify the state parameter matches what you stored in the session before redirecting — this prevents CSRF (someone tricking a user into logging in on an attacker-controlled session), (2) if state doesn't match, reject the request entirely — it may be a forged callback.</p>
-      </div>
-      <div class="rating" id="card3-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card3', 1)">Not at all</button>
-        <button onclick="rate('card3', 3)">Roughly</button>
-        <button onclick="rate('card3', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: What Each Step Does · Tags: state, csrf, callback, validation</div>
-    </div>
-
-    <div class="card" id="card4">
-      <div class="card-prompt">
-        <span class="card-type">explain</span>
-        <p><strong>What's the difference between OAuth 2.0 and OIDC? What does OIDC add?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card4')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) OAuth 2.0 handles authorization ("what can this app do?"), OIDC adds authentication ("who is this user?"), (2) OIDC adds three things: the openid scope, the ID token (signed JWT proving identity), and the UserInfo endpoint. Every OIDC flow is also an OAuth2 flow — OIDC is strictly additive.</p>
-      </div>
-      <div class="rating" id="card4-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card4', 1)">Not at all</button>
-        <button onclick="rate('card4', 3)">Roughly</button>
-        <button onclick="rate('card4', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: The Two Layers · Tags: oauth2, oidc, identity, authorization</div>
-    </div>
-
-    <div class="card" id="card5">
-      <div class="card-prompt">
-        <span class="card-type">predict</span>
-        <p><strong>What would happen if you hardcoded the IdP's token endpoint URL instead of using discovery?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card5')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) it works until the provider changes the URL — then your app breaks silently, (2) you'd also need to hardcode the JWKS URI, authorization endpoint, and supported algorithms. Discovery gives you all of these from one fetch, and your app auto-adapts to provider changes on restart. Bonus: some providers use different endpoints per tenant/region.</p>
-      </div>
-      <div class="rating" id="card5-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card5', 1)">Not at all</button>
-        <button onclick="rate('card5', 3)">Roughly</button>
-        <button onclick="rate('card5', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: The Discovery Shortcut · Tags: discovery, well-known, configuration, resilience</div>
-    </div>
-
-    <div class="card" id="card6">
-      <div class="card-prompt">
-        <span class="card-type">apply</span>
-        <p><strong>You're building a CLI tool in Rust that needs to authenticate users via OIDC. There's no web server to receive callbacks. How do you handle the redirect?</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card6')">Show Answer</button>
-      <div class="card-answer">
-        <p>Should mention: (1) start a temporary local HTTP server on 127.0.0.1 with a random port as the redirect_uri, (2) open the browser for login, (3) receive the callback locally with the authorization code, (4) PKCE is mandatory here since there's no client_secret. The local server shuts down after receiving the code. This is how most CLI OAuth tools work (gh, gcloud, etc.).</p>
-      </div>
-      <div class="rating" id="card6-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card6', 1)">Not at all</button>
-        <button onclick="rate('card6', 3)">Roughly</button>
-        <button onclick="rate('card6', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: PKCE · Tags: cli, native-app, localhost-redirect, pkce</div>
-    </div>
-
-    <div class="card" id="card7">
-      <div class="card-prompt">
-        <span class="card-type">quick-check</span>
-        <p><strong>Name the 5 security mechanisms in the auth code flow and what each prevents:</strong></p>
-      </div>
-      <button class="reveal-btn" onclick="reveal('card7')">Show Answer</button>
-      <div class="card-answer">
-        <p>(1) state → CSRF, (2) nonce → replay, (3) PKCE → code interception, (4) server-to-server exchange → token exposure, (5) signature verification → token forgery.</p>
-      </div>
-      <div class="rating" id="card7-rating">
-        <p>How well could you explain this?</p>
-        <button onclick="rate('card7', 1)">Not at all</button>
-        <button onclick="rate('card7', 3)">Roughly</button>
-        <button onclick="rate('card7', 5)">Confidently</button>
-      </div>
-      <div class="card-meta">Section: The Critical Security Properties · Tags: security, state, nonce, pkce, signatures</div>
-    </div>
-
-  <div class="quiz-done">
-    <h3>Done!</h3>
-    <p>Review complete. How did you do?</p>
-    <a href="../0001-oidc-auth-flows.html">← Review the lesson</a>
-    <a href="../../maps/oidc-rust.MAP.md">← Back to map</a>
-  </div>
-</div>
-
-<script>
-function reveal(cardId) {
-  document.querySelector(`#${cardId} .card-answer`).classList.add('revealed');
-  document.querySelector(`#${cardId} .reveal-btn`).style.display = 'none';
-  document.querySelector(`#${cardId}-rating`).classList.add('revealed');
-}
-function rate(cardId, quality) {
-  const buttons = document.querySelectorAll(`#${cardId}-rating button`);
-  buttons.forEach(b => b.classList.remove('selected'));
-  event.target.classList.add('selected');
-}
+    render(
+      html`<${QuizView} questions=${data.questions} title=${data.title} />`,
+      document.getElementById('app')
+    );
 </script>
 
-<script type="module" src="../../assets/page-shell.js"></script>
 </body>
 </html>
