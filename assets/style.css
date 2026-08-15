@@ -196,6 +196,11 @@ table {
   border-collapse: collapse;
   margin: 1.5rem 0;
   font-size: 0.9rem;
+  display: block;
+  overflow-x: auto;
+}
+@media (min-width: 600px) {
+  table { display: table; overflow-x: visible; }
 }
 th, td { padding: 0.5rem 0.75rem; border: 1px solid var(--border); text-align: left; }
 th { background: var(--code-bg); font-weight: 600; }
@@ -309,9 +314,10 @@ details[open]:not(.lesson-section) summary { margin-bottom: 0.5rem; }
 .btn.primary {
   border-color: var(--accent);
   color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 .btn.primary:hover {
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .btn.done {
   border-color: var(--success);

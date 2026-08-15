@@ -163,8 +163,10 @@ export function QuizView({ questions, title }) {
     <div class="quiz-view">
       <h1>${title || 'Quiz'}</h1>
       <div class="quiz-mode-toggle">
-        <button class="mode-btn ${!showAll.value ? 'active' : ''}" onClick=${() => { showAll.value = false; }}>One at a time</button>
-        <button class="mode-btn ${showAll.value ? 'active' : ''}" onClick=${() => { showAll.value = true; }}>Show all</button>
+        ${questions.length > 1 && html`
+          <button class="mode-btn ${!showAll.value ? 'active' : ''}" onClick=${() => { showAll.value = false; }}>One at a time</button>
+          <button class="mode-btn ${showAll.value ? 'active' : ''}" onClick=${() => { showAll.value = true; }}>Show all</button>
+        `}
       </div>
       ${showAll.value ? html`
         <div class="quiz-all">
