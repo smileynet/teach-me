@@ -1,7 +1,7 @@
 ---
 id: "121"
 title: "Review: Refine open-answer quiz question strategy and skill"
-status: open
+status: in_progress
 blocked_by: []
 ---
 
