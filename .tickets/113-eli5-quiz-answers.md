@@ -1,7 +1,7 @@
 ---
 id: "113"
 title: "Feature: ELI5 mode for quiz answers"
-status: in_progress
+status: done
 blocked_by: []
 ---
 
