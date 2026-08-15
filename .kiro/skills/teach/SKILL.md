@@ -95,7 +95,7 @@ Pre-flight gate — check BEFORE presenting the lesson to the user:
 - [ ] glossary-data JSON block with 3+ defined terms
 - [ ] 3+ source citations (specific URLs, not generic base paths)
 - [ ] Exercise with `<details>` hint AND criteria-based answer
-- [ ] lesson-actions.js included with correct data attributes
+- [ ] page-shell.js included as single module script
 - [ ] Reference doc written alongside
 
 Full checklist (verify after user accepts):

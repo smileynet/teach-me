@@ -68,7 +68,7 @@ For each term that passes all three gates:
 - Wrap each term on **first use only** with `<span class="term" data-term="key">term</span>`
 - Add a `<script type="application/json" id="glossary-data">` block before `</body>` with all definitions
 - Add `<link rel="stylesheet" href="../assets/glossary.css">` to `<head>` if not present
-- Add `<script src="../assets/glossary.js"></script>` before `</body>` if not present
+- Ensure `<script type="module" src="../assets/page-shell.js"></script>` is present (handles glossary behavior)
 - If you're annotating more than ~12 terms, the lesson is probably covering too much ground — but let the gates decide, not a hard count.
 
 ### 6. Check prior lessons (optional)

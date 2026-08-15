@@ -80,6 +80,10 @@ grep '^git clone' REFERENCES.md | while IFS= read -r line; do
 done
 """
 
+[tasks."update:check"]
+description = "Check if a newer release of teach-me is available"
+run = "python tools/check-update.py"
+
 [tasks.doctor]
 description = "Check project health"
 run = """

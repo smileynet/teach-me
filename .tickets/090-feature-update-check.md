@@ -2,7 +2,7 @@
 id: "090"
 title: "mise command to check for updated release"
 type: feature
-status: open
+status: done
 priority: low
 blocked_by: []
 ---
