@@ -383,6 +383,21 @@ details[open]:not(.lesson-section) summary { margin-bottom: 0.5rem; }
   line-height: 1.6;
 }
 
+/* --- Conflict callout (multi-source disagreements in reference docs) --- */
+.conflict-callout {
+  margin: 1.25rem 0;
+  padding: 0.9rem 1rem;
+  background: color-mix(in srgb, var(--warning) 8%, var(--bg));
+  border: 1px solid color-mix(in srgb, var(--warning) 30%, var(--border));
+  border-left: 3px solid var(--warning);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.conflict-callout strong {
+  color: var(--warning);
+}
+
 /* --- Interactive quiz components --- */
 .interactive-card {
   background: var(--bg-elevated);
