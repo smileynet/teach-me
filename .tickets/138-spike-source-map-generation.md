@@ -1,29 +1,39 @@
 ---
 id: "138"
-title: "Spike: auto-generating MAP.md from document structure — heading hierarchy vs semantic clustering"
+title: "Spike: auto-generating MAP.md from document structure — heading hierarchy + semantic enrichment"
 status: open
 blocked_by: ["135"]
 ---
 
 # Spike: MAP.md generation from document structure
 
-## Question to answer
+## Updated framing (complementary, not competing)
 
-Given a chunked document, what's the best way to generate a MAP.md that teaches the material effectively? Two competing approaches:
+Heading-based and semantic approaches are complementary layers, not alternatives:
 
-- **Heading hierarchy**: Document's own structure (chapters → sections → topics). Respects author's intended order.
-- **Semantic clustering**: Group chunks by concept similarity, reorder by prerequisite dependency. May disagree with document order.
+1. **Heading hierarchy** provides the backbone — document's own structure becomes the initial topic ordering
+2. **Semantic enrichment** adds prerequisite edges, identifies concepts that span multiple sections, and detects when document order doesn't match learning order
+
+The spike validates both layers working together.
 
 ## Approach
 
-1. Take one well-structured doc (e.g., a Rust book chapter) and generate MAP.md both ways
-2. Evaluate: Does heading-based order produce a learnable sequence? Does semantic clustering improve on it?
-3. Test hybrid: Use heading structure as base, reorder only when prerequisite analysis suggests a different order
-4. Define heuristics: when to trust document order vs when to override
+1. Take chunk_pdf.py output (from spike #137) as input
+2. Generate MAP.md from headings (chapters → topics, sections → scope)
+3. Enrich with semantic analysis: detect prerequisite inversions (section B references concept from section D), identify cross-cutting concepts, flag sections that should be reordered for learning
+4. Output: MAP.md with `prereqs:` field populated from both document structure AND semantic analysis
+
+## Heuristics for when to override document order
+
+- Section references a term not yet introduced → add prerequisite edge
+- Section is a "background" or "prerequisites" section → move earlier
+- Alphabetical ordering detected → treat as reference (reorder by dependency)
+- "Advanced" / "Deep dive" sections → place after all basics
 
 ## Acceptance criteria
 
-- [ ] Two MAP.md outputs for same source (heading-based vs semantic)
-- [ ] Human evaluation: which produces better learning flow?
-- [ ] Decision: default approach + when to override
-- [ ] Working script that generates MAP.md from chunk index
+- [ ] Generate MAP.md from chunk_pdf.py output (heading → topic mapping)
+- [ ] Prerequisite edges detected from forward references in text
+- [ ] Output respects document order by default, overrides only when evidence-based
+- [ ] Working script: `tools/map_from_chunks.py`
+- [ ] Tested on at least 2 different document types (textbook vs reference)
