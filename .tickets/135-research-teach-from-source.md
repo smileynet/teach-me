@@ -1,7 +1,7 @@
 ---
 id: "135"
 title: "Research: chunking strategies, provenance tracking, and multi-source synthesis for doc-based learning"
-status: open
+status: in_progress
 blocked_by: []
 priority: high
 ---
