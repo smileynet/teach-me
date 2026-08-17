@@ -1,7 +1,7 @@
 ---
 id: "136"
 title: "Apply provenance chain, conflict synthesis, and cognitive load separation across teach-me"
-status: in_progress
+status: done
 blocked_by: ["135"]
 priority: high
 ---
