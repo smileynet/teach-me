@@ -94,6 +94,35 @@ Every open-answer question MUST include an `eli5` field:
 
 The `eli5` is NOT a simpler version — it's a *different angle*: an analogy, concrete example, or reframing that helps the concept click from a second direction. Shown to the user as "Another angle" alongside the criteria.
 
+#### Provenance & Level Tagging (REQUIRED for new questions — ADR 0007)
+
+Every open-answer question SHOULD include these fields:
+
+```json
+{
+  "prompt": "...",
+  "criteria": "...",
+  "eli5": "...",
+  "source_quote": "The exact sentence or passage from the lesson that teaches this answer",
+  "derivation": "direct",
+  "tags": ["L1-core"]
+}
+```
+
+**`source_quote`** — The passage from the lesson that teaches what this question tests. Enables re-read routing when the learner fails a card. REQUIRED for `derivation: "direct"` questions; optional for inference/synthesis.
+
+**`derivation`** — How the answer relates to lesson content:
+- `"direct"` — answer found in a single passage (cite it in source_quote)
+- `"inference"` — requires connecting ideas within the lesson
+- `"synthesis"` — spans multiple sections or cross-topic
+
+**`tags`** (level tagging) — cognitive load tier:
+- `["L1-core"]` — fundamental concepts, always true, tested first
+- `["L2-practice"]` — best practices, usually-true rules, tested after core consolidates
+- `["L3-nuance"]` — edge cases, "it depends", mastery-level
+
+Order in JSONL: L1 questions first, then L2, then L3. This is the implicit difficulty progression.
+
 #### Interactive Questions (2-3 per topic)
 
 Include a mix of:

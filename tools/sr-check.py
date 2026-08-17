@@ -93,6 +93,11 @@ def check_card(card: Card, lapse_counts: dict[str, int]) -> list[str]:
     if not card.tags:
         warnings.append("no tags — harder to filter and track coverage")
 
+    # Check cognitive load level tagging (ADR 0007)
+    level_tags = [t for t in card.tags if t.startswith("L1-") or t.startswith("L2-") or t.startswith("L3-")]
+    if card.tags and not level_tags:
+        warnings.append("no L1/L2/L3 level tag — add L1-core, L2-practice, or L3-nuance")
+
     # Leech detection
     lapses = lapse_counts.get(card.id, 0)
     if lapses >= LEECH_THRESHOLD:
