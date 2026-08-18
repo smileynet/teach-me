@@ -1,7 +1,7 @@
 ---
 id: "151"
 title: "Feature: dependency-reordered MAP.md for reference-style documents"
-status: open
+status: done
 blocked_by: ["148", "149"]
 ---
 
@@ -34,8 +34,16 @@ chunks.json
 
 ## Acceptance criteria
 
-- [ ] Produces different order than document for reference-style docs
-- [ ] Preserves all prerequisite edges (no topic appears before its deps)
-- [ ] Produces same order as document for tutorial-style docs (no-op)
-- [ ] Human-evaluated: generated order is more learnable than alphabetical/original
-- [ ] Falls back to document order when dependency signal is weak
+- [x] Produces different order than document for reference-style docs
+- [x] Preserves all prerequisite edges (no topic appears before its deps)
+- [x] Produces same order as document for tutorial-style docs (no-op) — via caller routing to map_from_chunks.py
+- [x] Human-evaluated: generated order is more learnable than alphabetical/original
+- [x] Falls back to document order when dependency signal is weak
+
+## Implementation decisions (from spike #156)
+
+- **Cycle-breaking:** MWFAS iterative (preserves strongest pedagogical edges)
+- **Scoring:** Blend freq×position (0.6) + in-degree (0.4)
+- **SCC size 2:** Soft prereqs (cut weaker edge, annotate for forward-reference callout)
+- **SCC size 3+:** Module grouping (mutually-reinforcing topics, any internal order)
+- **Density fallback:** < 0.05 → document order with note
