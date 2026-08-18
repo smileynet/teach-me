@@ -1,7 +1,7 @@
 ---
 id: "153"
 title: "Confirm and address Codex review findings through bbd96d3"
-status: open
+status: in_progress
 blocked_by: []
 priority: high
 ---
