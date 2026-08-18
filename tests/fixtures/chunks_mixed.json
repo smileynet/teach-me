@@ -1,0 +1,110 @@
+[
+  {
+    "heading": "Chapter 1: Understanding Container Orchestration",
+    "level": 1,
+    "page_start": 1,
+    "content": "Containers changed how we package software, but managing hundreds of them requires orchestration. In this chapter, we'll build a mental model for why orchestration matters and what problems it solves. By the end, you'll understand the gap between 'I can run a container' and 'I can run a production service.'",
+    "word_count": 920,
+    "has_code": false,
+    "has_table": false
+  },
+  {
+    "heading": "1.1 From Containers to Clusters",
+    "level": 2,
+    "page_start": 3,
+    "content": "Let's start with a scenario you've probably lived: your app works perfectly in a single container on your laptop. But in production, you need multiple replicas, health checks, rolling updates, and service discovery. As we'll see in Chapter 2, Kubernetes solves these problems with a declarative model.",
+    "word_count": 750,
+    "has_code": false,
+    "has_table": false
+  },
+  {
+    "heading": "Chapter 2: Kubernetes Core Concepts",
+    "level": 1,
+    "page_start": 10,
+    "content": "Now that we understand the problem space (from Chapter 1), let's learn the building blocks. Kubernetes has a steep learning curve because it introduces many abstractions at once. We'll tackle them one at a time, showing how each solves a specific problem from our earlier discussion.",
+    "word_count": 1350,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "2.1 Pods and Containers",
+    "level": 2,
+    "page_start": 13,
+    "content": "A Pod is the smallest deployable unit — not a container, but a group of containers that share a network namespace. Before reading further, make sure you're comfortable with Linux namespaces.",
+    "word_count": 680,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Chapter 3: Networking and Services",
+    "level": 1,
+    "page_start": 25,
+    "content": "With Pods running (as we set up in Chapter 2), the next challenge is communication. How do Pods find each other? This chapter builds on the networking foundation from 2.1.",
+    "word_count": 1100,
+    "has_code": true,
+    "has_table": true
+  },
+  {
+    "heading": "API Reference",
+    "level": 1,
+    "page_start": 50,
+    "content": "Complete reference for the Kubernetes API resources organized alphabetically.",
+    "word_count": 45,
+    "has_code": false,
+    "has_table": false
+  },
+  {
+    "heading": "ConfigMap",
+    "level": 2,
+    "page_start": 51,
+    "content": "A ConfigMap is an API object used to store non-confidential data in key-value pairs. Pods can consume ConfigMaps as environment variables, command-line arguments, or as configuration files in a volume.",
+    "word_count": 130,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "DaemonSet",
+    "level": 2,
+    "page_start": 52,
+    "content": "A DaemonSet ensures that all or some nodes run a copy of a Pod. As nodes are added to the cluster, Pods are added to them. As nodes are removed, those Pods are garbage collected.",
+    "word_count": 110,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Deployment",
+    "level": 2,
+    "page_start": 53,
+    "content": "A Deployment provides declarative updates for Pods and ReplicaSets. You describe a desired state and the Deployment controller changes the actual state to the desired state at a controlled rate.",
+    "word_count": 125,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Ingress",
+    "level": 2,
+    "page_start": 54,
+    "content": "An Ingress is an API object that manages external access to services in a cluster, typically HTTP. Ingress may provide load balancing, SSL termination, and name-based virtual hosting.",
+    "word_count": 105,
+    "has_code": true,
+    "has_table": true
+  },
+  {
+    "heading": "Service",
+    "level": 2,
+    "page_start": 55,
+    "content": "A Service is an abstract way to expose an application running on a set of Pods as a network service. Kubernetes gives Pods their own IP addresses and a single DNS name for a set of Pods.",
+    "word_count": 115,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "StatefulSet",
+    "level": 2,
+    "page_start": 56,
+    "content": "StatefulSet is the workload API object used to manage stateful applications. Manages the deployment and scaling of a set of Pods with guarantees about ordering and uniqueness.",
+    "word_count": 120,
+    "has_code": true,
+    "has_table": false
+  }
+]

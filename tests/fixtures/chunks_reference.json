@@ -1,0 +1,101 @@
+[
+  {
+    "heading": "accept()",
+    "level": 2,
+    "page_start": 12,
+    "content": "Accepts a pending connection on a socket. Returns a new socket object usable to send and receive data on the connection, and the address bound to the socket on the other end.",
+    "word_count": 120,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "bind(address)",
+    "level": 2,
+    "page_start": 13,
+    "content": "Bind the socket to address. The socket must not already be bound. The format of address depends on the address family — see socket module documentation for details on af_inet, af_inet6, and af_unix.",
+    "word_count": 95,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "close()",
+    "level": 2,
+    "page_start": 14,
+    "content": "Mark the socket closed. The underlying system resource is freed. All future operations on the socket object will fail. See also shutdown() for partial connection closing.",
+    "word_count": 105,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "connect(address)",
+    "level": 2,
+    "page_start": 15,
+    "content": "Connect to a remote socket at address. The format of address depends on the address family. If the connection is interrupted by a signal, the method waits until the connection completes. Raises socket.timeout on timeout.",
+    "word_count": 130,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "getpeername()",
+    "level": 2,
+    "page_start": 16,
+    "content": "Return the remote address to which the socket is connected. This is useful to find the port number of a remote IPv4/v6 socket. The format of the returned address depends on the address family.",
+    "word_count": 85,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "getsockname()",
+    "level": 2,
+    "page_start": 16,
+    "content": "Return the socket's own address. This is useful to find the port number of an IPv4/v6 socket.",
+    "word_count": 70,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "listen(backlog)",
+    "level": 2,
+    "page_start": 17,
+    "content": "Enable a server to accept connections. backlog specifies the number of unaccepted connections the system will allow before refusing new connections. If not specified, a default reasonable value is chosen.",
+    "word_count": 110,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "recv(bufsize)",
+    "level": 2,
+    "page_start": 18,
+    "content": "Receive data from the socket. The return value is a bytes object representing the data received. The maximum amount of data to be received at once is specified by bufsize.",
+    "word_count": 90,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "send(data)",
+    "level": 2,
+    "page_start": 19,
+    "content": "Send data to the socket. The socket must be connected to a remote socket. Returns the number of bytes sent. Applications are responsible for checking that all data has been sent.",
+    "word_count": 100,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "setsockopt(level, optname, value)",
+    "level": 2,
+    "page_start": 20,
+    "content": "Set the value of the given socket option. The needed symbolic constants are defined in the socket module (SO_* etc). The value argument can either be an integer or a bytes object.",
+    "word_count": 115,
+    "has_code": true,
+    "has_table": true
+  },
+  {
+    "heading": "shutdown(how)",
+    "level": 2,
+    "page_start": 21,
+    "content": "Shut down one or both halves of the connection. If how is SHUT_RD, further receives are disallowed. If SHUT_WR, further sends. If SHUT_RDWR, both.",
+    "word_count": 80,
+    "has_code": true,
+    "has_table": false
+  }
+]
