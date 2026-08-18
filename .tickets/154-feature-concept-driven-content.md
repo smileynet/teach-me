@@ -2,7 +2,7 @@
 id: "154"
 title: "Feature: concept extraction as input to glossary, quiz, and completeness checks"
 status: open
-blocked_by: ["149", "150"]
+blocked_by: ["152", "153"]
 priority: medium
 type: feature
 ---
