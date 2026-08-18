@@ -1,7 +1,7 @@
 ---
 id: "138"
 title: "Spike: auto-generating MAP.md from document structure — heading hierarchy + semantic enrichment"
-status: open
+status: in_progress
 blocked_by: ["135"]
 ---
 
