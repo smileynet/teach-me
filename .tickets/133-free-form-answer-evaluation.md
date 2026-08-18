@@ -2,7 +2,7 @@
 id: "133"
 title: "Feature: free-form text answer with AI evaluation against criteria"
 status: open
-blocked_by: ["121"]
+blocked_by: []
 priority: low
 ---
 
