@@ -24,7 +24,7 @@ Use subagents to analyze the research findings from #135 and the reference proje
 
 ## Acceptance criteria
 
-- [ ] Subagent analysis of each pattern's applicability
-- [ ] Proposal for which patterns to adopt (with scope + effort estimates)
-- [ ] Decision recorded: adopt / defer / reject for each pattern, with rationale
-- [ ] Tickets created for adopted patterns (blocked_by this ticket)
+- [x] Subagent analysis of each pattern (4 stages: provenance, cognitive load, conflicts+situation, answer gate)
+- [x] Proposal with scope + effort in ADR 0007
+- [x] Decision recorded in .memory/adr/0007-adopt-research-patterns.md
+- [x] Conventions adopted in generate-topic SKILL.md (no separate tickets needed — guidance-only changes)

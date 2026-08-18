@@ -20,7 +20,7 @@ Which Python PDF library produces the best structured chunks for teaching purpos
 
 ## Acceptance criteria
 
-- [ ] Comparison table: library × metric × score
-- [ ] Recommendation with rationale
-- [ ] Working proof-of-concept script that chunks a PDF into sections with metadata
-- [ ] Known limitations documented (what types of PDFs won't work)
+- [x] Comparison table: pymupdf vs pdfplumber vs marker (3 libraries tested)
+- [x] Recommendation: pymupdf (font-size heading detection, 67x faster than marker, accurate)
+- [x] Working POC: tools/chunk_pdf.py (heading hierarchy, page numbers, code/table detection)
+- [x] Known limitations: ToC noise, scanned PDFs, multi-column (documented in .scratch/research/137-spike-results.md)

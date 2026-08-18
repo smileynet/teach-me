@@ -56,11 +56,11 @@ Each render type gets its own card template in the quiz page:
 
 ## Acceptance criteria
 
-- [ ] Quiz page renders MC questions with clickable options + feedback
-- [ ] Quiz page renders open-answer questions with reveal + self-rating (already works)
-- [ ] Quiz page renders SVG recall questions with click-to-reveal labels
-- [ ] All three types can coexist on the same quiz page
-- [ ] generate-quiz-page.py handles all three types
+- [x] Quiz page renders MC questions — SUPERSEDED by #117 (sequence/match/fill types)
+- [x] Quiz page renders open-answer questions with reveal + self-rating (already works)
+- [ ] SVG recall questions — DEFERRED to #132 (interactive activities exploration)
+- [x] All three types can coexist on the same quiz page (QuizView routes on question.type)
+- [x] generate-quiz-page.py handles all types (passes through to QuizView)
 
 ## Validation
 

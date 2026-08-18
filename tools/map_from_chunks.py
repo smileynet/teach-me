@@ -158,12 +158,8 @@ def generate_map(chunks: list[dict], domain: str, title: str) -> str:
             prereqs=prereqs,
         ))
 
-    # Detect forward references (enrichment — add extra prereq edges)
-    for i, chunk in enumerate(content_chunks):
-        if i >= len(topics):
-            break
-        refs = detect_forward_references(chunk.get("content", ""), all_headings)
-        # Forward refs don't change order but could add edges later
+    # TODO(#152): Forward reference detection deferred to ticket 152 (prerequisite edge detection).
+    # detect_forward_references() exists but edges are not wired into prereqs yet.
 
     # Generate MAP.md
     lines = [
