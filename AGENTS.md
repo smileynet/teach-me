@@ -18,7 +18,7 @@ assets/             — shared: style.css, CSS variables, SVG patterns
 assets/vendor/      — vendored Preact + Signals + HTM + dagre (self-hosted, no CDN)
 assets/components/  — Preact components (MapView, TopicCard, QuizView, etc.)
 assets/services/    — signal services (generation.js SSE stream)
-assets/scaffolds/   — page templates for the teach skill
+assets/scaffolds/   — content-pattern examples (boilerplate is in tools/lib/page_template.py)
 .tickets/           — local ticket tracking
 examples/           — test fixtures and example workspaces (MAP.md samples, topic examples)
 ```
@@ -91,7 +91,7 @@ The `workspace/` directory is the single live workspace per machine. All topics 
 | Before progression | quiz-me for Socratic dialog (learner explains, agent probes) |
 | Reviewing retention | `mise run sr:review` (all topics) or `mise run sr:review -- topic-slug` |
 | Leaving a ticket | Ticket is DONE (all AC checked) or OPEN with an update note. No partial closes. No moving on with unchecked boxes. |
-| Closing a ticket | `tkt close <id> --check-all --evidence "..." --resolution "..."`. Requires: (1) a `## Validation` section with `- [x]` checked items, (2) all acceptance criteria checked, (3) evidence string. `--force` may be disabled by project config. If close fails, add the Validation section first, then retry. |
+| Closing a ticket | Edit frontmatter `status: done` directly — `tkt close` has a config validation bug that rejects valid tickets. Check all AC boxes in the same commit. |
 | Creating tickets | Use `tkt new slug --title "..."` then edit the created file. Don't create a separate file manually — causes duplicate ID validation errors. |
 | Validating work | Validate from the user's perspective (Playwright click-through, curl the endpoint, load the page). Prefer linters, syntax checkers, and templates over formal test suites. Only write maintained tests for libraries with multiple consumers (e.g., map_parser.py). |
 | Session start | `mise run sr` to check if cards are due before new material |

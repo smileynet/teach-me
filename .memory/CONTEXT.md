@@ -80,6 +80,10 @@ All Preact packages must resolve to the same instance. When using CDN (esm.sh), 
 **GitHub Pages symlinks**:
 GitHub Pages forbids symlinks in deploy artifacts. Use `cp -rL` (dereference) when assembling the `_site/` directory. The `actions/upload-pages-artifact` rejects symlinks with "Artifact could not be deployed."
 
+**GitHub Pages environment protection**:
+Pages environment rules reject deploys from tag refs — only `main` branch is allowed. Workflow triggers on push to main with a tag-detection step (`git tag --points-at HEAD`); skips build+deploy if no `v*` tag present. Manual deploy via `workflow_dispatch` always works.
+_Avoid_: triggering workflow directly from `on: push: tags:` (will fail with "not allowed to deploy due to environment protection rules")
+
 **MAP.md domain field**:
 The `domain:` frontmatter field MUST match the MAP.md filename (without `.MAP.md`). The index page links to `{domain}-map.html` — a mismatch causes 404.
 
