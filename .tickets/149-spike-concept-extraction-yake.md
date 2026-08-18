@@ -1,7 +1,7 @@
 ---
 id: "149"
 title: "Spike: YAKE + regex for concept extraction and dependency detection from chunks"
-status: open
+status: done
 blocked_by: []
 ---
 
@@ -36,8 +36,21 @@ Can lightweight NLP (YAKE keywords + regex pattern matching) extract enough conc
 
 ## Acceptance criteria
 
-- [ ] YAKE extracts meaningful concepts from technical PDF chunks
-- [ ] Regex catches explicit forward/backward references
-- [ ] First-mention heuristic produces plausible prerequisite edges
-- [ ] Working script with NetworkX graph output
-- [ ] Dependency weight: yake + networkx only (no torch, no spacy required)
+- [x] YAKE extracts meaningful concepts from technical PDF chunks
+- [x] Regex catches explicit forward/backward references
+- [x] First-mention heuristic produces plausible prerequisite edges
+- [x] Working script with NetworkX graph output
+- [x] Dependency weight: yake + networkx only (no torch, no spacy required)
+
+## Result
+
+**Answer: Yes.** YAKE + regex + first-mention provides solid concept/dependency signal without heavy ML. Implementation: `tools/extract_concepts.py`.
+
+**Performance on test fixtures:**
+- Tutorial doc (10 chunks): 75 concepts, 13 explicit refs, 17 first-mention edges
+- Reference doc (11 chunks): 68 concepts, 0 explicit refs (correct), 33 first-mention edges from shared "socket" term
+- Foundational-ness scoring correctly identifies "socket" (0.818) and "batch processing" (0.200) as top concepts
+
+**Dependencies:** yake (0.7.3) + networkx only. No torch, no spacy. Total install: 4 packages (jellyfish, segtok, tabulate, yake).
+
+**27 pytest tests pass.** Validates keywords, explicit refs, first-mention edges, scoring, serialization.
