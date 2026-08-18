@@ -1,7 +1,7 @@
 ---
 id: "150"
 title: "Feature: generate MAP.md from heading hierarchy (tutorial-style documents)"
-status: open
+status: done
 blocked_by: []
 ---
 
@@ -28,9 +28,9 @@ For each H1/H2 chunk:
 
 ## Acceptance criteria
 
-- [ ] Generates valid MAP.md from chunk JSON
-- [ ] Topics ordered by document sequence
-- [ ] Prereqs default to "previous topic" (linear chain)
-- [ ] Skips front matter, TOC, index chunks (noise filtering)
-- [ ] Output parseable by existing map_parser.py
-- [ ] Tested on 2 books → produces usable topic maps
+- [x] Generates valid MAP.md from chunk JSON
+- [x] Topics ordered by document sequence
+- [x] Prereqs default to "previous topic" (linear chain)
+- [x] Skips front matter, TOC, index chunks (noise filtering)
+- [x] Output parseable by existing map_parser.py
+- [x] Tested on 2 books → produces usable topic maps (4 fixture files: tutorial, reference, mixed, ambiguous)
