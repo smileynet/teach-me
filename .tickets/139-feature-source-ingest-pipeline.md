@@ -2,7 +2,7 @@
 id: "139"
 title: "Feature: source ingest pipeline — read, chunk, index, and preserve source material"
 status: open
-blocked_by: ["137", "138"]
+blocked_by: []
 ---
 
 # Feature: source ingest pipeline

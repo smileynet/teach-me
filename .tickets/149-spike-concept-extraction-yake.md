@@ -2,7 +2,7 @@
 id: "149"
 title: "Spike: YAKE + regex for concept extraction and dependency detection from chunks"
 status: open
-blocked_by: ["138"]
+blocked_by: []
 ---
 
 # Spike: concept extraction and dependency detection

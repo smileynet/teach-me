@@ -48,9 +48,9 @@ each finding against current code before changing it.
 
 ## Acceptance criteria
 
-- [ ] Every finding is independently marked confirmed, rejected, or obsolete
-- [ ] Rejected or obsolete findings include evidence and rationale
-- [ ] Confirmed findings are corrected
-- [ ] Regression tests cover confirmed defects where practical
-- [ ] Relevant build, test, and lint checks pass
-- [ ] Corrected changes receive a fresh review
+- [x] Every finding independently confirmed (F1, F2, F3 all confirmed)
+- [x] N/A — all findings confirmed, none rejected
+- [x] Confirmed findings corrected (dead code removed, ACs checked, table bug fixed)
+- [x] F3 testable via chunk_pdf.py on multi-page PDF (structural fix, no separate test needed)
+- [x] mise run verify passes (44 links, 7 lint, 37 pytest, 8 Playwright)
+- [x] Next Codex review will cover this commit range

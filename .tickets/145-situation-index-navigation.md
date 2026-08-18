@@ -2,7 +2,7 @@
 id: "145"
 title: "Feature: situation index — symptom-first navigation ('I'm stuck on X' → relevant topic)"
 status: open
-blocked_by: ["136"]
+blocked_by: []
 priority: low
 ---
 

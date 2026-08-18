@@ -2,7 +2,7 @@
 id: "150"
 title: "Feature: generate MAP.md from heading hierarchy (tutorial-style documents)"
 status: open
-blocked_by: ["138"]
+blocked_by: []
 ---
 
 # Feature: heading backbone MAP generation
