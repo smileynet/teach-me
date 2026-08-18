@@ -24,7 +24,7 @@ Dispatch subagents to investigate these topics in parallel:
 
 ## Acceptance criteria
 
-- [ ] Findings for all 5 topics written to .scratch/research/
-- [ ] Each finding includes: summary, key patterns, sources cited, open questions
-- [ ] Cross-cutting synthesis: which patterns reinforce each other, which conflict
-- [ ] Concrete recommendations for teach-me's implementation approach
+- [x] Findings for all 5 topics written to .scratch/research/
+- [x] Each finding includes: summary, key patterns, sources cited, open questions
+- [x] Cross-cutting synthesis: which patterns reinforce each other, which conflict
+- [x] Concrete recommendations for teach-me implementation approach

@@ -106,11 +106,6 @@ def chunk_pdf(pdf_path: Path, max_pages: int = 100) -> list[Chunk]:
     for page_num in range(pages_to_process):
         page = doc[page_num]
 
-        # Check for tables
-        tables = page.find_tables()
-        if tables and tables.tables:
-            has_table = True
-
         blocks = page.get_text("dict")["blocks"]
         for block in blocks:
             if block["type"] != 0:
@@ -165,6 +160,12 @@ def chunk_pdf(pdf_path: Path, max_pages: int = 100) -> list[Chunk]:
                     current_content.append(text)
                     if is_code_line(spans):
                         has_code = True
+
+        # Check for tables AFTER processing all text blocks on this page
+        # (ensures table metadata is assigned to the current section, not the previous one)
+        tables = page.find_tables()
+        if tables and tables.tables:
+            has_table = True
 
     # Flush final chunk
     if current_content:
