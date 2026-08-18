@@ -1,0 +1,47 @@
+[
+  {
+    "heading": "Overview",
+    "level": 1,
+    "page_start": 1,
+    "content": "This document describes the configuration options for the application server. Each section covers a different subsystem.",
+    "word_count": 350,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Database Configuration",
+    "level": 2,
+    "page_start": 3,
+    "content": "The database subsystem supports PostgreSQL, MySQL, and SQLite backends. Connection pooling is enabled by default with a pool size of 10. Set DB_URL environment variable to configure the connection string.",
+    "word_count": 420,
+    "has_code": true,
+    "has_table": true
+  },
+  {
+    "heading": "Cache Layer",
+    "level": 2,
+    "page_start": 5,
+    "content": "Redis and Memcached are supported as cache backends. Redis is recommended for most deployments due to persistence support. Configure via CACHE_URL environment variable. TTL defaults to 3600 seconds.",
+    "word_count": 380,
+    "has_code": true,
+    "has_table": true
+  },
+  {
+    "heading": "Authentication",
+    "level": 2,
+    "page_start": 7,
+    "content": "Supports OAuth2, SAML, and API key authentication. Multiple providers can be configured simultaneously. JWT tokens expire after 24 hours by default. See the security hardening guide for production recommendations.",
+    "word_count": 410,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Logging",
+    "level": 2,
+    "page_start": 9,
+    "content": "Structured JSON logging is the default output format. Log levels: DEBUG, INFO, WARNING, ERROR, CRITICAL. Configure via LOG_LEVEL and LOG_FORMAT environment variables. Supports stdout, file, and syslog outputs.",
+    "word_count": 360,
+    "has_code": true,
+    "has_table": true
+  }
+]

@@ -1,0 +1,92 @@
+[
+  {
+    "heading": "Chapter 1: Getting Started with Stream Processing",
+    "level": 1,
+    "page_start": 1,
+    "content": "Before we dive into the mechanics of stream processing, let's understand why batch processing alone isn't enough for modern data applications. In this chapter, we'll build intuition for what makes streaming fundamentally different from batch, and why that difference matters for your architecture decisions. By the end, you'll have a mental model for when streaming is the right tool.",
+    "word_count": 850,
+    "has_code": false,
+    "has_table": false
+  },
+  {
+    "heading": "1.1 The Limitations of Batch",
+    "level": 2,
+    "page_start": 3,
+    "content": "Imagine you're running an e-commerce platform. Every night, a batch job aggregates the day's sales into a report. But what happens when a fraud pattern emerges at 2pm? You won't know until tomorrow morning. As we'll see in Chapter 3, this latency problem becomes critical when we introduce event-driven architectures.",
+    "word_count": 620,
+    "has_code": false,
+    "has_table": false
+  },
+  {
+    "heading": "1.2 What Is a Stream?",
+    "level": 2,
+    "page_start": 5,
+    "content": "A stream is an unbounded, continuously updating dataset. Unlike a batch file that has a beginning and an end, a stream has a beginning but no defined end. This simple distinction has profound implications for how we design processing logic. Before reading the next section, make sure you're comfortable with the idea of immutable event logs.",
+    "word_count": 780,
+    "has_code": false,
+    "has_table": false
+  },
+  {
+    "heading": "Chapter 2: Your First Pipeline",
+    "level": 1,
+    "page_start": 12,
+    "content": "Now that we understand what streams are (as we covered in Chapter 1), let's build something concrete. We'll start with the simplest possible pipeline and incrementally add complexity. This hands-on approach mirrors how you'd introduce streaming at your company — start small, prove value, then expand.",
+    "word_count": 1200,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "2.1 Setting Up Kafka",
+    "level": 2,
+    "page_start": 14,
+    "content": "Let's get a local Kafka cluster running. We'll use Docker Compose since it gives us a reproducible environment. Don't worry about production tuning yet — we'll cover that in Chapter 5 when we discuss deployment patterns.",
+    "word_count": 950,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "2.2 Producing Your First Messages",
+    "level": 2,
+    "page_start": 18,
+    "content": "With Kafka running, let's produce some messages. Recall from section 1.2 that a stream is an unbounded sequence of events. Each message we produce is one such event. The producer API is straightforward — by the end of this section you'll have messages flowing.",
+    "word_count": 1100,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Chapter 3: Event-Driven Architecture",
+    "level": 1,
+    "page_start": 28,
+    "content": "In Chapter 1, we saw how batch processing creates latency gaps. In Chapter 2, we built a basic pipeline. Now we'll connect these ideas into a coherent architectural pattern. Event-driven architecture isn't just about streaming — it's a fundamentally different way to think about system coupling and data flow.",
+    "word_count": 1450,
+    "has_code": true,
+    "has_table": true
+  },
+  {
+    "heading": "3.1 Commands vs Events",
+    "level": 2,
+    "page_start": 31,
+    "content": "The distinction between commands and events is subtle but critical. A command says 'do this' — it's directed at a specific recipient. An event says 'this happened' — it's a fact broadcast to anyone who cares. This distinction, which we'll build on throughout the rest of the book, determines how tightly coupled your services become.",
+    "word_count": 680,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Chapter 4: Stateful Stream Processing",
+    "level": 1,
+    "page_start": 40,
+    "content": "Everything we've built so far has been stateless — each message processed independently. But real applications need state: running totals, session windows, join results. As we discussed in the previous chapter, events carry facts about what happened. Stateful processing lets us derive new facts by combining events over time.",
+    "word_count": 1800,
+    "has_code": true,
+    "has_table": true
+  },
+  {
+    "heading": "Chapter 5: Production Deployment",
+    "level": 1,
+    "page_start": 55,
+    "content": "You've built pipelines, understood event-driven patterns, and handled state. Now it's time to run this in production. This chapter covers the operational concerns that separate a proof-of-concept from a system your team can rely on. We assume familiarity with everything in Chapters 1-4.",
+    "word_count": 2100,
+    "has_code": true,
+    "has_table": true
+  }
+]
