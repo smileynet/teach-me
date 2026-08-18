@@ -1,11 +1,11 @@
 {
   "schema_version": 2,
   "reviewer": "codex",
-  "reviewed_at": "2026-08-07T15:08:09Z",
+  "reviewed_at": "2026-08-18T03:57:20Z",
   "verdict": "changes_requested",
   "commits": {
     "scope": "all ancestors through reviewed_through, inclusive",
-    "reviewed_through": "d02d6125dc503503d069b9c046eca82b60cb3c20"
+    "reviewed_through": "bbd96d3cef66418f5c2378e313f07c262d491bd0"
   },
   "ticket_source": {
     "type": "tkt",
@@ -15,35 +15,35 @@
   "tickets": [
     {
       "path": ".tickets/001-spike-drawsvg.md",
-      "blob": "c313f2bc846a0d8d9e97ba25933c9db8c0e1e103"
+      "blob": "2688c6a60a4a90254de23c6c0776cb0434a5a0a1"
     },
     {
       "path": ".tickets/002-spike-d2-sketch.md",
-      "blob": "d7284cacc36b2ecae3d8e6027c378b5a97f3621a"
+      "blob": "caf61447fcef9570139ab1ee9accc52c9d827583"
     },
     {
       "path": ".tickets/003-spike-quiz-component.md",
-      "blob": "8553d9f47eeb2cd928413f1547ff709559a8e70c"
+      "blob": "a97d7cf975a10632205df96e6e34c6ebe6837349"
     },
     {
       "path": ".tickets/004-spike-progressive-reveal.md",
-      "blob": "b7a80f7d63fbf5839aed18283e6d51e4e2f0bbf8"
+      "blob": "bedf8ec8599ceba897548808f1177e47c6e926aa"
     },
     {
       "path": ".tickets/005-research-visual-tooling.md",
-      "blob": "1a06ebbfd0f64c6ee6acb0162f49ed5915221eac"
+      "blob": "21ab10fad4fa2d4672a67e16cc0666c26a1f5f27"
     },
     {
       "path": ".tickets/006-feature-draw-diagram-helper.md",
-      "blob": "b2ab851a62126d603157d4a3951a06877135aaab"
+      "blob": "8d3ad1ec5f03f841f96f7ef115f987893527439e"
     },
     {
       "path": ".tickets/007-feature-teach-diagram-integration.md",
-      "blob": "3f8ed13af39e85a6961faf957295f9ddbd1be19f"
+      "blob": "47fa787dc2f9978cdc423ff7b40e747e02212657"
     },
     {
       "path": ".tickets/008-feature-backfill-lesson1.md",
-      "blob": "4de3ac83303e8c81ba3cd57c16245186fcf58bbc"
+      "blob": "e735928398534d2b2144d0829675c7825cc91531"
     },
     {
       "path": ".tickets/009-feature-mermaid-mcp.md",
@@ -51,35 +51,575 @@
     },
     {
       "path": ".tickets/010-feature-diagram-dsl.md",
-      "blob": "8f128468cb4435480afff753b4446f9082912a76"
+      "blob": "e0178e243700a6a5096a3f2f550d36b9d8d3a076"
     },
     {
       "path": ".tickets/011-feature-spaced-repetition.md",
-      "blob": "91934495b12d53fa4af6d0f8785776202264dc72"
+      "blob": "d81b6b673b486933f44653446eb32e907d3957ae"
     },
     {
       "path": ".tickets/012-feature-glossary-component.md",
-      "blob": "90d84a0240f8eeec96404f6418944106cb5bbef7"
+      "blob": "1416def2a2f6296d1e6cabfa9177548e9a900bf4"
     },
     {
       "path": ".tickets/013-integrate-svg-accessibility.md",
-      "blob": "5ca486b162ef19819dd5419f44d09e9011a2f673"
+      "blob": "814bebab151f5f8935d4af5d6e49e7ce359047e0"
     },
     {
       "path": ".tickets/014-integrate-quiz-best-practices.md",
-      "blob": "bc0f79faff59a6cb9e4a32dbe868e76ba34505b8"
+      "blob": "f01cbae546adfb1edccce6f22e0595e1e7066242"
     },
     {
       "path": ".tickets/015-integrate-diagram-selection.md",
-      "blob": "46ca8aa81260fcf7acd2e9ceea0f109728cdf48a"
+      "blob": "85009b4532c901f1b7ed55adf34dfa6f5f3b7ed9"
     },
     {
       "path": ".tickets/016-integrate-browser-workflow.md",
-      "blob": "30798cdbb98dca7e03d8eaa92ec86011a8123a85"
+      "blob": "7f8d3b274719660236b04baa57e80439f05322dd"
     },
     {
       "path": ".tickets/017-housekeeping-prune-scratch.md",
-      "blob": "c6c5e29ef926bf1d9f83b7edc41405e26e8e0cf4"
+      "blob": "2a18198df8928ed6b6a8d25472db15f8a1cafaa2"
+    },
+    {
+      "path": ".tickets/018-research-gdquest-pedagogy.md",
+      "blob": "27ae9d7fc0f3d85bbb77d1fbf33898f0a4dfa78c"
+    },
+    {
+      "path": ".tickets/019-codex-review-findings-d02d612.md",
+      "blob": "3c83c503d329dae33be6a3bc8026bd6e58c2cf0a"
+    },
+    {
+      "path": ".tickets/020-spike-problem-first-opening.md",
+      "blob": "29cd680ac0a535582463ab44fe28c14543154d5d"
+    },
+    {
+      "path": ".tickets/021-spike-collapsible-details.md",
+      "blob": "d00507debe4e4976c7a68f123fe7167e73b7d5fa"
+    },
+    {
+      "path": ".tickets/022-spike-explicit-callbacks.md",
+      "blob": "80c592bd42cd80801629f37921368c784b138a68"
+    },
+    {
+      "path": ".tickets/023-spike-reading-level.md",
+      "blob": "2d3d576f513656396f02234110f5bab5c712e2a1"
+    },
+    {
+      "path": ".tickets/024-spike-challenge-component.md",
+      "blob": "70b4e4f39421b88565588f4cbf219f147e632892"
+    },
+    {
+      "path": ".tickets/025-spike-prediction-quiz.md",
+      "blob": "3b0f7755640c4f55b4f7ab2f171f845fc43b1fd7"
+    },
+    {
+      "path": ".tickets/026-spike-lesson-review.md",
+      "blob": "55ee9f94381ea718c6448c9f043364241f968565"
+    },
+    {
+      "path": ".tickets/027-spike-scaffold-withdrawal.md",
+      "blob": "4d05eacfbb020391ad2ab3b614801ae1ac8197cc"
+    },
+    {
+      "path": ".tickets/028-feature-reference-docs.md",
+      "blob": "19d529961838553c044a481525c13ffe462e51a4"
+    },
+    {
+      "path": ".tickets/029-feature-socratic-gate.md",
+      "blob": "24ef3d23e4ce99d647b6ba47cb51dafb33ce7613"
+    },
+    {
+      "path": ".tickets/030-feature-working-if-criteria.md",
+      "blob": "09e197c36cd2c1b83819ef059fb4062267cb814f"
+    },
+    {
+      "path": ".tickets/031-feature-progression-gating.md",
+      "blob": "0f463ea5641de2af914c41ac497c47400a43834e"
+    },
+    {
+      "path": ".tickets/032-feature-auto-learning-records.md",
+      "blob": "0906c254548a383ac6ce783bdcf85e1d9a8c0870"
+    },
+    {
+      "path": ".tickets/033-feature-export-share-prompts.md",
+      "blob": "0796353b69938cb04e56ab2c8221768e5a1d7962"
+    },
+    {
+      "path": ".tickets/034-feature-media-in-prompts.md",
+      "blob": "f834f05815c6cb285409baec22bb2abae85d1a07"
+    },
+    {
+      "path": ".tickets/035-feature-quick-check-review.md",
+      "blob": "a4f9dd194ae32227c31931023e515481ae513f6e"
+    },
+    {
+      "path": ".tickets/036-feature-export-knowledge-objects.md",
+      "blob": "b13d48620085c625ac19bd31995658e7561c1e2f"
+    },
+    {
+      "path": ".tickets/037-spike-code-block-cards.md",
+      "blob": "8c1becff8adae7b505df5921880651ed2084582d"
+    },
+    {
+      "path": ".tickets/038-spike-diagram-ref-cards.md",
+      "blob": "5d2f05af77d7f1e5c20667147ddfe6c15b6b8d5c"
+    },
+    {
+      "path": ".tickets/039-spike-markdown-prompts.md",
+      "blob": "ecc79a705f5f3a3480e8c4ffcc1cdcdc987a916f"
+    },
+    {
+      "path": ".tickets/040-spike-diagram-label-masking.md",
+      "blob": "0f17b05be863216a1fb70a587ce926ef68a1d0a3"
+    },
+    {
+      "path": ".tickets/041-spike-map-generation.md",
+      "blob": "fae01e0373ed5de22062cecea88a554d13bac119"
+    },
+    {
+      "path": ".tickets/042-spike-big-request-detection.md",
+      "blob": "a19c9801e93a81b807897de5d04e6beef13a6b91"
+    },
+    {
+      "path": ".tickets/043-feature-map-parser.md",
+      "blob": "8f62ea84953f192ca4628b96d59ed5293cca1eba"
+    },
+    {
+      "path": ".tickets/044-feature-orientation-lesson.md",
+      "blob": "5d3d21492383c850c13f331024fda0ecc506190e"
+    },
+    {
+      "path": ".tickets/045-feature-zoom-navigation.md",
+      "blob": "03806dcbc57650e29cfd048e5e0ed37e4f825e6f"
+    },
+    {
+      "path": ".tickets/046-feature-status-tracking.md",
+      "blob": "25355ce44ee29a0f799f1931d0d85ab8cecaa536"
+    },
+    {
+      "path": ".tickets/047-feature-supertopics.md",
+      "blob": "fcfd5370acd2cf68c0ce48377997cfd52f2c50dc"
+    },
+    {
+      "path": ".tickets/048-spike-node-click-scroll.md",
+      "blob": "72297f5fc3b1f9f51b0a2a9ea009a64c4b810aeb"
+    },
+    {
+      "path": ".tickets/049-spike-breadcrumb-nav.md",
+      "blob": "e752a64f362306c98f9b980722f54e244ad75707"
+    },
+    {
+      "path": ".tickets/050-spike-quiz-link-per-topic.md",
+      "blob": "b44a95ef4818841904a27d4c1e71012277fff2e5"
+    },
+    {
+      "path": ".tickets/051-spike-node-popover.md",
+      "blob": "4f074061186c19ca12fe7532bbac7c96e81acc23"
+    },
+    {
+      "path": ".tickets/052-spike-map-auto-regenerate.md",
+      "blob": "11f16d0683fb70810880b453eb6a6ddae6252776"
+    },
+    {
+      "path": ".tickets/053-spike-generation-progress.md",
+      "blob": "9e4aa05e1491d4074fb794a97b47a7b0afe3d9a8"
+    },
+    {
+      "path": ".tickets/054-feature-all-lessons-index.md",
+      "blob": "c162f6be240bb2c5b03cfe90a91e7dffa2e59e7b"
+    },
+    {
+      "path": ".tickets/055-spike-cross-domain-links.md",
+      "blob": "83bbf7944e6f5844d390580dff606c1dd6eeaaa7"
+    },
+    {
+      "path": ".tickets/056-spike-supertopic-generation.md",
+      "blob": "335726cc44936879cbf13f695caa5c69badcc315"
+    },
+    {
+      "path": ".tickets/057-spike-subprocess-sse.md",
+      "blob": "659fdb14470cb36d82cfc987224cd41799016a6f"
+    },
+    {
+      "path": ".tickets/058-spike-kiro-output.md",
+      "blob": "625993e9ae398b283363026fcada4b8cad028c93"
+    },
+    {
+      "path": ".tickets/059-feature-generation-server.md",
+      "blob": "a1803d4264e5304f681e9f60c3811d8f4f814f25"
+    },
+    {
+      "path": ".tickets/060-feature-generation-modal.md",
+      "blob": "fced26c875423846d8752c8052f6cc5e71e15465"
+    },
+    {
+      "path": ".tickets/061-feature-completion-flow.md",
+      "blob": "422801a9b13f3406e8915b6e8cf215b146c8d5ba"
+    },
+    {
+      "path": ".tickets/062-research-generation-prereqs.md",
+      "blob": "a1643e40dcefdb90da1fd81ce80aeffc38ed57da"
+    },
+    {
+      "path": ".tickets/063-research-freeform-generation.md",
+      "blob": "0b17eb6d5646650b06d6488d1f13319e5adea72a"
+    },
+    {
+      "path": ".tickets/064-feature-quiz-builder.md",
+      "blob": "cfcaf002eb824111b372c7344c4cd79ba4b9f44e"
+    },
+    {
+      "path": ".tickets/065-feature-inpage-chat.md",
+      "blob": "6e85ee2ecf63f6a9755d10769d77f40f8c63cc16"
+    },
+    {
+      "path": ".tickets/066-feature-generation-error-retry.md",
+      "blob": "35ed9561c6a7ff74b384678a48b4a5db526e5d52"
+    },
+    {
+      "path": ".tickets/067-feature-generate-more-questions.md",
+      "blob": "5f0145535d62a42a880c6558ef62b08a030b2568"
+    },
+    {
+      "path": ".tickets/068-feature-cohesive-map-flow.md",
+      "blob": "1cb32cae1284db14b6b4e7a945ee0053b53ce8c2"
+    },
+    {
+      "path": ".tickets/069-feature-mark-complete.md",
+      "blob": "cbf104570ac259071a1e4a1945dc630899cf92f8"
+    },
+    {
+      "path": ".tickets/070-research-quiz-completion-gate.md",
+      "blob": "13d5521e15598e91ae0d4b4ba423d9fd1ea92a01"
+    },
+    {
+      "path": ".tickets/071-feature-repo-cleanup.md",
+      "blob": "a01450078d8998a6b228bb95dc48f862d9b894b7"
+    },
+    {
+      "path": ".tickets/072-feature-publishing-prep.md",
+      "blob": "a0db802a0722b1af182663453fa5835286c7fd0b"
+    },
+    {
+      "path": ".tickets/073-feature-page-templates.md",
+      "blob": "8ccd2f12c2243a98dcd08d983a9d35a487353eea"
+    },
+    {
+      "path": ".tickets/074-validation-playwright-full.md",
+      "blob": "9a275693c087374108919f93c934dc000aa82eaf"
+    },
+    {
+      "path": ".tickets/075-fix-index-progress.md",
+      "blob": "bbcc5fce22e6bceeae4cf3ac88b54e0ba33ede49"
+    },
+    {
+      "path": ".tickets/076-fix-node-highlight.md",
+      "blob": "1293c8fcc211019cf1352ad1e6b7d48af1d6f843"
+    },
+    {
+      "path": ".tickets/077-fix-action-bar-separation.md",
+      "blob": "1b1f8e78ed89bc7879908651abf70c496cf18c8b"
+    },
+    {
+      "path": ".tickets/078-feature-quiz-type-system.md",
+      "blob": "c0490e865dbbd46d2c7d0065db4050bb071c9a0a"
+    },
+    {
+      "path": ".tickets/079-feature-replace-examples.md",
+      "blob": "8b1642d3b2e521f0e3c228f927198b3b034e971d"
+    },
+    {
+      "path": ".tickets/080-feature-generate-workout.md",
+      "blob": "0e30cb1ea3aeb4fae2075ae7c0ed2737aa25b9e8"
+    },
+    {
+      "path": ".tickets/081-feature-generate-godot.md",
+      "blob": "7ac1696a2ad636dab2d039ba109834d5ac03d78e"
+    },
+    {
+      "path": ".tickets/082-fix-missing-lesson-actions.md",
+      "blob": "b78780c91ad8cdf5da10fe198192d695c964303f"
+    },
+    {
+      "path": ".tickets/083-fix-workout-quiz-compliance.md",
+      "blob": "4c66aa1de8bb2c2f9df2e517f7cc71a60b84d9ac"
+    },
+    {
+      "path": ".tickets/084-fix-workout-0001-diagram.md",
+      "blob": "f1c17f3de75e88524c892d6d75b3176ee21dfdea"
+    },
+    {
+      "path": ".tickets/085-fix-lesson-exercise-hints.md",
+      "blob": "e1ee6927cff4df402581343ae22b61ab1e4e9a5e"
+    },
+    {
+      "path": ".tickets/086-feature-svg-theme-variables.md",
+      "blob": "c0041c2003a8b2b5c9ec6d36e9797f2f4be66440"
+    },
+    {
+      "path": ".tickets/087-fix-reference-0002-token.md",
+      "blob": "e4693b8d49e0e1176b41a7bce7daa8c1b7011ea6"
+    },
+    {
+      "path": ".tickets/088-feature-skill-workflow-orchestration.md",
+      "blob": "a59eadc3af594fa26836ff75e0d450420fb1f8be"
+    },
+    {
+      "path": ".tickets/089-feature-socratic-depth.md",
+      "blob": "57d2f6a6deff0109e9e1c3d4f40ba21a3be84c78"
+    },
+    {
+      "path": ".tickets/090-feature-update-check.md",
+      "blob": "ef69a28fc97419eda3643884e65de0d20232789b"
+    },
+    {
+      "path": ".tickets/091-feature-graph-inline-cards.md",
+      "blob": "f592e2b2ea6d29e0d588007eb8e66ee52202efc4"
+    },
+    {
+      "path": ".tickets/092-spike-dag-cards.md",
+      "blob": "4f050584ccc506d07f2f576900a300de5df408fd"
+    },
+    {
+      "path": ".tickets/093-spike-alpine-d3dag.md",
+      "blob": "1a088fe41cd949e46d14390b4489f8c5c8f2ca06"
+    },
+    {
+      "path": ".tickets/094-spike-preact-dagre.md",
+      "blob": "5da1b7e27862873f6785bd8643a40519eb632501"
+    },
+    {
+      "path": ".tickets/095-feature-preact-foundation.md",
+      "blob": "12159609f0e1b8a9ff597e2c54f29ae4eb0ebf62"
+    },
+    {
+      "path": ".tickets/096-feature-map-page-preact.md",
+      "blob": "9fc7cfb437cc7ff0e5c5c7232a572ce9ebf97de2"
+    },
+    {
+      "path": ".tickets/097-feature-index-page-preact.md",
+      "blob": "c6e9e52f150d98e203ec4b4c6e37002cf3e5a0de"
+    },
+    {
+      "path": ".tickets/098-feature-quiz-page-preact.md",
+      "blob": "ac9d0ea5ae7a755c000d7656cc890635bb6a09a9"
+    },
+    {
+      "path": ".tickets/099-feature-review-page-preact.md",
+      "blob": "477b8be5d067517fb2900b43c4f72c6a2663b479"
+    },
+    {
+      "path": ".tickets/100-feature-sse-component.md",
+      "blob": "c81d058e7063780d63e4be866f27be4251978e0b"
+    },
+    {
+      "path": ".tickets/101-feature-lesson-actions-preact.md",
+      "blob": "2276447646f15a536bcaa84442c125b3bd10fa00"
+    },
+    {
+      "path": ".tickets/102-feature-progressive-reveal-preact.md",
+      "blob": "3147dfca64bfbdafb09b66bfc9f48d59378c7b2d"
+    },
+    {
+      "path": ".tickets/103-feature-quiz-glossary-preact.md",
+      "blob": "4caa681f593ccad5eb33fbb4464e75a692c6c73a"
+    },
+    {
+      "path": ".tickets/104-feature-scaffolds-preact.md",
+      "blob": "2488ab5918b5c92e58815e911b54b124a9ed89d1"
+    },
+    {
+      "path": ".tickets/105-docs-preact-conventions.md",
+      "blob": "995f8eeb1e3c4307a89fc76b6da595cadf6a617b"
+    },
+    {
+      "path": ".tickets/106-chore-remove-legacy-js.md",
+      "blob": "f32e44511ad2711f949e289f40cd2b7d025f7cb6"
+    },
+    {
+      "path": ".tickets/107-feature-sr-workspace.md",
+      "blob": "51f5ea60967d3c4820ca4164e8b542375834d5cb"
+    },
+    {
+      "path": ".tickets/108-fix-dagre-rank.md",
+      "blob": "304abef50c93b6e13196885b8eafc2f8598a7290"
+    },
+    {
+      "path": ".tickets/109-index-mission-context.md",
+      "blob": "8cd97b619b41e261efb4c05c4884995cde2cef3b"
+    },
+    {
+      "path": ".tickets/110-feature-resources-page.md",
+      "blob": "626d1366c50e484b0462fbdca4362dbb25269620"
+    },
+    {
+      "path": ".tickets/111-fix-topic-state-reality.md",
+      "blob": "5790f44450840b9b20cae3dddf7a0f0dbdc1552a"
+    },
+    {
+      "path": ".tickets/112-feature-publish-github-pages.md",
+      "blob": "6927a06dae3f5779117b8e16fdb3d221ee3a59fb"
+    },
+    {
+      "path": ".tickets/113-eli5-quiz-answers.md",
+      "blob": "49adbaac2f0a6312c3f0b476e5fdcd60d5bb4aa2"
+    },
+    {
+      "path": ".tickets/114-team-topic-sharing.md",
+      "blob": "9dca6aefc29c0160536b9d904236e0b6c0e73981"
+    },
+    {
+      "path": ".tickets/115-hands-on-challenges.md",
+      "blob": "b7ae89bf798238fdc964a590040e92e5b9d4b1df"
+    },
+    {
+      "path": ".tickets/116-customizable-typography.md",
+      "blob": "67fbbfa22618de0b9f94e141e017c3fd327339f3"
+    },
+    {
+      "path": ".tickets/117-interactive-quiz-components.md",
+      "blob": "9f0d3228f04013d10d9242bb9cd5b5573fc50333"
+    },
+    {
+      "path": ".tickets/118-rewrite-resets-status.md",
+      "blob": "6d6d3cbd6b5ffa29152d99bba6ad2f31294cef72"
+    },
+    {
+      "path": ".tickets/119-teach-from-docs.md",
+      "blob": "8560225a3a2aedd926fb8819b885a2b470727836"
+    },
+    {
+      "path": ".tickets/120-lesson-versioning.md",
+      "blob": "42d01b12b72681b4417013e740519042b85a2570"
+    },
+    {
+      "path": ".tickets/121-refine-open-answer-quiz.md",
+      "blob": "ec2bce3776f56eab033a68f1e51a10863fa263a4"
+    },
+    {
+      "path": ".tickets/122-quiz-generation-preferences.md",
+      "blob": "a380cb0bb982bf31738d08e14c5cb3e454989cf9"
+    },
+    {
+      "path": ".tickets/123-lesson-layout-options.md",
+      "blob": "d9a170f24b819cf90028304050091c565e7bbf7b"
+    },
+    {
+      "path": ".tickets/124-playwright-verify-integration.md",
+      "blob": "a31ab9af7fd80d319c777d073e70eebed2572d29"
+    },
+    {
+      "path": ".tickets/125-codex-review-findings-28383c.md",
+      "blob": "032ea7c3a574d678152505dc6432ae85bbfeabe7"
+    },
+    {
+      "path": ".tickets/126-unified-preferences-module.md",
+      "blob": "b8993bc18dd0b0d010b6ed0e8d18f4ddbc44314b"
+    },
+    {
+      "path": ".tickets/127-page-shell-orchestrator.md",
+      "blob": "513aafea7bba0cd863595918814d43fc39b3992e"
+    },
+    {
+      "path": ".tickets/128-lesson-template-contract.md",
+      "blob": "0c96dbf060ed0a82a4681300b098b6930e83fbe6"
+    },
+    {
+      "path": ".tickets/129-theme-in-preferences.md",
+      "blob": "6a15f4d2d721d6d34b50b865f370b2bf50aa6f57"
+    },
+    {
+      "path": ".tickets/130-codex-review-findings-f7a8087.md",
+      "blob": "fe333f25c86de6c7d717243dacd96a3df927fc1d"
+    },
+    {
+      "path": ".tickets/131-disable-cicd-precommit-hooks.md",
+      "blob": "62a7d0518ce661f6acb1d4ad726743712ca58afc"
+    },
+    {
+      "path": ".tickets/132-interactive-activities-exploration.md",
+      "blob": "2730096a5b771bb07ea674f3268c2ce8687d8102"
+    },
+    {
+      "path": ".tickets/133-free-form-answer-evaluation.md",
+      "blob": "1f3dbb503aaf9355603afd48317e340e08ae5810"
+    },
+    {
+      "path": ".tickets/134-codex-review-findings-969469c.md",
+      "blob": "527fbdd9104c775ec5acc4f2165d81f49c9367f0"
+    },
+    {
+      "path": ".tickets/135-research-teach-from-source.md",
+      "blob": "9184478a7096972ae81706661d34f9ac1d78ebeb"
+    },
+    {
+      "path": ".tickets/136-apply-provenance-patterns.md",
+      "blob": "e68c799075794e160f43130ef3d8ca311b302025"
+    },
+    {
+      "path": ".tickets/137-spike-pdf-chunking.md",
+      "blob": "6905af785444ec113deea83d91d9657c0561fb72"
+    },
+    {
+      "path": ".tickets/138-spike-source-map-generation.md",
+      "blob": "3fbeaf92c0b85d28c7ac923019c88628aa9d8003"
+    },
+    {
+      "path": ".tickets/139-feature-source-ingest-pipeline.md",
+      "blob": "76f1055374bfd513ef0bec709307c0c6b5923c6e"
+    },
+    {
+      "path": ".tickets/140-feature-provenance-questions.md",
+      "blob": "98f20802d300b9bbe1a1cf4dd7f6cdf3f6f3ff0a"
+    },
+    {
+      "path": ".tickets/141-feature-multi-source-enrichment.md",
+      "blob": "c431048bb4bcf00511a1ad9713ddeafc7fc11b8c"
+    },
+    {
+      "path": ".tickets/142-feature-quick-quiz-from-section.md",
+      "blob": "8343f1d51e707e8b4efbc6d4c108f08df25198e4"
+    },
+    {
+      "path": ".tickets/143-automated-conflict-detection.md",
+      "blob": "9ca74329bb444d388c5c98ffade567aaab97ed3d"
+    },
+    {
+      "path": ".tickets/144-compounding-reference-docs.md",
+      "blob": "c6291bf1d8a8815e879222e7ab5da2a8795c6251"
+    },
+    {
+      "path": ".tickets/145-situation-index-navigation.md",
+      "blob": "f66571b3e2746ad1af0fa3f3fa82ab1fb3562010"
+    },
+    {
+      "path": ".tickets/146-author-perspective-teaching.md",
+      "blob": "53dac6c1eea9baf37f5e479e6411e8e6ba0c60be"
+    },
+    {
+      "path": ".tickets/147-adaptive-chunking.md",
+      "blob": "cf1fc016e6791c07b603767d9e9867a0be3448ce"
+    },
+    {
+      "path": ".tickets/148-spike-document-type-classifier.md",
+      "blob": "0136ff052819bb49147bd732047b896c7888fa30"
+    },
+    {
+      "path": ".tickets/149-spike-concept-extraction-yake.md",
+      "blob": "e067f3b32abcab01038c430f8798ddb6fb1f569d"
+    },
+    {
+      "path": ".tickets/150-feature-heading-backbone-map.md",
+      "blob": "928cfe388eb85ce702360170ea80191bdd9d834e"
+    },
+    {
+      "path": ".tickets/151-feature-dependency-ordered-map.md",
+      "blob": "1daaa97a8e9ae18f46a09e8890b72cc31488d4fd"
+    },
+    {
+      "path": ".tickets/152-feature-prereq-edge-detection.md",
+      "blob": "6d1c64f200f218b8d4a12bd0a85f51316b2d9bbc"
     }
   ],
   "adoption": {
