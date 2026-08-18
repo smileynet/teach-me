@@ -1,7 +1,7 @@
 ---
 id: "148"
 title: "Spike: classify document type (tutorial vs reference) from structure signals"
-status: open
+status: done
 blocked_by: []
 ---
 
@@ -30,7 +30,23 @@ Can we reliably detect whether a document is tutorial-style (pedagogically order
 
 ## Acceptance criteria
 
-- [ ] Scoring function takes chunk list, returns classification + confidence
-- [ ] Correctly classifies 3/4 test documents
-- [ ] Documented heuristic (which signals matter most)
-- [ ] Edge case: mixed documents (tutorial chapters + reference appendix) handled
+- [x] Scoring function takes chunk list, returns classification + confidence
+- [x] Correctly classifies 3/4 test documents
+- [x] Documented heuristic (which signals matter most)
+- [x] Edge case: mixed documents (tutorial chapters + reference appendix) handled
+
+## Result
+
+**Answer: Yes.** Weighted signal scoring reliably classifies documents. Implementation: `tools/classify_document.py`.
+
+**Heuristic (by weight):**
+- Heading progression (0.25) — strongest single signal
+- Length variance (0.20) — uniform = reference
+- Forward references (0.20) — cross-chapter refs = tutorial
+- Code density distribution (0.15) — increasing = tutorial
+- Prerequisite language (0.10) — "before reading this" = tutorial
+- First paragraph style (0.10) — motivational vs definitional
+
+**Mixed handling:** Split-point detection via word-count drop finds where tutorial → reference transition occurs. Overrides the base classification when a clear structural boundary exists.
+
+**Test results:** 4/4 fixtures correct, 26 pytest tests pass.
