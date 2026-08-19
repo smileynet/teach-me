@@ -47,6 +47,11 @@ class Card:
     # Provenance
     lesson_id: str = ""
     section_heading: str = ""
+    source_section: str = ""    # Heading of source chunk this card was derived from
+    source_page: int | None = None  # Page number / chunk index from source document
+    source_quote: str = ""      # Exact passage that teaches the answer (plain text)
+    derivation: str = ""        # "direct" | "inference" | "synthesis"
+    level: str = ""             # "L1" | "L2" | "L3"
     generated_by: str = "teach-skill"  # teach-skill|quiz-skill|manual
     generated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
     # Schedule (SM-2 state)

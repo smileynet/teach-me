@@ -89,6 +89,12 @@ def check_card(card: Card, lapse_counts: dict[str, int]) -> list[str]:
     if not card.lesson_id:
         warnings.append("no lesson_id — card has no provenance trail")
 
+    # Provenance completeness (advisory — not a gate)
+    if card.derivation == "direct" and not card.source_quote:
+        warnings.append("derivation is 'direct' but no source_quote — cite the passage")
+    if card.source_quote and len(card.source_quote) > 500:
+        warnings.append("source_quote is very long — should be a specific passage, not a paragraph")
+
     # Check for missing tags
     if not card.tags:
         warnings.append("no tags — harder to filter and track coverage")

@@ -87,6 +87,14 @@
   font-size: 0.8rem;
 }
 
+.quiz-source-attribution {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border, #333);
+}
+
 .quiz-summary {
   margin-top: 1.5rem;
   padding: 1rem;

@@ -1,7 +1,7 @@
 ---
 id: "140"
 title: "Feature: provenance-tracked questions — source quote → objective → question chain"
-status: open
+status: done
 blocked_by: ["139"]
 ---
 
@@ -29,8 +29,8 @@ The "Could They Answer This?" gate: every question must trace to a passage that 
 
 ## Acceptance criteria
 
-- [ ] JSONL format extended with source_section, source_page, source_quote fields
-- [ ] Generate-topic skill produces provenance fields when working from a source doc
-- [ ] sr:check validates provenance fields exist on source-derived questions
-- [ ] Quiz answer reveal can show "From: §4.2 Schema Evolution, p.14" attribution
-- [ ] Backcompat: questions without provenance still work (fields optional)
+- [x] JSONL format extended with source_section, source_page, source_quote fields
+- [x] Generate-topic skill produces provenance fields when working from a source doc
+- [x] sr:check validates provenance fields exist on source-derived questions
+- [x] Quiz answer reveal can show "From: §4.2 Schema Evolution, p.14" attribution
+- [x] Backcompat: questions without provenance still work (fields optional)

@@ -35,6 +35,12 @@ Dispatch simultaneously:
 | Workspace context | Read MAP.md, existing lessons, RESOURCES.md — what's taught, what prereqs cover, avoid repetition | `.scratch/research/{slug}-context.md` |
 | Source verification | Check top URLs from RESOURCES.md are live, extract key claims relevant to this topic | `.scratch/research/{slug}-sources.md` |
 
+**Source-ingested topics:** If `source-chunks/{domain}.json` exists, this topic was derived from a source document. In this case:
+- **Skip web research** — the source chunks ARE the research
+- Read the chunk(s) matching this topic's heading from the JSON
+- Use chunk content as the authoritative source for the lesson
+- When writing SR questions, populate `source_section` (chunk heading), `source_page` (chunk page_start), and `source_quote` (exact passage from the chunk content) on every card
+
 **After all return:** Synthesize in main context. Resolve conflicts between sources. Determine: what to teach, what to cite, what the learner already knows from prereqs.
 
 **Failure handling:** If 1 of 3 returns empty, retry once. If still empty after retry, proceed with available research (note the gap).
@@ -103,11 +109,17 @@ Every open-answer question SHOULD include these fields:
   "prompt": "...",
   "criteria": "...",
   "eli5": "...",
+  "source_section": "The heading of the lesson section this question tests",
+  "source_page": 14,
   "source_quote": "The exact sentence or passage from the lesson that teaches this answer",
   "derivation": "direct",
   "tags": ["L1-core"]
 }
 ```
+
+**`source_section`** — The heading (H2/H3) of the lesson section this card was derived from. Shown in the quiz UI after answering as "📖 From: §source_section".
+
+**`source_page`** — The page number or chunk index from the source document. Shown alongside source_section when available.
 
 **`source_quote`** — The passage from the lesson that teaches what this question tests. Enables re-read routing when the learner fails a card. REQUIRED for `derivation: "direct"` questions; optional for inference/synthesis.
 
