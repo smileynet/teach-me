@@ -32,3 +32,13 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **prereqs:** [spatial-shader-anatomy]
 - **lesson_file:** 0004-toon-banding.html
 - **status:** complete
+
+
+## Expansion Opportunities
+
+Subtopics surfaced during lesson development that could become full topics:
+
+- **gradient-textures** — GradientTexture1D/2D, CurveTexture, procedural lookup tables, artistic gradient design (surfaced in: toon-banding)
+- **shader-globals** — project-wide uniforms, when to use globals vs per-material params, performance implications, scene mood control (surfaced in: toon-banding)
+- **multi-light-strategies** — additive vs max accumulation, light groups, per-light masks, toon-friendly light rigs (surfaced in: toon-banding exercise)
+- **shadow-color-theory** — warm/cool temperature in stylized rendering, color scripts, ambient vs direct color relationships (surfaced in: toon-banding bonus)
