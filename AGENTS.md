@@ -75,6 +75,8 @@ The `workspace/` directory is the single live workspace per machine. All topics 
 | Generate map page | `mise run map:generate -- <MAP.md> [--output path]` | Interactive map HTML from MAP.md |
 | Regenerate all maps | `mise run maps:regenerate` | Rebuild all map pages (workspace + examples) |
 | Generate index | `mise run index:generate -- [--scan-dir path]` | All Lessons dashboard from MAP.md files |
+| Ingest source | `python tools/ingest_source.py <file-or-url> --workspace W --domain D --title T` | Full pipeline: chunk → classify → MAP → enrich prereqs |
+| Match section | `python tools/match_section.py source-chunks/domain.json "query"` | Find chunks matching a section reference |
 
 ## Workflow
 
@@ -120,6 +122,9 @@ The `workspace/` directory is the single live workspace per machine. All topics 
 | Don't give partial URLs | When a server is running, always provide full clickable URLs (http://host:port/path) |
 | Don't context-switch to content during infrastructure | Finish the migration/ticket in progress before generating lessons or teaching |
 | Don't create per-topic workspaces | One workspace/ per machine holds all topics. Use examples/ only for demo fixtures |
+| Don't script creative work | If it requires judgment (question writing, term selection, level assignment), it's a skill instruction — not a `tools/` script |
+| Don't over-engineer user-facing features | Show information simply. One line of attribution beats a system of routing + classification + progressive disclosure |
+| Don't start new feature chains with open tickets in the current chain | Finish through the parent ticket before proposing new work |
 
 ## Environment
 
