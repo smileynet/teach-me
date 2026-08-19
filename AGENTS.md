@@ -25,6 +25,8 @@ examples/           — test fixtures and example workspaces (MAP.md samples, to
 
 The `workspace/` directory is the single live workspace per machine. All topics go here — maps, lessons, quizzes, reference docs, learning records. It's gitignored (user-local state). Auto-created on first `mise run serve` if missing.
 
+Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each domain gets its own subfolder with per-domain numbering starting from 01. Quizzes and maps parallel this: `lessons/{domain-slug}/quiz/`, `lessons/{domain-slug}/{domain}-map.html`.
+
 ## Skills
 
 | Skill | Trigger | What it does |
@@ -115,6 +117,8 @@ The `workspace/` directory is the single live workspace per machine. All topics 
 | Don't script creative work | If it requires judgment (question writing, term selection, level assignment), it's a skill instruction — not a `tools/` script |
 | Don't over-engineer user-facing features | Show information simply. One line of attribution beats a system of routing + classification + progressive disclosure |
 | Don't start new feature chains with open tickets in the current chain | Finish through the parent ticket before proposing new work |
+| Don't drop code blocks without narrative framing | Before: what's changing and why. Between sequential blocks: what limitation motivates the next. After: connect back to concept. |
+| Don't put lessons in flat lessons/ root | Use `lessons/{domain-slug}/NN-slug.html` — per-domain subfolders with numbering starting from 01 |
 
 ## Environment
 

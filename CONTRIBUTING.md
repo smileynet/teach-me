@@ -66,6 +66,8 @@ Bypass hooks for WIP commits: `git commit --no-verify`
 - **SVG diagrams**: Use `var(--svg-*)` CSS custom properties (never hardcoded hex)
 - **Tools accept `--workspace`**: All generation tools work on any workspace path
 - **Topic generation is sequential**: One topic completes fully before the next begins
+- **Domain subfolders**: Lessons go in `lessons/{domain-slug}/NN-slug.html` — per-domain numbering, not global
+- **Narrative code framing**: Every code block in a lesson has surrounding text explaining what's changing, why, and how it connects to what came before (see visual-teaching.md § Code Block Pedagogy)
 - **Research before teaching**: Never generate lessons from memory — cite sources
 - **Question variety**: Use 3+ different archetypes per topic (see generate-topic skill)
 
