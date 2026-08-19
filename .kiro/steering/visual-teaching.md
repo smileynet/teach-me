@@ -47,6 +47,26 @@ When showing modifications to existing code:
 - Before the diff: explain *what* you're replacing and *why* (the concept, not the syntax)
 - After the diff: state the observable result ("Now when you adjust the slider, the shadow edge...")
 
+### Code Block Metadata (ticket #168)
+
+Tag `<pre>` blocks with file information for automated extraction:
+
+```html
+<pre data-file="toon_bands.gdshader"><code>shader_type spatial;
+...</code></pre>
+
+<pre data-file="toon_test.gdshader" data-mode="diff"><code>
+ // context lines
+<span style="color:var(--error)">-removed</span>
+<span style="color:var(--success)">+added</span>
+</code></pre>
+```
+
+- `data-file` — target filename (required for extractable code blocks)
+- `data-mode` — `complete` (default, full file), `diff` (patch previous state), `fragment` (illustration only, skip extraction)
+
+Blocks without `data-file` are treated as inline illustrations and not extracted.
+
 ## Color Vocabulary
 
 Colors are defined as CSS custom properties in `assets/style.css` (light + dark variants). Use `var(--svg-*)` in inline SVGs — never hardcode hex.
