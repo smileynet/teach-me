@@ -1,7 +1,7 @@
 ---
 id: "161"
 title: "Spike: TF-IDF vs YAKE keyword Jaccard for cross-source topic matching"
-status: open
+status: done
 blocked_by: []
 priority: low
 ---

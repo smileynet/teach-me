@@ -18,9 +18,10 @@ When a user provides a second source on a topic that already has lessons, compou
 2. Chunks layer — `source-chunks/{domain}-{source_id}.json` (per-source, never merged)
 3. Enrichment overlay — `sources/{domain}/enrichments.json` (append-only log)
 
-**Topic matching (two-stage pipeline):**
-- Stage 1: `rapidfuzz.fuzz.token_sort_ratio` on headings (≥75) + TF-IDF cosine on bodies (≥0.50)
-- Stage 2: For ambiguous candidates (heading 75–90), `difflib.SequenceMatcher` on body as tiebreaker
+**Topic matching (two-stage pipeline — validated by spike #161):**
+- Primary: TF-IDF cosine similarity on chunk content (scikit-learn TfidfVectorizer, already installed)
+- Boost: +0.03 × YAKE shared keyword count (via existing extract_keywords_per_chunk)
+- Thresholds: ≥0.10 high-confidence match, 0.05–0.10 candidate match
 - No sentence-transformers (torch constraint)
 
 **Conflict detection (heuristic, lightweight):**
@@ -37,7 +38,7 @@ When a user provides a second source on a topic that already has lessons, compou
   "matches": [{
     "topic_slug": "table-format-metadata",
     "match_confidence": 0.87,
-    "match_method": "heading_exact+tfidf_body",
+    "match_method": "tfidf_cosine+yake_boost",
     "conflict_signals": ["number_mismatch"],
     "new_claims": ["..."],
     "source_passage": "..."
@@ -62,13 +63,13 @@ When a user provides a second source on a topic that already has lessons, compou
 - `.kiro/skills/teach/SKILL.md` — instruction for consuming enrichment overlay
 
 ### New dependency
-- `rapidfuzz` (MIT, C++ backend, no torch)
+- `scikit-learn` (BSD, already installed in venv — used for TfidfVectorizer + cosine_similarity)
 
 ## Acceptance criteria
 
 - [ ] Detect when new source covers existing domain (chunks + MAP already exist)
 - [ ] Route to enrich mode instead of overwriting
-- [ ] Two-stage topic matching: heading fuzzy + TF-IDF body verification
+- [ ] Two-stage topic matching: TF-IDF cosine primary + YAKE keyword boost (spike #161 validated)
 - [ ] Conflict signal detection: dates, numbers, negation heuristics
 - [ ] Conflicts classified by type (complementary/opinion/outdated/factual)
 - [ ] Enrichment overlay written as append-only JSON log (sources never mutated)
@@ -86,7 +87,7 @@ When a user provides a second source on a topic that already has lessons, compou
 
 ## Research basis
 
-- Matching: rapidfuzz token_sort ≥85 strong, ≥75 candidate (Mixpeek 2026, arXiv hybrid framework 2025)
+- Matching: TF-IDF + YAKE hybrid F1=0.93 (spike #161); YAKE alone F1=0.17 (no corpus-level weighting)
 - Conflicts: DRAGged/Conflicts taxonomy (Cattan et al. 2025), heuristic signals sufficient for teaching (NLI caps at 65% even with frontier LLMs)
 - Pedagogy: DISC hypothesis (Braasch et al.) — conflict triggers sourcing behavior; Documents Model Framework (Perfetti/Rouet/Britt) — claim-level attribution builds intertext models
 - Architecture: Karpathy LLM Wiki overlay pattern (2026), W3C PROV-DM append-only principle
