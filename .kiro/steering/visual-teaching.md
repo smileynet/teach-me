@@ -64,6 +64,8 @@ Tag `<pre>` blocks with file information for automated extraction:
 
 - `data-file` — target filename (required for extractable code blocks)
 - `data-mode` — `complete` (default, full file), `diff` (patch previous state), `fragment` (illustration only, skip extraction)
+- `data-highlight` — comma-separated line numbers or ranges to emphasize (e.g., `"3,5-7"`)
+- `data-caption` — brief description of what this block shows (used in extracted README and file labels)
 
 Blocks without `data-file` are treated as inline illustrations and not extracted.
 
