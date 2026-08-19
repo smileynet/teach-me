@@ -228,6 +228,10 @@ void light() {
 
 <h3>Setting up the ramp texture in Godot</h3>
 
+<div class="note">
+<strong>New concept — GradientTexture1D:</strong> A texture resource generated from a Gradient. Instead of an image file, you define color stops (position + color) and Godot generates a 1D lookup table. Shaders sample it like any texture, but you "paint" the values procedurally in the editor. <a href="https://docs.godotengine.org/en/stable/classes/class_gradienttexture1d.html">Docs: GradientTexture1D</a>
+</div>
+
 <ol>
   <li>In the ShaderMaterial, click <code>diffuse_ramp</code> → New GradientTexture1D</li>
   <li>Click the new texture → edit the Gradient resource</li>
@@ -241,6 +245,10 @@ void light() {
 </div>
 
 <p><strong>To make it scene-wide</strong> (all materials share one ramp), declare it as a shader global. This is the key architectural decision — instead of each material carrying its own ramp, every toon-shaded object references the same curve. One change in Project Settings shifts the mood of the entire scene:</p>
+
+<div class="note">
+<strong>New concept — shader globals:</strong> A <code>global uniform</code> is declared in the shader but set once in Project Settings → Shader Globals. Every material that references it gets the same value — no per-material setup. Changes propagate instantly across the entire scene. <a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html#global-uniforms">Docs: Shader Globals</a>
+</div>
 
 <pre><code>global uniform sampler2D diffuse_ramp;</code></pre>
 
@@ -337,7 +345,7 @@ void light() {
   <p><strong>Next:</strong> Triplanar Mapping — world-space texturing for surfaces without UVs (fixing our road/sidewalk)</p>
 </div>
 
-<script type="application/json" id="glossary-data">{"smoothstep": "A GLSL function that returns a smooth Hermite interpolation between 0 and 1 given two edges and a value — used for soft shadow transitions.", "modulo-trick": "A technique using mod() to snap continuous values to discrete evenly-spaced bands — one line of math for N brightness levels.", "curve-texture": "A 1D gradient texture (GradientTexture1D) that maps a lighting value to brightness — allows artist-painted shadow falloff.", "NdotL": "Dot product of the surface normal and light direction — the fundamental measure of how directly a surface faces a light.", "diffuse-ramp": "A texture used as a lookup table for lighting — input is NdotL remapped to 0-1, output is the desired brightness.", "shader-global": "A uniform declared with the 'global' keyword — set once in Project Settings and shared across all materials using it.", "ATTENUATION": "A Godot built-in that represents light falloff with distance — 1.0 at full range, decreasing toward 0 as distance increases."}</script>
+<script type="application/json" id="glossary-data">{"smoothstep": "A GLSL function that returns a smooth Hermite interpolation between 0 and 1 given two edges and a value — used for soft shadow transitions.", "modulo-trick": "A technique using mod() to snap continuous values to discrete evenly-spaced bands — one line of math for N brightness levels.", "curve-texture": "A 1D gradient texture (GradientTexture1D) that maps a lighting value to brightness — allows artist-painted shadow falloff.", "gradient-texture-1d": "A Godot resource that generates a 1D texture from color stops — used as a programmable lookup table for shaders.", "NdotL": "Dot product of the surface normal and light direction — the fundamental measure of how directly a surface faces a light.", "diffuse-ramp": "A texture used as a lookup table for lighting — input is NdotL remapped to 0-1, output is the desired brightness.", "shader-global": "A uniform declared with the 'global' keyword — set once in Project Settings and shared across all materials using it.", "ATTENUATION": "A Godot built-in that represents light falloff with distance — 1.0 at full range, decreasing toward 0 as distance increases."}</script>
 <script type="module" src="../assets/page-shell.js"></script>
 
 </body>
