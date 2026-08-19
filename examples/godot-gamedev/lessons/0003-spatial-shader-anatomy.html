@@ -44,7 +44,7 @@
 
 <p>Paste this minimal shader (we'll explain every line below):</p>
 
-<pre><code>shader_type spatial;
+<pre data-file="toon_test.gdshader"><code>shader_type spatial;
 
 uniform sampler2D albedo_texture : source_color;
 
@@ -109,7 +109,7 @@ void light() {
 
 <p>Runs once per visible pixel. Your job: tell Godot what this surface looks like <em>before</em> any lighting is applied.</p>
 
-<pre><code>void fragment() {
+<pre data-mode="fragment"><code>void fragment() {
     ALBEDO = texture(albedo_texture, UV).rgb;  // Base color from texture
 }</code></pre>
 
@@ -119,7 +119,7 @@ void light() {
 
 <p>Runs per-pixel, <strong>once for every light</strong> affecting that pixel. This is where toon shading lives:</p>
 
-<pre><code>void light() {
+<pre data-mode="fragment"><code>void light() {
     float NdotL = dot(NORMAL, LIGHT);     // How much this pixel faces the light
     float lit = step(0.0, NdotL);          // 1.0 if facing light, 0.0 if not
     DIFFUSE_LIGHT += ALBEDO * LIGHT_COLOR * ATTENUATION * lit;
@@ -135,7 +135,7 @@ void light() {
 
 <p>Runs once per vertex. We didn't need it for the basic shader, but you'll use it whenever you need world-space data in fragment/light:</p>
 
-<pre><code>varying vec3 world_pos;
+<pre data-mode="fragment"><code>varying vec3 world_pos;
 varying vec3 world_normal;
 
 void vertex() {
@@ -171,7 +171,7 @@ void vertex() {
 <div class="next-steps">
   <h3>Check Your Understanding</h3>
   <p><strong>Exercise:</strong> You want to tile a texture based on the object's position in the world (like our road/sidewalk). You write this in <code>fragment()</code>:</p>
-  <pre><code>vec3 world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+  <pre data-mode="fragment"><code>vec3 world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 ALBEDO = texture(my_tex, world_pos.xz).rgb;</code></pre>
   <p>The texture looks completely wrong — stretched and sliding as the camera moves. Why? What's the fix?</p>
   <details>
@@ -182,7 +182,7 @@ ALBEDO = texture(my_tex, world_pos.xz).rgb;</code></pre>
   <summary>Answer</summary>
   <p>In <code>fragment()</code>, <code>VERTEX</code> is in <strong>view space</strong> (camera-relative) — it changes every frame as the camera moves. But <code>MODEL_MATRIX</code> transforms from <strong>model space</strong> to world space. Applying a model→world transform to a view-space vector produces nonsense.</p>
   <p><strong>The fix:</strong> Compute world position in <code>vertex()</code> where <code>VERTEX</code> is still in model space, then pass it to fragment via a <code>varying</code>:</p>
-  <pre><code>varying vec3 world_pos;
+  <pre data-mode="fragment"><code>varying vec3 world_pos;
 void vertex() {
     world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }</code></pre>
@@ -230,12 +230,10 @@ void vertex() {
 <tr><td><a href="https://gist.github.com/KenneyNL/802d7107fbe9bf42b16ec05b43b58079">Unlit Directional Tint (Kenney)</a></td><td>World-normal² tinting, no lights. Simplest stylized approach.</td></tr>
 </tbody></table>
 
-<h2>Local Reference Code</h2>
-<p>These repos are cloned in <code>.references/</code> — read the shader source directly:</p>
+<h2>Code Files</h2>
+<p>Download the final-state shader from this lesson:</p>
 <ul>
-  <li><code>.references/godot4-cel-shader/src/</code> — includes + stubs + outline</li>
-  <li><code>.references/FlexibleToonShaderGD/addons/flexible_toon_shader/</code> — parametric toon + hatching</li>
-  <li><code>.references/gdquest-shaders/godot/Shaders/</code> — unlit_directional_tint, outlines, matcap</li>
+  <li><a href="../reference/code/spatial-shader-anatomy/toon_test.gdshader" download><code>toon_test.gdshader</code></a> — minimal toon shader (fragment + light)</li>
 </ul>
 
 <div class="next-steps">
