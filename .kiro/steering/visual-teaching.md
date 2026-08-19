@@ -69,6 +69,22 @@ Tag `<pre>` blocks with file information for automated extraction:
 
 Blocks without `data-file` are treated as inline illustrations and not extracted.
 
+### Downloadable Code Files
+
+Every lesson that names files in code blocks MUST produce those files as downloadable artifacts at `reference/code/{lesson-slug}/`. The lesson includes a "Code Files" section (before "What's Next") with download links using the `download` attribute:
+
+```html
+<h2>Code Files</h2>
+<p>Download the final-state files from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/{lesson-slug}/filename.ext" download><code>filename.ext</code></a> — description</li>
+</ul>
+```
+
+The contract: if you name a file in a `data-file` attribute, the reader can download its final state. Each file represents the fully-assembled version after all diffs in the lesson are applied.
+
+Include a `README.md` in the code directory listing each file with its purpose.
+
 ## Color Vocabulary
 
 Colors are defined as CSS custom properties in `assets/style.css` (light + dark variants). Use `var(--svg-*)` in inline SVGs — never hardcode hex.

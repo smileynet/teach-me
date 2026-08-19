@@ -119,6 +119,7 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 | Don't start new feature chains with open tickets in the current chain | Finish through the parent ticket before proposing new work |
 | Don't drop code blocks without narrative framing | Before: what's changing and why. Between sequential blocks: what limitation motivates the next. After: connect back to concept. |
 | Don't put lessons in flat lessons/ root | Use `lessons/{domain-slug}/NN-slug.html` — per-domain subfolders with numbering starting from 01 |
+| Don't name files in code blocks without providing them | Every `data-file` block must have a corresponding downloadable file at `reference/code/{lesson-slug}/` |
 
 ## Environment
 

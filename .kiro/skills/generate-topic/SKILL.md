@@ -166,7 +166,8 @@ These test recognition and recall; open-answer questions test deeper understandi
 #### Difficulty Progression (implicit, never labeled)
 
 Order questions in the JSONL from recognition → application → synthesis. Don't label difficulty — users feel the progression naturally. First questions should be approachable (explain-why about the core concept); later questions should require combining ideas (connect, predict, debug).
-5. **Generate quiz page** — `python3 tools/generate-quiz-page.py --workspace {workspace} --lesson-id {slug} --title "{title}" --lesson-file {filename} --map-page {map-page} --domain "{domain}" --domain-slug {domain-slug}`
+5. **Extract code files** — For each unique `data-file` in the lesson HTML, write the final-state version to `reference/code/{lesson-slug}/`. If a file appears in multiple blocks (complete → diff), assemble the final version by applying diffs in document order. Include a README.md listing each file. Add a "Code Files" section to the lesson body (before "What's Next") with `<a href="..." download>` links. Skip this step if the lesson has no `data-file` blocks.
+6. **Generate quiz page** — `python3 tools/generate-quiz-page.py --workspace {workspace} --lesson-id {slug} --title "{title}" --lesson-file {filename} --map-page {map-page} --domain "{domain}" --domain-slug {domain-slug}`
 
 ### Phase 3: Post-process (PARALLEL — fan out 2-3 subagents)
 
