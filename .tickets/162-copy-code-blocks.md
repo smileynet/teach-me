@@ -2,11 +2,13 @@
 id: "162"
 title: "Copy button on code blocks"
 status: open
-blocked_by: []
+blocked_by: ["173"]
 parent: "173"
 ---
 
 # Copy button on code blocks
+
+> **Note:** This is now part of #173 (CodeBlockToolbar). The copy button is one sub-feature of the unified code block toolbar component.
 
 ## Context
 
