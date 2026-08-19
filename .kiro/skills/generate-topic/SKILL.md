@@ -43,6 +43,17 @@ Dispatch simultaneously:
 
 **After all return:** Synthesize in main context. Resolve conflicts between sources. Determine: what to teach, what to cite, what the learner already knows from prereqs.
 
+**Concept hints (opt-in):** If `source-chunks/{domain}.json` exists, run:
+```
+python tools/concept_hints.py source-chunks/{domain}.json --topic {slug} --domain {domain}
+```
+This produces `.scratch/concepts/{slug}.json` with:
+- Ranked candidate glossary terms (use as starting checklist for jargon, not a mandate)
+- L-level suggestions per concept (L1=core recall, L2=practice, L3=analysis — informed by foundational-ness score + prerequisite depth)
+- Prerequisite edge suggestions (use for "explain why X depends on Y" question framing)
+
+If no source-chunks exist (web-researched topic), skip this step — the agent uses its own judgment for terms and levels.
+
 **Failure handling:** If 1 of 3 returns empty, retry once. If still empty after retry, proceed with available research (note the gap).
 
 ### Phase 2: Generate (SEQUENTIAL — main context)
@@ -101,6 +112,14 @@ Every open-answer question MUST include an `eli5` field:
 The `eli5` is NOT a simpler version — it's a *different angle*: an analogy, concrete example, or reframing that helps the concept click from a second direction. Shown to the user as "Another angle" alongside the criteria.
 
 #### Provenance & Level Tagging (REQUIRED for new questions — ADR 0007)
+
+**If `.scratch/concepts/{slug}.json` exists**, read it before writing questions:
+- Use concept `level` field for the `tags` L-level (L1/L2/L3)
+- Prioritize questions on concepts with highest `score` (most foundational)
+- Use `edges[].suggestion` for relationship-type questions ("explain why X depends on Y")
+- Ensure at least one question per concept above `coverage_target`
+
+If no concept hints file exists, assign L-levels by judgment (as before).
 
 Every open-answer question SHOULD include these fields:
 

@@ -111,6 +111,80 @@ def check_sr_questions(workspace: Path, topic_slug: str) -> dict:
     return {"count": count, "has_questions": count > 0}
 
 
+def check_concept_coverage(workspace: Path, topic_slug: str, lesson_path: Path) -> dict:
+    """Check concept coverage: do extracted concepts appear in glossary/questions?
+
+    Requires extract_concepts + chunk_text (gated behind --concepts flag to avoid
+    forcing networkx+yake dependency on simple runs).
+
+    Returns dict with coverage percentage and gap list.
+    """
+    from extract_concepts import extract_concepts_from_html, _normalize_term
+
+    # Extract concepts from the lesson
+    result = extract_concepts_from_html(lesson_path, top_n=10)
+    if not result.concepts:
+        return {"coverage": 1.0, "total": 0, "covered": 0, "gaps": []}
+
+    top_concepts = result.concepts[:10]
+    concept_terms = {_normalize_term(c.term) for c in top_concepts}
+
+    # Check glossary-data coverage
+    lesson_content = lesson_path.read_text(encoding="utf-8")
+    glossary_match = re.search(
+        r'<script\s+type="application/json"\s+id="glossary-data">\s*(\{.*?\})\s*</script>',
+        lesson_content, re.DOTALL,
+    )
+    glossary_terms = set()
+    if glossary_match:
+        try:
+            glossary = json.loads(glossary_match.group(1))
+            glossary_terms = {_normalize_term(k) for k in glossary.keys()}
+        except json.JSONDecodeError:
+            pass
+
+    # Check term spans in lesson
+    term_spans = set()
+    for match in re.finditer(r'class="term"[^>]*data-term="([^"]*)"', lesson_content):
+        term_spans.add(_normalize_term(match.group(1)))
+    # Also check inline <dfn> tags
+    for match in re.finditer(r'<dfn[^>]*>(.*?)</dfn>', lesson_content):
+        term_spans.add(_normalize_term(match.group(1)))
+
+    # Check SR questions
+    question_terms = set()
+    questions_dir = workspace / "learning-records" / "questions"
+    topic_file = questions_dir / f"{topic_slug}.jsonl"
+    if topic_file.exists():
+        for line in topic_file.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                q = json.loads(line)
+                prompt = q.get("prompt", "").lower()
+                for term in concept_terms:
+                    if term in prompt:
+                        question_terms.add(term)
+            except (json.JSONDecodeError, KeyError):
+                continue
+
+    # Compute coverage
+    all_covered = glossary_terms | term_spans | question_terms
+    covered = concept_terms & all_covered
+    gaps = concept_terms - all_covered
+
+    coverage = len(covered) / len(concept_terms) if concept_terms else 1.0
+
+    return {
+        "coverage": round(coverage, 2),
+        "total": len(concept_terms),
+        "covered": len(covered),
+        "gaps": sorted(gaps),
+        "covered_by_glossary": sorted(concept_terms & glossary_terms),
+        "covered_by_questions": sorted(concept_terms & question_terms),
+    }
+
+
 def check_topic(workspace: Path, topic_slug: str, lesson_file: str | None = None) -> dict:
     """Run all checks for one topic."""
     result = {"topic": topic_slug, "artifacts": {}, "features": {}, "status": "pass"}
@@ -186,6 +260,7 @@ def main():
     parser.add_argument("--topic", help="Single topic slug to check")
     parser.add_argument("--all", action="store_true", help="Check all complete topics in MAP.md")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
+    parser.add_argument("--concepts", action="store_true", help="Also check concept coverage (requires yake+networkx)")
     args = parser.parse_args()
 
     workspace = Path(args.workspace)
@@ -214,6 +289,17 @@ def main():
     results = []
     for t in topics:
         result = check_topic(workspace, t["slug"], t.get("lesson_file"))
+
+        # Optional concept coverage check
+        if args.concepts and result["artifacts"].get("lesson"):
+            lesson_path = workspace / result["artifacts"]["lesson"]
+            if lesson_path.exists():
+                try:
+                    coverage = check_concept_coverage(workspace, t["slug"], lesson_path)
+                    result["features"]["concept_coverage"] = coverage
+                except Exception as e:
+                    result["features"]["concept_coverage"] = {"error": str(e)}
+
         results.append(result)
 
     if args.json:
@@ -244,6 +330,13 @@ def main():
             if not sr.get("has_questions"):
                 print(f"    SR: no questions found")
                 all_pass = False
+
+            cc = r.get("features", {}).get("concept_coverage", {})
+            if cc and "error" not in cc:
+                if cc.get("gaps"):
+                    print(f"    Concepts: {cc['coverage']:.0%} covered ({cc['covered']}/{cc['total']}), gaps: {', '.join(cc['gaps'][:5])}")
+                elif cc.get("total", 0) > 0:
+                    print(f"    Concepts: {cc['coverage']:.0%} covered ({cc['covered']}/{cc['total']}) ✓")
 
         print()
         if all_pass:

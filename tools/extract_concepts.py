@@ -367,6 +367,33 @@ def extract_concepts(chunks: list[dict], top_n: int = 8) -> ConceptGraph:
 # --- Serialization ---
 
 
+def extract_concepts_from_html(html_path: Path, top_n: int = 10) -> ConceptGraph:
+    """Extract concepts from a lesson HTML file by chunking on heading sections.
+
+    Uses chunk_html() to split the lesson into sections, then runs the standard
+    extract_concepts pipeline on those chunks.
+
+    Args:
+        html_path: Path to a lesson HTML file.
+        top_n: Number of keywords to extract per section.
+
+    Returns:
+        ConceptGraph with concepts, edges, per-section keywords, and a NetworkX DiGraph.
+    """
+    from chunk_text import chunk_html
+
+    html_content = html_path.read_text(encoding="utf-8")
+    chunks = chunk_html(html_content)
+
+    if not chunks:
+        return ConceptGraph(concepts=[], edges=[], per_chunk=[], graph=nx.DiGraph())
+
+    return extract_concepts(chunks, top_n=top_n)
+
+
+# --- Serialization ---
+
+
 def to_json(result: ConceptGraph) -> dict:
     """Serialize ConceptGraph to a JSON-safe dict."""
     return {
