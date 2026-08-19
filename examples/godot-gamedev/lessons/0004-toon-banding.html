@@ -79,7 +79,9 @@ void light() {
 
 <h2>Approach A: smoothstep() — Soft Two-Band</h2>
 
-<p>Before adding more bands, let's control the <em>edge softness</em> of the two-band cut. <strong>Create a new file <code>toon_smoothstep.gdshader</code></strong> (or modify your <code>toon_test.gdshader</code> from the previous lesson):</p>
+<p>Before adding more bands, let's fix an immediate visual problem: the hard <code>step()</code> edge looks jagged at oblique angles. We'll replace it with <code>smoothstep()</code> — same threshold concept, but with a controllable transition width that anti-aliases the shadow boundary.</p>
+
+<p><strong>Create a new file <code>toon_smoothstep.gdshader</code></strong> (or modify your <code>toon_test.gdshader</code> from the previous lesson). Two new uniforms give us control over where the cut happens and how soft it is:</p>
 
 <pre><code> shader_type spatial;
 
@@ -99,9 +101,11 @@ void light() {
      DIFFUSE_LIGHT += ALBEDO * LIGHT_COLOR * ATTENUATION * lit;
  }</code></pre>
 
-<p>Two new uniforms control the shadow edge: <code>threshold</code> sets where the cut happens (0.0 = perpendicular to light), and <code>softness</code> controls how gradual the transition is.</p>
+<p>The key change: <code>threshold</code> sets where the shadow cut happens (0.0 = faces perpendicular to light), and <code>softness</code> controls how many degrees of the surface are in that transition zone. At <code>softness = 0.0</code> this is identical to <code>step()</code>; at higher values you get an anti-aliased edge that doesn't shimmer during camera movement.</p>
 
 <p><strong>Try it:</strong> In Godot's Inspector, find the ShaderMaterial → Shader Parameters section. Drag the <code>softness</code> slider to <code>0.0</code> → identical to <code>step()</code> (hard edge). Drag it to <code>0.5</code> → smooth gradient. The sweet spot for toon is usually 0.02–0.05 (barely visible softening that avoids aliasing). Look at the shadow edge on the mesh — that's where the difference shows.</p>
+
+<p>This solves edge quality, but we still have only two states: lit and shadow. For the multi-band look that actually conveys form, we need a different approach entirely.</p>
 
 <div class="comparison">
   <div><strong>Pros:</strong> Simple, two uniforms, anti-aliased edge</div>
@@ -112,9 +116,11 @@ void light() {
 
 <h2>Approach B: Modulo Trick — N Configurable Bands</h2>
 
+<p>The smoothstep approach gave us edge control, but it's still fundamentally binary — lit or shadow. For the anime/cel look with distinct steps of brightness conveying rounded form (highlight → midtone → shadow → deep shadow), we need to quantize continuous lighting into N discrete levels.</p>
+
 <p>This is the clever bit from <a href="https://github.com/atzuk4451/FlexibleToonShaderGD-4.0">FlexibleToonShaderGD</a>. One line of math snaps any continuous value to N discrete bands.</p>
 
-<p><strong>Create a new file <code>toon_bands.gdshader</code></strong>:</p>
+<p><strong>Create a new file <code>toon_bands.gdshader</code></strong>. The shader structure is identical to before — all the new behavior lives in <code>light()</code>, where three uniforms control banding and four lines do the quantization:</p>
 
 <pre><code>shader_type spatial;
 
@@ -193,9 +199,11 @@ void light() {
 
 <h2>Approach C: Curve Texture — Artist-Paintable Ramp</h2>
 
-<p>This is what <a href="https://github.com/eldskald/godot4-cel-shader">eldskald's cel shader</a> uses. Instead of math deciding the bands, a 1D texture (gradient) maps NdotL to brightness. Artists paint the shadow falloff directly.</p>
+<p>The modulo trick gives us N bands cheaply, but they're all the same width. What if you want a narrow specular highlight, a wide midtone region, and a sharp drop to shadow? That requires arbitrary control over the brightness curve — and the simplest way to get that is to just... paint it.</p>
 
-<p><strong>Create a new file <code>toon_ramp.gdshader</code></strong>:</p>
+<p>This is what <a href="https://github.com/eldskald/godot4-cel-shader">eldskald's cel shader</a> uses. Instead of math deciding the bands, a 1D texture (gradient) maps NdotL to brightness. The lookup texture IS your art direction — whatever shape you paint into it becomes the lighting response.</p>
+
+<p><strong>Create a new file <code>toon_ramp.gdshader</code></strong>. Notice how <code>light()</code> becomes simpler — the complexity moves from code into the texture asset:</p>
 
 <pre><code>shader_type spatial;
 
@@ -232,7 +240,7 @@ void light() {
 <strong>This is the most powerful approach.</strong> The gradient can encode any shadow shape — hard steps, smooth ramps, asymmetric transitions, even colored shadows (sample <code>.rgb</code> instead of <code>.r</code> to tint shadows differently from lit areas). The curve IS your art direction.
 </div>
 
-<p><strong>To make it scene-wide</strong> (all materials share one ramp), declare it as a shader global:</p>
+<p><strong>To make it scene-wide</strong> (all materials share one ramp), declare it as a shader global. This is the key architectural decision — instead of each material carrying its own ramp, every toon-shaded object references the same curve. One change in Project Settings shifts the mood of the entire scene:</p>
 
 <pre><code>global uniform sampler2D diffuse_ramp;</code></pre>
 
@@ -261,7 +269,9 @@ void light() {
 
 <h2>Bonus: Shadow Color Tinting</h2>
 
-<p>All three approaches above output a scalar (0 to 1). To get colored shadows (cool blue-grey in shadow, warm cream in light), use <code>mix()</code>:</p>
+<p>Every approach above outputs a grayscale scalar — how lit or shadowed a pixel is. But real stylized rendering uses <em>color temperature</em> to separate light from shadow: warm highlights feel like sunlight, cool shadows feel like ambient sky. <code>mix()</code> blends between two colors based on our banding output, turning a brightness value into a color shift.</p>
+
+<p>Add these uniforms to any of the three shaders above — they work the same regardless of which banding approach produced <code>stepped</code>:</p>
 
 <pre><code>uniform vec4 shadow_color : source_color = vec4(0.2, 0.25, 0.35, 1.0);
 uniform vec4 light_tint : source_color = vec4(1.0, 0.98, 0.95, 1.0);
