@@ -50,10 +50,6 @@ The `workspace/` directory is the single live workspace per machine. All topics 
 | Check topic complete | `python3 tools/check-topic-completeness.py --workspace X --all` | Reports missing artifacts per topic (lesson, ref, quiz, jargon, SR) |
 | Annotate jargon | `python3 tools/jargon-annotate.py --workspace X` | Mechanical term annotation from glossary-data JSON (idempotent) |
 | Migrate SVG colors | `python3 tools/check-svg-vars.py --workspace X` | Flags hardcoded hex in lesson SVGs |
-| Generate map page | `python3 tools/generate_map_page.py MAP.md --workspace X --output Y` | Preact DAG map from MAP.md |
-| Generate index | `python3 tools/generate_index_page.py --scan-dir X --output Y` | Preact All Lessons dashboard |
-| Generate resources | `python3 tools/generate_resources_page.py --workspace X --output Y` | Themed resources page from RESOURCES.md |
-| Generate quiz page | `python3 tools/generate-quiz-page.py --workspace X --lesson-id Y --title T --lesson-file F --map-page M` | Preact quiz page from JSONL questions |
 | Init workspace | `tools/init-workspace.sh [--default]` | Scaffold workspace; --default for generic first-launch content |
 | Serve workspace | `mise run serve -- [--workspace PATH]` | Start server (default: workspace/). Auto-creates workspace on first run |
 | Serve on LAN | `mise run serve:lan -- [--workspace PATH]` | Same but on 0.0.0.0:8787 for network access |
@@ -70,7 +66,6 @@ The `workspace/` directory is the single live workspace per machine. All topics 
 | Clone references | `mise run rehydrate` | Clone repos from REFERENCES.md |
 | Open lesson | `mise run open-lesson` | Open latest lesson in browser |
 | Quick-check page | `mise run sr:quick-check -- [topic] [--all]` | Generate quick-check review HTML from due SR cards |
-| Topic quiz page | `python tools/generate-quiz-page.py --lesson-id ID --title T --lesson-file F --map-page M` | Generate standalone quiz page for a topic (all questions, not just due) |
 | Export to Anki | `mise run sr:export-anki -- [topic] [--output path]` | Export cards to .apkg |
 | Generate map page | `mise run map:generate -- <MAP.md> [--output path]` | Interactive map HTML from MAP.md |
 | Regenerate all maps | `mise run maps:regenerate` | Rebuild all map pages (workspace + examples) |
@@ -90,16 +85,11 @@ The `workspace/` directory is the single live workspace per machine. All topics 
 | Writing a lesson | Teach skill produces lesson + reference doc + SR questions + glossary JSON |
 | After a lesson | Run jargon skill to annotate domain terms |
 | After UI changes | `mise run visual-qa` to verify components still work |
-| Before progression | quiz-me for Socratic dialog (learner explains, agent probes) |
-| Reviewing retention | `mise run sr:review` (all topics) or `mise run sr:review -- topic-slug` |
 | Leaving a ticket | Ticket is DONE (all AC checked) or OPEN with an update note. No partial closes. No moving on with unchecked boxes. |
 | Closing a ticket | Edit frontmatter `status: done` directly — `tkt close` has a config validation bug that rejects valid tickets. Check all AC boxes in the same commit. |
 | Creating tickets | Use `tkt new slug --title "..."` then edit the created file. Don't create a separate file manually — causes duplicate ID validation errors. |
 | Validating work | Validate from the user's perspective (Playwright click-through, curl the endpoint, load the page). Prefer linters, syntax checkers, and templates over formal test suites. Only write maintained tests for libraries with multiple consumers (e.g., map_parser.py). |
 | Session start | `mise run sr` to check if cards are due before new material |
-| After writing questions | `mise run sr:check` as quality gate |
-| Checking knowledge health | `mise run sr:analytics` for decay alerts and load forecast |
-| Card is leeching | Suspend via `mise run sr:lifecycle -- suspend ID`, rewrite the prompt |
 | New domain term | Add to `.memory/CONTEXT.md` immediately |
 | Significant decision | Write ADR in `.memory/adr/NNNN-slug.md` |
 | Changing colors | Use theme skill (preview → validate contrast → apply) |
