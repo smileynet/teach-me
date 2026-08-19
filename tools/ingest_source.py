@@ -44,11 +44,17 @@ def ingest(
     Returns:
         Summary dict with paths to generated artifacts.
     """
+    # Sanitize domain to prevent path traversal
+    domain = _sanitize_domain(domain)
+
     # 1. Detect format and get content
     fmt, raw_content, raw_path = _resolve_source(source)
 
     # 2. Preserve raw source
     source_dir = workspace / "sources" / domain
+    # Verify containment (defense in depth)
+    if not source_dir.resolve().is_relative_to(workspace.resolve()):
+        return {"error": f"Domain '{domain}' would escape workspace boundary"}
     source_dir.mkdir(parents=True, exist_ok=True)
     preserved_path = _preserve_source(raw_path, raw_content, source_dir, fmt)
 
@@ -122,6 +128,23 @@ def ingest(
             "entry_points": enrich_result["entry_points"],
         },
     }
+
+
+def _sanitize_domain(domain: str) -> str:
+    """Sanitize domain slug to prevent path traversal.
+
+    Strips path separators, .., and non-slug characters.
+    Raises ValueError if result is empty.
+    """
+    # Remove path components
+    domain = domain.replace("/", "").replace("\\", "")
+    # Remove .. sequences
+    domain = domain.replace("..", "")
+    # Reduce to valid slug characters
+    domain = re.sub(r"[^a-zA-Z0-9\-_]", "", domain)
+    if not domain:
+        raise ValueError("Domain slug is empty after sanitization. Use alphanumeric characters, hyphens, or underscores.")
+    return domain
 
 
 def _resolve_source(source: str) -> tuple[str, str, Path | None]:

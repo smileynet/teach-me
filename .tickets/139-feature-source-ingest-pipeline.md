@@ -14,9 +14,11 @@ blocked_by: []
 ## Acceptance criteria
 
 - [x] Supports PDF, Markdown, HTML, plain text, and URL inputs
-- [x] Produces structured chunks with section IDs, page numbers, content
+- [x] Produces structured chunks with headings, levels, content, word counts
 - [x] Raw source preserved in workspace/sources/ (never modified)
-- [x] Chunk index (JSON) enables lookup by section or keyword
-- [x] Handles documents up to ~100 pages / 50K words
-- [x] Graceful failure on unsupported formats (clear error message)
-- [x] Integration test: ingest a real PDF, verify chunk quality (tested with MD/HTML)
+- [x] Chunk JSON saved for downstream use by MAP generation and enrichment
+- [x] Handles documents up to ~100 pages / 50K words (streaming, no memory cap)
+- [ ] Chunk section IDs for stable cross-reference (deferred — chunks identified by index)
+- [ ] Keyword lookup index (deferred — flat JSON array, no search function yet)
+- [ ] Graceful rejection of unsupported formats with clear error (currently treats unknown as text)
+- [ ] Integration test: ingest a real PDF end-to-end (tested with MD/HTML only)

@@ -230,3 +230,78 @@ class TestIngestPipeline:
             source.unlink()
             import shutil
             shutil.rmtree(workspace)
+
+
+# =============================================================================
+# Regression tests for Codex review findings (#158)
+# =============================================================================
+
+
+class TestF1PathTraversal:
+    """Regression: domain with path traversal chars must not escape workspace."""
+
+    def test_domain_sanitized(self):
+        from ingest_source import _sanitize_domain
+        assert _sanitize_domain("../../escaped") == "escaped"
+        assert _sanitize_domain("my-domain") == "my-domain"
+        assert _sanitize_domain("a/b/c") == "abc"
+        assert _sanitize_domain("valid_slug-123") == "valid_slug-123"
+
+    def test_pure_traversal_raises(self):
+        from ingest_source import _sanitize_domain
+        with pytest.raises(ValueError):
+            _sanitize_domain("../../..")
+
+    def test_traversal_domain_stays_in_workspace(self):
+        source = Path(tempfile.mktemp(suffix=".md"))
+        workspace = Path(tempfile.mkdtemp())
+        source.write_text(
+            "# Test\n\nContent with enough words to be meaningful for the pipeline "
+            "processing and to pass any minimum word count filters in the system."
+        )
+        try:
+            result = ingest(str(source), workspace, "../../escape-attempt", "Test")
+            # Should not error — domain gets sanitized
+            if "error" not in result:
+                # All created files must be under workspace
+                for f in workspace.rglob("*"):
+                    assert f.resolve().is_relative_to(workspace.resolve()), (
+                        f"File {f} escaped workspace!"
+                    )
+            # No files should exist outside workspace
+            escaped_path = workspace / "sources" / ".." / ".." / "escape-attempt"
+            assert not escaped_path.exists()
+        finally:
+            source.unlink()
+            import shutil
+            shutil.rmtree(workspace)
+
+
+class TestF2ExtractedTextFormat:
+    """Regression: URL-extracted plain text must not be labeled as HTML."""
+
+    def test_plain_text_detected_as_text(self):
+        from fetch_url import _detect_extracted_format
+        text = "Introduction\n\nFirst section content about caching.\n\nSecond Section\n\nMore content."
+        assert _detect_extracted_format(text) == "text"
+
+    def test_html_tags_detected_as_html(self):
+        from fetch_url import _detect_extracted_format
+        html = "<h1>Title</h1><p>Content</p><h2>Section</h2>"
+        assert _detect_extracted_format(html) == "html"
+
+    def test_markdown_headings_detected_as_markdown(self):
+        from fetch_url import _detect_extracted_format
+        md = "# Title\n\nContent\n\n## Section Two\n\nMore content"
+        assert _detect_extracted_format(md) == "markdown"
+
+    def test_plain_text_chunks_preserve_structure(self):
+        """Plain text routed to chunk_plaintext preserves paragraph boundaries."""
+        from chunk_text import chunk_plaintext
+        text = (
+            "Introduction to Topic\n\nFirst paragraph with detail.\n\n"
+            "Second Topic\n\nSecond paragraph with more detail.\n\n"
+            "Third Topic\n\nThird paragraph."
+        )
+        chunks = chunk_plaintext(text)
+        assert len(chunks) >= 3, f"Expected ≥3 chunks, got {len(chunks)}"
