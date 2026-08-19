@@ -11,6 +11,42 @@ When creating lessons with diagrams or visual aids, follow these evidence-based 
 5. **Consistent visual vocabulary.** Same color/shape means same thing across ALL lessons. (Signaling principle, d=0.46)
 6. **Static over animated.** Animation only for inherently temporal processes. (Tversky et al., 2002)
 
+## Code Block Pedagogy
+
+Code examples are teaching tools, not reference dumps. Every code block requires narrative framing — the prose around it earns the code's place in the lesson.
+
+### Required Framing
+
+1. **Lead-in** (before code): Name the problem or goal this code addresses. One sentence minimum. "We're replacing X with Y because..." or "To solve [limitation from above]..."
+2. **Bridge** (between sequential blocks): Explain what limitation or insight motivates the next version. Don't repeat what the code says — explain what *drove* the change.
+3. **Connect-back** (after code): Tie the implementation to the concept being taught. "This is [concept] in action" or "Notice how [mechanism] achieves [goal]."
+
+Not every block needs all three — a single standalone example needs lead-in and connect-back. Sequential blocks building on each other need bridges between them.
+
+### Story Arc
+
+A section with multiple code blocks tells a story. Each block should advance the narrative:
+- What couldn't we do before? (motivation)
+- What does this block add? (contribution)
+- What can't we do yet? (sets up the next block)
+
+The reader should feel *progress* through the code, not a list of alternatives dumped without context.
+
+### Anti-Patterns
+
+- Code block preceded only by "Here's the code:" or "Add this:"
+- Two code blocks back-to-back with no narrative between them
+- Explanation after code that merely restates what each line does
+- Showing modifications without stating which file and what changed conceptually
+
+### Diff-Style Code (ticket #157)
+
+When showing modifications to existing code:
+- State which file is being modified
+- Use red/green diff markers for removed/added lines
+- Before the diff: explain *what* you're replacing and *why* (the concept, not the syntax)
+- After the diff: state the observable result ("Now when you adjust the slider, the shadow edge...")
+
 ## Color Vocabulary
 
 Colors are defined as CSS custom properties in `assets/style.css` (light + dark variants). Use `var(--svg-*)` in inline SVGs — never hardcode hex.

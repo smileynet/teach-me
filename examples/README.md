@@ -21,7 +21,10 @@ workspace-name/
   RESOURCES.md          — verified sources (optional)
   maps/                 — domain MAP.md files
   lessons/              — generated HTML lessons
-    quiz/               — per-topic quiz pages
+    {domain-slug}/      — per-domain subfolder (e.g., storage-formats/)
+      NN-slug.html      — lessons numbered within domain (01, 02, ...)
+      quiz/             — per-topic quiz pages for this domain
+      {domain}-map.html — interactive map page for this domain
   reference/            — compressed lookup companions
   learning-records/     — demonstrated understanding
     questions/          — SR question bank (.jsonl)
@@ -31,9 +34,9 @@ workspace-name/
 
 1. User writes `MISSION.md` (what they want to learn and why)
 2. Agent generates `maps/*.MAP.md` (domain decomposition into topics)
-3. Agent generates `lessons/*.html` (one per topic, from the map)
-4. Agent generates `lessons/quiz/*-quiz.html` (questions for each topic)
+3. Agent generates `lessons/{domain-slug}/NN-slug.html` (one per topic, filed under its domain)
+4. Agent generates `lessons/{domain-slug}/quiz/NN-slug-quiz.html` (questions for each topic)
 5. User marks topics complete as they go
 6. Adjacent domains appear in "From here, you could explore"
 
-The `iceberg-workspace/` and `oidc-rust/` examples show steps 1–5 completed for two topics each.
+The `iceberg-workspace/` and `oidc-rust/` examples show steps 1–5 completed for two topics each. These predate the domain subfolder convention — new workspaces use the layout above.
