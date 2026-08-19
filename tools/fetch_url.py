@@ -40,16 +40,16 @@ def fetch_url_content(url: str) -> tuple[str, str]:
     # Default: trafilatura for HTML pages
     text = _fetch_trafilatura(url)
     if len(text.split()) >= SUCCESS_THRESHOLD:
-        return text, "html"
+        return text, _detect_extracted_format(text)
 
     # Fallback: Playwright for JS-rendered pages
     text = _fetch_playwright(url)
     if len(text.split()) >= SUCCESS_THRESHOLD:
-        return text, "html"
+        return text, _detect_extracted_format(text)
 
     # Last resort: urllib + tag strip (noisy but always works)
     text = _fetch_urllib_html(url)
-    return text, "html"
+    return text, _detect_extracted_format(text)
 
 
 def _is_raw_text_url(url: str) -> bool:
@@ -71,6 +71,22 @@ def _detect_text_format(url: str, text: str) -> str:
     """Detect if fetched text is markdown, rst, or plain text."""
     if url.endswith(".md") or re.search(r"^#{1,3}\s", text, re.MULTILINE):
         return "markdown"
+    return "text"
+
+
+def _detect_extracted_format(text: str) -> str:
+    """Detect whether extracted content is HTML or plain text.
+
+    Trafilatura and Playwright typically return plain text (no tags).
+    Route to the correct chunker based on actual content structure.
+    """
+    # If content has HTML heading tags, it's still HTML
+    if re.search(r"<h[1-6][^>]*>", text):
+        return "html"
+    # If content has markdown headings, treat as markdown
+    if re.search(r"^#{1,3}\s", text, re.MULTILINE):
+        return "markdown"
+    # Otherwise it's extracted plain text (paragraph-based)
     return "text"
 
 
