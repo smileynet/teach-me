@@ -67,23 +67,23 @@ When a user provides a second source on a topic that already has lessons, compou
 
 ## Acceptance criteria
 
-- [ ] Detect when new source covers existing domain (chunks + MAP already exist)
-- [ ] Route to enrich mode instead of overwriting
-- [ ] Two-stage topic matching: TF-IDF cosine primary + YAKE keyword boost (spike #161 validated)
-- [ ] Conflict signal detection: dates, numbers, negation heuristics
-- [ ] Conflicts classified by type (complementary/opinion/outdated/factual)
-- [ ] Enrichment overlay written as append-only JSON log (sources never mutated)
-- [ ] New questions added with provenance to new source; existing questions preserved
-- [ ] Unmatched chunks proposed as new topics in MAP.md
-- [ ] Works for web-researched topics too (second ingest adds depth)
-- [ ] Teach skill consumes overlay to produce per-claim attribution + typed conflict callouts
+- [x] Detect when new source covers existing domain (chunks + MAP already exist)
+- [x] Route to enrich mode instead of overwriting
+- [x] Two-stage topic matching: TF-IDF cosine primary + YAKE keyword boost (spike #161 validated)
+- [x] Conflict signal detection: dates, numbers, negation heuristics
+- [x] Conflicts classified by type (complementary/opinion/outdated/factual)
+- [x] Enrichment overlay written as append-only JSON log (sources never mutated)
+- [x] New questions added with provenance to new source; existing questions preserved
+- [x] Unmatched chunks proposed as new topics in MAP.md
+- [x] Works for web-researched topics too (second ingest adds depth)
+- [x] Teach skill consumes overlay to produce per-claim attribution + typed conflict callouts
 
 ## Validation
 
-- [ ] Ingest same domain twice with overlapping content → overlay created, originals untouched
-- [ ] Ingest conflicting source (different numbers/dates) → conflict signals detected
-- [ ] `mise run verify` passes after changes
-- [ ] Unit tests cover: matching thresholds, conflict heuristics, overlay append behavior
+- [x] Ingest same domain twice with overlapping content → overlay created, originals untouched
+- [x] Ingest conflicting source (different numbers/dates) → conflict signals detected
+- [x] `mise run verify` passes after changes
+- [x] Unit tests cover: matching thresholds, conflict heuristics, overlay append behavior
 
 ## Research basis
 
