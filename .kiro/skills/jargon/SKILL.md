@@ -23,7 +23,9 @@ After a lesson is written and content is finalized. This is a post-processing pa
 
 A lesson HTML file. If no path is given, operate on the most recent lesson in `lessons/`.
 
-**Concept list (optional):** If `source-chunks/{domain}.json` exists, run `python tools/extract_concepts.py source-chunks/{domain}.json --top-n 10` to get a ranked list of domain concepts. Use this as a **starting checklist** — these terms are statistically important in the source material. Still apply all three gates; the list provides candidates, not decisions.
+**Concept list (optional):** If `.scratch/concepts/{slug}.json` exists (produced by `concept_hints.py` during generate-topic), read it and use `concepts[].term` as the candidate list. These are statistically important terms from the source material, ranked by foundational-ness. Still apply all three gates; the list provides candidates, not decisions.
+
+If no concept hints file exists but `source-chunks/{domain}.json` does, run `python tools/concept_hints.py source-chunks/{domain}.json --topic {slug} --domain {domain}` to generate it.
 
 ## Process
 
