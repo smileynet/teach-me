@@ -22,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from chunk_text import chunk_markdown, chunk_html, chunk_plaintext
 from classify_document import classify_document
+from enrich_from_source import enrich_domain
 from enrich_prereqs import enrich_prereqs
 from map_from_chunks import generate_map
 from map_from_deps import generate_dependency_ordered_map
@@ -55,6 +56,17 @@ def ingest(
     # Verify containment (defense in depth)
     if not source_dir.resolve().is_relative_to(workspace.resolve()):
         return {"error": f"Domain '{domain}' would escape workspace boundary"}
+
+    # --- Multi-source detection ---
+    # If this domain already has chunks + MAP, switch to enrichment mode
+    existing_chunks_path = workspace / "source-chunks" / f"{domain}.json"
+    existing_map_path = workspace / "maps" / f"{domain}.MAP.md"
+    if existing_chunks_path.exists() and existing_map_path.exists():
+        return _enrich_existing_domain(
+            source, fmt, raw_content, raw_path,
+            existing_chunks_path, workspace, domain, source_dir,
+        )
+
     source_dir.mkdir(parents=True, exist_ok=True)
     preserved_path = _preserve_source(raw_path, raw_content, source_dir, fmt)
 
@@ -230,6 +242,72 @@ def _chunk_content(content: str, file_path: Path | None, fmt: str) -> list[dict]
         return chunk_plaintext(content)
 
 
+def _enrich_existing_domain(
+    source: str,
+    fmt: str,
+    raw_content: str,
+    raw_path: Path | None,
+    existing_chunks_path: Path,
+    workspace: Path,
+    domain: str,
+    source_dir: Path,
+) -> dict:
+    """Handle second+ source for an existing domain — enrichment mode.
+
+    Chunks the new source, matches against existing topics, detects conflicts,
+    and writes an enrichment overlay. Original source and MAP are never mutated.
+    """
+    source_dir.mkdir(parents=True, exist_ok=True)
+
+    # Generate a source_id from the input
+    source_id = hashlib.sha256(
+        source.encode() if isinstance(source, str) else source
+    ).hexdigest()[:12]
+
+    # Preserve new source alongside the original
+    preserved_path = _preserve_source(raw_path, raw_content, source_dir, fmt)
+    # Rename to avoid collision with existing raw file
+    enrichment_dest = source_dir / f"raw-{source_id}{preserved_path.suffix}"
+    if enrichment_dest != preserved_path:
+        preserved_path.rename(enrichment_dest)
+        preserved_path = enrichment_dest
+
+    # Chunk the new source
+    new_chunks = _chunk_content(raw_content, raw_path, fmt)
+    if not new_chunks:
+        return {"error": "No chunks extracted from new source"}
+
+    # Save new chunks separately (per-source, never merged)
+    chunks_dir = workspace / "source-chunks"
+    chunks_dir.mkdir(parents=True, exist_ok=True)
+    new_chunks_path = chunks_dir / f"{domain}-{source_id}.json"
+    new_chunks_path.write_text(json.dumps(new_chunks, indent=2, ensure_ascii=False))
+
+    # Load existing chunks
+    existing_chunks = json.loads(existing_chunks_path.read_text())
+
+    # Run enrichment pipeline
+    result = enrich_domain(
+        new_chunks=new_chunks,
+        existing_chunks=existing_chunks,
+        workspace=workspace,
+        domain=domain,
+        source_id=source_id,
+    )
+
+    return {
+        "mode": "enrich",
+        "source_preserved": str(preserved_path),
+        "new_chunks_file": str(new_chunks_path),
+        "new_chunk_count": len(new_chunks),
+        "matches": result["matches"],
+        "high_confidence": result["high_confidence"],
+        "conflicts_detected": result["conflicts_detected"],
+        "new_topics_proposed": result["new_topics_proposed"],
+        "overlay_path": result["overlay_path"],
+    }
+
+
 # Need re for _resolve_source
 import re
 
@@ -270,14 +348,23 @@ def main():
         print(f"Error: {result['error']}", file=sys.stderr)
         sys.exit(1)
 
-    print("✓ Ingest complete:")
-    print(f"  Source preserved: {result['source_preserved']}")
-    print(f"  Chunks:           {result['chunk_count']} ({result['chunks_file']})")
-    print(f"  Classification:   {result['classification']} ({result['confidence']:.0%})")
-    print(f"  MAP generated:    {result['map_file']}")
-    print(f"  Enrichment:       {result['enrichment']['topics_enriched']} topics enriched, "
-          f"{result['enrichment']['entry_points']} entry points")
-    print(f"  Manifest:         {result['manifest']}")
+    if result.get("mode") == "enrich":
+        print("✓ Enrichment complete (existing domain detected):")
+        print(f"  Source preserved: {result['source_preserved']}")
+        print(f"  New chunks:       {result['new_chunk_count']} ({result['new_chunks_file']})")
+        print(f"  Matches:          {result['matches']} ({result['high_confidence']} high-confidence)")
+        print(f"  Conflicts:        {result['conflicts_detected']}")
+        print(f"  New topics:       {result['new_topics_proposed']}")
+        print(f"  Overlay:          {result['overlay_path']}")
+    else:
+        print("✓ Ingest complete:")
+        print(f"  Source preserved: {result['source_preserved']}")
+        print(f"  Chunks:           {result['chunk_count']} ({result['chunks_file']})")
+        print(f"  Classification:   {result['classification']} ({result['confidence']:.0%})")
+        print(f"  MAP generated:    {result['map_file']}")
+        print(f"  Enrichment:       {result['enrichment']['topics_enriched']} topics enriched, "
+              f"{result['enrichment']['entry_points']} entry points")
+        print(f"  Manifest:         {result['manifest']}")
 
 
 if __name__ == "__main__":
