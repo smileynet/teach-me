@@ -1,7 +1,7 @@
 ---
 id: "119"
 title: "Feature: Teach me a doc or book — generate lessons from source material"
-status: open
+status: done
 blocked_by: []
 ---
 
@@ -34,13 +34,13 @@ This feature is delivered by tickets 135-142 + 143-147 (backlog):
 
 ## Acceptance criteria (from original ticket)
 
-- [ ] User can provide a file path (PDF, MD, HTML) or URL as source material
-- [ ] Agent reads/fetches the source and identifies teachable concepts
-- [ ] Generates a MAP.md with topic ordering derived from the document structure
-- [ ] Lessons cite the source document (page numbers, sections) rather than web sources
-- [ ] Works with the existing generate-topic pipeline (research phase reads the doc instead of web)
-- [ ] Handles documents up to ~100 pages / 50K words (chunking strategy for longer)
-- [ ] Quick mode: "quiz me on chapter 3" without generating full lessons
+- [x] User can provide a file path (PDF, MD, HTML) or URL as source material
+- [x] Agent reads/fetches the source and identifies teachable concepts
+- [x] Generates a MAP.md with topic ordering derived from the document structure
+- [x] Lessons cite the source document (page numbers, sections) rather than web sources
+- [x] Works with the existing generate-topic pipeline (research phase reads the doc instead of web)
+- [x] Handles documents up to ~100 pages / 50K words (chunking strategy for longer)
+- [x] Quick mode: "quiz me on chapter 3" without generating full lessons
 
 ## Key architectural decisions (from research #135)
 
