@@ -3,6 +3,7 @@ id: "162"
 title: "Copy button on code blocks"
 status: open
 blocked_by: []
+parent: "173"
 ---
 
 # Copy button on code blocks
