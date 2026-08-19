@@ -1,7 +1,7 @@
 ---
 id: "141"
 title: "Feature: multi-source enrichment — compound new sources into existing topics with conflict surfacing"
-status: open
+status: done
 blocked_by: ["140"]
 ---
 

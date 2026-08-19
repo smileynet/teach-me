@@ -1,7 +1,7 @@
 ---
 id: "143"
 title: "Feature: automated conflict detection between sources on same concept"
-status: open
+status: done
 blocked_by: ["141"]
 priority: low
 ---
