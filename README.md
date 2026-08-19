@@ -1,71 +1,105 @@
 # Teach Me
 
-Learn any topic through research-backed lessons, interactive diagrams, and spaced repetition — powered by your AI coding assistant.
+A learning workspace that turns any topic into research-backed lessons, interactive quizzes, and spaced repetition — driven by your AI coding assistant.
 
-## What it does
+- **Lessons from real sources** — never from parametric memory
+- **Dependency maps** — shows how subtopics connect
+- **Understanding quizzes** — tests "explain why..." not "what is the definition of..."
+- **Spaced repetition** — schedules reviews at optimal intervals
+- **Anki export** — take cards mobile
+- **Dark/light themes** — customizable typography
 
-You tell the agent what you want to learn. It researches the domain from real sources, generates interactive HTML lessons with diagrams you can open in any browser, quizzes you on understanding (not recall), and schedules reviews so knowledge sticks long-term.
-
-You name a topic. The agent researches it, breaks it into a map of subtopics, and generates lessons one at a time. Each lesson comes with a reference doc for quick lookup, a quiz that asks you to explain concepts (not recite definitions), and spaced repetition cards that surface again when you're about to forget. If something doesn't land, say so — it'll re-explain differently.
-
-Want to lock in your understanding? Ask for a Socratic dialog — you explain what you've learned, the agent probes gaps and deepens your grasp through conversation. As you go, ask for more topics, drill into subtopics, or follow connections to adjacent domains. Each map leads to the next, like an infinite Wikipedia-style rabbit hole where every page is written for you and your goals.
-
-## Quick start
+## Quick Start
 
 ```bash
+git clone https://github.com/smileynet/teach-me && cd teach-me
 mise install && mise run setup
 ```
 
-Then open this project in [Kiro CLI](https://kiro.dev), [Claude Code](https://claude.ai), [Codex](https://openai.com/codex), [Cursor](https://cursor.sh), or any [Agent Skills-compatible](https://agentskills.io) client and say:
+Open in [Kiro CLI](https://kiro.dev), [Claude Code](https://claude.ai), [Codex](https://openai.com/codex), or any skills-compatible client:
 
-> "I want to learn about [your topic]"
+> "I want to learn about distributed systems"
 
-The agent will ask about your goals, research the domain, and generate your first lesson.
+The agent researches the domain, generates an interactive HTML lesson, and opens it in your browser:
 
-**Already have lessons?** Open `lessons/index.html` in a browser, or:
 ```bash
 mise run open-lesson
+# → opens lessons/0001-cap-theorem.html
 ```
 
-## Example topics
+## Usage
 
-| Domain | What's covered |
-|--------|---------------|
-| [Data Engineering](examples/iceberg-workspace/) | Apache Iceberg metadata, data ingestion, change capture |
-| [OIDC in Rust](examples/oidc-rust/) | Auth flows, PKCE, token validation, JWT anatomy |
-| [Fitness](examples/workout-fundamentals/) | Progressive overload, recovery science, program design |
-| [Game Dev](examples/godot-gamedev/) | Godot node architecture, GDScript, scene composition |
+### Learning a new topic
 
-Each has lessons, reference docs, quizzes, and spaced repetition cards ready to explore.
+Tell the agent what you want to learn. It asks about your goals, researches from real sources, then generates lessons one at a time — each with a reference card, a quiz, and SR cards.
 
-## How it works
-
-1. **You say what to learn** → agent asks about your goals and context
-2. **Agent researches** → finds and verifies sources (never teaches from memory)
-3. **Lessons appear as HTML** → open in any browser, dark/light mode, inline diagrams
-4. **Quizzes test understanding** → "explain to a colleague why..." not "what is the definition of..."
-5. **Spaced repetition** → reviews scheduled at optimal intervals, exportable to Anki
-
-## Spaced repetition commands
+### Reviewing what you've learned
 
 ```bash
-mise run sr              # what's due for review
-mise run sr:review       # review due cards
+mise run sr              # see what's due
+mise run sr:review       # review due cards interactively
+mise run sr:analytics    # knowledge retention stats
 mise run sr:export-anki  # export to Anki .apkg
 ```
 
----
+### Navigating your workspace
 
-## For developers
+Open `workspace/lessons/index.html` in any browser for the full dashboard — lessons, maps, quizzes, and progress tracking.
+
+```bash
+mise run serve           # start local server at http://localhost:8787
+mise run serve:lan       # serve on LAN for other devices
+```
+
+### Teaching from source documents
+
+```bash
+python tools/ingest_source.py paper.pdf --workspace workspace --domain "machine-learning" --title "Attention"
+# → chunks, classifies, builds a topic map, enriches with prerequisites
+```
+
+### Quiz types
+
+- **Open-ended** — explain concepts to a colleague
+- **Sequence** — reorder steps correctly
+- **Match** — pair terms to definitions
+- **Fill-in-the-blank** — complete statements with key terms
+
+## Example Workspaces
+
+| Domain | Topics |
+|--------|--------|
+| [Data Engineering](examples/iceberg-workspace/) | Apache Iceberg metadata, ingestion, change capture |
+| [OIDC in Rust](examples/oidc-rust/) | Auth flows, PKCE, token validation, JWT anatomy |
+| [Fitness](examples/workout-fundamentals/) | Progressive overload, recovery science, program design |
+| [Game Dev](examples/godot-gamedev/) | Godot nodes, GDScript, scene composition |
+
+## Agent Skills
+
+Works with any client that supports [Agent Skills](https://agentskills.io):
+
+| Skill | What it does |
+|-------|-------------|
+| `/teach` | Multi-session learning with stateful workspace |
+| `/quiz-me` | Socratic dialog — you explain, agent probes gaps |
+| `/wait-what` | Re-explain when something doesn't click |
+| `/generate-topic` | Full pipeline: research → lesson → quiz → SR cards |
+| `/draw-diagram` | Generate inline SVG teaching diagrams |
+| `/jargon` | Annotate domain terms with hover tooltips |
+
+## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, project structure, and conventions.
 
 ```bash
-mise run verify     # links + lint + SVG theming check
+mise run verify     # links + lint + SVG theming + tests
 mise run visual-qa  # Playwright component exercise
+mise run doctor     # check tool/venv health
 ```
 
-MIT licensed. Skills are [Agent Skills-compatible](https://agentskills.io) — works across 40+ AI coding clients.
+## License
+
+[MIT](LICENSE)
 
 ---
 
