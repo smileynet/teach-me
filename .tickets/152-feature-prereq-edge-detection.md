@@ -1,7 +1,7 @@
 ---
 id: "152"
 title: "Feature: prerequisite edge detection via forward references and first-mention analysis"
-status: open
+status: done
 blocked_by: ["149"]
 ---
 
@@ -31,9 +31,17 @@ Regex patterns that catch direct cross-references:
 
 ## Acceptance criteria
 
-- [ ] Detects explicit cross-references between sections
-- [ ] First-mention tracking identifies implicit dependencies
-- [ ] Foundational-ness score computed per concept
-- [ ] Outputs prerequisite edges compatible with MAP.md `prereqs:` field
-- [ ] Validated: edges are plausible (manual review of 10+ detected edges)
-- [ ] Integrates into map_from_chunks.py as an enrichment step
+- [x] Detects explicit cross-references between sections
+- [x] First-mention tracking identifies implicit dependencies
+- [x] Foundational-ness score computed per concept
+- [x] Outputs prerequisite edges compatible with MAP.md `prereqs:` field
+- [x] Validated: edges are plausible (manual review of 10+ detected edges)
+- [x] Integrates into map_from_chunks.py as an enrichment step
+
+## Implementation notes
+
+- **Thresholds** (research-backed, Sato et al. 2017): ≥0.7 hard, 0.4-0.7 soft, <0.4 drop
+- **Orphans** become entry points (empty prereqs) — research shows >50% of real curriculum nodes are isolated, this is normal
+- **Provenance**: auto-generated prereqs tagged with `<!-- auto: enrich_prereqs -->`, manual edits never overwritten
+- **Idempotent**: safe to re-run; overwrites only auto-tagged or empty prereqs
+- 12 pytest tests pass
