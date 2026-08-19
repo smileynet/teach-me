@@ -1,11 +1,11 @@
 {
   "schema_version": 2,
   "reviewer": "codex",
-  "reviewed_at": "2026-08-18T03:57:20Z",
+  "reviewed_at": "2026-08-19T01:00:45Z",
   "verdict": "changes_requested",
   "commits": {
     "scope": "all ancestors through reviewed_through, inclusive",
-    "reviewed_through": "bbd96d3cef66418f5c2378e313f07c262d491bd0"
+    "reviewed_through": "6eccc29eafd1ec2da6dc9cfa9700f03ee705416c"
   },
   "ticket_source": {
     "type": "tkt",
@@ -323,7 +323,7 @@
     },
     {
       "path": ".tickets/078-feature-quiz-type-system.md",
-      "blob": "c0490e865dbbd46d2c7d0065db4050bb071c9a0a"
+      "blob": "52cebbfb0afb7988a9b598163a4eaf9eef6b9f22"
     },
     {
       "path": ".tickets/079-feature-replace-examples.md",
@@ -463,7 +463,7 @@
     },
     {
       "path": ".tickets/113-eli5-quiz-answers.md",
-      "blob": "49adbaac2f0a6312c3f0b476e5fdcd60d5bb4aa2"
+      "blob": "d41a20009493e306149fc173133ad817b4df71d8"
     },
     {
       "path": ".tickets/114-team-topic-sharing.md",
@@ -523,7 +523,7 @@
     },
     {
       "path": ".tickets/128-lesson-template-contract.md",
-      "blob": "0c96dbf060ed0a82a4681300b098b6930e83fbe6"
+      "blob": "e48d906cc3b02461bd28ac197c69a4f7ed4bdfbc"
     },
     {
       "path": ".tickets/129-theme-in-preferences.md",
@@ -543,31 +543,31 @@
     },
     {
       "path": ".tickets/133-free-form-answer-evaluation.md",
-      "blob": "1f3dbb503aaf9355603afd48317e340e08ae5810"
+      "blob": "e8f804bdace4be590ad38e507cbf619c9b1cd7b4"
     },
     {
       "path": ".tickets/134-codex-review-findings-969469c.md",
-      "blob": "527fbdd9104c775ec5acc4f2165d81f49c9367f0"
+      "blob": "24d041365961a8cf5695abdbc9b921e0334d1ad2"
     },
     {
       "path": ".tickets/135-research-teach-from-source.md",
-      "blob": "9184478a7096972ae81706661d34f9ac1d78ebeb"
+      "blob": "f5f24fca6f429e0e47e844adef77b1c8eeb24ad1"
     },
     {
       "path": ".tickets/136-apply-provenance-patterns.md",
-      "blob": "e68c799075794e160f43130ef3d8ca311b302025"
+      "blob": "ac8221d0c0221fe80a475c402120fcea5614c8e6"
     },
     {
       "path": ".tickets/137-spike-pdf-chunking.md",
-      "blob": "6905af785444ec113deea83d91d9657c0561fb72"
+      "blob": "24f023d7a0c9f384a81af09a988af4cd828ff912"
     },
     {
       "path": ".tickets/138-spike-source-map-generation.md",
-      "blob": "3fbeaf92c0b85d28c7ac923019c88628aa9d8003"
+      "blob": "73ea41d481f72767157500fcb12c0521a822c7c2"
     },
     {
       "path": ".tickets/139-feature-source-ingest-pipeline.md",
-      "blob": "76f1055374bfd513ef0bec709307c0c6b5923c6e"
+      "blob": "a967778d432bff3876d24e1816af92a262bd3d4c"
     },
     {
       "path": ".tickets/140-feature-provenance-questions.md",
@@ -591,7 +591,7 @@
     },
     {
       "path": ".tickets/145-situation-index-navigation.md",
-      "blob": "f66571b3e2746ad1af0fa3f3fa82ab1fb3562010"
+      "blob": "58862609820f5309ab53c7bbb98329bc316b66cb"
     },
     {
       "path": ".tickets/146-author-perspective-teaching.md",
@@ -603,23 +603,43 @@
     },
     {
       "path": ".tickets/148-spike-document-type-classifier.md",
-      "blob": "0136ff052819bb49147bd732047b896c7888fa30"
+      "blob": "c60ad48d60dd99b809a88ab536c07577858f0057"
     },
     {
       "path": ".tickets/149-spike-concept-extraction-yake.md",
-      "blob": "e067f3b32abcab01038c430f8798ddb6fb1f569d"
+      "blob": "51fbee12ef7699538631ce9f48712dfea8048563"
     },
     {
       "path": ".tickets/150-feature-heading-backbone-map.md",
-      "blob": "928cfe388eb85ce702360170ea80191bdd9d834e"
+      "blob": "4da11833c94f1f35cc52dbe1b37825e6360331b2"
     },
     {
       "path": ".tickets/151-feature-dependency-ordered-map.md",
-      "blob": "1daaa97a8e9ae18f46a09e8890b72cc31488d4fd"
+      "blob": "4ccb51e8a676af26fbbfb1e50277345de5dbc2f1"
     },
     {
       "path": ".tickets/152-feature-prereq-edge-detection.md",
-      "blob": "6d1c64f200f218b8d4a12bd0a85f51316b2d9bbc"
+      "blob": "8d2c248ef0951964905a33806565a840dd9758c8"
+    },
+    {
+      "path": ".tickets/153-codex-review-findings-bbd96d3.md",
+      "blob": "f4d6059736088fbef38fac439197185d51b29a16"
+    },
+    {
+      "path": ".tickets/154-feature-concept-driven-content.md",
+      "blob": "64ccaadce3fb2cf854b80db4d982e1e9b617f8a6"
+    },
+    {
+      "path": ".tickets/155-feature-global-map.md",
+      "blob": "b3ac8b1035b662a4a79cb1cf0da6051f15a98251"
+    },
+    {
+      "path": ".tickets/156-spike-ordering-strategies.md",
+      "blob": "207b48dcb564994776e1feb29d1f4db29da2f149"
+    },
+    {
+      "path": ".tickets/157-spike-url-extraction.md",
+      "blob": "be6647fc298f9ab17b007b15543e705ac6c50e30"
     }
   ],
   "adoption": {
