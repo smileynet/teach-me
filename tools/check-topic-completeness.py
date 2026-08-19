@@ -83,16 +83,31 @@ def check_sr_questions(workspace: Path, topic_slug: str) -> dict:
         return {"count": 0, "has_questions": False}
 
     count = 0
-    for f in questions_dir.glob("*.jsonl"):
-        for line in f.read_text(encoding="utf-8").splitlines():
+
+    # Primary: count all valid cards in the topic's own JSONL file
+    topic_file = questions_dir / f"{topic_slug}.jsonl"
+    if topic_file.exists():
+        for line in topic_file.read_text(encoding="utf-8").splitlines():
             if not line.strip():
                 continue
             try:
-                q = json.loads(line)
-                if topic_slug in q.get("lesson_id", ""):
-                    count += 1
+                json.loads(line)
+                count += 1
             except (json.JSONDecodeError, KeyError):
                 continue
+    else:
+        # Fallback: scan all files for lesson_id match (legacy behavior)
+        for f in questions_dir.glob("*.jsonl"):
+            for line in f.read_text(encoding="utf-8").splitlines():
+                if not line.strip():
+                    continue
+                try:
+                    q = json.loads(line)
+                    if topic_slug in q.get("lesson_id", ""):
+                        count += 1
+                except (json.JSONDecodeError, KeyError):
+                    continue
+
     return {"count": count, "has_questions": count > 0}
 
 

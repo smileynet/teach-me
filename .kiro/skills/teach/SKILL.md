@@ -118,6 +118,26 @@ Full checklist (verify after user accepts):
 
 For the full pipeline (research → lesson → jargon → quiz → reference → verify), use the `generate-topic` skill. It wraps this skill with parallel subagent dispatch for research and verification, ensuring all post-processing steps happen automatically. Use `generate-topic` when you want guaranteed completeness; use `teach` directly for quick drafts or interactive teaching sessions.
 
+## Multi-Source Enrichment
+
+When generating or regenerating a lesson for a topic that has enrichment data, read `sources/{domain}/enrichments.json`. This overlay records matches from additional sources ingested after the original.
+
+**What to do with it:**
+
+1. **Check for matches** — if the current topic slug appears in any enrichment record's `matches[]`, that topic has additional source material.
+2. **Per-claim source badges** — weave claims from the new source into the lesson with clear attribution: "According to [Source B]..." or a margin badge.
+3. **Typed conflict callouts** — when `conflict_type` is not `"complementary"`, render a callout:
+   - `factual`: "Sources disagree: Source A says X, Source B says Y"
+   - `outdated`: "Updated: Source B (2025) reports Y, superseding Source A's figure of X"
+   - `opinion`: "Different perspective: Source B argues Y, while Source A takes the position that X"
+4. **Corroboration prompt** — after a conflict callout, add a brief question: "Why might these sources differ?" This triggers deeper processing (DISC hypothesis).
+5. **New topics** — if `new_topics_proposed` contains entries, mention them in the lesson's "What's Next" section as available subtopics from the additional source.
+
+**What NOT to do:**
+- Don't remove or rewrite existing content from the original source
+- Don't silently choose one source over another — surface both
+- Don't present every match as a conflict — `"complementary"` means the new source adds depth, not contradiction
+
 ## It's NOT Working If
 
 - Lessons cite no sources (teaching from memory)
