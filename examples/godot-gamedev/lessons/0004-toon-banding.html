@@ -335,10 +335,13 @@ void light() {
 <tr><td><a href="https://godotshaders.com/shader/toon-shader/">godotshaders.com: Color Ramp Toon</a></td><td>Shadow colors from a gradient texture</td></tr>
 </tbody></table>
 
-<h2>Local Reference Code</h2>
+<h2>Code Files</h2>
+<p>Download the final-state shaders from this lesson:</p>
 <ul>
-  <li><a href="../../.references/FlexibleToonShaderGD/addons/flexible_toon_shader/flexible_toon.gdshader"><code>flexible_toon.gdshader</code></a> — lines 55-80 for the modulo implementation</li>
-  <li><a href="../../.references/godot4-cel-shader/src/includes/base-cel-shader.gdshaderinc"><code>base-cel-shader.gdshaderinc</code></a> — the <code>diffuse_sample()</code> curve lookup</li>
+  <li><a href="../reference/code/toon-banding/toon_test.gdshader" download><code>toon_test.gdshader</code></a> — starting point (two-band hard cut)</li>
+  <li><a href="../reference/code/toon-banding/toon_smoothstep.gdshader" download><code>toon_smoothstep.gdshader</code></a> — Approach A (soft two-band with threshold + softness)</li>
+  <li><a href="../reference/code/toon-banding/toon_bands.gdshader" download><code>toon_bands.gdshader</code></a> — Approach B (N bands via modulo trick)</li>
+  <li><a href="../reference/code/toon-banding/toon_ramp.gdshader" download><code>toon_ramp.gdshader</code></a> — Approach C (artist-paintable curve texture)</li>
 </ul>
 
 <div class="next-steps">
