@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3: Spatial Shader Anatomy</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-toon-shaders-map.html">Godot Toon Shaders</a> <span class="nav-sep">›</span> <span>Spatial Shader Anatomy</span></nav>
+<h1>Spatial Shader Anatomy</h1>
+
+<div class="lesson-meta">
+  Lesson 3 · Godot Toon Shaders · ~10 min read<br>
+  <strong>Win:</strong> You can create a shader in Godot, assign it to a mesh, and explain what the three shader functions do.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> You can create and apply a spatial shader in Godot, explain why <code>NORMAL</code> means different things in <code>vertex()</code> vs <code>fragment()</code>, and write a minimal toon shader that compiles and runs.
+</div>
+<!-- ═══════════════════════════════════════════════════════════════
+     SETUP FIRST — how to get a shader running in Godot
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Setting Up a Shader in Godot</h2>
+
+<p>Before we discuss how shaders work, let's get one running. You'll modify it as we learn each concept.</p>
+
+<h3>Step 1: Create the shader file</h3>
+<p>In the FileSystem dock, right-click your <code>shaders/</code> folder → <strong>Create New → Resource → Shader</strong>. Name it <code>toon_test.gdshader</code>. Or create a plain text file with the <code>.gdshader</code> extension — Godot recognizes it automatically.</p>
+
+<p>Paste this minimal shader (we'll explain every line below):</p>
+
+<pre><code>shader_type spatial;
+
+uniform sampler2D albedo_texture : source_color;
+
+void fragment() {
+    ALBEDO = texture(albedo_texture, UV).rgb;
+}
+
+void light() {
+    float NdotL = dot(NORMAL, LIGHT);
+    float lit = step(0.0, NdotL);
+    DIFFUSE_LIGHT += ALBEDO * LIGHT_COLOR * ATTENUATION * lit;
+}</code></pre>
+
+<h3>Step 2: Create a ShaderMaterial</h3>
+<ol>
+  <li>Select a MeshInstance3D in your scene (e.g., a building)</li>
+  <li>In the Inspector → <strong>Geometry → Material Override</strong> (or <strong>Surface Material Override</strong> for specific surfaces)</li>
+  <li>Click the slot → <strong>New ShaderMaterial</strong></li>
+  <li>Click into the new ShaderMaterial → set <strong>Shader</strong> → Load → pick your <code>toon_test.gdshader</code></li>
+</ol>
+
+<h3>Step 3: Assign a texture</h3>
+<p>Once the shader is assigned, you'll see <strong>Shader Parameters</strong> in the Inspector. Drag an image texture into <code>albedo_texture</code>. The mesh should now render with hard toon lighting — lit areas at full brightness, shadow areas completely dark.</p>
+
+<div class="note">
+<strong>Live editing:</strong> Godot recompiles shaders instantly when you save the <code>.gdshader</code> file. Edit in any text editor — changes appear in the viewport within a frame. No restart or reimport needed.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     NOW EXPLAIN — what you just set up
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>What You Just Built: The Three Functions</h2>
+
+<p>A Godot spatial shader has exactly three entry points. Each runs at a different stage of the GPU pipeline:</p>
+
+<svg role="img" aria-labelledby="pipeline-title" viewBox="0 0 600 180" style="max-width:100%; height:auto;">
+  <title id="pipeline-title">GPU pipeline: vertex() runs per-vertex, fragment() runs per-pixel, light() runs per-pixel per-light</title>
+  <rect x="20" y="50" width="160" height="70" rx="8" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <rect x="220" y="50" width="160" height="70" rx="8" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="2"/>
+  <rect x="420" y="50" width="160" height="70" rx="8" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="2"/>
+  <text x="100" y="78" text-anchor="middle" font-size="14" font-weight="bold" fill="var(--svg-primary)">vertex()</text>
+  <text x="100" y="98" text-anchor="middle" font-size="10" fill="var(--svg-text)">Runs per vertex</text>
+  <text x="100" y="112" text-anchor="middle" font-size="9" fill="var(--text-muted)">Model space in</text>
+  <text x="300" y="78" text-anchor="middle" font-size="14" font-weight="bold" fill="var(--svg-warning)">fragment()</text>
+  <text x="300" y="98" text-anchor="middle" font-size="10" fill="var(--svg-text)">Runs per pixel</text>
+  <text x="300" y="112" text-anchor="middle" font-size="9" fill="var(--text-muted)">View space</text>
+  <text x="500" y="78" text-anchor="middle" font-size="14" font-weight="bold" fill="var(--svg-neutral)">light()</text>
+  <text x="500" y="98" text-anchor="middle" font-size="10" fill="var(--svg-text)">Per pixel × per light</text>
+  <text x="500" y="112" text-anchor="middle" font-size="9" fill="var(--text-muted)">View space</text>
+  <line x1="180" y1="85" x2="218" y2="85" stroke="var(--svg-line)" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="380" y1="85" x2="418" y2="85" stroke="var(--svg-line)" stroke-width="2" marker-end="url(#arr)"/>
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="var(--svg-line)" stroke-width="1.5"/></marker></defs>
+  <text x="100" y="142" text-anchor="middle" font-size="9" fill="var(--text-faint)">~thousands</text>
+  <text x="300" y="142" text-anchor="middle" font-size="9" fill="var(--text-faint)">~millions</text>
+  <text x="500" y="142" text-anchor="middle" font-size="9" fill="var(--text-faint)">~millions × N lights</text>
+</svg>
+
+<p>Our minimal shader omits <code>vertex()</code> (Godot uses defaults) and uses <code>fragment()</code> to set the surface color and <code>light()</code> to control the toon response. Let's look at each:</p>
+
+<h2>fragment() — Set Surface Properties</h2>
+
+<p>Runs once per visible pixel. Your job: tell Godot what this surface looks like <em>before</em> any lighting is applied.</p>
+
+<pre><code>void fragment() {
+    ALBEDO = texture(albedo_texture, UV).rgb;  // Base color from texture
+}</code></pre>
+
+<p><code>ALBEDO</code> is the surface color that <code>light()</code> will receive. Think of it as painting the surface — lighting comes later.</p>
+
+<h2>light() — Control Lighting (The Toon Part)</h2>
+
+<p>Runs per-pixel, <strong>once for every light</strong> affecting that pixel. This is where toon shading lives:</p>
+
+<pre><code>void light() {
+    float NdotL = dot(NORMAL, LIGHT);     // How much this pixel faces the light
+    float lit = step(0.0, NdotL);          // 1.0 if facing light, 0.0 if not
+    DIFFUSE_LIGHT += ALBEDO * LIGHT_COLOR * ATTENUATION * lit;
+}</code></pre>
+
+<p><code>dot(NORMAL, LIGHT)</code> gives a value from -1 (facing away) to +1 (facing directly at light). <code>step(0.0, x)</code> snaps that to exactly 0 or 1 — that hard cut is what makes it "toon."</p>
+
+<div class="note">
+<strong>Critical:</strong> <code>light()</code> is called <strong>multiple times</strong> — once per light in the scene. That's why you <code>+=</code> to <code>DIFFUSE_LIGHT</code>. Using <code>=</code> instead means only the last light wins.
+</div>
+
+<h2>vertex() — Transform Positions</h2>
+
+<p>Runs once per vertex. We didn't need it for the basic shader, but you'll use it whenever you need world-space data in fragment/light:</p>
+
+<pre><code>varying vec3 world_pos;
+varying vec3 world_normal;
+
+void vertex() {
+    world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+    world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
+}</code></pre>
+
+<p>A <code>varying</code> passes data from vertex to fragment/light — it's interpolated across the triangle. This is how you get world-space coordinates in later stages.</p>
+
+<h2>The Coordinate Space Trap</h2>
+
+<p>This table will save you hours of debugging:</p>
+
+<table>
+<thead><tr><th>Variable</th><th>In vertex()</th><th>In fragment()</th><th>In light()</th></tr></thead>
+<tbody>
+<tr><td><code>VERTEX</code></td><td>Model space</td><td>View space ⚠️</td><td>—</td></tr>
+<tr><td><code>NORMAL</code></td><td>Model space</td><td>View space ⚠️</td><td>View space</td></tr>
+<tr><td><code>LIGHT</code></td><td>—</td><td>—</td><td>View space</td></tr>
+<tr><td><code>MODEL_MATRIX</code></td><td>✓ (model→world)</td><td>✓</td><td>✓</td></tr>
+</tbody></table>
+
+<div class="key-concept">
+<strong>The rule:</strong> In <code>fragment()</code> and <code>light()</code>, <code>VERTEX</code> and <code>NORMAL</code> are in <strong>view space</strong> (camera-relative). If you need world space, compute it in <code>vertex()</code> and pass it via a <code>varying</code>.
+</div>
+
+<p>This is exactly the bug we hit with the triplanar shader — we applied <code>MODEL_MATRIX</code> to a view-space <code>NORMAL</code> in fragment(), which produces garbage. The fix: compute world normal in <code>vertex()</code> where <code>NORMAL</code> is still in model space.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> You want to tile a texture based on the object's position in the world (like our road/sidewalk). You write this in <code>fragment()</code>:</p>
+  <pre><code>vec3 world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+ALBEDO = texture(my_tex, world_pos.xz).rgb;</code></pre>
+  <p>The texture looks completely wrong — stretched and sliding as the camera moves. Why? What's the fix?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>What coordinate space is <code>VERTEX</code> in when you're inside <code>fragment()</code>? And what does <code>MODEL_MATRIX</code> expect as input?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>In <code>fragment()</code>, <code>VERTEX</code> is in <strong>view space</strong> (camera-relative) — it changes every frame as the camera moves. But <code>MODEL_MATRIX</code> transforms from <strong>model space</strong> to world space. Applying a model→world transform to a view-space vector produces nonsense.</p>
+  <p><strong>The fix:</strong> Compute world position in <code>vertex()</code> where <code>VERTEX</code> is still in model space, then pass it to fragment via a <code>varying</code>:</p>
+  <pre><code>varying vec3 world_pos;
+void vertex() {
+    world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+}</code></pre>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SETUP IN OUR PROJECT
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Applying This to Our Test Scene</h2>
+
+<p>In the gdhelper-pipeline project specifically:</p>
+<ol>
+  <li>Open <code>scenes/street.tscn</code></li>
+  <li>Expand the <strong>CaliforniaAve</strong> node in the scene tree</li>
+  <li>Select a mesh (e.g., "Building Front")</li>
+  <li>Surface Material Override → slot 0 → New ShaderMaterial</li>
+  <li>Shader → Load → pick your <code>toon_test.gdshader</code></li>
+  <li>Set <code>albedo_texture</code> → <code>res://assets/california_ave_easy-street-front-flattened.png</code></li>
+</ol>
+<p>You should see hard toon banding on the building — lit areas show the texture at full brightness, shadow areas are black. We'll add shadow coloring in the next lesson.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     REFERENCES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Official Documentation</h2>
+<ul>
+  <li><a href="https://docs.godotengine.org/en/stable/tutorials/shaders/introduction_to_shaders.html">Introduction to Shaders</a> — what shaders are, how Godot's language relates to GLSL</li>
+  <li><a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html">Spatial Shader Reference</a> — complete list of built-in variables and their coordinate spaces</li>
+  <li><a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/shading_language.html">Shading Language</a> — types, functions, qualifiers</li>
+  <li><a href="https://docs.godotengine.org/en/stable/tutorials/shaders/your_first_shader/your_first_3d_shader.html">Your First 3D Shader</a> — official step-by-step tutorial</li>
+</ul>
+
+<h2>Prior Art & Tutorials</h2>
+<table>
+<thead><tr><th>Resource</th><th>What you'll learn</th></tr></thead>
+<tbody>
+<tr><td><a href="https://hexaquo.at/pages/understanding-godot-light-shaders-and-light-calculations-by-implementing-a-toon-light-shader/">Understanding Godot Light Shaders (hexaquo)</a></td><td>Deep dive on <code>light()</code> — dot products, ATTENUATION, step/smoothstep. <strong>Best starting tutorial.</strong></td></tr>
+<tr><td><a href="https://atsaturn.hashnode.dev/writing-a-cel-shader-in-godot-4">Writing a Cel Shader in Godot 4 (atsaturn)</a></td><td>Full walkthrough using <code>.gdshaderinc</code> includes. Shows modular architecture.</td></tr>
+<tr><td><a href="https://github.com/eldskald/godot4-cel-shader">godot4-cel-shader (GitHub)</a></td><td>Production cel shader with includes, globals, outlines. MIT. Best architecture reference.</td></tr>
+<tr><td><a href="https://github.com/atzuk4451/FlexibleToonShaderGD-4.0">FlexibleToonShaderGD (GitHub)</a></td><td>Parametric bands, color ramp, hatching. The math without the architecture.</td></tr>
+<tr><td><a href="https://hexaquo.at/pages/handpainted-light-shader-cross-hatching-in-godot/">Handpainted Cross-Hatching (hexaquo)</a></td><td>Artist-painted shadow textures in <code>light()</code>. Relevant to hand-painted style.</td></tr>
+<tr><td><a href="https://gist.github.com/KenneyNL/802d7107fbe9bf42b16ec05b43b58079">Unlit Directional Tint (Kenney)</a></td><td>World-normal² tinting, no lights. Simplest stylized approach.</td></tr>
+</tbody></table>
+
+<h2>Local Reference Code</h2>
+<p>These repos are cloned in <code>.references/</code> — read the shader source directly:</p>
+<ul>
+  <li><code>.references/godot4-cel-shader/src/</code> — includes + stubs + outline</li>
+  <li><code>.references/FlexibleToonShaderGD/addons/flexible_toon_shader/</code> — parametric toon + hatching</li>
+  <li><code>.references/gdquest-shaders/godot/Shaders/</code> — unlit_directional_tint, outlines, matcap</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Lesson 4:</strong> <a href="0004-toon-banding.html">Toon Banding</a> — three approaches to turning smooth lighting into discrete bands (step, modulo, curve texture). We'll modify the shader live.</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"spatial-shader": "A shader program that controls how 3D surfaces are rendered — has vertex(), fragment(), and light() entry points.", "fragment-function": "The shader entry point that runs once per visible pixel to set surface properties like color and roughness.", "light-function": "The shader entry point that runs per-pixel per-light to calculate the lighting contribution.", "vertex-function": "The shader entry point that runs per-vertex to transform positions and pass data to later stages.", "varying": "A variable declared in a shader that passes interpolated data from vertex() to fragment()/light().", "view-space": "A coordinate system relative to the camera — origin at the camera, Z pointing toward the scene.", "model-space": "A coordinate system local to the mesh — origin at the object's pivot point.", "NdotL": "Dot product of the surface normal and light direction — the fundamental measure of how directly a surface faces a light."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>

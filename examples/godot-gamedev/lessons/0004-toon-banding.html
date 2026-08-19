@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4: Toon Banding</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-toon-shaders-map.html">Godot Toon Shaders</a> <span class="nav-sep">›</span> <span>Toon Banding</span></nav>
+<h1>Toon Banding</h1>
+
+<div class="lesson-meta">
+  Lesson 4 · Godot Toon Shaders · ~12 min read<br>
+  <strong>Win:</strong> You can implement three different approaches to discrete lighting bands and explain when to use each.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> You can modify a <code>light()</code> function to produce 2, 3, or N discrete brightness bands using <code>step()</code>, the modulo trick, or a curve texture — and you understand the trade-offs between them.
+</div>
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Setup: Start From the Previous Lesson's Shader</h2>
+
+<p><em>← <a href="0003-spatial-shader-anatomy.html">Lesson 3: Spatial Shader Anatomy</a></em></p>
+
+<p>Open your <code>toon_test.gdshader</code> from the previous lesson. We'll modify the <code>light()</code> function three different ways. Each time, save the file and watch the viewport update live.</p>
+
+<p>Starting point (two-band hard cut from the previous lesson):</p>
+
+<pre><code>shader_type spatial;
+
+uniform sampler2D albedo_texture : source_color;
+
+void fragment() {
+    ALBEDO = texture(albedo_texture, UV).rgb;
+}
+
+void light() {
+    float NdotL = dot(NORMAL, LIGHT);
+    float lit = step(0.0, NdotL);
+    DIFFUSE_LIGHT += ALBEDO * LIGHT_COLOR * ATTENUATION * lit;
+}</code></pre>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Problem: Two Bands Isn't Enough</h2>
+
+<p>The <code>step()</code> shader gives you exactly two states: lit and shadow. Real toon/cel shading often needs 3-4 bands — full light, half light, shadow, deep shadow — to convey form without looking flat.</p>
+
+<svg role="img" aria-labelledby="bands-title" viewBox="0 0 600 140" style="max-width:100%; height:auto;">
+  <title id="bands-title">Comparison of 2-band vs 4-band toon shading on a sphere — more bands convey more shape</title>
+  <!-- 2-band sphere -->
+  <circle cx="150" cy="60" r="50" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5"/>
+  <path d="M150,10 A50,50 0 0,1 150,110" fill="var(--svg-primary-fill)"/>
+  <text x="150" y="130" text-anchor="middle" font-size="11" fill="var(--text-muted)">2 bands (step)</text>
+  <!-- 4-band sphere -->
+  <circle cx="450" cy="60" r="50" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5"/>
+  <path d="M450,10 A50,50 0 0,1 500,60 L450,60 Z" fill="var(--svg-primary-fill)"/>
+  <path d="M500,60 A50,50 0 0,1 450,110 L450,60 Z" fill="var(--svg-success-fill)"/>
+  <path d="M450,110 A50,50 0 0,1 400,60 L450,60 Z" fill="var(--svg-warning-fill)"/>
+  <text x="450" y="130" text-anchor="middle" font-size="11" fill="var(--text-muted)">4 bands (modulo)</text>
+</svg>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Approach A: smoothstep() — Soft Two-Band</h2>
+
+<p>Before adding more bands, let's control the <em>edge softness</em> of the two-band cut. <strong>Create a new file <code>toon_smoothstep.gdshader</code></strong> (or modify your <code>toon_test.gdshader</code> from the previous lesson):</p>
+
+<pre><code> shader_type spatial;
+
+ uniform sampler2D albedo_texture : source_color;
+<span style="color:var(--success)">+uniform float threshold : hint_range(-1.0, 1.0) = 0.0;
++uniform float softness : hint_range(0.0, 1.0) = 0.1;</span>
+
+ void fragment() {
+     ALBEDO = texture(albedo_texture, UV).rgb;
+ }
+
+ void light() {
+     float NdotL = dot(NORMAL, LIGHT);
+<span style="color:var(--error)">-    float lit = step(0.0, NdotL);</span>
+<span style="color:var(--success)">+    // smoothstep(edge0, edge1, x) — 0 below edge0, 1 above edge1, smooth between
++    float lit = smoothstep(threshold - softness, threshold + softness, NdotL);</span>
+     DIFFUSE_LIGHT += ALBEDO * LIGHT_COLOR * ATTENUATION * lit;
+ }</code></pre>
+
+<p>Two new uniforms control the shadow edge: <code>threshold</code> sets where the cut happens (0.0 = perpendicular to light), and <code>softness</code> controls how gradual the transition is.</p>
+
+<p><strong>Try it:</strong> In Godot's Inspector, find the ShaderMaterial → Shader Parameters section. Drag the <code>softness</code> slider to <code>0.0</code> → identical to <code>step()</code> (hard edge). Drag it to <code>0.5</code> → smooth gradient. The sweet spot for toon is usually 0.02–0.05 (barely visible softening that avoids aliasing). Look at the shadow edge on the mesh — that's where the difference shows.</p>
+
+<div class="comparison">
+  <div><strong>Pros:</strong> Simple, two uniforms, anti-aliased edge</div>
+  <div><strong>Cons:</strong> Still only two bands (lit/shadow). Can't do 3+ levels.</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Approach B: Modulo Trick — N Configurable Bands</h2>
+
+<p>This is the clever bit from <a href="https://github.com/atzuk4451/FlexibleToonShaderGD-4.0">FlexibleToonShaderGD</a>. One line of math snaps any continuous value to N discrete bands.</p>
+
+<p><strong>Create a new file <code>toon_bands.gdshader</code></strong>:</p>
+
+<pre><code>shader_type spatial;
+
+uniform sampler2D albedo_texture : source_color;
+uniform int bands : hint_range(1, 8) = 3;
+uniform float wrap : hint_range(-1.0, 1.0) = 0.0;
+uniform float steepness : hint_range(0.5, 4.0) = 1.0;
+
+void fragment() {
+    ALBEDO = texture(albedo_texture, UV).rgb;
+}
+
+void light() {
+    float NdotL = dot(NORMAL, LIGHT);
+
+    // Combine lighting factors
+    float diffuse_amount = NdotL + (ATTENUATION - 1.0) + wrap;
+    diffuse_amount *= steepness;
+
+    // THE MODULO TRICK — snaps to nearest band
+    float cuts_inv = 1.0 / float(bands);
+    float stepped = clamp(
+        diffuse_amount + mod(1.0 - diffuse_amount, cuts_inv),
+        0.0, 1.0
+    );
+
+    DIFFUSE_LIGHT += ALBEDO * LIGHT_COLOR * stepped;
+}</code></pre>
+
+<div class="note">
+<strong>Where did ATTENUATION go?</strong> It's baked into <code>diffuse_amount</code> via <code>+ (ATTENUATION - 1.0)</code>. For a point light at full range, ATTENUATION=1.0 and the term adds 0. As distance increases, ATTENUATION drops below 1.0, making <code>diffuse_amount</code> smaller — which pushes the pixel into a darker band. Same effect, different mechanism.
+</div>
+
+<h3>How the modulo trick works</h3>
+
+<p>The expression <code>mod(1.0 - x, cuts_inv)</code> gives you the distance from <code>x</code> to the next band boundary above it. Adding that distance to <code>x</code> snaps it up to that boundary. The result: every value between two boundaries gets the same output — discrete steps.</p>
+
+<svg role="img" aria-labelledby="modulo-title" viewBox="0 0 600 160" style="max-width:100%; height:auto;">
+  <title id="modulo-title">Graph showing continuous NdotL value being snapped to discrete bands by the modulo operation</title>
+  <!-- Axes -->
+  <line x1="60" y1="130" x2="560" y2="130" stroke="var(--svg-line)" stroke-width="1.5"/>
+  <line x1="60" y1="130" x2="60" y2="20" stroke="var(--svg-line)" stroke-width="1.5"/>
+  <text x="310" y="150" text-anchor="middle" font-size="10" fill="var(--text-muted)">NdotL (input)</text>
+  <text x="30" y="75" text-anchor="middle" font-size="10" fill="var(--text-muted)" transform="rotate(-90,30,75)">brightness (output)</text>
+  <!-- Smooth line (input) -->
+  <line x1="60" y1="130" x2="560" y2="20" stroke="var(--svg-neutral)" stroke-width="1" stroke-dasharray="4,3"/>
+  <!-- Stepped output (3 bands) -->
+  <line x1="60" y1="130" x2="227" y2="130" stroke="var(--svg-primary)" stroke-width="2.5"/>
+  <line x1="227" y1="93" x2="393" y2="93" stroke="var(--svg-primary)" stroke-width="2.5"/>
+  <line x1="393" y1="57" x2="560" y2="57" stroke="var(--svg-primary)" stroke-width="2.5"/>
+  <!-- Band boundary markers -->
+  <line x1="227" y1="125" x2="227" y2="135" stroke="var(--svg-warning)" stroke-width="1.5"/>
+  <line x1="393" y1="125" x2="393" y2="135" stroke="var(--svg-warning)" stroke-width="1.5"/>
+  <!-- Labels -->
+  <text x="143" y="120" text-anchor="middle" font-size="9" fill="var(--svg-primary-text)">band 1</text>
+  <text x="310" y="83" text-anchor="middle" font-size="9" fill="var(--svg-primary-text)">band 2</text>
+  <text x="477" y="47" text-anchor="middle" font-size="9" fill="var(--svg-primary-text)">band 3</text>
+  <text x="500" y="26" text-anchor="middle" font-size="9" fill="var(--svg-neutral)">smooth (no banding)</text>
+</svg>
+
+<p><strong>The uniforms explained:</strong></p>
+<ul>
+  <li><code>bands</code> — number of brightness levels (1 = flat, 2 = classic toon, 3-4 = anime style)</li>
+  <li><code>wrap</code> — shifts the shadow terminator. Positive = more lit area, negative = more shadow.</li>
+  <li><code>steepness</code> — compresses the bands. Higher = bands bunch toward the light-facing side.</li>
+</ul>
+
+<p><strong>Try it:</strong> In the Inspector's Shader Parameters, set <code>bands = 2</code> for classic cel. Set <code>bands = 4</code> for anime. Adjust <code>wrap</code> to move where shadow starts. These are live sliders — drag them and watch the viewport update instantly.</p>
+
+<div class="comparison">
+  <div><strong>Pros:</strong> N bands from one integer uniform. No texture needed. Branchless. Fast.</div>
+  <div><strong>Cons:</strong> Bands are evenly spaced — you can't make band 1 wider than band 2. No artistic control over shape.</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Approach C: Curve Texture — Artist-Paintable Ramp</h2>
+
+<p>This is what <a href="https://github.com/eldskald/godot4-cel-shader">eldskald's cel shader</a> uses. Instead of math deciding the bands, a 1D texture (gradient) maps NdotL to brightness. Artists paint the shadow falloff directly.</p>
+
+<p><strong>Create a new file <code>toon_ramp.gdshader</code></strong>:</p>
+
+<pre><code>shader_type spatial;
+
+uniform sampler2D albedo_texture : source_color;
+uniform sampler2D diffuse_ramp : hint_default_white;
+
+void fragment() {
+    ALBEDO = texture(albedo_texture, UV).rgb;
+}
+
+void light() {
+    float NdotL = dot(NORMAL, LIGHT);
+
+    // Remap NdotL from [-1,1] to [0,1] for texture lookup
+    float ramp_uv = NdotL * 0.5 + 0.5;
+
+    // Sample the ramp — the texture IS the lighting
+    float lit = texture(diffuse_ramp, vec2(ramp_uv, 0.0)).r;
+
+    DIFFUSE_LIGHT += ALBEDO * LIGHT_COLOR * ATTENUATION * lit;
+}</code></pre>
+
+<h3>Setting up the ramp texture in Godot</h3>
+
+<ol>
+  <li>In the ShaderMaterial, click <code>diffuse_ramp</code> → New GradientTexture1D</li>
+  <li>Click the new texture → edit the Gradient resource</li>
+  <li>Add color stops: white on the right (lit), black on the left (shadow)</li>
+  <li>For toon: make the transition sharp (two stops close together)</li>
+  <li>For 3 bands: add a mid-grey stop in the middle with sharp transitions on each side</li>
+</ol>
+
+<div class="note">
+<strong>This is the most powerful approach.</strong> The gradient can encode any shadow shape — hard steps, smooth ramps, asymmetric transitions, even colored shadows (sample <code>.rgb</code> instead of <code>.r</code> to tint shadows differently from lit areas). The curve IS your art direction.
+</div>
+
+<p><strong>To make it scene-wide</strong> (all materials share one ramp), declare it as a shader global:</p>
+
+<pre><code>global uniform sampler2D diffuse_ramp;</code></pre>
+
+<p>Then set it once in Project Settings → Shader Globals. Every material using this shader gets the same ramp. Change the ramp and the entire scene's mood shifts.</p>
+
+<div class="comparison">
+  <div><strong>Pros:</strong> Total artistic control. Non-uniform band sizes. Colored shadows. Scene-wide via globals.</div>
+  <div><strong>Cons:</strong> Requires creating a texture resource. Slightly more setup.</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Comparison: When to Use Each</h2>
+
+<table>
+<thead><tr><th>Approach</th><th>Bands</th><th>Artistic control</th><th>Best for</th></tr></thead>
+<tbody>
+<tr><td><code>smoothstep()</code></td><td>2 (soft edge)</td><td>Low — threshold + softness</td><td>Quick prototyping, anti-aliased toon</td></tr>
+<tr><td>Modulo trick</td><td>N (even)</td><td>Medium — count + wrap + steepness</td><td>Anime-style multi-band, parametric control</td></tr>
+<tr><td>Curve texture</td><td>Any shape</td><td>High — paint anything</td><td>Production art direction, scene-wide consistency</td></tr>
+</tbody></table>
+
+<p>You can also <strong>combine them</strong>: use the modulo trick to quantize, then feed the result into a color ramp for tinted bands. That's what FlexibleToonShader does with its <code>use_ramp</code> option.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Bonus: Shadow Color Tinting</h2>
+
+<p>All three approaches above output a scalar (0 to 1). To get colored shadows (cool blue-grey in shadow, warm cream in light), use <code>mix()</code>:</p>
+
+<pre><code>uniform vec4 shadow_color : source_color = vec4(0.2, 0.25, 0.35, 1.0);
+uniform vec4 light_tint : source_color = vec4(1.0, 0.98, 0.95, 1.0);
+
+void light() {
+    float NdotL = dot(NORMAL, LIGHT);
+    float stepped = /* any of the three approaches above */;
+
+    // Mix between shadow and lit color
+    vec3 toon_color = mix(shadow_color.rgb, light_tint.rgb, stepped);
+
+    DIFFUSE_LIGHT += ALBEDO * toon_color * LIGHT_COLOR * ATTENUATION;
+}</code></pre>
+
+<p>This is where the PNW Demo style comes alive — <code>shadow_color</code> as cool blue-grey and <code>light_tint</code> as warm cream gives the "overcast exterior" feel from the color script.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> You have two OmniLights in your scene — a warm amber one and a cool blue one. With the modulo banding shader using <code>DIFFUSE_LIGHT += ...</code>, the lit areas look washed-out and too bright where both lights overlap. What's causing this, and what one-line change fixes it?</p>
+  <details>
+  <summary>Hint</summary>
+  <p><code>light()</code> runs once per light. With <code>+=</code>, both lights' contributions are added together. In toon shading, adding two "fully lit" values gives you 2.0 — brighter than the albedo should ever be.</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>Additive accumulation (<code>+=</code>) causes multi-light blowout — two lights each contributing full brightness gives values above 1.0. The fix: replace <code>+=</code> with <code>max()</code>:</p>
+  <pre><code>DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * toon_color * LIGHT_COLOR * ATTENUATION);</code></pre>
+  <p>Now each light can only raise the brightness to its own level, never above. The brightest single light wins at each pixel. This is the pattern used by FlexibleToonShader's <code>clamp_diffuse_to_max</code> option.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Official Documentation</h2>
+<ul>
+  <li><a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html">Spatial Shader Reference</a> — DIFFUSE_LIGHT, ATTENUATION, LIGHT_COLOR built-ins</li>
+  <li><a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/shading_language.html">Shading Language</a> — <code>step()</code>, <code>smoothstep()</code>, <code>mod()</code>, <code>mix()</code> function signatures</li>
+  <li><a href="https://docs.godotengine.org/en/stable/classes/class_gradienttexture1d.html">GradientTexture1D</a> — the resource type used for curve ramps</li>
+  <li><a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html#global-uniforms">Shader Globals</a> — how to set project-wide uniforms</li>
+</ul>
+
+<h2>Prior Art</h2>
+<table>
+<thead><tr><th>Resource</th><th>Relevant technique</th></tr></thead>
+<tbody>
+<tr><td><a href="https://github.com/atzuk4451/FlexibleToonShaderGD-4.0">FlexibleToonShaderGD</a></td><td>The modulo trick + <code>clamp_diffuse_to_max</code> + optional color ramp</td></tr>
+<tr><td><a href="https://github.com/eldskald/godot4-cel-shader">godot4-cel-shader</a></td><td>Global <code>diffuse_curve</code> sampler for scene-wide ramp control</td></tr>
+<tr><td><a href="https://hexaquo.at/pages/understanding-godot-light-shaders-and-light-calculations-by-implementing-a-toon-light-shader/">hexaquo: Light Shaders</a></td><td>step/smoothstep explained with visual examples</td></tr>
+<tr><td><a href="https://godotshaders.com/shader/toon-shader/">godotshaders.com: Color Ramp Toon</a></td><td>Shadow colors from a gradient texture</td></tr>
+</tbody></table>
+
+<h2>Local Reference Code</h2>
+<ul>
+  <li><code>.references/FlexibleToonShaderGD/addons/flexible_toon_shader/flexible_toon.gdshader</code> — lines 55-80 for the modulo implementation</li>
+  <li><code>.references/godot4-cel-shader/src/includes/base-cel-shader.gdshaderinc</code> — the <code>diffuse_sample()</code> curve lookup</li>
+  <li><code>D:\code\godot-knowledge\.memory\concepts\shader.md</code> — GDQuest shader concept overview</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next:</strong> Triplanar Mapping — world-space texturing for surfaces without UVs (fixing our road/sidewalk)</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"smoothstep": "A GLSL function that returns a smooth Hermite interpolation between 0 and 1 given two edges and a value — used for soft shadow transitions.", "modulo-trick": "A technique using mod() to snap continuous values to discrete evenly-spaced bands — one line of math for N brightness levels.", "curve-texture": "A 1D gradient texture (GradientTexture1D) that maps a lighting value to brightness — allows artist-painted shadow falloff.", "NdotL": "Dot product of the surface normal and light direction — the fundamental measure of how directly a surface faces a light.", "diffuse-ramp": "A texture used as a lookup table for lighting — input is NdotL remapped to 0-1, output is the desired brightness.", "shader-global": "A uniform declared with the 'global' keyword — set once in Project Settings and shared across all materials using it.", "ATTENUATION": "A Godot built-in that represents light falloff with distance — 1.0 at full range, decreasing toward 0 as distance increases."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
