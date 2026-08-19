@@ -98,7 +98,7 @@ void light() {
 <span style="color:var(--error)">-    float lit = step(0.0, NdotL);</span>
 <span style="color:var(--success)">+    // smoothstep(edge0, edge1, x) — 0 below edge0, 1 above edge1, smooth between
 +    float lit = smoothstep(threshold - softness, threshold + softness, NdotL);</span>
-     DIFFUSE_LIGHT += ALBEDO * LIGHT_COLOR * ATTENUATION * lit;
+     DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * LIGHT_COLOR * ATTENUATION * lit);
  }</code></pre>
 
 <p>The key change: <code>threshold</code> sets where the shadow cut happens (0.0 = faces perpendicular to light), and <code>softness</code> controls how many degrees of the surface are in that transition zone. At <code>softness = 0.0</code> this is identical to <code>step()</code>; at higher values you get an anti-aliased edge that doesn't shimmer during camera movement.</p>
@@ -147,8 +147,12 @@ void light() {
         0.0, 1.0
     );
 
-    DIFFUSE_LIGHT += ALBEDO * LIGHT_COLOR * stepped;
+    DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * LIGHT_COLOR * stepped);
 }</code></pre>
+
+<div class="note">
+<strong>Why <code>max()</code> instead of <code>+=</code>?</strong> Toon shading uses discrete brightness bands. With <code>+=</code>, two lights each contributing "fully lit" gives 2.0 — blowing out the image. <code>max()</code> means each light can only raise brightness to its own level, never beyond. The brightest single light wins at each pixel.
+</div>
 
 <div class="note">
 <strong>Where did ATTENUATION go?</strong> It's baked into <code>diffuse_amount</code> via <code>+ (ATTENUATION - 1.0)</code>. For a point light at full range, ATTENUATION=1.0 and the term adds 0. As distance increases, ATTENUATION drops below 1.0, making <code>diffuse_amount</code> smaller — which pushes the pixel into a darker band. Same effect, different mechanism.
@@ -223,7 +227,7 @@ void light() {
     // Sample the ramp — the texture IS the lighting
     float lit = texture(diffuse_ramp, vec2(ramp_uv, 0.0)).r;
 
-    DIFFUSE_LIGHT += ALBEDO * LIGHT_COLOR * ATTENUATION * lit;
+    DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * LIGHT_COLOR * ATTENUATION * lit);
 }</code></pre>
 
 <h3>Setting up the ramp texture in Godot</h3>
@@ -291,7 +295,7 @@ void light() {
     // Mix between shadow and lit color
     vec3 toon_color = mix(shadow_color.rgb, light_tint.rgb, stepped);
 
-    DIFFUSE_LIGHT += ALBEDO * toon_color * LIGHT_COLOR * ATTENUATION;
+    DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * toon_color * LIGHT_COLOR * ATTENUATION);
 }</code></pre>
 
 <p>This is where the PNW Demo style comes alive — <code>shadow_color</code> as cool blue-grey and <code>light_tint</code> as warm cream gives the "overcast exterior" feel from the color script.</p>
@@ -300,16 +304,14 @@ void light() {
 
 <div class="next-steps">
   <h3>Check Your Understanding</h3>
-  <p><strong>Exercise:</strong> You have two OmniLights in your scene — a warm amber one and a cool blue one. With the modulo banding shader using <code>DIFFUSE_LIGHT += ...</code>, the lit areas look washed-out and too bright where both lights overlap. What's causing this, and what one-line change fixes it?</p>
+  <p><strong>Exercise:</strong> The shader uses <code>DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ...)</code> instead of <code>+=</code>. Temporarily change it to <code>+=</code> in your shader, then look at areas where both lights overlap. What visual difference do you see? Why does <code>max()</code> produce a better toon result?</p>
   <details>
   <summary>Hint</summary>
-  <p><code>light()</code> runs once per light. With <code>+=</code>, both lights' contributions are added together. In toon shading, adding two "fully lit" values gives you 2.0 — brighter than the albedo should ever be.</p>
+  <p>Think about what happens when two lights each contribute "fully lit" to the same pixel. What's 1.0 + 1.0? What should the maximum brightness of a toon surface be?</p>
   </details>
   <details>
   <summary>Answer</summary>
-  <p>Additive accumulation (<code>+=</code>) causes multi-light blowout — two lights each contributing full brightness gives values above 1.0. The fix: replace <code>+=</code> with <code>max()</code>:</p>
-  <pre><code>DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * toon_color * LIGHT_COLOR * ATTENUATION);</code></pre>
-  <p>Now each light can only raise the brightness to its own level, never above. The brightest single light wins at each pixel. This is the pattern used by FlexibleToonShader's <code>clamp_diffuse_to_max</code> option.</p>
+  <p>With <code>+=</code>, overlapping lights add together — two fully-lit contributions give 2.0, washing out the surface to white. Toon shading needs discrete, controlled brightness levels. <code>max()</code> means each light can only raise brightness to its own level — the brightest single light wins at each pixel, keeping the banded look intact. Switch back to <code>max()</code> after observing the difference.</p>
   </details>
 </div>
 
