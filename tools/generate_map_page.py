@@ -108,8 +108,9 @@ def parse_map_md(path: Path) -> dict:
         topic["scope"] = _extract_field(block, "scope") or "substantial"
         topic["status"] = _extract_field(block, "status") or "not-started"
         topic["lesson_file"] = _extract_field(block, "lesson_file") or ""
-        # Parse prereqs list
+        # Parse prereqs list (strip auto-enrichment comments)
         prereqs_str = _extract_field(block, "prereqs") or "[]"
+        prereqs_str = re.sub(r'<!--.*?-->', '', prereqs_str).strip()
         topic["prereqs"] = [p.strip() for p in prereqs_str.strip("[]").split(",") if p.strip()]
         topics.append(topic)
 

@@ -141,7 +141,8 @@ def _parse_frontmatter(text: str) -> dict:
 
 def _parse_list_field(val: str) -> list[str]:
     """Parse [item1, item2] or [] from a topic field value."""
-    val = val.strip()
+    # Strip auto-enrichment comments (e.g., <!-- auto: enrich_prereqs -->)
+    val = re.sub(r'<!--.*?-->', '', val).strip()
     if val == "[]":
         return []
     if val.startswith("[") and val.endswith("]"):
