@@ -42,10 +42,10 @@ export function GenButton({ topicId, topicTitle, lessonPath }) {
   if (state.status.value === 'not-started') {
     return html`<button class="btn primary" onClick=${handleGenerate}>Generate this topic</button>`;
   }
+  if (lessonPath) {
+    return html`<a href=${lessonPath} class="btn primary">Open lesson →</a>`;
+  }
   if (state.status.value === 'complete') {
-    if (lessonPath) {
-      return html`<a href=${lessonPath} class="btn primary">Open lesson →</a>`;
-    }
     return html`<span class="btn done">✓ Complete</span>`;
   }
   return null;
