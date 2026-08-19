@@ -24,8 +24,10 @@ Use ConflictRAG taxonomy (from research): factual → resolve via credibility/re
 
 ## Acceptance criteria
 
-- [ ] Detects factual contradictions between source passages on same concept
-- [ ] Classifies conflicts by type (factual, temporal, opinion)
-- [ ] Generates conflict callout content with attribution to both sources
-- [ ] Suggests resolution strategy per conflict type
-- [ ] Integrates with multi-source enrichment pipeline (#141)
+- [x] Detects factual contradictions between source passages on same concept
+- [x] Classifies conflicts by type (factual, temporal, opinion)
+- [x] Generates conflict callout content with attribution to both sources
+- [x] Suggests resolution strategy per conflict type
+- [x] Integrates with multi-source enrichment pipeline (#141)
+
+**Note:** Superseded by #141 implementation — conflict detection is built into `tools/enrich_from_source.py` with DRAGged taxonomy. Teach skill instructions cover callout generation.
