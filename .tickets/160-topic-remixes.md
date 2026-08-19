@@ -29,3 +29,10 @@ Key behaviors:
 - [ ] Remix gets its own reference doc, SR cards, and quiz
 - [ ] Key differences between approaches are surfaced explicitly in the lesson
 - [ ] Both versions remain independently navigable (no forced comparison view)
+
+## Validation
+
+- [ ] Remix a Rust topic into Python → both lessons navigable, linked
+- [ ] MAP.md shows remix relationship (not prereq)
+- [ ] Remix has independent SR cards and quiz
+- [ ] Differences between approaches called out explicitly in lesson body
