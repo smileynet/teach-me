@@ -23,6 +23,17 @@ When cards are due, prefer surfacing them as conversational questions (the learn
 
 If the user asks to "review" or "practice" without specifying a topic, use due cards across all topics (interleaved). If they name a topic, filter to that topic.
 
+## Quiz from Source Section
+
+When the user says "quiz me on chapter 3" or "test me on the auth section" and `source-chunks/{domain}.json` exists:
+
+1. Run `python tools/match_section.py source-chunks/{domain}.json "chapter 3"` to find matching chunks
+2. Read the matched chunk content — this is the material to quiz from
+3. Ask 3-5 questions using the patterns below, drawn entirely from the matched content
+4. Populate `source_section` and `source_page` when recording answers
+
+This skips SR card lookup — it's immediate comprehension checking on material the learner just read. Frame it as "let's check if this landed" not as a test.
+
 ## How to quiz
 
 1. **Read the workspace state** — check `./learning-records/`, `./lessons/`, and `./reference/` to understand what the user has been taught.

@@ -1,7 +1,7 @@
 ---
 id: "142"
 title: "Feature: quick quiz mode — 'quiz me on chapter 3' without full lesson generation"
-status: open
+status: done
 blocked_by: ["139"]
 ---
 
@@ -24,9 +24,9 @@ Use cases:
 
 ## Acceptance criteria
 
-- [ ] User can specify a section/chapter of an ingested source
-- [ ] Questions generated from that section's content (4-6 mixed types)
-- [ ] Quiz page rendered immediately (no lesson generation step)
-- [ ] Questions have provenance (trace to the specific section)
-- [ ] Works with the "Could They Answer This?" gate
-- [ ] Accessible via both CLI command and in-chat request
+- [x] User can specify a section/chapter of an ingested source
+- [x] Questions generated from that section's content (4-6 mixed types)
+- [x] Quiz page rendered immediately (no lesson generation step) — conversational via quiz-me skill
+- [x] Questions have provenance (trace to the specific section)
+- [x] Works with the "Could They Answer This?" gate
+- [x] Accessible via both CLI command and in-chat request
