@@ -77,6 +77,9 @@ function QuizCard({ question, index, total, onComplete }) {
       ${revealed && html`
         <div class="quiz-answer" role="status" aria-live="polite">
           <${AnswerCriteria} text=${question.criteria || question.expected_answer || ''} anotherAngle=${question.eli5 || question.another_angle || null} />
+          ${question.source_section && html`
+            <p class="quiz-source-attribution">📖 From: ${question.source_section}${question.source_page ? ` (p.${question.source_page})` : ''}</p>
+          `}
           ${!scored && html`
             <div class="quiz-self-assess">
               <p class="assess-label">How well did you answer?</p>

@@ -23,6 +23,8 @@ After a lesson is written and content is finalized. This is a post-processing pa
 
 A lesson HTML file. If no path is given, operate on the most recent lesson in `lessons/`.
 
+**Concept list (optional):** If `source-chunks/{domain}.json` exists, run `python tools/extract_concepts.py source-chunks/{domain}.json --top-n 10` to get a ranked list of domain concepts. Use this as a **starting checklist** — these terms are statistically important in the source material. Still apply all three gates; the list provides candidates, not decisions.
+
 ## Process
 
 ### 1. Read the lesson
