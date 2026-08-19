@@ -180,6 +180,43 @@ pre {
 
 pre code { background: none; padding: 0; }
 
+/* Code block metadata — filename labels, diff styling, fragments */
+pre[data-file] {
+  position: relative;
+  padding-top: 2.5rem;
+}
+pre[data-file]::before {
+  content: attr(data-file);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  padding: 0.4rem 1rem;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-family-code);
+  background: var(--code-bg);
+  border-radius: 4px 4px 0 0;
+}
+pre[data-mode="diff"] {
+  border-left-color: var(--warning);
+}
+pre[data-mode="fragment"] {
+  border-left-style: dashed;
+  opacity: 0.85;
+}
+pre[data-mode="fragment"]::after {
+  content: 'illustration only';
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-faint);
+  text-align: right;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
 blockquote {
   border-left: 3px solid var(--text-muted);
   padding-left: 1rem;

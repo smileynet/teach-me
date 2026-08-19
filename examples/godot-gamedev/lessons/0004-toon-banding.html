@@ -41,7 +41,7 @@
 
 <p>Starting point (two-band hard cut from the previous lesson):</p>
 
-<pre><code>shader_type spatial;
+<pre data-file="toon_test.gdshader"><code>shader_type spatial;
 
 uniform sampler2D albedo_texture : source_color;
 
@@ -83,7 +83,7 @@ void light() {
 
 <p><strong>Create a new file <code>toon_smoothstep.gdshader</code></strong> (or modify your <code>toon_test.gdshader</code> from the previous lesson). Two new uniforms give us control over where the cut happens and how soft it is:</p>
 
-<pre><code> shader_type spatial;
+<pre data-file="toon_smoothstep.gdshader" data-mode="diff"><code> shader_type spatial;
 
  uniform sampler2D albedo_texture : source_color;
 <span style="color:var(--success)">+uniform float threshold : hint_range(-1.0, 1.0) = 0.0;
@@ -122,7 +122,7 @@ void light() {
 
 <p><strong>Create a new file <code>toon_bands.gdshader</code></strong>. The shader structure is identical to before — all the new behavior lives in <code>light()</code>, where three uniforms control banding and four lines do the quantization:</p>
 
-<pre><code>shader_type spatial;
+<pre data-file="toon_bands.gdshader"><code>shader_type spatial;
 
 uniform sampler2D albedo_texture : source_color;
 uniform int bands : hint_range(1, 8) = 3;
@@ -209,7 +209,7 @@ void light() {
 
 <p><strong>Create a new file <code>toon_ramp.gdshader</code></strong>. Notice how <code>light()</code> becomes simpler — the complexity moves from code into the texture asset:</p>
 
-<pre><code>shader_type spatial;
+<pre data-file="toon_ramp.gdshader"><code>shader_type spatial;
 
 uniform sampler2D albedo_texture : source_color;
 uniform sampler2D diffuse_ramp : hint_default_white;
@@ -254,7 +254,7 @@ void light() {
 <strong>New concept — shader globals:</strong> A <code>global uniform</code> is declared in the shader but set once in Project Settings → Shader Globals. Every material that references it gets the same value — no per-material setup. Changes propagate instantly across the entire scene. <a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html#global-uniforms">Docs: Shader Globals</a>
 </div>
 
-<pre><code>global uniform sampler2D diffuse_ramp;</code></pre>
+<pre data-file="toon_ramp.gdshader" data-mode="fragment" data-caption="Declaring the ramp as a shader global"><code>global uniform sampler2D diffuse_ramp;</code></pre>
 
 <p>Then set it once in Project Settings → Shader Globals. Every material using this shader gets the same ramp. Change the ramp and the entire scene's mood shifts.</p>
 
@@ -285,7 +285,7 @@ void light() {
 
 <p>Add these uniforms to any of the three shaders above — they work the same regardless of which banding approach produced <code>stepped</code>:</p>
 
-<pre><code>uniform vec4 shadow_color : source_color = vec4(0.2, 0.25, 0.35, 1.0);
+<pre data-mode="fragment" data-caption="Shadow color tinting — works with any banding approach"><code>uniform vec4 shadow_color : source_color = vec4(0.2, 0.25, 0.35, 1.0);
 uniform vec4 light_tint : source_color = vec4(1.0, 0.98, 0.95, 1.0);
 
 void light() {
