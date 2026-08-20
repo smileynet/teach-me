@@ -70,7 +70,7 @@ If no source-chunks exist (web-researched topic), skip this step — the agent u
 Each step depends on the previous:
 
 1. **Body content only** — produce ONLY the lesson body (h2 sections, paragraphs, SVGs, tables, exercises). Do NOT write `<!DOCTYPE>`, `<html>`, `<head>`, script tags, or import statements. The `page_template.py` handles all boilerplate.
-2. **Write the lesson** — using synthesized research. Follow teach skill conventions (SVG diagram with CSS vars, citations, key-concept blocks, exercise with hint + answer). Call `python3 -c "from tools.lib.page_template import render_lesson_page; ..."` or have the agent write the body to a temp file and wrap with the template.
+2. **Write the lesson** — using synthesized research. Follow teach skill conventions (SVG diagram with CSS vars, citations, key-concept blocks, exercise with hint + answer). The exercise tests the lesson's **Win statement** — core concept comprehension, not detail recall or gotchas (see visual-teaching.md § Exercise Design). Call `python3 -c "from tools.lib.page_template import render_lesson_page; ..."` or have the agent write the body to a temp file and wrap with the template.
 3. **Write the reference doc** — produce body content only (tables, lists, one-sentence summaries). Wrap with `render_reference_page()` from `tools/lib/page_template.py`.
 4. **Write SR questions** — append to `learning-records/questions/{domain}.jsonl`. 4-8 open-answer questions + 2-3 interactive questions per topic.
 
