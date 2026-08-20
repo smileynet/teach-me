@@ -85,6 +85,35 @@ The contract: if you name a file in a `data-file` attribute, the reader can down
 
 Include a `README.md` in the code directory listing each file with its purpose.
 
+### Exercise Design (Check Your Understanding)
+
+The in-lesson exercise tests **comprehension of major concepts** — not detail recall, not gotchas, not edge cases. It's the learner's moment to prove they understood the lesson's central idea.
+
+**The exercise must test the lesson's Win statement.** If the Win says "you can implement three approaches and explain when to use each," the exercise asks the learner to choose between approaches given constraints — not debug a syntax error.
+
+**Rules:**
+1. **Core concepts only** — test the main teaching arc, not peripheral details
+2. **Application over recall** — "given this situation, what would you do?" not "what does X stand for?"
+3. **Built from lesson content** — use the same code/concepts the lesson introduced, not new unrelated scenarios
+4. **One exercise, one concept** — don't cram multiple unrelated questions
+
+**Good exercise patterns:**
+- "Your art director needs X. Which approach from this lesson achieves it, and why can't the others?" (trade-off reasoning)
+- "A colleague shows you this [incomplete/broken version]. What's missing, and which function provides it?" (pipeline understanding)
+- "Explain to a junior dev how [core mechanism] works in 2-3 sentences" (teach-back)
+- "Predict: if you change [key parameter] from A to B, what visual change do you see?" (mental model)
+
+**Anti-patterns:**
+- Testing a gotcha from a "note" or "warning" callout (that's SR question material, not the exercise)
+- Testing debugging of an error that wasn't the lesson's focus
+- Questions answerable from general programming knowledge (not specific to this lesson)
+- Multi-part questions that test 4 different things
+
+**Separation of concerns:**
+- **In-lesson exercise** → tests the ONE core concept, uses the lesson's own code, takes 1-2 minutes
+- **SR questions** → test details, gotchas, edge cases, connections — distributed over time via spaced repetition
+- **Quiz page** → mixed difficulty, multiple archetypes, covers the full lesson breadth
+
 ## Color Vocabulary
 
 Colors are defined as CSS custom properties in `assets/style.css` (light + dark variants). Use `var(--svg-*)` in inline SVGs — never hardcode hex.

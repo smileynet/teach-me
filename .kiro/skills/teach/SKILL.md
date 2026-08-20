@@ -94,7 +94,7 @@ Pre-flight gate — check BEFORE presenting the lesson to the user:
 - [ ] SVG diagram present with `var(--svg-*)` colors (no hardcoded hex)
 - [ ] glossary-data JSON block with 3+ defined terms
 - [ ] 3+ source citations (specific URLs, not generic base paths)
-- [ ] Exercise with `<details>` hint AND criteria-based answer
+- [ ] Exercise with `<details>` hint AND criteria-based answer — must test the lesson's Win statement (core concept application, not gotchas or detail recall)
 - [ ] page-shell.js included as single module script
 - [ ] Reference doc written alongside
 

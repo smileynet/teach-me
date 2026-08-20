@@ -46,7 +46,7 @@ Run a comprehensive compliance check on one or more lesson pages against all tea
 | Q4 | **Fragment blocks marked** | One-liner code blocks or blocks without file headers have `data-mode="fragment"` | Heuristic: <3 lines + no file-type header → likely fragment |
 | Q5 | **Glossary coverage** | Domain terms in the lesson text are in the glossary-data island | Compare technical terms against glossary JSON |
 | Q6 | **Key concept block** | Lesson has `.key-concept` div | DOM check |
-| Q7 | **Exercise present** | Lesson has a `<details>` with hint + answer pattern | Check for details/summary with "Hint"/"Answer" text |
+| Q7 | **Exercise tests core concept** | Exercise exists with hint+answer AND tests the lesson's Win statement (not a peripheral gotcha) | Check for details/summary + compare exercise topic to lesson Win/key-concept |
 | Q8 | **Read more links** | New concepts introduced have links to official docs | Scan `.note` blocks with "New concept" for presence of `<a href>` |
 | Q9 | **Accessibility** | SVGs have `role="img"` + `<title>`, images have alt text | DOM scan |
 | Q10 | **Dark/light rendering** | Page renders correctly in both themes | Playwright: toggle theme, check body BG + text color are distinct |
