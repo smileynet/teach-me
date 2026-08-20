@@ -206,3 +206,8 @@ run = "python tools/jargon-annotate.py"
 description = "Check topic completeness for a workspace. Pass --workspace X --all or --topic SLUG."
 depends = ["setup"]
 run = "python tools/check-topic-completeness.py"
+
+[tasks."lesson:lint"]
+description = "Mechanical lesson linter — checks conventions/structure. Pass --workspace X --all or --lesson FILE."
+depends = ["setup"]
+run = "python tools/check-lesson.py"
