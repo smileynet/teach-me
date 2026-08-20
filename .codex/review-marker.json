@@ -1,11 +1,11 @@
 {
   "schema_version": 2,
   "reviewer": "codex",
-  "reviewed_at": "2026-08-19T01:00:45Z",
+  "reviewed_at": "2026-08-20T13:57:57Z",
   "verdict": "changes_requested",
   "commits": {
     "scope": "all ancestors through reviewed_through, inclusive",
-    "reviewed_through": "6eccc29eafd1ec2da6dc9cfa9700f03ee705416c"
+    "reviewed_through": "11e96ea6998a186a80e7a3b83daa3637461effe5"
   },
   "ticket_source": {
     "type": "tkt",
@@ -487,7 +487,7 @@
     },
     {
       "path": ".tickets/119-teach-from-docs.md",
-      "blob": "8560225a3a2aedd926fb8819b885a2b470727836"
+      "blob": "75b680d1e7c4970a7e6a39155fa9136eeed9d6dc"
     },
     {
       "path": ".tickets/120-lesson-versioning.md",
@@ -567,23 +567,23 @@
     },
     {
       "path": ".tickets/139-feature-source-ingest-pipeline.md",
-      "blob": "a967778d432bff3876d24e1816af92a262bd3d4c"
+      "blob": "3e55d83f081a102b452b2f89a3bed14f9f33cbcd"
     },
     {
       "path": ".tickets/140-feature-provenance-questions.md",
-      "blob": "98f20802d300b9bbe1a1cf4dd7f6cdf3f6f3ff0a"
+      "blob": "d2061f9048b08c383c5a38f42e6dce4bff05daae"
     },
     {
       "path": ".tickets/141-feature-multi-source-enrichment.md",
-      "blob": "c431048bb4bcf00511a1ad9713ddeafc7fc11b8c"
+      "blob": "1070f7daab51f66a30c8c242d165d1019cea5d1a"
     },
     {
       "path": ".tickets/142-feature-quick-quiz-from-section.md",
-      "blob": "8343f1d51e707e8b4efbc6d4c108f08df25198e4"
+      "blob": "9d2c00750e5dfb996f9d98559285c55658b8ae96"
     },
     {
       "path": ".tickets/143-automated-conflict-detection.md",
-      "blob": "9ca74329bb444d388c5c98ffade567aaab97ed3d"
+      "blob": "f8b6aac2e1e9172b5ff62b3e746de313f2fcd73b"
     },
     {
       "path": ".tickets/144-compounding-reference-docs.md",
@@ -640,6 +640,98 @@
     {
       "path": ".tickets/157-spike-url-extraction.md",
       "blob": "be6647fc298f9ab17b007b15543e705ac6c50e30"
+    },
+    {
+      "path": ".tickets/158-codex-review-findings-6eccc29.md",
+      "blob": "8b766e90b2a10122899db8cc5591691730120541"
+    },
+    {
+      "path": ".tickets/159-ingest-polish.md",
+      "blob": "63f7c6a0b92b7ad14d85c8c693607ecd3d2adc36"
+    },
+    {
+      "path": ".tickets/160-topic-remixes.md",
+      "blob": "0ac5a33f20a8ec3e10d93f4184fa30d200ad2139"
+    },
+    {
+      "path": ".tickets/161-tfidf-vs-yake.md",
+      "blob": "e82f2ac9aed88937cf196de2474cda7f00fb346d"
+    },
+    {
+      "path": ".tickets/162-copy-code-blocks.md",
+      "blob": "485f2ff2291497b95b4f9418b76f38f8d41edbe9"
+    },
+    {
+      "path": ".tickets/163-serve-workspace-tool.md",
+      "blob": "9ec987a78f515eb44420b8cacc02dc42eaf90ca2"
+    },
+    {
+      "path": ".tickets/164-narrative-code-steering.md",
+      "blob": "29f369ec28795f7144e8aeed5771a7557647fb0c"
+    },
+    {
+      "path": ".tickets/165-skill-narrative-subfolders.md",
+      "blob": "10c695b47b76eacd41a5d8609fd4407eb54e6de8"
+    },
+    {
+      "path": ".tickets/166-domain-subfolder-scripts.md",
+      "blob": "ec913b8ebd5d5427d3ea60ad052034661b6f27c5"
+    },
+    {
+      "path": ".tickets/167-subtopic-expansion-tracking.md",
+      "blob": "e1552574b4c9b77809cec98c4d7fd1ad36f735b2"
+    },
+    {
+      "path": ".tickets/168-extract-lesson-code.md",
+      "blob": "26382dbdee0d2e2b8f28552500b50298fe23ff78"
+    },
+    {
+      "path": ".tickets/169-diff-style-code-lessons.md",
+      "blob": "fc0799111fc02f5a6bf10725ea40d5de423e1bdb"
+    },
+    {
+      "path": ".tickets/170-sr-dedup.md",
+      "blob": "e8122148828dd182d4e2c884f08176acff99b2b2"
+    },
+    {
+      "path": ".tickets/171-sr-dedup.md",
+      "blob": "2487e74693dff26c1dc432da80371a9d34cd0664"
+    },
+    {
+      "path": ".tickets/172-stale-lesson-detection.md",
+      "blob": "1735a46f3866c598b6b85b87004a76b6b16b327d"
+    },
+    {
+      "path": ".tickets/173-code-block-toolbar.md",
+      "blob": "1e624c103117c0fd811be3cbced986671fec435b"
+    },
+    {
+      "path": ".tickets/174-component-showcase.md",
+      "blob": "0c3ae8da787e6093c5c82667b84129c4a182a967"
+    },
+    {
+      "path": ".tickets/175-concept-hints-quality.md",
+      "blob": "c6f9a6fd6a87df92e48872bf02f1bd4c1f69e602"
+    },
+    {
+      "path": ".tickets/176-validate-concepts-live.md",
+      "blob": "02986c78c55d0ff41847ff2ae86913dbcf467a7e"
+    },
+    {
+      "path": ".tickets/177-exercise-quality.md",
+      "blob": "f24363df9f528e5567310734af9877e1ba61238c"
+    },
+    {
+      "path": ".tickets/178-lesson-footer-component.md",
+      "blob": "4126582480b44c5ef602d405af3b277cf021f962"
+    },
+    {
+      "path": ".tickets/179-validate-concept-hints-corpus.md",
+      "blob": "a754fe11387b11b780c0af211f625f0c0d3a53ad"
+    },
+    {
+      "path": ".tickets/180-lesson-linter.md",
+      "blob": "df84fea4e90a863dae96d1cb0af959dc7c6abc50"
     }
   ],
   "adoption": {
