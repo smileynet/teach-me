@@ -134,6 +134,8 @@ func _on_health_changed(old: int, new: int) -> void:
 
 <h2>Putting It Together: A Moving Character</h2>
 
+<p>Here's a complete script that combines everything from this lesson — typed variables, lifecycle callbacks, input handling, and exported properties — into a playable character controller:</p>
+
 <pre><code>extends CharacterBody2D
 
 @export var speed: float = 300.0
@@ -158,7 +160,7 @@ func _physics_process(delta: float) -> void:
   <p>Think about what happens when the framerate drops (lag spike) or is very high (144hz monitor). What's different about the timing of _process vs _physics_process?</p>
   </details>
   <details>
-  <summary>Key points to hit</summary>
+  <summary>Answer</summary>
   <p>Should mention: (1) _process runs at variable rate tied to framerate — movement becomes inconsistent across machines, (2) _physics_process runs at a fixed rate (default 60/s) regardless of rendering speed, (3) physics collision detection expects consistent timing — variable-rate movement can cause tunneling through walls on lag spikes. Key insight: anything involving move_and_slide() or collision belongs in _physics_process for deterministic behavior.</p>
   </details>
 </div>
