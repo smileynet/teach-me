@@ -1,7 +1,7 @@
 ---
 id: "177"
 title: "Strengthen Check Your Understanding exercises — test core concepts"
-status: open
+status: done
 blocked_by: []
 priority: high
 ---
@@ -60,8 +60,12 @@ Add to Phase 2 exercise generation instructions:
 
 ## Acceptance criteria
 
-- [ ] Exercise design guidelines documented (visual-teaching.md or teach skill)
-- [ ] Lesson 0003 exercise rewritten to test core pipeline understanding
-- [ ] Lesson 0004 exercise rewritten to test banding approach trade-offs
-- [ ] generate-topic skill updated with exercise quality criteria
-- [ ] Lesson-validation skill's Q7 check updated to verify exercise targets core concept (not just existence)
+- [x] Exercise design guidelines documented (visual-teaching.md or teach skill)
+- [x] Lesson 0003 exercise rewritten to test core pipeline understanding
+- [x] Lesson 0004 exercise rewritten to test banding approach trade-offs
+- [x] generate-topic skill updated with exercise quality criteria
+- [x] Lesson-validation skill's Q7 check updated to verify exercise targets core concept (not just existence)
+
+## Resolution (2026-08-20)
+
+Exercise design guidelines documented, both lessons rewritten to test core concepts, all skills updated
