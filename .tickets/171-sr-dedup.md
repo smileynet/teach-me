@@ -1,12 +1,14 @@
 ---
 id: "171"
 title: "Feature: SR question deduplication via TF-IDF similarity"
-status: open
+status: done
 blocked_by: []
 priority: low
 ---
 
 # Feature: SR question deduplication via TF-IDF similarity
+
+> **Closed as duplicate of #170.**
 
 ## What to build
 

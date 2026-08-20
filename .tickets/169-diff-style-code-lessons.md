@@ -1,7 +1,7 @@
 ---
 id: "169"
 title: "Adopt diff-style code presentation in lessons"
-status: open
+status: done
 priority: medium
 blocked_by: []
 ---
