@@ -109,6 +109,16 @@ The in-lesson exercise tests **comprehension of major concepts** — not detail 
 - Questions answerable from general programming knowledge (not specific to this lesson)
 - Multi-part questions that test 4 different things
 
+**Design technique — near-transfer with misconception probing (Agarwal 2019, Wiliam 2015):**
+
+The strongest exercise is a **near-transfer** scenario: same mechanism as the lesson, slightly different context. This tests whether the learner has an operational mental model they can apply — not just recall of the exact example shown.
+
+To probe deeper, embed a common misconception in the scenario and ask the learner to explain *why it fails*:
+
+> "A colleague tried [approach that reflects common wrong belief]. It doesn't work. Why not, and what should they do instead?"
+
+This "explain the wrong answer" pattern (a) requires understanding the mechanism, (b) can't be answered by pattern-matching the lesson text, and (c) surfaces whether the learner has crossed the threshold concept. If they can explain why the wrong approach fails, they understand the principle — not just the recipe.
+
 **Separation of concerns:**
 - **In-lesson exercise** → tests the ONE core concept, uses the lesson's own code, takes 1-2 minutes
 - **SR questions** → test details, gotchas, edge cases, connections — distributed over time via spaced repetition

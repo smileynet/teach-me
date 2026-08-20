@@ -170,22 +170,28 @@ void vertex() {
 
 <div class="next-steps">
   <h3>Check Your Understanding</h3>
-  <p><strong>Exercise:</strong> You want to tile a texture based on the object's position in the world (like our road/sidewalk). You write this in <code>fragment()</code>:</p>
-  <pre data-mode="fragment"><code>vec3 world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-ALBEDO = texture(my_tex, world_pos.xz).rgb;</code></pre>
-  <p>The texture looks completely wrong — stretched and sliding as the camera moves. Why? What's the fix?</p>
+  <p><strong>Exercise:</strong> A colleague wrote a toon shader but the mesh renders as solid black — no texture visible, no lighting variation. They show you this:</p>
+  <pre data-mode="fragment"><code>shader_type spatial;
+uniform sampler2D albedo_texture : source_color;
+
+void light() {
+    float NdotL = dot(NORMAL, LIGHT);
+    float lit = step(0.0, NdotL);
+    DIFFUSE_LIGHT += ALBEDO * LIGHT_COLOR * ATTENUATION * lit;
+}</code></pre>
+  <p>It compiles without errors. What's missing, which of the three functions should provide it, and why does the shader produce black without it?</p>
   <details>
   <summary>Hint</summary>
-  <p>What coordinate space is <code>VERTEX</code> in when you're inside <code>fragment()</code>? And what does <code>MODEL_MATRIX</code> expect as input?</p>
+  <p><code>light()</code> multiplies by <code>ALBEDO</code>. Where does <code>ALBEDO</code> get its value? What's its default if nothing sets it?</p>
   </details>
   <details>
   <summary>Answer</summary>
-  <p>In <code>fragment()</code>, <code>VERTEX</code> is in <strong>view space</strong> (camera-relative) — it changes every frame as the camera moves. But <code>MODEL_MATRIX</code> transforms from <strong>model space</strong> to world space. Applying a model→world transform to a view-space vector produces nonsense.</p>
-  <p><strong>The fix:</strong> Compute world position in <code>vertex()</code> where <code>VERTEX</code> is still in model space, then pass it to fragment via a <code>varying</code>:</p>
-  <pre data-mode="fragment"><code>varying vec3 world_pos;
-void vertex() {
-    world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+  <p>There's no <code>fragment()</code> function — so <code>ALBEDO</code> is never set and defaults to <code>vec3(0, 0, 0)</code> (black). Even though <code>light()</code> calculates correct toon banding, multiplying by a black surface produces black.</p>
+  <p>The fix: add <code>fragment()</code> to set the surface color before lighting runs:</p>
+  <pre data-mode="fragment"><code>void fragment() {
+    ALBEDO = texture(albedo_texture, UV).rgb;
 }</code></pre>
+  <p>This is the pipeline in action: <code>fragment()</code> declares what the surface looks like → <code>light()</code> illuminates what <code>fragment()</code> prepared. Skip a stage and the downstream stage has nothing to work with.</p>
   </details>
 </div>
 

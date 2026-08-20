@@ -304,14 +304,22 @@ void light() {
 
 <div class="next-steps">
   <h3>Check Your Understanding</h3>
-  <p><strong>Exercise:</strong> The shader uses <code>DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ...)</code> instead of <code>+=</code>. Temporarily change it to <code>+=</code> in your shader, then look at areas where both lights overlap. What visual difference do you see? Why does <code>max()</code> produce a better toon result?</p>
+  <p><strong>Exercise:</strong> Your art director wants three different lighting styles in the same scene:</p>
+  <ol>
+    <li><strong>Hero character</strong> — narrow bright highlight, wide midtone, sharp drop to deep shadow (non-uniform band widths)</li>
+    <li><strong>Background buildings</strong> — exactly 4 evenly-spaced bands, tunable at runtime with a single slider</li>
+    <li><strong>Distant mountains</strong> — soft two-tone (lit/shadow) with slightly fuzzy edges to avoid shimmer</li>
+  </ol>
+  <p>For each, which of the three approaches (smoothstep, modulo, curve texture) would you use — and why can't the other two achieve it as well?</p>
   <details>
   <summary>Hint</summary>
-  <p>Think about what happens when two lights each contribute "fully lit" to the same pixel. What's 1.0 + 1.0? What should the maximum brightness of a toon surface be?</p>
+  <p>Think about what each approach gives you control over. One controls <em>edge softness</em>. One controls <em>band count</em>. One controls <em>band shape</em>. Match the constraint to the control.</p>
   </details>
   <details>
   <summary>Answer</summary>
-  <p>With <code>+=</code>, overlapping lights add together — two fully-lit contributions give 2.0, washing out the surface to white. Toon shading needs discrete, controlled brightness levels. <code>max()</code> means each light can only raise brightness to its own level — the brightest single light wins at each pixel, keeping the banded look intact. Switch back to <code>max()</code> after observing the difference.</p>
+  <p><strong>1. Hero → Curve texture.</strong> Only approach that allows non-uniform band widths — you paint exactly where each transition falls. The modulo trick forces even spacing (can't make the highlight narrower). Smoothstep is still binary (2 states only).</p>
+  <p><strong>2. Buildings → Modulo trick.</strong> Gives exactly N evenly-spaced bands from one integer uniform — change the <code>bands</code> slider at runtime. Curve texture could do it but requires painting a gradient asset for what a single integer achieves. Smoothstep can't do 4 bands.</p>
+  <p><strong>3. Mountains → Smoothstep.</strong> Provides the soft anti-aliased edge between lit and shadow. The <code>softness</code> uniform controls exactly how fuzzy the transition is. Modulo gives hard discrete steps with no transition zone. Curve texture could approximate it but requires a gradient asset for what two floats already solve.</p>
   </details>
 </div>
 
