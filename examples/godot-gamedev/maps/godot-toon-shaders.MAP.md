@@ -33,6 +33,14 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **lesson_file:** 0004-toon-banding.html
 - **status:** complete
 
+### triplanar-mapping
+- **title:** Triplanar Mapping
+- **why:** World-space texturing eliminates UV seams and stretching on surfaces like roads, walls, and terrain — essential for any scene with procedural or non-UV'd geometry
+- **scope:** substantial
+- **prereqs:** [spatial-shader-anatomy]
+- **lesson_file:** 0005-triplanar-mapping.html
+- **status:** in-progress
+
 
 ## Expansion Opportunities
 
