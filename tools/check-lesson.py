@@ -303,11 +303,20 @@ def main() -> None:
 
     # Run checks
     all_pass = True
-    for lesson_path in lessons:
-        results = lint_lesson(lesson_path, workspace)
-        passed = print_results(lesson_path.name, results, use_json)
-        if not passed:
-            all_pass = False
+    if use_json:
+        json_results = []
+        for lesson_path in lessons:
+            results = lint_lesson(lesson_path, workspace)
+            json_results.append({"lesson": lesson_path.name, "results": results})
+            if any(r["status"] == FAIL for r in results):
+                all_pass = False
+        print(json.dumps(json_results, indent=2))
+    else:
+        for lesson_path in lessons:
+            results = lint_lesson(lesson_path, workspace)
+            passed = print_results(lesson_path.name, results, use_json=False)
+            if not passed:
+                all_pass = False
 
     sys.exit(0 if all_pass else 1)
 

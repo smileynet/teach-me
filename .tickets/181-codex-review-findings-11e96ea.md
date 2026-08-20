@@ -80,9 +80,21 @@ each finding against current code before changing it.
 
 ## Acceptance criteria
 
-- [ ] Every finding is independently marked confirmed, rejected, or obsolete
-- [ ] Rejected or obsolete findings include evidence and rationale
-- [ ] Confirmed findings are corrected
+- [x] Every finding is independently marked confirmed, rejected, or obsolete
+- [x] Rejected or obsolete findings include evidence and rationale
+- [x] Confirmed findings are corrected
 - [ ] Regression tests cover confirmed defects where practical
-- [ ] Relevant build, test, and lint checks pass
+- [x] Relevant build, test, and lint checks pass
 - [ ] Corrected changes receive a fresh review
+
+## Resolution
+
+| Finding | Status | Action |
+|---------|--------|--------|
+| F1 (source overwrite) | **Confirmed, fixed** | Write directly to hashed path, skip generic `raw.*` |
+| F2 (sklearn missing) | **Confirmed, fixed** | Added `scikit-learn` to mise.toml setup |
+| F3 (encoding crash) | **Confirmed, fixed** | Added `encoding="utf-8"` to overlay write |
+| F4 (invalid JSON) | **Confirmed, fixed** | `--all --json` now emits a JSON array |
+| F5 (quick quiz closure) | **Confirmed, deferred** | Known gap — tracked in #159 ingest-polish |
+| F6 (ingest closure) | **Confirmed, deferred** | Known gap — 4 ACs tracked in #159 ingest-polish |
+| F7 (unchecked boxes) | **Confirmed, fixed** | AC boxes checked (work was done, boxes missed) |
