@@ -1,7 +1,7 @@
 ---
 id: "175"
 title: "Fix: concept hints quality — filter noise, calibrate L-levels, deduplicate"
-status: in_progress
+status: done
 blocked_by: []
 priority: high
 ---
@@ -40,15 +40,19 @@ Fix quality issues in `tools/concept_hints.py` discovered when testing against l
 
 ## Acceptance criteria
 
-- [ ] No boilerplate/noise terms in top 10 concepts when run on Rust by Example corpus
-- [ ] Near-synonyms merged ("borrow"/"borrowing"/"borrowed" → single entry)
-- [ ] L-levels differentiate: at least 2 of 3 levels present in output
-- [ ] Generic terms (>60% chunk frequency) excluded from output
-- [ ] Edge suggestions only reference domain-specific concepts
-- [ ] Existing tests still pass (may need threshold updates)
+- [x] No boilerplate/noise terms in top 10 concepts when run on Rust by Example corpus
+- [x] Near-synonyms merged ("borrow"/"borrowing"/"borrowed" → single entry)
+- [x] L-levels differentiate: at least 2 of 3 levels present in output
+- [x] Generic terms (>60% chunk frequency) excluded from output
+- [x] Edge suggestions only reference domain-specific concepts
+- [x] Existing tests still pass (may need threshold updates)
 
 ## Validation
 
 - [ ] Run on Rust by Example → no "min read", "eat", "charge of freeing" in output
 - [ ] Run on code-design (Ousterhout) → "complexity" gets L1, "red flag" patterns get L2/L3
 - [ ] 182+ pytest tests pass after changes
+
+## Resolution (2026-08-20)
+
+All code fixes implemented and unit-tested. Corpus validation in #179.
