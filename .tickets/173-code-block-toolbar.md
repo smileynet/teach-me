@@ -110,7 +110,7 @@ Does it need JavaScript to function?
 
 ## Acceptance criteria
 
-- [ ] CSS styles for `pre[data-file]`, `pre[data-mode="diff"]`, `pre[data-mode="fragment"]` in style.css
+- [x] CSS styles for `pre[data-file]`, `pre[data-mode="diff"]`, `pre[data-mode="fragment"]` in style.css
 - [ ] `CodeBlockToolbar.js` component with copy + conditional download
 - [ ] Mounted via page-shell.js `initCodeBlockToolbar()`
 - [ ] Copy strips diff spans (outputs clean code)
