@@ -68,23 +68,49 @@ def extract_keywords_per_chunk(
         features=None,
     )
 
+    # Shorter text needs tighter n-gram limit (trigrams on <200 words are noise)
+    kw_extractor_short = yake.KeywordExtractor(
+        lan="en",
+        n=2,  # bigrams only for short text
+        dedupLim=0.7,
+        windowSize=1,  # tighter window for sparse text
+        top=top_n * 2,
+        features=None,
+    )
+
     results = []
     for chunk in chunks:
         text = chunk.get("content", "")
-        if not text or len(text.split()) < 10:
+        word_count = len(text.split()) if text else 0
+
+        # Skip chunks too short for reliable extraction
+        if not text or word_count < 50:
             results.append([])
             continue
 
-        raw_keywords = kw_extractor.extract_keywords(text)
-        # Filter: drop single-char keywords and pure numbers
+        extractor = kw_extractor_short if word_count < 200 else kw_extractor
+        raw_keywords = extractor.extract_keywords(text)
+
+        # Filter: drop single-char keywords, pure numbers, and boilerplate
         filtered = [
             (kw, score)
             for kw, score in raw_keywords
-            if len(kw) > 2 and not kw.replace(" ", "").isdigit()
+            if len(kw) > 2
+            and not kw.replace(" ", "").isdigit()
+            and kw.lower() not in TUTORIAL_STOPWORDS
         ]
         results.append(filtered[:top_n])
 
     return results
+
+
+# Tutorial/documentation boilerplate that YAKE picks up as "keywords"
+TUTORIAL_STOPWORDS = frozenset({
+    "min read", "example", "chapter", "see also", "table of contents",
+    "next section", "previous section", "click here", "learn more",
+    "read more", "note", "warning", "tip", "info", "getting started",
+    "quick start", "table", "figure", "listing", "output", "result",
+})
 
 
 # --- Explicit reference detection ---
