@@ -182,6 +182,20 @@ def assign_levels_by_percentile(concepts_out: list[dict]) -> None:
 
     scores = sorted([c["_composite"] for c in concepts_out])
     n = len(scores)
+
+    # Check for uniform scores (no differentiation possible)
+    if scores[0] == scores[-1]:
+        # All equal — assign by position (first = L1, middle = L2, last = L3)
+        for i, c in enumerate(concepts_out):
+            frac = i / max(n - 1, 1)
+            if frac <= 0.2:
+                c["level"] = "L1"
+            elif frac <= 0.7:
+                c["level"] = "L2"
+            else:
+                c["level"] = "L3"
+        return
+
     p20 = scores[int(n * 0.2)]  # top 20% foundational threshold
     p70 = scores[int(n * 0.7)]  # top 70% = bottom 30% advanced threshold
 
