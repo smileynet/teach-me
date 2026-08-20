@@ -1,7 +1,7 @@
 ---
 id: "180"
 title: "Mechanical lesson linter — enforce conventions via script"
-status: in_progress
+status: done
 priority: high
 blocked_by: []
 ---
@@ -62,15 +62,15 @@ Result: 6 pass, 1 fail, 1 warn, 1 skip
 
 ## Acceptance criteria
 
-- [ ] `tools/check-lesson.py` exists and runs on a single lesson file
-- [ ] `--all` flag checks every lesson in the workspace
-- [ ] G2 detects missing template elements
-- [ ] G3 detects data-file blocks without corresponding reference files
-- [ ] Q1 detects bare code blocks after headings
-- [ ] Q3 detects unmarked diff blocks
-- [ ] Q6 detects missing key-concept
-- [ ] Q9 detects SVGs without accessibility attributes
-- [ ] Q11 detects broken forward navigation chain
-- [ ] CF detects missing Code Files section when data-file blocks exist
-- [ ] Exit codes are correct (0/1/2)
-- [ ] Runs on all 3 toon shader lessons with correct results
+- [x] `tools/check-lesson.py` exists and runs on a single lesson file
+- [x] `--all` flag checks every lesson in the workspace
+- [x] G2 detects missing template elements
+- [x] G3 detects data-file blocks without corresponding reference files
+- [x] Q1 detects bare code blocks after headings
+- [x] Q3 detects unmarked diff blocks
+- [x] Q6 detects missing key-concept
+- [x] Q9 detects SVGs without accessibility attributes
+- [x] Q11 detects broken forward navigation chain
+- [x] CF detects missing Code Files section when data-file blocks exist
+- [x] Exit codes are correct (0/1/2)
+- [x] Runs on all 3 toon shader lessons with correct results
