@@ -58,9 +58,11 @@ class TestExtractConcepts:
     def test_reference_has_shared_concepts(self):
         chunks = load_fixture("chunks_reference.json")
         result = extract_concepts(chunks, top_n=8)
-        # Reference chunks are all <50 words (API docs) — extraction skips them
-        # This is correct: short API entries don't produce reliable keywords
-        assert result.concepts == []
+        # Reference fixture has expanded content (60+ words per chunk)
+        # "socket" is a shared concept across most chunks
+        assert len(result.concepts) > 0
+        socket_concepts = [c for c in result.concepts if "socket" in c.term.lower()]
+        assert len(socket_concepts) > 0
 
     def test_graph_nodes_match_chunks(self):
         chunks = load_fixture("chunks_tutorial.json")
