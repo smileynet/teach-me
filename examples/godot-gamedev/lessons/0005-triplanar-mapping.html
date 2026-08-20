@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5: Triplanar Mapping</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-toon-shaders-map.html">Godot Toon Shaders</a> <span class="nav-sep">›</span> <span>Triplanar Mapping</span></nav>
+<h1>Triplanar Mapping</h1>
+
+<div class="lesson-meta">
+  Lesson 5 · Godot Toon Shaders · ~12 min read<br>
+  <strong>Win:</strong> You can apply world-space textures to meshes without UVs, explain why triplanar uses three samples, and control blending sharpness.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> You understand that triplanar mapping projects a texture from three axes and blends by surface normal — eliminating UV seams, stretching, and the sliding-texture bug from using view-space coordinates.
+</div>
+<!-- ═══════════════════════════════════════════════════════════════
+     THE PROBLEM
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Problem: Textures Without UVs</h2>
+
+<p>In the previous lessons, we textured meshes using <code>UV</code> coordinates — the 2D mapping baked into the mesh by the artist. But some surfaces don't have usable UVs:</p>
+
+<ul>
+  <li><strong>Procedural geometry</strong> — terrain, CSG, voxel meshes generated at runtime</li>
+  <li><strong>Tiled surfaces</strong> — roads, sidewalks, walls where you want the texture to tile based on world position, not mesh topology</li>
+  <li><strong>Multi-mesh scenes</strong> — dozens of building pieces that should look like one continuous surface</li>
+</ul>
+
+<p>If you use <code>UV</code> on these, you get stretching (where the UV unwrap is poor) or visible seams (where mesh pieces meet). The fix: ignore the mesh's UVs entirely and project the texture from world space.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE COORDINATE SPACE SETUP
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>World Position in fragment()</h2>
+
+<p>From lesson 1 we know: <code>VERTEX</code> in <code>fragment()</code> is in <strong>view space</strong> (camera-relative). We need <strong>world space</strong> (scene-fixed). The solution is the same pattern we learned — compute it in <code>vertex()</code> and pass it via a <code>varying</code>:</p>
+
+<pre data-file="triplanar_toon.gdshader" data-mode="fragment" data-caption="World position setup (same pattern from lesson 1)"><code>varying vec3 world_pos;
+varying vec3 world_normal;
+
+void vertex() {
+    world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+    world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
+}</code></pre>
+
+<p>Now <code>world_pos</code> and <code>world_normal</code> are available in <code>fragment()</code> — and they stay fixed to the scene regardless of camera movement. This is what makes world-space texturing stable.</p>
+
+<div class="note">
+<strong>Alternative:</strong> Godot offers <code>render_mode world_vertex_coords;</code> which puts <code>VERTEX</code> in world space automatically. This saves the varying but means ALL your vertex() code must account for the different space. The explicit varying approach is safer when you're also doing toon lighting in the same shader.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     NAIVE APPROACH AND WHY IT FAILS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Naive Approach: Single Projection</h2>
+
+<p>The simplest world-space texturing: use the XZ world position as UV coordinates. This projects the texture straight down, like painting the floor:</p>
+
+<pre data-file="triplanar_toon.gdshader" data-mode="fragment" data-caption="Top-down projection only"><code>void fragment() {
+    ALBEDO = texture(albedo_texture, world_pos.xz * tex_scale).rgb;
+}</code></pre>
+
+<p>This works perfectly for horizontal surfaces (floors, roads, flat roofs). But look at a vertical wall — the texture stretches infinitely because XZ doesn't vary across a surface that faces sideways. Walls become smeared single-color bands.</p>
+
+<p>You could project from the side instead (<code>world_pos.xy</code>) — but then floors stretch. No single projection works for all surface orientations. This is the problem triplanar solves.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE TRIPLANAR ALGORITHM
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Triplanar: Three Projections, Blended by Normal</h2>
+
+<p>The insight: sample the texture <em>three times</em> — once from each major axis — and blend the results based on which direction the surface faces. A floor (normal pointing up) gets the top-down projection. A wall (normal pointing sideways) gets the side projection. Angled surfaces get a weighted mix.</p>
+
+<svg role="img" aria-labelledby="triplanar-title" viewBox="0 0 600 200" style="max-width:100%; height:auto;">
+  <title id="triplanar-title">Triplanar mapping: texture projected from X, Y, and Z axes, blended by surface normal direction</title>
+  <!-- X projection -->
+  <rect x="30" y="40" width="140" height="100" rx="6" fill="var(--svg-error-fill)" stroke="var(--svg-error)" stroke-width="2"/>
+  <text x="100" y="75" text-anchor="middle" font-size="12" font-weight="bold" fill="var(--svg-error)">X projection</text>
+  <text x="100" y="95" text-anchor="middle" font-size="10" fill="var(--svg-text)">UV = world_pos.zy</text>
+  <text x="100" y="115" text-anchor="middle" font-size="9" fill="var(--text-muted)">Walls facing left/right</text>
+  <!-- Y projection -->
+  <rect x="230" y="40" width="140" height="100" rx="6" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="2"/>
+  <text x="300" y="75" text-anchor="middle" font-size="12" font-weight="bold" fill="var(--svg-success)">Y projection</text>
+  <text x="300" y="95" text-anchor="middle" font-size="10" fill="var(--svg-text)">UV = world_pos.xz</text>
+  <text x="300" y="115" text-anchor="middle" font-size="9" fill="var(--text-muted)">Floors, ceilings</text>
+  <!-- Z projection -->
+  <rect x="430" y="40" width="140" height="100" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="500" y="75" text-anchor="middle" font-size="12" font-weight="bold" fill="var(--svg-primary)">Z projection</text>
+  <text x="500" y="95" text-anchor="middle" font-size="10" fill="var(--svg-text)">UV = world_pos.xy</text>
+  <text x="500" y="115" text-anchor="middle" font-size="9" fill="var(--text-muted)">Walls facing front/back</text>
+  <!-- Blend arrow -->
+  <text x="300" y="175" text-anchor="middle" font-size="11" fill="var(--svg-text)">Blend by abs(world_normal) → final color</text>
+  <line x1="170" y1="155" x2="250" y2="165" stroke="var(--svg-line)" stroke-width="1.5"/>
+  <line x1="300" y1="145" x2="300" y2="165" stroke="var(--svg-line)" stroke-width="1.5"/>
+  <line x1="430" y1="155" x2="350" y2="165" stroke="var(--svg-line)" stroke-width="1.5"/>
+</svg>
+
+<p>Here's the full triplanar shader — combining world-space texturing with our toon <code>light()</code> from the previous lessons:</p>
+
+<pre data-file="triplanar_toon.gdshader"><code>shader_type spatial;
+
+uniform sampler2D albedo_texture : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
+uniform float tex_scale : hint_range(0.01, 10.0) = 1.0;
+uniform float blend_sharpness : hint_range(1.0, 20.0) = 5.0;
+uniform int bands : hint_range(1, 8) = 3;
+
+varying vec3 world_pos;
+varying vec3 world_normal;
+
+void vertex() {
+    world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+    world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
+}
+
+void fragment() {
+    // Compute blending weights from surface normal
+    vec3 blend = pow(abs(world_normal), vec3(blend_sharpness));
+    blend /= (blend.x + blend.y + blend.z); // normalize to sum = 1.0
+
+    // Sample texture from each axis
+    vec3 x_proj = texture(albedo_texture, world_pos.zy * tex_scale).rgb;
+    vec3 y_proj = texture(albedo_texture, world_pos.xz * tex_scale).rgb;
+    vec3 z_proj = texture(albedo_texture, world_pos.xy * tex_scale).rgb;
+
+    // Blend the three projections
+    ALBEDO = x_proj * blend.x + y_proj * blend.y + z_proj * blend.z;
+}
+
+void light() {
+    float NdotL = dot(NORMAL, LIGHT);
+    float diffuse_amount = NdotL + (ATTENUATION - 1.0);
+    float cuts_inv = 1.0 / float(bands);
+    float stepped = clamp(diffuse_amount + mod(1.0 - diffuse_amount, cuts_inv), 0.0, 1.0);
+    DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * LIGHT_COLOR * stepped);
+}</code></pre>
+
+<h3>How the blending works</h3>
+
+<p>The key line is <code>pow(abs(world_normal), vec3(blend_sharpness))</code>. The surface normal tells us which direction the surface faces — <code>abs()</code> makes it work regardless of which side (left wall = right wall for texturing). The <code>pow()</code> sharpens the blending: at <code>sharpness = 1.0</code> all three projections mix smoothly; at <code>sharpness = 10.0</code> only the dominant axis contributes. The division by the sum normalizes the weights so they always add to 1.0.</p>
+
+<div class="note">
+<strong>Performance note:</strong> Triplanar costs 3x the texture samples of regular UV mapping. On mobile or with many triplanar materials, consider using the Y projection only for horizontal surfaces (check if <code>abs(world_normal.y) > 0.7</code> and skip the other two samples).
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     BLENDING SHARPNESS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Controlling the Blend</h2>
+
+<p>The <code>blend_sharpness</code> uniform is the artist's main control. Here's what different values look like on a 45-degree slope:</p>
+
+<table>
+<thead><tr><th>Sharpness</th><th>Behavior</th><th>Best for</th></tr></thead>
+<tbody>
+<tr><td>1.0</td><td>Smooth blend across all angles</td><td>Organic surfaces (terrain, rocks)</td></tr>
+<tr><td>5.0</td><td>Visible dominant axis, soft transitions</td><td>General-purpose (default)</td></tr>
+<tr><td>10.0+</td><td>Nearly hard switch between axes</td><td>Architectural surfaces (clean edges)</td></tr>
+</tbody></table>
+
+<p><strong>Try it:</strong> Drag the <code>blend_sharpness</code> slider in the Inspector while looking at a corner where two walls meet a floor. At 1.0 the corner looks muddy. At 10.0+ the axes switch cleanly but you might see a visible seam line. 5.0 is usually the sweet spot.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TEXTURE SCALE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Texture Scale and Tiling</h2>
+
+<p>Since we're projecting from world space, the <code>tex_scale</code> uniform controls how many meters each texture tile covers. A scale of <code>1.0</code> means one texture repetition per world unit; <code>0.5</code> means one repetition every 2 units (larger tiles); <code>2.0</code> means 2 repetitions per unit (smaller tiles).</p>
+
+<p>This is powerful for scene consistency: every surface using the same shader at the same scale produces seamlessly tiling textures, even across separate meshes that were never UV'd together. Roads meet sidewalks cleanly because they share the same world-space coordinate system.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A colleague writes a triplanar shader but their textures slide around as the camera rotates. They're computing world position in <code>fragment()</code> like this:</p>
+  <pre data-mode="fragment"><code>void fragment() {
+    vec3 wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+    ALBEDO = texture(albedo_texture, wp.xz).rgb;
+}</code></pre>
+  <p>You already know this bug from lesson 1. But explain specifically: <em>why</em> does triplanar mapping make this bug obvious (the textures visibly slide), whereas a UV-based shader with the same mistake might not show it as clearly?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Think about what <code>VERTEX</code> means in fragment() (view space = camera-relative). When the camera moves, what happens to view-space positions? And for a UV-based shader, where does <code>UV</code> come from?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p><code>VERTEX</code> in fragment() is in view space — it changes every frame as the camera moves. Applying <code>MODEL_MATRIX</code> (model→world) to a view-space value produces an output that shifts with the camera. The texture coordinates change every frame → textures visibly slide.</p>
+  <p>UV-based shaders don't show this because <code>UV</code> is a per-vertex attribute baked into the mesh — it doesn't depend on VERTEX or the camera at all. The mistake (wrong coordinate space) only manifests when you <em>derive</em> coordinates from position, which is exactly what triplanar does.</p>
+  <p>The fix (from lesson 1): compute world position in <code>vertex()</code> where <code>VERTEX</code> is still in model space, pass via a <code>varying</code>.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Code Files</h2>
+<p>Download the final-state shader from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/triplanar-mapping/triplanar_toon.gdshader" download><code>triplanar_toon.gdshader</code></a> — triplanar texturing + modulo toon banding</li>
+</ul>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     REFERENCES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Official Documentation</h2>
+<ul>
+  <li><a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html">Spatial Shader Reference</a> — MODEL_MATRIX, VERTEX, NORMAL coordinate spaces</li>
+  <li><a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/shading_language.html">Shading Language</a> — <code>texture()</code>, <code>pow()</code>, <code>abs()</code>, <code>normalize()</code></li>
+  <li><a href="https://docs.godotengine.org/en/stable/tutorials/shaders/your_first_shader/your_first_3d_shader.html">Your First 3D Shader</a> — varying, vertex→fragment data passing</li>
+</ul>
+
+<h2>Prior Art</h2>
+<table>
+<thead><tr><th>Resource</th><th>Relevant technique</th></tr></thead>
+<tbody>
+<tr><td><a href="https://bgolus.medium.com/normal-mapping-for-a-triplanar-shader-10bf39dca05a">Ben Golus: Normal Mapping for Triplanar</a></td><td>Definitive guide to triplanar normal map blending (UDN, Whiteout, RNM)</td></tr>
+<tr><td><a href="https://www.febucci.com/2019/03/world-triplanar-mapping/">Febucci: World Triplanar Mapping</a></td><td>Clear visual explanation with diagrams</td></tr>
+<tr><td><a href="https://godotshaders.com/shader/triplanar-world-mapping/">GodotShaders: Triplanar World Mapping</a></td><td>Community-submitted Godot implementation</td></tr>
+<tr><td><a href="https://catlikecoding.com/unity/tutorials/advanced-rendering/triplanar-mapping/">Catlike Coding: Triplanar Mapping</a></td><td>Comprehensive tutorial (Unity, but math is universal)</td></tr>
+</tbody></table>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next:</strong> Outline Shaders — screen-space and mesh-extrusion techniques for toon outlines</p>
+</div>
+
+
+<script type="application/json" id="glossary-data">{"triplanar-mapping": "A texturing technique that projects the same texture from three world-space axes (X, Y, Z) and blends the results based on surface normal direction — no UV coordinates needed.", "world-space": "A coordinate system fixed to the scene — positions don't change when the camera moves or the object rotates.", "varying": "A variable declared in a shader that passes interpolated data from vertex() to fragment()/light().", "blending-weight": "A per-axis weight (derived from the surface normal) that controls how much of each projection contributes to the final color.", "sharpness": "An exponent applied to blending weights that controls how quickly the transition happens between axis projections — higher = sharper seams but less blending.", "NODE_POSITION_WORLD": "A Godot built-in vec3 giving the node's origin in world space — available in vertex() and fragment()."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
