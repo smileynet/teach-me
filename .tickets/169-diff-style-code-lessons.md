@@ -45,6 +45,6 @@ Use the existing theme variables:
 
 ## Acceptance Criteria
 
-- [ ] Convention documented in lesson scaffold or teaching guidelines
-- [ ] Existing lessons (gdhelper-pipeline shader track) already use this pattern as example
-- [ ] New lesson generation follows this pattern when showing modifications
+- [x] Convention documented in lesson scaffold or teaching guidelines
+- [x] Existing lessons (gdhelper-pipeline shader track) already use this pattern as example
+- [x] New lesson generation follows this pattern when showing modifications

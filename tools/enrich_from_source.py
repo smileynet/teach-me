@@ -351,7 +351,7 @@ def write_enrichment_overlay(
     }
 
     data["enrichments"].append(record)
-    overlay_path.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+    overlay_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     return overlay_path
 
 

@@ -264,13 +264,15 @@ def _enrich_existing_domain(
         source.encode() if isinstance(source, str) else source
     ).hexdigest()[:12]
 
-    # Preserve new source alongside the original
-    preserved_path = _preserve_source(raw_path, raw_content, source_dir, fmt)
-    # Rename to avoid collision with existing raw file
-    enrichment_dest = source_dir / f"raw-{source_id}{preserved_path.suffix}"
-    if enrichment_dest != preserved_path:
-        preserved_path.rename(enrichment_dest)
-        preserved_path = enrichment_dest
+    # Preserve new source alongside the original (use hashed name directly to avoid overwrite)
+    ext_map = {"pdf": ".pdf", "markdown": ".md", "html": ".html", "text": ".txt"}
+    ext = ext_map.get(fmt, ".txt")
+    enrichment_dest = source_dir / f"raw-{source_id}{ext}"
+    if file_path and file_path.exists():
+        shutil.copy2(file_path, enrichment_dest)
+    else:
+        enrichment_dest.write_text(raw_content, encoding="utf-8")
+    preserved_path = enrichment_dest
 
     # Chunk the new source
     new_chunks = _chunk_content(raw_content, raw_path, fmt)
