@@ -163,30 +163,109 @@ def check_q9_svg_accessibility(html: str) -> list[dict]:
 
 
 def check_q11_nav_chain(workspace: Path, lesson_path: Path, html: str) -> list[dict]:
-    """Q11: Previous lesson links forward to this lesson."""
-    # Find this lesson's filename
+    """Q11: Previous lesson in the same domain links forward to this lesson."""
     lesson_filename = lesson_path.name
+
+    # Determine this lesson's domain from breadcrumb (the map link)
+    domain_match = re.search(r'<a href="([^"]*-map\.html)">', html)
+    lesson_domain = domain_match.group(1) if domain_match else None
 
     # Find all lesson files in the same directory
     lesson_dir = lesson_path.parent
     all_lessons = sorted(lesson_dir.glob("*.html"))
     all_lessons = [f for f in all_lessons if not f.name.endswith("-map.html") and f.name != "index.html"]
 
-    # Find this lesson's position
+    if not lesson_domain:
+        return [result("Q11", SKIP, "Cannot determine domain (no map link in breadcrumb)")]
+
+    # Filter to same-domain lessons by checking their breadcrumb
+    same_domain = []
+    for f in all_lessons:
+        try:
+            f_html = f.read_text(encoding="utf-8")
+            if lesson_domain in f_html:
+                same_domain.append(f)
+        except (UnicodeDecodeError, OSError):
+            continue
+
+    # Find this lesson's position within its domain
     try:
-        idx = [f.name for f in all_lessons].index(lesson_filename)
+        idx = [f.name for f in same_domain].index(lesson_filename)
     except ValueError:
-        return [result("Q11", SKIP, "Lesson not found in directory listing")]
+        return [result("Q11", SKIP, "Lesson not found in domain listing")]
 
     if idx == 0:
-        return [result("Q11", SKIP, "First lesson — no previous to check")]
+        return [result("Q11", SKIP, "First lesson in domain — no previous to check")]
 
-    # Check if previous lesson links to this one
-    prev_lesson = all_lessons[idx - 1]
+    # Check if previous same-domain lesson links to this one
+    prev_lesson = same_domain[idx - 1]
     prev_html = prev_lesson.read_text(encoding="utf-8")
     if lesson_filename in prev_html:
         return [result("Q11", PASS, f"Previous lesson ({prev_lesson.name}) links forward")]
     return [result("Q11", WARN, f"Previous lesson ({prev_lesson.name}) does not link to {lesson_filename}")]
+
+
+def check_q10_svg_colors(html: str) -> list[dict]:
+    """Q10: No hardcoded hex colors in inline SVGs."""
+    svgs = re.findall(r"<svg[^>]*>.*?</svg>", html, re.DOTALL)
+    if not svgs:
+        return [result("Q10", SKIP, "No SVGs in lesson")]
+
+    hex_pattern = re.compile(r'(?:fill|stroke)="(#[0-9a-fA-F]{3,8})"')
+    violations = []
+    for i, svg in enumerate(svgs):
+        hexes = hex_pattern.findall(svg)
+        # Filter out common acceptable values (#000, #fff for true black/white in masks)
+        real_violations = [h for h in hexes if h.lower() not in ("#000", "#000000", "#fff", "#ffffff")]
+        if real_violations:
+            violations.append(f"SVG {i+1}: {', '.join(real_violations[:3])}")
+
+    if violations:
+        return [result("Q10", FAIL, f"Hardcoded hex colors: {'; '.join(violations)}")]
+    return [result("Q10", PASS, f"SVG colors use CSS vars ({len(svgs)} checked)")]
+
+
+def check_q12_glossary(html: str) -> list[dict]:
+    """Q12: Glossary data island present with terms."""
+    if 'id="glossary-data"' not in html:
+        return [result("Q12", FAIL, "Missing glossary-data script tag")]
+
+    # Extract and validate JSON
+    match = re.search(r'<script[^>]*id="glossary-data"[^>]*>(.*?)</script>', html, re.DOTALL)
+    if not match:
+        return [result("Q12", FAIL, "glossary-data tag found but content not extractable")]
+
+    import json as json_mod
+    try:
+        data = json_mod.loads(match.group(1))
+    except (json_mod.JSONDecodeError, ValueError):
+        return [result("Q12", FAIL, "glossary-data contains invalid JSON")]
+
+    if not data or len(data) == 0:
+        return [result("Q12", WARN, "glossary-data is empty (0 terms)")]
+
+    return [result("Q12", PASS, f"Glossary data present ({len(data)} terms)")]
+
+
+def check_q13_exercise(html: str) -> list[dict]:
+    """Q13: Exercise/Check Your Understanding section present."""
+    has_exercise = (
+        "Check Your Understanding" in html
+        or "Exercise:" in html
+        or "Exercise</strong>" in html
+    )
+    if not has_exercise:
+        return [result("Q13", FAIL, "No exercise section found")]
+
+    # Check for hint + answer pattern
+    has_hint = "<summary>Hint</summary>" in html or "<summary>Hint" in html
+    has_answer = "<summary>Answer</summary>" in html or "<summary>Answer" in html
+
+    if has_hint and has_answer:
+        return [result("Q13", PASS, "Exercise with hint + answer")]
+    elif has_exercise:
+        return [result("Q13", WARN, "Exercise found but missing hint/answer details")]
+    return [result("Q13", FAIL, "No exercise section found")]
 
 
 def check_cf_code_files_section(html: str) -> list[dict]:
@@ -226,7 +305,10 @@ def lint_lesson(lesson_path: Path, workspace: Path) -> list[dict]:
     all_results.extend(check_q3_diff_blocks(html, lines))
     all_results.extend(check_q6_key_concept(html))
     all_results.extend(check_q9_svg_accessibility(html))
+    all_results.extend(check_q10_svg_colors(html))
     all_results.extend(check_q11_nav_chain(workspace, lesson_path, html))
+    all_results.extend(check_q12_glossary(html))
+    all_results.extend(check_q13_exercise(html))
     all_results.extend(check_cf_code_files_section(html))
 
     return all_results
@@ -312,11 +394,18 @@ def main() -> None:
                 all_pass = False
         print(json.dumps(json_results, indent=2))
     else:
+        lesson_pass_count = 0
         for lesson_path in lessons:
             results = lint_lesson(lesson_path, workspace)
             passed = print_results(lesson_path.name, results, use_json=False)
-            if not passed:
+            if passed:
+                lesson_pass_count += 1
+            else:
                 all_pass = False
+
+        if len(lessons) > 1:
+            print(f"\n{'='*50}")
+            print(f"Overall: {lesson_pass_count}/{len(lessons)} lessons pass all checks")
 
     sys.exit(0 if all_pass else 1)
 
