@@ -50,6 +50,7 @@ Run a comprehensive compliance check on one or more lesson pages against all tea
 | Q8 | **Read more links** | New concepts introduced have links to official docs | Scan `.note` blocks with "New concept" for presence of `<a href>` |
 | Q9 | **Accessibility** | SVGs have `role="img"` + `<title>`, images have alt text | DOM scan |
 | Q10 | **Dark/light rendering** | Page renders correctly in both themes | Playwright: toggle theme, check body BG + text color are distinct |
+| Q11 | **Navigation links** | Previous lesson's "What's Next" links to this lesson; this lesson links back to previous | Check prereq lesson file for `<a href="this-lesson">` in next-steps section |
 
 ### Expansion checks (INFORMATIONAL — suggest improvements)
 
