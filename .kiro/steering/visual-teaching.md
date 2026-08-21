@@ -124,6 +124,56 @@ This "explain the wrong answer" pattern (a) requires understanding the mechanism
 - **SR questions** → test details, gotchas, edge cases, connections — distributed over time via spaced repetition
 - **Quiz page** → mixed difficulty, multiple archetypes, covers the full lesson breadth
 
+## Callout Hierarchy (Asides, Alternatives, Notes)
+
+Lessons contain information at different urgency levels. Use the right callout type so learners can triage what needs attention now vs. what's reference for later.
+
+### Callout Types (ordered by reader urgency)
+
+| Type | CSS class | When to use | Reader action |
+|------|-----------|-------------|---------------|
+| **Key concept** | `.key-concept` | The lesson's core takeaway. One per lesson, at the top. | "This is what I'm here to learn" |
+| **Decision** | `.note` with `<strong>When to use which:</strong>` | The learner must choose between approaches. Give criteria. | "I need to pick one — what are my constraints?" |
+| **New concept** | `.note` with `<strong>New concept — {name}:</strong>` | Introducing a term/idea not covered in a prior lesson | "File this — I'll need it in 30 seconds" |
+| **Comparison** | `.comparison` | Side-by-side pros/cons of approaches just shown | "Which one fits my situation?" |
+| **Gotcha/Warning** | `.note` with `<strong>Why X?</strong>` or `<strong>Performance note:</strong>` | Something will bite you if you ignore it | "Don't skip this" |
+| **FYI/Alternative** | `.note` with `<strong>Alternative:</strong>` | There's another way, but the lesson chose differently | "Good to know, not blocking" |
+
+### Decision Guidance (the most important callout type)
+
+When a lesson presents alternatives, **always include decision criteria** — never just describe the options. The learner needs to know WHEN to pick each one, not just WHAT they are.
+
+**Required structure for decision callouts:**
+
+1. **Name both approaches** — one sentence each, what they do
+2. **When to use each** — concrete criteria (not "it depends"). Constraints, project shape, or observable conditions that make the choice obvious
+3. **Default recommendation** — if one is safer/simpler for beginners, say so explicitly ("Use X unless you have a specific reason for Y")
+
+**Example (good):**
+> **When to use which:**
+> - Explicit varying — safe default. Use when combining triplanar with other vertex effects.
+> - `world_vertex_coords` — simpler for pure-triplanar, fragment-only materials.
+> - **Rule of thumb:** If your shader has `light()` or modifies VERTEX, use varyings.
+
+**Example (bad):**
+> **Alternative:** You could also use `world_vertex_coords`. It's simpler but has trade-offs.
+
+The bad version forces the learner to figure out the decision criteria themselves — which is the instructor's job.
+
+### Placement Rules
+
+- **Decisions** go immediately after presenting both approaches (not before — the learner needs context)
+- **New concepts** go at first use, inline with the content that needs them (spatial contiguity)
+- **Gotchas** go immediately after the code they apply to (not in a "tips" section at the end)
+- **FYI/Alternatives** go after the lesson has committed to its approach — they're escape hatches, not forks in the road
+
+### Anti-patterns
+
+- A bare "Alternative:" that describes what exists without saying when to use it
+- "Note:" followed by important decision criteria buried in a paragraph (promote to Decision)
+- Multiple note callouts back-to-back (reader glazes over — merge or promote the important one)
+- Gotchas that belong in SR questions, not the lesson flow (if it's not blocking comprehension, defer it)
+
 ## Color Vocabulary
 
 Colors are defined as CSS custom properties in `assets/style.css` (light + dark variants). Use `var(--svg-*)` in inline SVGs — never hardcode hex.
