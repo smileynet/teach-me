@@ -462,8 +462,49 @@ app.mount("/", StaticFiles(directory=str(WORKSPACE), html=True), name="workspace
 # Entry point
 # ---------------------------------------------------------------------------
 
+def _get_lan_ip() -> str:
+    """Get LAN IP address for network access."""
+    import socket
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
+
+
+def _print_startup_info() -> None:
+    """Print available URLs on startup."""
+    lan_ip = _get_lan_ip()
+    local_url = f"http://127.0.0.1:{_PORT}"
+    lan_url = f"http://{lan_ip}:{_PORT}"
+
+    print(f"\n  Workspace: {WORKSPACE}")
+    print(f"  Local:     {local_url}")
+    if _HOST == "0.0.0.0":
+        print(f"  LAN:       {lan_url}")
+    print()
+
+    # Scan for lesson files
+    lessons_dir = WORKSPACE / "lessons"
+    if lessons_dir.exists():
+        lessons = sorted(lessons_dir.rglob("*.html"))
+        lessons = [f for f in lessons if not f.name.endswith("-map.html")
+                   and f.name != "index.html" and "quiz" not in str(f)]
+        if lessons:
+            base = lan_url if _HOST == "0.0.0.0" else local_url
+            print("  Lessons:")
+            for lesson in lessons:
+                rel = lesson.relative_to(WORKSPACE)
+                print(f"    {base}/{rel.as_posix()}")
+            print()
+
+
 if __name__ == "__main__":
     import uvicorn
 
-    print(f"Serving teach-me at http://{_HOST}:{_PORT} (workspace: {WORKSPACE.name})")
-    uvicorn.run(app, host=_HOST, port=_PORT, log_level="info")
+    _print_startup_info()
+    print(f"  Starting server...\n")
+    uvicorn.run(app, host=_HOST, port=_PORT, log_level="warning")

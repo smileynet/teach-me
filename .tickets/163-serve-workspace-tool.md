@@ -1,7 +1,7 @@
 ---
 id: "163"
 title: "Workspace-aware serve tool with proper asset mounting"
-status: open
+status: done
 blocked_by: []
 ---
 
@@ -65,13 +65,13 @@ In AGENTS.md or a steering file, state:
 
 ## Acceptance criteria
 
-- [ ] `mise run serve -- examples/godot-gamedev` serves lesson pages with working CSS/JS (no junctions needed)
-- [ ] `mise run serve` with no args serves `workspace/` if it exists, prints helpful message if not
-- [ ] Shared assets resolve at `/assets/` regardless of workspace location
-- [ ] LAN URL printed on startup (e.g., `http://192.168.x.x:8787/lessons/01-...`)
-- [ ] Toon shader lessons renumbered to 01/02 (per-domain)
-- [ ] Convention documented: per-domain numbering, NN-slug.html format
-- [ ] Works on Windows without symlinks/junctions (the whole point)
+- [x] `mise run serve -- examples/godot-gamedev` serves lesson pages with working CSS/JS (no junctions needed)
+- [x] `mise run serve` with no args serves `workspace/` if it exists, prints helpful message if not
+- [x] Shared assets resolve at `/assets/` regardless of workspace location
+- [x] LAN URL printed on startup (e.g., `http://192.168.x.x:8787/lessons/01-...`)
+- [ ] Toon shader lessons renumbered to 01/02 (per-domain) — deferred to #166
+- [x] Convention documented: per-domain numbering, NN-slug.html format
+- [x] Works on Windows without symlinks/junctions (the whole point)
 
 ## Research
 

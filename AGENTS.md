@@ -126,7 +126,7 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 - Codex sandbox (bwrap) fails: `bwrap: loopback: Failed RTM_NEWADDR`. Use `codex exec --dangerously-bypass-approvals-and-sandbox`.
 - Playwright MCP requires headless mode (no X server).
 - Bedrock image limit: >20 images in conversation history triggers 2000px max. Resize to ≤768px; dispatch fresh subagents for image analysis in long sessions.
-- Git symlinks on Windows are text files (contain target path as text). For local serving, create NTFS junctions: `cmd /c "mklink /J assets D:\code\teach-me\assets"`. Junctions get destroyed by `git checkout` — recreate after pulls. Ticket #163 eliminates this with a workspace-aware serve tool.
+- Git symlinks on Windows are text files (contain target path as text). For local serving, use `python tools/serve.py --workspace examples/godot-gamedev` — it mounts `/assets` from project root automatically (no junctions needed). Only use junctions for `python -m http.server` debugging.
 - Python tools with Unicode stdout (✓, ✗) fail on Windows cp1252. Use `set PYTHONIOENCODING=utf-8` or avoid non-ASCII in print() output.
 
 ## Skill Format (kiro-cli)
