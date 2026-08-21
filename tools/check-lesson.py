@@ -290,6 +290,30 @@ def check_cf_code_files_section(html: str) -> list[dict]:
 # --- Runner ---
 
 
+def check_q14_decision_callouts(html: str) -> list[dict]:
+    """Q14: Alternative/decision callouts include decision criteria."""
+    # Find all note divs that mention "alternative" in their strong tag
+    pattern = re.compile(
+        r'<div class="note">\s*\n?\s*<strong>Alternative:?</strong>(.*?)</div>',
+        re.DOTALL | re.IGNORECASE,
+    )
+    matches = pattern.findall(html)
+    if not matches:
+        return [result("Q14", SKIP, "No Alternative callouts found")]
+
+    decision_keywords = ["when to use", "use when", "rule of thumb", "default", "prefer", "use if", "choose"]
+    incomplete = []
+    for i, content in enumerate(matches, 1):
+        content_lower = content.lower()
+        has_guidance = any(kw in content_lower for kw in decision_keywords)
+        if not has_guidance:
+            incomplete.append(f"Alternative callout {i}: missing decision criteria")
+
+    if incomplete:
+        return [result("Q14", WARN, "; ".join(incomplete))]
+    return [result("Q14", PASS, f"All {len(matches)} Alternative callout(s) include decision guidance")]
+
+
 def lint_lesson(lesson_path: Path, workspace: Path) -> list[dict]:
     """Run all checks on a single lesson."""
     html = lesson_path.read_text(encoding="utf-8")
@@ -309,6 +333,7 @@ def lint_lesson(lesson_path: Path, workspace: Path) -> list[dict]:
     all_results.extend(check_q11_nav_chain(workspace, lesson_path, html))
     all_results.extend(check_q12_glossary(html))
     all_results.extend(check_q13_exercise(html))
+    all_results.extend(check_q14_decision_callouts(html))
     all_results.extend(check_cf_code_files_section(html))
 
     return all_results
