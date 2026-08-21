@@ -1,0 +1,92 @@
+[
+  {
+    "heading": "Two-Band Hard Cut with step()",
+    "level": 2,
+    "page_start": 1,
+    "content": "The simplest toon shading uses step() to create exactly two states: lit and shadow. In the light() function, compute NdotL as the dot product of NORMAL and LIGHT direction. Then apply step(0.0, NdotL) — this returns 1.0 when NdotL is positive (face pointing toward light) and 0.0 when negative (face pointing away). The result is a binary cut with no gradient. shader_type spatial declares this as a spatial shader. The uniform sampler2D provides the albedo texture. DIFFUSE_LIGHT accumulates the lighting contribution using ALBEDO, LIGHT_COLOR, and ATTENUATION multiplied by the step result.",
+    "word_count": 320,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "smoothstep() — Soft Two-Band",
+    "level": 2,
+    "page_start": 8,
+    "content": "The hard step() edge looks jagged at oblique angles. smoothstep() provides a controllable transition width that anti-aliases the shadow boundary. smoothstep(edge0, edge1, x) returns 0 below edge0, 1 above edge1, and a Hermite interpolation between them. Two uniforms control this: threshold sets where the shadow cut happens (0.0 means faces perpendicular to light), and softness controls how many degrees of the surface are in the transition zone. At softness 0.0 this is identical to step(). The sweet spot for toon is usually 0.02 to 0.05 — barely visible softening that avoids aliasing without looking like a gradient. This solves edge quality but still produces only two states: lit and shadow.",
+    "word_count": 340,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Modulo Trick — N Configurable Bands",
+    "level": 2,
+    "page_start": 15,
+    "content": "For the anime/cel look with distinct steps of brightness conveying rounded form (highlight, midtone, shadow, deep shadow), we need to quantize continuous lighting into N discrete levels. The modulo trick uses one line of math to snap any continuous value to N discrete bands. The expression mod(1.0 - x, cuts_inv) gives you the distance from x to the next band boundary above it. Adding that distance to x snaps it up to that boundary. Three uniforms control the result: bands sets the number of brightness levels (1 flat, 2 classic toon, 3-4 anime style), wrap shifts the shadow terminator (positive means more lit area), and steepness compresses the bands toward the light-facing side. The bands are always evenly spaced — you cannot make one band wider than another.",
+    "word_count": 370,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Curve Texture — Artist-Paintable Ramp",
+    "level": 2,
+    "page_start": 22,
+    "content": "The modulo trick gives N bands but they are all the same width. For non-uniform band widths — a narrow specular highlight, a wide midtone, a sharp drop to shadow — you need arbitrary control over the brightness curve. A curve texture (also called a diffuse ramp) maps NdotL to brightness via a 1D texture lookup. Remap NdotL from [-1,1] to [0,1] for the texture UV, then sample: texture(diffuse_ramp, vec2(ramp_uv, 0.0)).r. The lookup texture IS the art direction — whatever shape you paint into it becomes the lighting response. In Godot, use GradientTexture1D: define color stops (position plus color) and Godot generates the lookup table. For scene-wide consistency, declare it as a global uniform (shader global) set once in Project Settings.",
+    "word_count": 380,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Shadow Color Tinting with mix()",
+    "level": 2,
+    "page_start": 30,
+    "content": "All three banding approaches output a grayscale scalar — how lit or shadowed a pixel is. Real stylized rendering uses color temperature to separate light from shadow: warm highlights for sunlight, cool shadows for ambient sky. The mix() function blends between a shadow_color and a light_tint based on the banding output. This turns a brightness value into a color shift. shadow_color as cool blue-grey and light_tint as warm cream gives an overcast exterior feel. This technique works identically regardless of which banding approach produced the stepped value — it composites on top of any of the three methods.",
+    "word_count": 300,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "World Position and Varyings",
+    "level": 2,
+    "page_start": 38,
+    "content": "VERTEX in fragment() is in view space (camera-relative). For world-space texturing we need world space (scene-fixed). Compute it in vertex() using MODEL_MATRIX and pass it via a varying: world_pos equals (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz. Similarly, world_normal uses normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz). These values stay fixed to the scene regardless of camera movement, which is what makes world-space texturing stable. Godot offers render_mode world_vertex_coords as an alternative, but the explicit varying approach is safer when combining with toon lighting in the same shader.",
+    "word_count": 310,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Naive Single Projection",
+    "level": 2,
+    "page_start": 44,
+    "content": "The simplest world-space texturing uses the XZ world position as UV coordinates — projecting the texture straight down like painting the floor. This works perfectly for horizontal surfaces (floors, roads, flat roofs). But vertical walls stretch infinitely because XZ coordinates do not vary across a surface that faces sideways. Walls become smeared single-color bands. You could project from the side instead using world_pos.xy — but then floors stretch. No single projection works for all surface orientations. This is the fundamental problem that triplanar mapping solves.",
+    "word_count": 280,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Triplanar Mapping Algorithm",
+    "level": 2,
+    "page_start": 50,
+    "content": "The triplanar insight: sample the texture three times — once from each major axis — and blend the results based on which direction the surface faces. A floor (normal pointing up) gets the top-down Y projection using world_pos.xz. A wall facing sideways gets the X projection using world_pos.zy. A wall facing front/back gets the Z projection using world_pos.xy. Angled surfaces get a weighted mix. The blend weights come from abs(world_normal) raised to a blend_sharpness power then normalized to sum to 1.0. Higher blend_sharpness produces sharper transitions between projections. The tex_scale uniform controls texture tiling density across world units.",
+    "word_count": 350,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Combining Triplanar with Toon Banding",
+    "level": 2,
+    "page_start": 58,
+    "content": "The full shader combines world-space texturing in fragment() with toon banding in light(). The fragment function samples the albedo via triplanar projection (three texture lookups blended by normal direction). The light function applies the modulo trick quantization to produce discrete brightness bands. The two systems are orthogonal — triplanar determines WHAT color a pixel has (its albedo), while banding determines HOW BRIGHT it appears. You can swap any banding approach (smoothstep, modulo, curve texture) without changing the triplanar code. The shader_type spatial declaration supports both vertex and fragment processing.",
+    "word_count": 310,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Shader Globals for Scene-Wide Consistency",
+    "level": 2,
+    "page_start": 65,
+    "content": "A global uniform is declared in the shader but set once in Project Settings under Shader Globals. Every material that references it gets the same value with no per-material setup. Changes propagate instantly across the entire scene. This is the key architectural decision for toon shading — instead of each material carrying its own diffuse_ramp or band count, every toon-shaded object references the same global parameters. One change in Project Settings shifts the mood of the entire scene. Use global uniforms for parameters that define your visual style rather than per-object variation: diffuse ramp, band count, shadow color, light tint.",
+    "word_count": 320,
+    "has_code": true,
+    "has_table": false
+  }
+]

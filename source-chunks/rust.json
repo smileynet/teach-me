@@ -1,0 +1,92 @@
+[
+  {
+    "heading": "Ownership Fundamentals",
+    "level": 1,
+    "page_start": 1,
+    "content": "Every value in Rust has a single owner at any point in time. When the owner goes out of scope, the value is dropped and its memory freed. This ownership model eliminates the need for a garbage collector while preventing memory leaks. Ownership is the foundation of Rust's safety guarantees — it ensures that references are always valid and that data races cannot occur at compile time. The three ownership rules are: each value has exactly one owner, only one owner exists at a time, and when the owner goes out of scope the value is dropped.",
+    "word_count": 350,
+    "has_code": false,
+    "has_table": false
+  },
+  {
+    "heading": "Move Semantics",
+    "level": 2,
+    "page_start": 8,
+    "content": "When you assign a value to another variable or pass it to a function, ownership moves to the new binding. The original variable becomes invalid — attempting to use it is a compile-time error. This is called a move. Move semantics prevent double-free bugs by ensuring only one variable owns the heap data at a time. Types that implement the Copy trait (integers, booleans, floats) are copied instead of moved because they live entirely on the stack. For heap-allocated types like String and Vec, moves transfer the pointer, length, and capacity without copying the underlying data. Understanding the distinction between move and copy is essential for writing efficient Rust code.",
+    "word_count": 380,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Borrowing and References",
+    "level": 2,
+    "page_start": 15,
+    "content": "Rather than transferring ownership, you can borrow a value by creating a reference. A reference allows you to refer to a value without owning it. Borrowing follows strict rules enforced at compile time: you can have either one mutable reference or any number of immutable references, but not both simultaneously. This prevents data races at compile time. References are created with the ampersand operator — &x creates an immutable reference, and &mut x creates a mutable reference. The borrow checker verifies these rules during compilation and rejects programs that violate them.",
+    "word_count": 340,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "The Borrow Checker",
+    "level": 2,
+    "page_start": 22,
+    "content": "The borrow checker is Rust's compile-time analysis pass that enforces ownership and borrowing rules. It tracks the lifetime of every reference and ensures no reference outlives the data it points to. When the borrow checker rejects your code, it means you've written something that could lead to a use-after-free, dangling pointer, or data race. Common borrow checker errors include returning a reference to a local variable, holding a mutable reference while an immutable reference exists, and using a value after it has been moved. As discussed in the borrowing section above, the fundamental constraint is that mutable access must be exclusive.",
+    "word_count": 370,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Lifetimes",
+    "level": 2,
+    "page_start": 30,
+    "content": "Lifetimes are Rust's way of expressing how long references remain valid. Every reference has a lifetime, though most are inferred by the compiler through lifetime elision rules. When the compiler cannot determine lifetimes automatically, you annotate them explicitly using the syntax 'a. Lifetime annotations don't change how long references live — they describe the relationships between lifetimes so the borrow checker can verify correctness. The most common case requiring explicit lifetimes is functions that take multiple references and return a reference — the compiler needs to know which input lifetime the return value is tied to.",
+    "word_count": 360,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Slices and Borrowed Views",
+    "level": 2,
+    "page_start": 38,
+    "content": "A slice is a reference to a contiguous sequence of elements in a collection. Slices let you work with a portion of data without copying it and without owning it. String slices (&str) are the most common — they reference a portion of a String or a string literal. Array slices (&[T]) provide the same borrowed view over vectors and arrays. Because slices are references, they follow all borrowing rules. You cannot modify the underlying collection while a slice exists because that would invalidate the slice's pointer.",
+    "word_count": 300,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Smart Pointers: Box, Rc, Arc",
+    "level": 2,
+    "page_start": 45,
+    "content": "Smart pointers extend ownership semantics for special cases. Box<T> provides heap allocation with single ownership — useful for recursive types and large data. Rc<T> enables shared ownership through reference counting when multiple parts of your code need to read the same data. Arc<T> is the thread-safe variant of Rc, using atomic operations for its reference count. These types implement Deref and Drop, integrating naturally with the ownership system. RefCell<T> provides interior mutability — allowing mutation through an immutable reference with runtime borrow checking instead of compile-time checking.",
+    "word_count": 320,
+    "has_code": true,
+    "has_table": true
+  },
+  {
+    "heading": "Ownership in Structs",
+    "level": 2,
+    "page_start": 52,
+    "content": "When a struct owns its fields, the struct's lifetime governs the fields' lifetimes. When the struct is dropped, all owned fields are dropped too. Structs can also hold references instead of owned data, but then you must annotate lifetimes to prove the referenced data outlives the struct. This is the classic lifetime annotation scenario — struct Excerpt<'a> { part: &'a str } ensures part cannot outlive the string it references. Choosing between owned fields (String) and borrowed fields (&str) depends on whether the struct needs independent lifetime from its data source.",
+    "word_count": 310,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Pattern Matching and Ownership",
+    "level": 2,
+    "page_start": 58,
+    "content": "Pattern matching interacts with ownership in important ways. Matching on an owned value moves it into the match arm, while matching on a reference borrows it. The ref keyword in patterns creates a reference to the matched value instead of moving it. Destructuring a struct in a match moves the fields unless you use references. This is particularly relevant with enums like Option<T> — matching on Some(value) moves value out of the option, while matching on Some(ref value) or using as_ref() borrows it. Understanding these interactions prevents fighting the borrow checker in complex match expressions.",
+    "word_count": 340,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Clone and Copy Traits",
+    "level": 2,
+    "page_start": 65,
+    "content": "The Copy trait marks types that can be duplicated by copying bits — cheap, implicit, and always available for stack-only types like integers and tuples of Copy types. The Clone trait provides explicit duplication for any type, including heap-allocated ones like String and Vec. Calling clone() creates a deep copy, which can be expensive. When the borrow checker complains about a move, clone() is often the quick fix — but overusing it defeats Rust's zero-cost abstraction goals. Idiomatic Rust prefers borrowing over cloning, reserving explicit copies for when shared mutable state is genuinely needed.",
+    "word_count": 330,
+    "has_code": true,
+    "has_table": false
+  }
+]

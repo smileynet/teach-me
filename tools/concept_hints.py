@@ -37,6 +37,17 @@ L1_THRESHOLD = 0.5   # Core concepts — recall level
 L2_THRESHOLD = 0.2   # Practice concepts — understand/apply
 # Below L2 → L3 (analysis/synthesis)
 
+# Single words that are never meaningful as edge concepts or standalone concepts.
+# These pass the >50% frequency filter but are semantically empty.
+GENERIC_EDGE_TERMS = frozenset({
+    "time", "single", "point", "change", "root", "system", "code",
+    "approach", "way", "thing", "state", "states", "type", "types",
+    "value", "values", "case", "cases", "use", "color",
+    "trick", "method", "function", "data", "result", "set",
+    "number", "part", "name", "form", "level", "place",
+    "world", "space", "texture", "vertex", "software",
+})
+
 # Multi-word terms that should never be collapsed during dedup
 PROTECTED_COMPOUNDS = frozenset({
     "borrow checker", "render pipeline", "thread pool",
@@ -260,6 +271,16 @@ def generate_concept_hints(
     # Quality filters: deduplicate near-synonyms, remove generic terms
     result_concepts = deduplicate_concepts(result.concepts)
     result_concepts = filter_generic_terms(result_concepts, chunks, threshold=0.5)
+    # Filter generic single-word terms that pass frequency filter but are semantically empty
+    result_concepts = [
+        c for c in result_concepts
+        if c.term.lower().strip() not in GENERIC_EDGE_TERMS
+    ]
+    # Filter the domain/language name itself — it's not a concept to learn
+    result_concepts = [
+        c for c in result_concepts
+        if c.term.lower().strip() != domain.lower()
+    ]
 
     # Find the chunk index for the target topic
     target_indices = []
@@ -345,6 +366,12 @@ def generate_concept_hints(
         if edge.source in target_indices or edge.target in target_indices:
             # Fix 6: Skip edges referencing generic terms
             if _normalize_term(edge.concept) in generic_terms:
+                continue
+            # Fix 7: Skip edges with single-word generic concepts
+            if edge.concept.lower().strip() in GENERIC_EDGE_TERMS:
+                continue
+            # Fix 8: Skip edges referencing the domain/language name itself
+            if edge.concept.lower().strip() == domain.lower():
                 continue
             source_heading = chunks[edge.source].get("heading", "") if edge.source < len(chunks) else ""
             target_heading = chunks[edge.target].get("heading", "") if edge.target < len(chunks) else ""
