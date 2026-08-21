@@ -1,0 +1,24 @@
+# mise.toml — Godot shader test scene
+# Validates lesson shaders by importing them into a real Godot project.
+min_version = "2026.7"
+
+[tools]
+"aqua:godotengine/godot" = "4.7"
+
+[tasks.doctor]
+description = "Verify Godot is installed"
+run = "godot --version"
+
+[tasks.import]
+description = "Import project (validates all shaders and scripts)"
+run = "godot --headless --editor --import --quit --path ."
+
+[tasks.validate-shaders]
+description = "Copy lesson shaders into project and run import"
+run = """
+cp ../examples/godot-gamedev/reference/code/spatial-shader-anatomy/*.gdshader shaders/ 2>/dev/null
+cp ../examples/godot-gamedev/reference/code/toon-banding/*.gdshader shaders/ 2>/dev/null
+cp ../examples/godot-gamedev/reference/code/triplanar-mapping/*.gdshader shaders/ 2>/dev/null
+cp ../examples/godot-gamedev/reference/code/toon-outlines/*.gdshader shaders/ 2>/dev/null
+godot --headless --editor --import --quit --path .
+"""
