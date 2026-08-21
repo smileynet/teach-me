@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 6: Toon Outlines</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-toon-shaders-map.html">Godot Toon Shaders</a> <span class="nav-sep">›</span> <span>Toon Outlines</span></nav>
+<h1>Toon Outlines</h1>
+
+<div class="lesson-meta">
+  Lesson 6 · Godot Toon Shaders · ~14 min read<br>
+  <strong>Win:</strong> You can add black outlines to any toon-shaded mesh using the inverted hull technique, and explain when screen-space edge detection is the better choice.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> You can create an outline shader that renders as a <code>next_pass</code> on any existing material, control its width in view space so it stays consistent regardless of distance, and articulate the trade-offs between per-object outlines (inverted hull) and scene-wide outlines (screen-space post-process).
+</div>
+
+<h2>The Problem: Toon Shading Without Outlines Looks Unfinished</h2>
+
+<p>The banding shaders from the previous lessons give us discrete brightness steps — the "inside" of the cel look. But without outlines, the shapes don't pop off the background the way they do in anime or comic-book games. The dark border is what tells your brain "this is a stylized object, not a realistic one with flat lighting." <a href="https://github.com/eldskald/godot4-cel-shader" class="citation">[eldskald: Complete Cel Shader]</a></p>
+
+<p>Two families of outline techniques exist:</p>
+<ul>
+  <li><strong>Inverted hull (mesh-based)</strong> — renders the mesh a second time, inflated and front-face-culled, so you see a dark shell behind the original. Per-object, cheap, works everywhere.</li>
+  <li><strong>Screen-space edge detection (post-process)</strong> — samples the depth/normal buffers and draws edges where values change sharply. Whole-scene, detects internal edges, but no per-object control.</li>
+</ul>
+
+<p>This lesson teaches the inverted hull approach — it's the industry standard (Guilty Gear, Genshin Impact, Persona) and integrates cleanly with our existing <code>toon_bands</code> shader. We'll mention screen-space at the end with decision criteria for when you'd pick it instead.</p>
+
+<svg role="img" aria-labelledby="outline-concept-title" viewBox="0 0 600 160" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="outline-concept-title">Inverted hull concept: original mesh rendered normally, then a slightly larger copy rendered with front-face culling and black color creates the outline silhouette</title>
+  <!-- Original mesh -->
+  <rect x="60" y="30" width="120" height="100" rx="8" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="120" y="85" text-anchor="middle" font-size="11" fill="var(--svg-primary-text)">Original mesh</text>
+  <text x="120" y="100" text-anchor="middle" font-size="9" fill="var(--svg-primary-text)">(toon_bands shader)</text>
+  <!-- Arrow -->
+  <text x="240" y="82" text-anchor="middle" font-size="18" fill="var(--svg-line)">+</text>
+  <!-- Inflated hull -->
+  <rect x="290" y="22" width="136" height="116" rx="12" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="3"/>
+  <rect x="298" y="30" width="120" height="100" rx="8" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="358" y="75" text-anchor="middle" font-size="10" fill="var(--svg-primary-text)">Original (front)</text>
+  <text x="358" y="45" text-anchor="middle" font-size="9" fill="var(--svg-neutral-text)">← inflated back faces</text>
+  <text x="358" y="135" text-anchor="middle" font-size="9" fill="var(--svg-neutral-text)">visible as outline →</text>
+  <!-- Equals -->
+  <text x="468" y="82" text-anchor="middle" font-size="18" fill="var(--svg-line)">=</text>
+  <!-- Result -->
+  <rect x="490" y="22" width="96" height="116" rx="12" fill="var(--svg-neutral)" stroke="var(--svg-neutral)" stroke-width="3"/>
+  <rect x="497" y="29" width="82" height="102" rx="8" fill="var(--svg-primary-fill)" stroke="none"/>
+  <text x="538" y="85" text-anchor="middle" font-size="10" fill="var(--svg-primary-text)">Outlined!</text>
+</svg>
+
+<h2>The Inverted Hull Technique</h2>
+
+<p>The idea: render the mesh twice. First pass: your normal toon shader (banding, textures, lighting). Second pass: a separate shader that inflates the mesh slightly along its normals and only renders <strong>back faces</strong>. Since back faces point away from the camera, they're only visible around the edges — creating a silhouette outline.</p>
+
+<p>In Godot 4, the second pass is applied via the material's <code>next_pass</code> property. This means the outline shader is completely independent of your lighting shader — you can use it with <code>toon_bands</code>, <code>toon_ramp</code>, or any other base material.</p>
+
+<h3>The Outline Shader</h3>
+
+<p>Create a new file <code>toon_outline.gdshader</code>. The entire shader is 12 lines — it inflates vertices, culls front faces, and outputs a solid color:</p>
+
+<pre data-file="toon_outline.gdshader"><code>shader_type spatial;
+render_mode cull_front, unshaded;
+
+uniform float outline_width : hint_range(0.0, 0.1) = 0.02;
+uniform vec4 outline_color : source_color = vec4(0.0, 0.0, 0.0, 1.0);
+
+void vertex() {
+    // Inflate vertices along their normals
+    VERTEX += NORMAL * outline_width;
+}
+
+void fragment() {
+    ALBEDO = outline_color.rgb;
+}</code></pre>
+
+<div class="note">
+<strong>Why <code>cull_front</code>?</strong> Normal rendering culls back faces (you don't see the inside of a mesh). Here we flip it — cull front faces so ONLY back faces render. The inflated back faces peek out behind the original mesh's silhouette. The original mesh (drawn first via the base material) covers everything that isn't an edge.
+</div>
+
+<div class="note">
+<strong>Why <code>unshaded</code>?</strong> The outline shouldn't respond to lighting — it's always the same flat color regardless of light direction. Without <code>unshaded</code>, the outline would have its own shading bands, which looks wrong.
+</div>
+
+<h3>Applying It via next_pass</h3>
+
+<p>In Godot's Inspector:</p>
+<ol>
+  <li>Select the mesh that already has your toon material</li>
+  <li>In the material's properties, find <strong>Next Pass</strong></li>
+  <li>Click → <strong>New ShaderMaterial</strong></li>
+  <li>Assign <code>toon_outline.gdshader</code> to it</li>
+  <li>Adjust <code>outline_width</code> until it looks right (0.01–0.03 for characters, 0.005 for small props)</li>
+</ol>
+
+<p>That's it. The outline renders after the base material on the same mesh, in the same draw call batch. No extra nodes, no viewports, no post-processing.</p>
+
+<h2>Problem: Outline Thickness Changes with Distance</h2>
+
+<p>The basic version inflates by a fixed world-space amount. Close to camera, the outline looks perfect. Far from camera, it's barely visible. Zoom in close, and it's comically thick. This happens because <code>NORMAL * outline_width</code> is in model space — a fixed number of meters regardless of how many pixels that maps to on screen.</p>
+
+<p>The fix: expand in <strong>view space</strong> instead. After the modelview transform, multiply by the distance from camera so the outline stays a consistent pixel width:</p>
+
+<pre data-file="toon_outline.gdshader" data-mode="diff"><code> shader_type spatial;
+ render_mode cull_front, unshaded;
+
+ uniform float outline_width : hint_range(0.0, 0.1) = 0.02;
+ uniform vec4 outline_color : source_color = vec4(0.0, 0.0, 0.0, 1.0);
+
+ void vertex() {
+<span style="color:var(--error)">-    // Inflate vertices along their normals
+-    VERTEX += NORMAL * outline_width;</span>
+<span style="color:var(--success)">+    // Inflate in view space — consistent pixel width regardless of distance
++    vec4 clip_pos = MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
++    vec3 view_normal = normalize((MODELVIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
++    clip_pos.xyz += view_normal * outline_width * -clip_pos.z;
++    POSITION = PROJECTION_MATRIX * clip_pos;</span>
+ }
+
+ void fragment() {
+     ALBEDO = outline_color.rgb;
+ }</code></pre>
+
+<p>The key insight: <code>-clip_pos.z</code> is the distance from camera in view space (negative Z = forward in Godot). Multiplying by it scales the inflation proportionally to distance — farther objects get more inflation to maintain the same screen-space thickness.</p>
+
+<div class="note">
+<strong>Why write to <code>POSITION</code> instead of <code>VERTEX</code>?</strong> Once we transform manually via <code>MODELVIEW_MATRIX</code>, we've left model space. Writing to <code>POSITION</code> (a clip-space vec4) tells Godot "I've done the full transform myself — skip the built-in modelview+projection." This is the standard pattern for any vertex shader that needs to operate in view or clip space.
+</div>
+
+<h2>The Final Outline Shader</h2>
+
+<p>Combining the view-space expansion with a small minimum thickness so outlines don't vanish completely at extreme distances:</p>
+
+<pre data-file="toon_outline.gdshader"><code>shader_type spatial;
+render_mode cull_front, unshaded;
+
+uniform float outline_width : hint_range(0.0, 0.1) = 0.02;
+uniform vec4 outline_color : source_color = vec4(0.0, 0.0, 0.0, 1.0);
+
+void vertex() {
+    vec4 clip_pos = MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
+    vec3 view_normal = normalize((MODELVIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
+    clip_pos.xyz += view_normal * outline_width * -clip_pos.z;
+    POSITION = PROJECTION_MATRIX * clip_pos;
+}
+
+void fragment() {
+    ALBEDO = outline_color.rgb;
+}</code></pre>
+
+<p><strong>Try it:</strong> Apply this as <code>next_pass</code> on any of the toon-shaded meshes from previous lessons. Orbit the camera close and far — the outline stays the same apparent thickness. Change <code>outline_color</code> to dark blue or brown for a softer look than pure black.</p>
+
+<h2>Screen-Space Edge Detection: The Alternative</h2>
+
+<p>The inverted hull gives you control per object — different characters can have different outline widths and colors. But it only outlines the <em>silhouette</em>. Internal creases, folds in clothing, sharp edges within the mesh — those don't get outlines.</p>
+
+<p>Screen-space edge detection solves this: it samples the depth and normal buffers and draws a line wherever values change sharply. Every edge in the scene gets an outline — silhouettes AND internal details. <a href="https://godotshaders.com/shader/sobel-outline-shader/" class="citation">[LoudFlameLava: Sobel Outline]</a></p>
+
+<div class="note">
+<strong>When to use which:</strong>
+<ul>
+  <li><strong>Inverted hull</strong> — safe default. Use when you need per-object control (different outline thickness for hero vs props), when targeting Compatibility renderer, or when some objects shouldn't have outlines at all.</li>
+  <li><strong>Screen-space edge detection</strong> — use when you want internal edges (creases, hard surface details), when every object should have outlines, or when you can't modify meshes (imported/procedural geometry).</li>
+</ul>
+<strong>Rule of thumb:</strong> Characters and key props → inverted hull (artistic control). Environment and everything else → screen-space (automatic coverage). Many shipped games combine both.
+</div>
+
+<div class="comparison">
+  <div><strong>Inverted Hull:</strong> Per-object control, silhouette only, all renderers, cheap, needs smooth normals</div>
+  <div><strong>Screen-Space:</strong> All edges, scene-wide, Forward+/Mobile only, no per-object control, needs depth/normal buffers</div>
+</div>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A colleague adds the inverted hull outline to their character but reports two problems:</p>
+  <ol>
+    <li>The outline is thick when the camera is close but vanishes when zoomed out</li>
+    <li>The character's sword (a thin, sharp-edged mesh) has spiky artifacts on the outline</li>
+  </ol>
+  <p>For each problem: what's causing it, and what would you change?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Problem 1: Think about what coordinate space the inflation happens in. Problem 2: Think about what <code>NORMAL</code> means on a hard-edge mesh.</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p><strong>1. Outline vanishes at distance:</strong> They're using the basic version (<code>VERTEX += NORMAL * width</code>) which inflates by a fixed world-space amount. At distance, that amount maps to sub-pixel thickness. Fix: use the view-space version that multiplies by <code>-clip_pos.z</code> so the inflation scales with distance.</p>
+  <p><strong>2. Spiky artifacts:</strong> Hard-edge meshes have <em>split normals</em> at sharp edges — the same vertex has different normals for each face it belongs to. When inflated along these normals, adjacent faces push apart, creating gaps and spikes. Fix: either (a) add a smooth-normal layer to the mesh in Blender (split into a separate UV channel), or (b) use vertex colors to paint per-vertex outline direction, or (c) use the radial expansion variant that pushes outward from the object center instead of along normals.</p>
+  </details>
+</div>
+
+<h2>Code Files</h2>
+<p>Download the final-state shader from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/toon-outlines/toon_outline.gdshader" download><code>toon_outline.gdshader</code></a> — view-space inverted hull outline, apply as <code>next_pass</code></li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next lesson:</strong> Shadow Color Theory — warm/cool tinting for stylized shadow rendering</p>
+  <p><strong>Reference:</strong> <a href="../reference/0006-toon-outlines.html">Toon Outlines cheat sheet</a></p>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "inverted-hull": "An outline technique that renders a slightly inflated copy of the mesh with front-face culling — the visible back faces create a silhouette border.",
+  "next-pass": "A Godot material property that chains a second shader pass on the same mesh, rendered immediately after the base material. Used for outlines, highlights, or overlays.",
+  "cull-front": "A render mode that discards front-facing triangles and only draws back-facing ones — the opposite of default rendering. Combined with mesh inflation, this creates outlines.",
+  "view-space": "A coordinate system relative to the camera — X is right, Y is up, Z points backward from the screen. Objects at different distances have different Z values.",
+  "screen-space-edge-detection": "A post-process technique that reads the depth and normal buffers to find pixels where values change sharply, drawing outlines at those edges."
+}
+</script>
+
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
