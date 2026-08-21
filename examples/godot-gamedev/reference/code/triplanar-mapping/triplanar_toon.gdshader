@@ -1,4 +1,5 @@
 shader_type spatial;
+render_mode cull_disabled;
 
 uniform sampler2D albedo_texture : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
 uniform float tex_scale : hint_range(0.01, 10.0) = 1.0;
@@ -35,5 +36,5 @@ void light() {
     diffuse_amount *= steepness;
     float cuts_inv = 1.0 / float(bands);
     float stepped = clamp(diffuse_amount + mod(1.0 - diffuse_amount, cuts_inv), 0.0, 1.0);
-    DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * LIGHT_COLOR * ATTENUATION * stepped);
+    DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * LIGHT_COLOR * stepped);
 }
