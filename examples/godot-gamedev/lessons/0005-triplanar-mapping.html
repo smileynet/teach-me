@@ -148,8 +148,8 @@ void fragment() {
     vec3 blend = pow(abs(world_normal), vec3(blend_sharpness));
     blend /= (blend.x + blend.y + blend.z); // normalize to sum = 1.0
 
-    // Sample texture from each axis
-    vec3 x_proj = texture(albedo_texture, world_pos.zy * tex_scale).rgb;
+    // Sample texture from each axis (X flipped to prevent mirroring)
+    vec3 x_proj = texture(albedo_texture, world_pos.zy * vec2(-1.0, 1.0) * tex_scale).rgb;
     vec3 y_proj = texture(albedo_texture, world_pos.xz * tex_scale).rgb;
     vec3 z_proj = texture(albedo_texture, world_pos.xy * tex_scale).rgb;
 
@@ -159,11 +159,12 @@ void fragment() {
 
 void light() {
     float NdotL = dot(NORMAL, LIGHT);
-    float diffuse_amount = NdotL + (ATTENUATION - 1.0) + wrap;
+    // Clamp NdotL to prevent light bleed-through on back faces
+    float diffuse_amount = max(NdotL, 0.0) + (ATTENUATION - 1.0) + wrap;
     diffuse_amount *= steepness;
     float cuts_inv = 1.0 / float(bands);
     float stepped = clamp(diffuse_amount + mod(1.0 - diffuse_amount, cuts_inv), 0.0, 1.0);
-    DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * LIGHT_COLOR * stepped);
+    DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * LIGHT_COLOR * ATTENUATION * stepped);
 }</code></pre>
 
 <h3>How the blending works</h3>
