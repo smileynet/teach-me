@@ -66,7 +66,14 @@ void vertex() {
 <p>Now <code>world_pos</code> and <code>world_normal</code> are available in <code>fragment()</code> — and they stay fixed to the scene regardless of camera movement. This is what makes world-space texturing stable.</p>
 
 <div class="note">
-<strong>Alternative:</strong> Godot offers <code>render_mode world_vertex_coords;</code> which puts <code>VERTEX</code> in world space automatically. This saves the varying but means ALL your vertex() code must account for the different space. The explicit varying approach is safer when you're also doing toon lighting in the same shader.
+<strong>Alternative: <code>render_mode world_vertex_coords;</code></strong> — This render mode makes <code>VERTEX</code> arrive in world space everywhere (vertex, fragment, light), eliminating the need for varyings entirely. But it changes the coordinate space for ALL your vertex code — any vertex displacement, skinning, or other vertex() logic must now work in world space instead of model space.
+
+<strong>When to use which:</strong>
+<ul>
+  <li><strong>Explicit varying (what we did above)</strong> — the safe default. Use when your shader combines triplanar with other effects (toon lighting, vertex animation, outline extrusion) that expect model-space VERTEX. Each system gets the coordinate space it needs.</li>
+  <li><strong><code>world_vertex_coords</code></strong> — simpler for pure-triplanar shaders where nothing else touches VERTEX. One line replaces two varyings + a vertex() function. Good for environment props (terrain, walls) with no vertex animation.</li>
+</ul>
+<strong>Rule of thumb:</strong> If your shader has a <code>light()</code> function or modifies <code>VERTEX</code> for any reason, use the explicit varying. If it's a simple fragment-only material, <code>world_vertex_coords</code> saves boilerplate.
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════
