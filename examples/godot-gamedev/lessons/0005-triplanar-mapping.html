@@ -133,6 +133,8 @@ uniform sampler2D albedo_texture : source_color, repeat_enable, filter_linear_mi
 uniform float tex_scale : hint_range(0.01, 10.0) = 1.0;
 uniform float blend_sharpness : hint_range(1.0, 20.0) = 5.0;
 uniform int bands : hint_range(1, 8) = 3;
+uniform float wrap : hint_range(-1.0, 1.0) = 0.0;
+uniform float steepness : hint_range(0.5, 4.0) = 1.0;
 
 varying vec3 world_pos;
 varying vec3 world_normal;
@@ -166,7 +168,8 @@ void fragment() {
 
 void light() {
     float NdotL = dot(NORMAL, LIGHT);
-    float diffuse_amount = NdotL + (ATTENUATION - 1.0);
+    float diffuse_amount = NdotL + (ATTENUATION - 1.0) + wrap;
+    diffuse_amount *= steepness;
     float cuts_inv = 1.0 / float(bands);
     float stepped = clamp(diffuse_amount + mod(1.0 - diffuse_amount, cuts_inv), 0.0, 1.0);
     DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * LIGHT_COLOR * stepped);
