@@ -60,7 +60,7 @@ varying vec3 world_normal;
 
 void vertex() {
     world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-    world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
+    world_normal = normalize(MODEL_NORMAL_MATRIX * NORMAL);
 }</code></pre>
 
 <p>Now <code>world_pos</code> and <code>world_normal</code> are available in <code>fragment()</code> — and they stay fixed to the scene regardless of camera movement. This is what makes world-space texturing stable.</p>
@@ -131,7 +131,7 @@ varying vec3 world_normal;
 
 void vertex() {
     world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-    world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
+    world_normal = normalize(MODEL_NORMAL_MATRIX * NORMAL);
 }
 
 void fragment() {
