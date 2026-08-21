@@ -1,0 +1,6 @@
+# Godot editor state
+.godot/
+
+# Exported builds
+*.pck
+*.exe
