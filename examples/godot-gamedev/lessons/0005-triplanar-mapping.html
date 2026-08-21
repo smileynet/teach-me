@@ -127,6 +127,7 @@ void vertex() {
 <p>Here's the full triplanar shader — combining world-space texturing with our toon <code>light()</code> from the previous lessons:</p>
 
 <pre data-file="triplanar_toon.gdshader"><code>shader_type spatial;
+render_mode cull_disabled;
 
 uniform sampler2D albedo_texture : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
 uniform float tex_scale : hint_range(0.01, 10.0) = 1.0;
@@ -163,8 +164,12 @@ void light() {
     diffuse_amount *= steepness;
     float cuts_inv = 1.0 / float(bands);
     float stepped = clamp(diffuse_amount + mod(1.0 - diffuse_amount, cuts_inv), 0.0, 1.0);
-    DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * LIGHT_COLOR * ATTENUATION * stepped);
+    DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * LIGHT_COLOR * stepped);
 }</code></pre>
+
+<div class="note">
+<strong>Why <code>cull_disabled</code>?</strong> Triplanar shaders target surfaces without UVs — sidewalks, roads, terrain, CSG. These are often open geometry (a flat plane, not a closed box). Without <code>cull_disabled</code>, Godot only renders the front face of each triangle. If the mesh has only one layer of faces, one side is invisible. Since there's no "inside" to hide on open geometry, disabling backface culling is the correct render mode — not a workaround.
+</div>
 
 <h3>How the blending works</h3>
 
