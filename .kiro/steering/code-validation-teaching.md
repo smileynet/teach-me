@@ -29,45 +29,41 @@ Before writing code-based lessons for a new domain, research validation tooling:
 2. **Language-specific linter** — `eslint`, `clippy`, `shellcheck`. Catches more than syntax.
 3. **LSP in check mode** — When no CLI exists, wrap the LSP's diagnostic endpoint.
 4. **Type checker** — For dynamic languages where the runtime won't catch mismatches.
-5. **Custom validator** — Build one using the language's type system data (last resort).
+5. **Runtime in headless/batch mode** — When no standalone tool exists, use the actual runtime (Godot headless, Unity batch mode). This is the floor, not a fallback.
 
 ### When no validator exists (the gdshader problem)
 
 Some domain-specific languages lack CLI tooling entirely. Strategy:
 
-1. **Clone all prior art** — search GitHub for `{language} linter`, `{language} LSP`, `tree-sitter-{language}`
-2. **Study what exists** — dispatch subagents to read each repo's architecture
-3. **Extract reusable data** — builtin type definitions, keyword lists, AST schemas
-4. **Build a minimal checker** — even syntax + known-type validation catches 80% of real errors
-5. **Integrate the runtime** — if the language has a headless/batch mode (Godot, Unity), use it for full validation in CI
-
-### The 80/20 rule for custom validators
-
-A simple type checker that knows:
-- What variables exist in each scope (builtins + declared)
-- What type each variable is
-- What operators are valid between which types
-
-...catches the majority of bugs learners will hit. You don't need a full compiler — you need enough to catch `vec2 = vec3` assignment errors.
+1. **Use the runtime itself** — if the language has a headless/batch mode (Godot, Unity), that's your validator. It catches everything a learner will hit.
+2. **Clone all prior art** — search GitHub for `{language} linter`, `{language} LSP`, `tree-sitter-{language}`. Understand the landscape.
+3. **Don't build a custom type checker** — regex-based linters give false confidence. They catch errors the runtime already catches instantly, while missing every semantic bug that actually breaks the learner's experience (wrong coordinate space, missing render mode, logic errors).
+4. **Visual confirmation is non-negotiable** — for shaders and visual code, "compiles" ≠ "correct". You must look at the output on a real mesh.
 
 ## Integration Pattern
 
 ```
 mise run verify
   → tools/check-lesson.py (HTML structure, links, accessibility)
-  → tools/validate-code.py (per-language validation of reference/code/ files)
-      → .gdshader → tools/validate-shaders.py (type-aware)
-      → .gd      → gdparse --check (syntax)
+  → Runtime validation (per-language, using the actual compiler/runtime):
+      → .gdshader → Godot headless import (test-scene project at gdhelper-pipeline/test-scene)
+      → .gd      → Godot headless import (same project)
       → .py      → python -m py_compile (syntax) + mypy (types)
       → .rs      → rustc --check (full)
       → .ts      → tsc --noEmit (full)
 ```
 
-Each language handler:
-1. Discovers files by extension in `reference/code/`
-2. Runs the best available validator
-3. Reports errors with file + line number
-4. Returns structured results (pass/fail per file)
+**The golden rule: validate code using the same tool the learner uses.** If the learner will open it in Godot, validate it in Godot. If they'll compile with rustc, validate with rustc. Homebrewed regex linters give false confidence — they catch errors the real tool already catches, while missing every semantic and architectural bug that actually breaks the learner's experience.
+
+### For Godot shaders specifically
+
+A test project exists at `D:\code\gdhelper-pipeline\test-scene`. Validation means:
+1. Copy the shader to the test project's `shaders/` directory
+2. Apply it to a test mesh (the sidewalk, building, or character)
+3. Visually confirm: textures appear on correct faces, lighting matches other toon shaders, no invisible geometry
+4. Only THEN copy the validated shader to `reference/code/{lesson-slug}/`
+
+This catches what no linter can: wrong coordinate spaces, missing render modes, semantic mismatches between fragment() and light(), and architectural issues with the shader pipeline.
 
 ## When Adopting a New Teaching Domain
 
@@ -86,3 +82,5 @@ This is a hard gate — don't publish code-based lessons without validation tool
 - Relying on the agent's parametric knowledge of syntax ("I'm confident this compiles")
 - Testing only the final file when lessons show incremental diffs (each intermediate state matters)
 - Skipping validation for "simple" code blocks (the triplanar bug was 3 characters wrong)
+- Building regex-based type checkers when the runtime is available (false confidence — catches what the runtime already catches, misses what actually matters)
+- Treating "compiles without errors" as sufficient validation for visual code (shaders can compile perfectly while producing invisible geometry, wrong lighting, or mirrored textures)
