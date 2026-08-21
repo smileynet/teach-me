@@ -128,6 +128,8 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 - Bedrock image limit: >20 images in conversation history triggers 2000px max. Resize to ≤768px; dispatch fresh subagents for image analysis in long sessions.
 - Git symlinks on Windows are text files (contain target path as text). For local serving, use `python tools/serve.py --workspace examples/godot-gamedev` — it mounts `/assets` from project root automatically (no junctions needed). Only use junctions for `python -m http.server` debugging.
 - Python tools with Unicode stdout (✓, ✗) fail on Windows cp1252. Use `set PYTHONIOENCODING=utf-8` or avoid non-ASCII in print() output.
+- Mise shim recursion: `mise run` may fail with "recursive shim invocation detected". Workaround: invoke `.venv\Scripts\python.exe` directly instead of `python` or `mise run`.
+- Background servers on Windows: use `Start-Process -WindowStyle Hidden` (never `-NoNewWindow` with redirects — it blocks). Verify with `Get-NetTCPConnection -LocalPort PORT -State Listen`. Never read stdout synchronously from a server process.
 
 ## Skill Format (kiro-cli)
 
