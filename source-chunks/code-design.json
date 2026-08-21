@@ -1,0 +1,92 @@
+[
+  {
+    "heading": "The Nature of Complexity",
+    "level": 1,
+    "page_start": 1,
+    "content": "Complexity is the root cause of most difficulties in software systems. It manifests as change amplification (a simple change requires modifications in many places), cognitive load (developers must hold too much information in mind to make a change), and unknown unknowns (it is not obvious which pieces of code must be modified or what information is needed). Complexity accumulates incrementally — each individual decision seems harmless, but together they create a system that is difficult to understand and modify. The key insight is that complexity is not caused by any single factor but by the accumulation of dependencies and obscurities throughout a codebase.",
+    "word_count": 400,
+    "has_code": false,
+    "has_table": false
+  },
+  {
+    "heading": "Strategic vs Tactical Programming",
+    "level": 2,
+    "page_start": 12,
+    "content": "The most important factor in software design is your mindset. Tactical programming focuses on getting the next feature working as quickly as possible — introducing complexity through shortcuts, workarounds, and patches. Strategic programming invests time in good design, recognizing that a small amount of extra effort today saves substantial time in the future. The tactical approach produces technical debt that compounds over time. The strategic approach accepts that the primary goal is to produce a great design that also works. Most systems degrade because their developers practice tactical programming under schedule pressure.",
+    "word_count": 350,
+    "has_code": false,
+    "has_table": false
+  },
+  {
+    "heading": "Deep Modules",
+    "level": 2,
+    "page_start": 22,
+    "content": "The best modules are deep: they provide powerful functionality behind simple interfaces. A deep module hides significant implementation complexity so that clients interact through a narrow, abstract interface. The Unix file I/O system (open, read, write, close) is a classic deep module — five functions hide enormous complexity including buffering, disk scheduling, permissions, and device drivers. Shallow modules are the opposite: their interfaces are complicated relative to the functionality they provide. Creating a deep module requires finding a simple abstraction that captures the essence of the functionality while hiding implementation details.",
+    "word_count": 370,
+    "has_code": false,
+    "has_table": false
+  },
+  {
+    "heading": "Information Hiding and Leakage",
+    "level": 2,
+    "page_start": 30,
+    "content": "Information hiding is the most important technique for achieving deep modules. Each module should encapsulate knowledge about its design decisions, embedding this knowledge in the implementation but not exposing it through the interface. Information leakage is the opposite — when a design decision is reflected in multiple modules, creating dependencies between them. Temporal decomposition (breaking design around the order of operations) is a common cause of leakage. The red flag for information leakage is when the same knowledge exists in multiple places. If changing a design decision requires modifying several modules, that knowledge has leaked across module boundaries.",
+    "word_count": 360,
+    "has_code": false,
+    "has_table": false
+  },
+  {
+    "heading": "General-Purpose Modules",
+    "level": 2,
+    "page_start": 40,
+    "content": "General-purpose interfaces are deeper than special-purpose ones. A general-purpose mechanism can handle a broad range of situations with a single, clean interface rather than accumulating special cases. The key question to ask is: what is the simplest interface that will cover all my current needs? The general-purpose approach does not mean implementing features you do not need — it means designing interfaces that are naturally general. A text editor class with insert(position, string) and delete(position, length) is more general and simpler than one with methods for each type of edit. As we saw in the section on deep modules, the best interfaces are both general and simple.",
+    "word_count": 380,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Red Flags in Design",
+    "level": 2,
+    "page_start": 52,
+    "content": "Red flags are warning signs that complexity is creeping into a design. Learning to recognize them helps catch problems early. The most important red flags include: shallow module (interface nearly as complex as implementation), information leakage (same design decision in multiple places), temporal decomposition (structure mirrors execution order rather than information hiding), overexposure (API forces callers to manage details they should not need to know), and pass-through methods (methods that do nothing except pass arguments to another method with a similar signature). Each red flag indicates a specific type of design problem and suggests a specific remedy.",
+    "word_count": 350,
+    "has_code": false,
+    "has_table": true
+  },
+  {
+    "heading": "Different Layer, Different Abstraction",
+    "level": 2,
+    "page_start": 60,
+    "content": "In a well-designed system, each layer of the software stack provides a different abstraction from the layers above and below it. If a system has adjacent layers with similar abstractions, this is a red flag suggesting the class decomposition is wrong. Pass-through methods are a symptom — they indicate that the responsibility division between layers does not match the natural abstraction boundaries. When adjacent layers share abstractions, consider merging them or restructuring so each layer transforms information into a genuinely different representation.",
+    "word_count": 290,
+    "has_code": false,
+    "has_table": false
+  },
+  {
+    "heading": "Choosing Names",
+    "level": 2,
+    "page_start": 68,
+    "content": "Good names are a form of documentation and reduce cognitive load. Names should be precise enough to create a clear image of the named entity without being so long that they become cumbersome. A name like count is too generic — what is being counted? A name like numLinesInBlock makes the scope immediately clear. Red flags for naming include generic names used for specific things, names that are inconsistent with similar entities elsewhere, and names that could mean something different from what they actually represent. If a variable's name requires reading its usage to understand, the name has failed its purpose.",
+    "word_count": 340,
+    "has_code": true,
+    "has_table": false
+  },
+  {
+    "heading": "Comments as Design Tool",
+    "level": 2,
+    "page_start": 75,
+    "content": "Comments should describe things that are not obvious from the code. The best practice is to write the comments first as a design tool — describe the interface and high-level approach before writing the implementation. This comments-first approach catches design problems early because vague or complex descriptions often signal that the underlying abstraction needs work. Comments that repeat the code add clutter. Comments that explain WHY (rationale, design alternatives, non-obvious consequences) are valuable. The red flag is when developers can only understand code by reading every line — that means the abstractions and comments have failed.",
+    "word_count": 330,
+    "has_code": false,
+    "has_table": false
+  },
+  {
+    "heading": "Complexity is Incremental",
+    "level": 2,
+    "page_start": 85,
+    "content": "The most insidious property of complexity is that it accumulates gradually. No single design decision makes a system complex. Instead, many small choices — an extra parameter here, a subtle dependency there, a shortcut that saves time today — combine to make the system hard to understand and modify. This incremental nature makes complexity difficult to control because each individual decision seems reasonable in isolation. The zero-tolerance philosophy combats this: treat every incremental increase in complexity as unacceptable and invest the effort to eliminate it immediately, before it compounds with future increments.",
+    "word_count": 310,
+    "has_code": false,
+    "has_table": false
+  }
+]
