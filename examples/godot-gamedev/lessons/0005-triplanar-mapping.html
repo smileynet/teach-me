@@ -159,8 +159,7 @@ void fragment() {
 
 void light() {
     float NdotL = dot(NORMAL, LIGHT);
-    // Clamp NdotL to prevent light bleed-through on back faces
-    float diffuse_amount = max(NdotL, 0.0) + (ATTENUATION - 1.0) + wrap;
+    float diffuse_amount = NdotL + (ATTENUATION - 1.0) + wrap;
     diffuse_amount *= steepness;
     float cuts_inv = 1.0 / float(bands);
     float stepped = clamp(diffuse_amount + mod(1.0 - diffuse_amount, cuts_inv), 0.0, 1.0);
