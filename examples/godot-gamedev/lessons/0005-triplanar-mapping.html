@@ -127,7 +127,6 @@ void vertex() {
 <p>Here's the full triplanar shader — combining world-space texturing with our toon <code>light()</code> from the previous lessons:</p>
 
 <pre data-file="triplanar_toon.gdshader"><code>shader_type spatial;
-render_mode cull_disabled;
 
 uniform sampler2D albedo_texture : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
 uniform float tex_scale : hint_range(0.01, 10.0) = 1.0;
@@ -145,11 +144,8 @@ void vertex() {
 }
 
 void fragment() {
-    // Flip normal for backfaces — ensures triplanar works on both sides
-    vec3 normal = FRONT_FACING ? world_normal : -world_normal;
-
     // Compute blending weights from surface normal
-    vec3 blend = pow(abs(normal), vec3(blend_sharpness));
+    vec3 blend = pow(abs(world_normal), vec3(blend_sharpness));
     blend /= (blend.x + blend.y + blend.z); // normalize to sum = 1.0
 
     // Sample texture from each axis
@@ -159,11 +155,6 @@ void fragment() {
 
     // Blend the three projections
     ALBEDO = x_proj * blend.x + y_proj * blend.y + z_proj * blend.z;
-
-    // Fix normal for lighting on backfaces
-    if (!FRONT_FACING) {
-        NORMAL = -NORMAL;
-    }
 }
 
 void light() {
@@ -174,10 +165,6 @@ void light() {
     float stepped = clamp(diffuse_amount + mod(1.0 - diffuse_amount, cuts_inv), 0.0, 1.0);
     DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * LIGHT_COLOR * stepped);
 }</code></pre>
-
-<div class="note">
-<strong>Why <code>cull_disabled</code> and <code>FRONT_FACING</code>?</strong> Triplanar shaders are often applied to procedural geometry (CSG, voxels, terrain chunks) which frequently has inconsistent or inverted normals. Without <code>cull_disabled</code>, backfaces are invisible — you'll see through the mesh from one side. The <code>FRONT_FACING</code> check flips the normal for backfaces so the triplanar blend and lighting both work correctly regardless of winding order. On artist-modeled meshes with correct normals, this is harmless (FRONT_FACING is always true). On procedural geometry, it prevents the "invisible top, visible bottom" bug.
-</div>
 
 <h3>How the blending works</h3>
 

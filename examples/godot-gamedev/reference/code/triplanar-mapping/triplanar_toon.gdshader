@@ -1,5 +1,4 @@
 shader_type spatial;
-render_mode cull_disabled;
 
 uniform sampler2D albedo_texture : source_color, repeat_enable, filter_linear_mipmap_anisotropic;
 uniform float tex_scale : hint_range(0.01, 10.0) = 1.0;
@@ -17,11 +16,8 @@ void vertex() {
 }
 
 void fragment() {
-    // Flip normal for backfaces — ensures triplanar works on both sides
-    vec3 normal = FRONT_FACING ? world_normal : -world_normal;
-
     // Compute blending weights from surface normal
-    vec3 blend = pow(abs(normal), vec3(blend_sharpness));
+    vec3 blend = pow(abs(world_normal), vec3(blend_sharpness));
     blend /= (blend.x + blend.y + blend.z); // normalize to sum = 1.0
 
     // Sample texture from each axis
@@ -31,11 +27,6 @@ void fragment() {
 
     // Blend the three projections
     ALBEDO = x_proj * blend.x + y_proj * blend.y + z_proj * blend.z;
-    
-    // Fix normal for lighting on backfaces
-    if (!FRONT_FACING) {
-        NORMAL = -NORMAL;
-    }
 }
 
 void light() {
