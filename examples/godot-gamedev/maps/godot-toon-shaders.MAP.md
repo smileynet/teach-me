@@ -39,7 +39,15 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **scope:** substantial
 - **prereqs:** [spatial-shader-anatomy]
 - **lesson_file:** 0005-triplanar-mapping.html
-- **status:** in-progress
+- **status:** complete
+
+### toon-outlines
+- **title:** Toon Outlines
+- **why:** Outlines complete the cel-shading look — two families (inverted hull for per-object control, screen-space depth+normal for production quality) with different trade-offs that shipped games combine
+- **scope:** substantial
+- **prereqs:** [toon-banding]
+- **lesson_file:** 0006-toon-outlines.html
+- **status:** generated
 
 
 ## Expansion Opportunities
