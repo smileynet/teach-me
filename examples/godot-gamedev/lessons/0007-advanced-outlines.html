@@ -29,7 +29,7 @@
   <strong>Win:</strong> You can implement a dual-viewport color-ID outline system for per-object screen-space control, explain how JFA builds distance fields for arbitrarily wide outlines, and select the right technique for any art direction.
 </div>
 <div class="key-concept">
-  <strong>After this lesson:</strong> You understand two advanced outline architectures — dual-viewport color-ID (per-object control without geometry modification) and JFA distance fields (pixel-perfect at any width) — and can articulate which of the four total techniques fits a given production scenario.
+  <strong>After this lesson:</strong> You understand two advanced outline architectures — dual-viewport color-ID (per-object control without geometry modification) and JFA distance fields (clean outlines at any width) — and can articulate which of the four total techniques fits a given production scenario.
 </div>
 
 <h2>The Gap Between Hull and Sobel</h2>
@@ -100,7 +100,7 @@ void fragment() {
     }
 }</code></pre>
 
-<p>Each object's <code>outline_color</code> uniform is its unique identifier. Objects that should share an outline boundary get different colors. Objects that shouldn't outline against each other get the same color.</p>
+<p>Each object's <code>outline_color</code> uniform is its identifier — it controls which boundaries produce outlines, not the displayed outline color (which is set globally in the detector shader). Objects with different ID colors get outlines between them. Objects with the same ID color merge into one silhouette with no outline at their boundary.</p>
 
 <div class="note">
 <strong>New concept — <code>CAMERA_VISIBLE_LAYERS</code>:</strong> A shader built-in that exposes which render layers the current camera can see (its cull_mask). By checking specific bits, a single shader can branch its behavior per camera — rendering lit color for the main camera and flat ID color for the outline camera. This avoids duplicating materials.
@@ -169,7 +169,7 @@ void fragment() {
 <strong>When to use dual-viewport over inverted hull:</strong> When you need per-object outline colors AND consistent pixel width without worrying about mesh topology (no smooth normals baking). The trade-off is doubled render cost and more complex scene setup. Use it for selection highlights, interaction feedback, or stylized games where every object needs its own outline color.
 </div>
 
-<h2>Jump Flood Algorithm (Wide Pixel-Perfect Outlines)</h2>
+<h2>Jump Flood Algorithm (Wide Outlines at Any Width)</h2>
 
 <p>Both the screen-space Sobel (from the previous lesson) and the dual-viewport approach above produce outlines that are 1–8 pixels wide at most. Increase the sample radius further and you get artifacts — gaps at corners, inconsistent thickness, fuzzy edges. The fundamental problem: edge detection doesn't understand <em>distance from the edge</em>. <a href="https://bgolus.medium.com/the-quest-for-very-wide-outlines-ba82ed442cd9" class="citation">[Ben Golus: The Quest for Very Wide Outlines]</a></p>
 
@@ -195,7 +195,7 @@ void fragment() {
   <text x="585" y="55" text-anchor="middle" font-size="11" font-weight="bold" fill="var(--svg-success-text)">3. Overlay</text>
   <text x="585" y="72" text-anchor="middle" font-size="9" fill="var(--svg-success-text)">distance &lt; threshold → outline</text>
   <text x="585" y="85" text-anchor="middle" font-size="9" fill="var(--svg-success-text)">Anti-aliased, any width</text>
-  <text x="350" y="115" text-anchor="middle" font-size="9" fill="var(--svg-text)">30px outline → ⌈log₂(30)⌉ = 5 passes → ~0.6ms at 1080p</text>
+  <text x="350" y="115" text-anchor="middle" font-size="9" fill="var(--svg-text)">30px outline → ⌈log₂(30)⌉ = 5 passes (cost scales with pass count, not width)</text>
   <defs>
     <marker id="arrowhead-jfa" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
       <polygon points="0,0 6,3 0,6" fill="var(--svg-line)"/>
@@ -209,7 +209,11 @@ void fragment() {
   <li><strong>Overlay:</strong> Compute distance to nearest seed. If within threshold, draw outline. The smooth distance field allows anti-aliasing, gradients, and glow effects for free.</li>
 </ol>
 
-<p>The key insight: each JFA pass doubles the propagation range. A 100-pixel outline costs the same as a 64-pixel one — both need 7 passes. This is why JFA outperforms naive dilation (which needs N passes for N-pixel width).</p>
+<p>The key insight: each JFA pass doubles the propagation range. A 100-pixel outline costs the same as a 64-pixel one — both need 7 passes. The pass count is ⌈log₂(desired_outline_width)⌉, determined by the propagation radius you need — not by the texture size. This is why JFA outperforms naive dilation (which needs N passes for N-pixel width).</p>
+
+<div class="note">
+<strong>Performance note:</strong> JFA is an approximation of a Voronoi diagram, not an exact computation. In practice, the error is sub-pixel for outline rendering — visually indistinguishable from exact. The approximation matters for scientific distance field applications but not for drawing outlines around game objects.
+</div>
 
 <h3>JFA in Godot</h3>
 
@@ -229,7 +233,7 @@ void fragment() {
 <pre data-file="toon_outline_jfa_pass.gdshader" data-mode="fragment"><code>shader_type canvas_item;
 render_mode blend_mix;
 
-uniform sampler2D in_texture : hint_screen_texture, filter_nearest;
+uniform sampler2D in_texture : filter_nearest; // Previous pass output (bound by orchestrator)
 uniform float offset; // Halves each pass: 128, 64, 32, 16, 8, 4, 2, 1
 uniform float distance_denominator;
 uniform bool last_pass;
@@ -288,17 +292,18 @@ void fragment() {
 <p>You now have four outline techniques across two lessons. The progression builds competence: each technique teaches a new shader architecture pattern.</p>
 
 <table>
-<thead><tr><th>Criterion</th><th>Inverted Hull</th><th>Screen-Space Sobel</th><th>Dual-Viewport Color-ID</th><th>JFA Distance Field</th></tr></thead>
+<caption>Comparison of four outline techniques across key criteria</caption>
+<thead><tr><th scope="col">Criterion</th><th scope="col">Inverted Hull</th><th scope="col">Screen-Space Sobel</th><th scope="col">Dual-Viewport Color-ID</th><th scope="col">JFA Distance Field</th></tr></thead>
 <tbody>
-<tr><td>Outline width</td><td>Any (world-space)</td><td>1–3px max</td><td>1–8px</td><td>Any (pixel-perfect at 50px+)</td></tr>
-<tr><td>Internal edges</td><td>No (silhouette)</td><td>Yes</td><td>No (silhouette)</td><td>No (silhouette)</td></tr>
-<tr><td>Per-object control</td><td>Yes</td><td>No</td><td>Yes</td><td>Per-node (L0UARN)</td></tr>
-<tr><td>Hard-edge meshes</td><td>Needs smooth normals</td><td>Works perfectly</td><td>Works perfectly</td><td>Works perfectly</td></tr>
-<tr><td>Renderer</td><td>All</td><td>Forward+ / Mobile</td><td>All</td><td>All (CanvasItem) or F+ (CE)</td></tr>
-<tr><td>Setup complexity</td><td>Low</td><td>Low</td><td>Medium (2 viewports)</td><td>High (multi-pass)</td></tr>
-<tr><td>Performance</td><td>~0.1ms/mesh</td><td>~0.1ms total</td><td>~2× scene render</td><td>~0.6ms (30px width)</td></tr>
-<tr><td>Effects (glow, gradient)</td><td>No</td><td>No</td><td>No</td><td>Yes (distance field)</td></tr>
-<tr><td>Transparent objects</td><td>Works</td><td>Doesn't detect</td><td>Works (alpha-aware)</td><td>Depends on extraction</td></tr>
+<tr><th scope="row">Outline width</th><td>Any (world-space)</td><td>1–3px max</td><td>1–8px</td><td>Any (clean at wide widths)</td></tr>
+<tr><th scope="row">Internal edges</th><td>No (silhouette)</td><td>Yes</td><td>No (silhouette)</td><td>No (silhouette)</td></tr>
+<tr><th scope="row">Per-object control</th><td>Yes (color + width)</td><td>No</td><td>Yes (toggle + grouping)</td><td>Per-node (L0UARN)</td></tr>
+<tr><th scope="row">Hard-edge meshes</th><td>Needs smooth normals</td><td>Works perfectly</td><td>Works perfectly</td><td>Works perfectly</td></tr>
+<tr><th scope="row">Renderer</th><td>All</td><td>Forward+ only</td><td>All</td><td>All (CanvasItem) or F+ (CE)</td></tr>
+<tr><th scope="row">Setup complexity</th><td>Low</td><td>Low</td><td>Medium (2 viewports)</td><td>High (multi-pass)</td></tr>
+<tr><th scope="row">Performance</th><td>Cheap (1 draw/mesh)</td><td>Cheap (1 fullscreen pass)</td><td>Moderate (2× scene render)</td><td>Moderate (5-7 passes for wide outlines)</td></tr>
+<tr><th scope="row">Effects (glow, gradient)</th><td>No</td><td>No</td><td>No</td><td>Yes (distance field)</td></tr>
+<tr><th scope="row">Transparent objects</th><td>Works</td><td>Doesn't detect</td><td>Works (alpha-aware)</td><td>Depends on extraction</td></tr>
 </tbody></table>
 
 <div class="note">
@@ -341,7 +346,7 @@ void fragment() {
   <summary>Answer</summary>
   <p><strong>Character (8px, per-limb):</strong> Inverted hull — per-mesh width/color control, cheapest option that gives artistic per-limb control. Needs smooth normals baked if the character has hard edges. Dual-viewport could also work but is more expensive and doesn't offer per-limb variation as naturally.</p>
   <p><strong>Architecture (thin, every crease):</strong> Screen-space Sobel — detects internal edges (normal discontinuities) which no other technique can. Works perfectly on hard-edge geometry without mesh prep. The others only catch silhouettes.</p>
-  <p><strong>Selection highlight (30px, glowing):</strong> JFA distance field — the only technique producing pixel-perfect wide outlines. The distance field naturally supports glow/gradient effects. Screen-space maxes out at ~3px. Dual-viewport maxes at ~8px before artifacts. Hull at 30px world-space distorts badly.</p>
+  <p><strong>Selection highlight (30px, glowing):</strong> JFA distance field — the only technique producing clean wide outlines at arbitrary width. The distance field naturally supports glow/gradient effects. Screen-space maxes out at ~3px. Dual-viewport maxes at ~8px before artifacts. Hull at 30px world-space distorts badly.</p>
   </details>
 </div>
 
@@ -363,7 +368,7 @@ void fragment() {
   "dual-viewport-outline": "An outline technique using two SubViewports — one renders normally, one renders flat ID colors. Edge detection on the ID viewport produces per-object screen-space outlines without geometry modification.",
   "camera-visible-layers": "A Godot shader built-in exposing which render layers the current camera can see. Lets a single shader branch behavior per camera (e.g., lit color for main camera, flat ID for outline camera).",
   "color-id": "A flat color assigned to each object that serves as its identifier in the outline viewport. Color boundaries between adjacent pixels indicate object edges.",
-  "jump-flood-algorithm": "A GPU algorithm that builds a distance field in O(log₂ n) passes by propagating nearest-seed coordinates outward at halving grid offsets. Enables pixel-perfect wide outlines.",
+  "jump-flood-algorithm": "A GPU algorithm that builds an approximate distance field in O(log₂ n) passes by propagating nearest-seed coordinates outward at halving grid offsets. The number of passes equals ⌈log₂(desired_radius)⌉ — not texture size. Produces clean wide outlines with negligible error for outline rendering purposes.",
   "distance-field": "A texture where each pixel stores its distance to the nearest edge. Enables width-independent outline rendering, smooth anti-aliasing, and glow effects from a single computation.",
   "compositor-effect": "A Godot 4.3+ API that lets you inject custom compute shaders into the rendering pipeline, enabling multi-pass post-processing like JFA. Forward+ renderer only.",
   "subviewport": "A Godot node that renders a separate view of the scene into a texture. Used for dual-viewport techniques, picture-in-picture, and render-to-texture pipelines.",

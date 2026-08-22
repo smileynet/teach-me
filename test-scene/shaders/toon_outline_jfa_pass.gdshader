@@ -2,7 +2,7 @@ shader_type canvas_item;
 render_mode blend_mix;
 
 // This shader runs multiple times with decreasing offset values
-uniform sampler2D in_texture : hint_screen_texture, filter_nearest;
+uniform sampler2D in_texture : filter_nearest; // Previous pass output (bound by orchestrator)
 uniform float offset; // Halves each pass: 128, 64, 32, 16, 8, 4, 2, 1
 uniform float distance_denominator;
 uniform bool last_pass;
