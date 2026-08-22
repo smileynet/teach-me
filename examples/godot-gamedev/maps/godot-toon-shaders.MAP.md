@@ -47,7 +47,7 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **scope:** substantial
 - **prereqs:** [toon-banding]
 - **lesson_file:** 0006-toon-outlines.html
-- **status:** generated
+- **status:** complete
 
 
 ## Expansion Opportunities
