@@ -1,0 +1,53 @@
+[gd_scene load_steps=3 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(2, 2, 2)
+
+[sub_resource type="SphereMesh" id="SphereMesh_1"]
+radius = 1.0
+height = 2.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_1"]
+top_radius = 0.5
+bottom_radius = 0.5
+height = 3.0
+
+[node name="OutlineTestScene" type="Node3D"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.94, 0.34, 0, -0.34, 0.94, 0, 4, 10)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707, -0.707, 0, 0.707, 0.707, 0, 8, 0)
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 3, 3)
+omni_range = 12.0
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+transform = Transform3D(10, 0, 0, 0, 0.1, 0, 0, 0, 10, 0, -0.05, 0)
+mesh = SubResource("BoxMesh_1")
+
+[node name="HardEdgeBox_Near" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1, 0)
+mesh = SubResource("BoxMesh_1")
+
+[node name="HardEdgeBox_Mid" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -3)
+mesh = SubResource("BoxMesh_1")
+
+[node name="HardEdgeBox_Far" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1, -6)
+mesh = SubResource("BoxMesh_1")
+
+[node name="SmoothSphere_Near" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.5, 2)
+mesh = SubResource("SphereMesh_1")
+
+[node name="SmoothSphere_Far" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, -4)
+mesh = SubResource("SphereMesh_1")
+
+[node name="Cylinder_Overlap" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1.5, -2)
+mesh = SubResource("CylinderMesh_1")
