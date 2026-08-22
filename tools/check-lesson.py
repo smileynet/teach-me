@@ -163,8 +163,9 @@ def check_q9_svg_accessibility(html: str) -> list[dict]:
 
 
 def check_q11_nav_chain(workspace: Path, lesson_path: Path, html: str) -> list[dict]:
-    """Q11: Previous lesson in the same domain links forward to this lesson."""
+    """Q11: Navigation chain — previous links forward, this links to next."""
     lesson_filename = lesson_path.name
+    results = []
 
     # Determine this lesson's domain from breadcrumb (the map link)
     domain_match = re.search(r'<a href="([^"]*-map\.html)">', html)
@@ -194,15 +195,29 @@ def check_q11_nav_chain(workspace: Path, lesson_path: Path, html: str) -> list[d
     except ValueError:
         return [result("Q11", SKIP, "Lesson not found in domain listing")]
 
+    # Check 1: previous lesson links forward to this one
     if idx == 0:
-        return [result("Q11", SKIP, "First lesson in domain — no previous to check")]
+        results.append(result("Q11", SKIP, "First lesson in domain — no previous to check"))
+    else:
+        prev_lesson = same_domain[idx - 1]
+        prev_html = prev_lesson.read_text(encoding="utf-8")
+        if lesson_filename in prev_html:
+            results.append(result("Q11", PASS, f"Previous lesson ({prev_lesson.name}) links forward"))
+        else:
+            results.append(result("Q11", FAIL, f"Previous lesson ({prev_lesson.name}) does not link to {lesson_filename}"))
 
-    # Check if previous same-domain lesson links to this one
-    prev_lesson = same_domain[idx - 1]
-    prev_html = prev_lesson.read_text(encoding="utf-8")
-    if lesson_filename in prev_html:
-        return [result("Q11", PASS, f"Previous lesson ({prev_lesson.name}) links forward")]
-    return [result("Q11", WARN, f"Previous lesson ({prev_lesson.name}) does not link to {lesson_filename}")]
+    # Check 2: this lesson links forward to next (if next exists)
+    if idx < len(same_domain) - 1:
+        next_lesson = same_domain[idx + 1]
+        if next_lesson.name in html:
+            results.append(result("Q11", PASS, f"Links forward to next lesson ({next_lesson.name})"))
+        else:
+            results.append(result("Q11", FAIL, f"Missing forward link to next lesson ({next_lesson.name})"))
+
+    if not results:
+        results.append(result("Q11", SKIP, "Last lesson in domain — no next to check"))
+
+    return results
 
 
 def check_q10_svg_colors(html: str) -> list[dict]:
