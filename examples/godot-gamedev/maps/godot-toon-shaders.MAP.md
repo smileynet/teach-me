@@ -58,3 +58,5 @@ Subtopics surfaced during lesson development that could become full topics:
 - **shader-globals** — project-wide uniforms, when to use globals vs per-material params, performance implications, scene mood control (surfaced in: toon-banding)
 - **multi-light-strategies** — additive vs max accumulation, light groups, per-light masks, toon-friendly light rigs (surfaced in: toon-banding exercise)
 - **shadow-color-theory** — warm/cool temperature in stylized rendering, color scripts, ambient vs direct color relationships (surfaced in: toon-banding bonus)
+- **blender-smooth-normals-pipeline** — baking smooth normals into vertex colors for inverted hull outlines, Blender Python scripting, glTF export vertex color handling, coordinate system mapping (surfaced in: toon-outlines hard-edge fix)
+- **jfa-distance-fields** — deep dive into JFA implementation, CompositorEffect API, multi-pass rendering in Godot 4.3+, distance field effects (glow, gradients, SDF text) (surfaced in: toon-outlines JFA section)
