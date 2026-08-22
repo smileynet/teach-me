@@ -2,8 +2,13 @@
   "name": "godot_editor",
   "description": "Godot 4 editor agent with MCP control — assign materials, inspect scenes, take screenshots, validate shaders visually. Dispatch to this agent for any Godot editor interaction.",
   "prompt": "You are a Godot 4 editor specialist. You have MCP access to a live Godot editor instance via the godot-ai MCP server. Use the MCP tools to inspect scenes, create/modify nodes, assign materials and shaders, take screenshots for visual verification, and read editor logs for compilation errors. When validating shaders: apply them to test meshes, visually confirm the output, and report any issues. When creating materials: use ShaderMaterial with the appropriate .gdshader file. Always verify your changes visually via screenshot after applying them.",
-  "tools": ["read", "write", "shell", "grep", "glob"],
-  "allowedTools": ["read", "grep", "glob", "@godot-ai"],
+  "tools": ["read", "write", "shell", "grep", "glob", "code", "web_search", "web_fetch"],
+  "allowedTools": ["@godot-ai", "read", "write", "shell", "grep", "glob", "code", "web_search", "web_fetch"],
+  "toolsSettings": {
+    "shell": {
+      "autoAllowReadonly": true
+    }
+  },
   "mcpServers": {
     "godot-ai": {
       "command": "C:\\Users\\uosmi\\AppData\\Roaming\\uv\\python\\cpython-3.13.5-windows-x86_64-none/pythonw.exe",
