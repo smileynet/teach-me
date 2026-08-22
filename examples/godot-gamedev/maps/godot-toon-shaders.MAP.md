@@ -57,6 +57,14 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **lesson_file:** 0007-advanced-outlines.html
 - **status:** complete
 
+### color-simplification
+- **title:** Color Simplification — Posterization, Palettes & Paint
+- **why:** Toon banding discretizes lighting but leaves texture colors at full complexity — posterization, palette snapping, and Kuwahara smoothing each reduce color in different ways at different pipeline stages, completing the flat-color cel look
+- **scope:** substantial
+- **prereqs:** [toon-banding, toon-outlines]
+- **lesson_file:** 0008-color-simplification.html
+- **status:** in-progress
+
 
 ## Expansion Opportunities
 
