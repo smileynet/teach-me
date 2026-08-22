@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 8: Color Simplification — Posterization, Palettes &amp; Paint</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-toon-shaders-map.html">Godot Toon Shaders</a> <span class="nav-sep">›</span> <span>Color Simplification</span></nav>
+<h1>Color Simplification — Posterization, Palettes &amp; Paint</h1>
+
+<div class="lesson-meta">
+  Lesson 8 · Godot Toon Shaders · ~16 min read<br>
+  <strong>Win:</strong> You can reduce a toon scene's color complexity using posterization (math-based), palette snapping (art-directed), and Kuwahara smoothing (paint-style), and explain when each belongs in <code>fragment()</code> vs post-process.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> You understand that <em>where</em> you simplify color determines <em>what</em> gets simplified — posterizing ALBEDO in <code>fragment()</code> feeds simplified color into toon lighting, while posterizing as post-process reduces the final composited output. You can implement three approaches and select the right one for your art direction.
+</div>
+
+<h2>The Problem: Toon Lighting + Complex Textures = Visual Contradiction</h2>
+
+<p>Your toon banding shader (lesson 4) discretizes <em>lighting</em> into flat bands. Your outlines (lessons 6–7) add the dark borders. But look at a textured object: the lighting is flat, the borders are crisp, yet the <em>surface colors</em> still have all the noise, gradients, and micro-detail of a PBR texture. The result looks half-committed — stylized lighting pasted onto photorealistic surfaces.</p>
+
+<p>Shipped cel-shaded games solve this by <strong>reducing color complexity</strong> to match the lighting simplification. Three approaches, each with a different aesthetic and pipeline position:</p>
+
+<svg role="img" aria-labelledby="pipeline-title" viewBox="0 0 700 100" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="pipeline-title">Color simplification can happen at two pipeline stages: in fragment() on the albedo (before lighting), or as post-process on the final frame (after lighting and outlines)</title>
+  <rect x="10" y="25" width="130" height="50" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="75" y="47" text-anchor="middle" font-size="10" font-weight="bold" fill="var(--svg-primary-text)">fragment()</text>
+  <text x="75" y="62" text-anchor="middle" font-size="9" fill="var(--svg-primary-text)">Simplify ALBEDO</text>
+  <line x1="145" y1="50" x2="175" y2="50" stroke="var(--svg-line)" stroke-width="2" marker-end="url(#arr-pipe)"/>
+  <rect x="180" y="25" width="130" height="50" rx="6" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="2"/>
+  <text x="245" y="47" text-anchor="middle" font-size="10" font-weight="bold" fill="var(--svg-warning-text)">light()</text>
+  <text x="245" y="62" text-anchor="middle" font-size="9" fill="var(--svg-warning-text)">Toon banding</text>
+  <line x1="315" y1="50" x2="345" y2="50" stroke="var(--svg-line)" stroke-width="2" marker-end="url(#arr-pipe)"/>
+  <rect x="350" y="25" width="130" height="50" rx="6" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="2"/>
+  <text x="415" y="47" text-anchor="middle" font-size="10" font-weight="bold" fill="var(--svg-neutral-text)">Composite</text>
+  <text x="415" y="62" text-anchor="middle" font-size="9" fill="var(--svg-neutral-text)">+ Outlines</text>
+  <line x1="485" y1="50" x2="515" y2="50" stroke="var(--svg-line)" stroke-width="2" marker-end="url(#arr-pipe)"/>
+  <rect x="520" y="25" width="160" height="50" rx="6" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="2"/>
+  <text x="600" y="47" text-anchor="middle" font-size="10" font-weight="bold" fill="var(--svg-success-text)">Post-Process</text>
+  <text x="600" y="62" text-anchor="middle" font-size="9" fill="var(--svg-success-text)">Simplify final output</text>
+  <defs>
+    <marker id="arr-pipe" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <polygon points="0,0 6,3 0,6" fill="var(--svg-line)"/>
+    </marker>
+  </defs>
+</svg>
+
+<h2>Posterization: The One-Line Color Reducer</h2>
+
+<p>Posterization reduces each color channel to N discrete levels. The formula is one line of math — <code>floor(color * levels) / levels</code> — but <em>where</em> you apply it changes the result dramatically.</p>
+
+<h3>In fragment(): Simplify Before Lighting</h3>
+
+<p>Apply posterization to the albedo texture before it reaches the <code>light()</code> function. The toon banding then operates on already-simplified colors, producing crisp flat regions where both color AND lighting are discrete:</p>
+
+<pre data-file="posterize_albedo.gdshader"><code>shader_type spatial;
+render_mode diffuse_toon;
+
+uniform sampler2D albedo_texture : source_color;
+uniform int color_levels : hint_range(2, 16) = 4;
+uniform int shadow_bands : hint_range(2, 8) = 3;
+
+void fragment() {
+    vec3 tex_color = texture(albedo_texture, UV).rgb;
+
+    // Posterize the albedo — reduce to N levels per channel
+    float n = float(color_levels);
+    ALBEDO = floor(tex_color * n) / n;
+}
+
+void light() {
+    // Toon banding on the already-posterized color
+    float NdotL = dot(NORMAL, LIGHT) * 0.5 + 0.5;
+    float bands = floor(NdotL * float(shadow_bands)) / float(shadow_bands);
+    DIFFUSE_LIGHT += ALBEDO * LIGHT_COLOR * ATTENUATION * bands;
+}</code></pre>
+
+<p>This produces the most aggressive simplification — the texture is flattened <em>before</em> the lighting calculation. Subtle albedo variation disappears entirely, leaving only the N most dominant color regions. The toon lighting then bands across those flat regions.</p>
+
+<h3>As Post-Process: Simplify After Everything</h3>
+
+<p>Apply posterization to the final rendered frame (after lighting, outlines, everything). This preserves toon banding at full fidelity and only reduces the output color depth — the lighting transitions stay smooth within each posterized level:</p>
+
+<pre data-file="posterize_screen.gdshader"><code>shader_type canvas_item;
+
+uniform int color_levels : hint_range(2, 32) = 6;
+uniform bool enable_dithering = true;
+
+uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap;
+
+// 4×4 Bayer dithering matrix (reduces visible banding)
+float bayer4x4(vec2 pos) {
+    int x = int(mod(pos.x, 4.0));
+    int y = int(mod(pos.y, 4.0));
+    float matrix[16] = float[](
+        0.0, 8.0, 2.0, 10.0,
+        12.0, 4.0, 14.0, 6.0,
+        3.0, 11.0, 1.0, 9.0,
+        15.0, 7.0, 13.0, 5.0
+    );
+    return matrix[x + y * 4] / 16.0;
+}
+
+void fragment() {
+    vec3 color = texture(SCREEN_TEXTURE, SCREEN_UV).rgb;
+    float n = float(color_levels);
+
+    // Optional: ordered dithering smooths the banding transitions
+    if (enable_dithering) {
+        color += bayer4x4(FRAGCOORD.xy) / n;
+    }
+
+    COLOR.rgb = floor(color * n) / n;
+    COLOR.a = 1.0;
+}</code></pre>
+
+<p>Apply this to a fullscreen <code>ColorRect</code> in a CanvasLayer. The Bayer dithering matrix breaks up the harsh posterization bands into a stippled pattern — common in retro-styled games like Dead Cells and Return of the Obra Dinn.</p>
+
+<div class="note">
+<strong>When to use which pipeline stage:</strong>
+<ul>
+  <li><strong>fragment() posterization</strong> — when you want the toon lighting to operate on flat color regions. Produces the most "hand-painted" look because the lighting bands align with the color bands. Use when simplifying individual materials.</li>
+  <li><strong>Post-process posterization</strong> — when you want uniform color depth reduction across the entire scene (including UI, particles, post-effects). Preserves the toon lighting calculation at full fidelity. Use for scene-wide color reduction or retro aesthetics.</li>
+</ul>
+<strong>Default:</strong> Start with post-process (simpler setup, consistent look). Switch to fragment() only when you need different posterization levels per material.
+</div>
+
+<h2>Palette Snapping: Art-Directed Color Reduction</h2>
+
+<p>Posterization reduces color <em>uniformly</em> — every hue gets the same number of levels. But what if your art direction calls for specific colors? A sunset scene should snap to warm oranges and purples, not arbitrary quantized values. Palette snapping maps each pixel to the <em>perceptually nearest</em> color in an artist-defined set.</p>
+
+<p>The key insight: measuring color distance in RGB space gives wrong results because RGB doesn't match human perception. A 0.1 difference in green looks much more dramatic than a 0.1 difference in blue. The Oklab color space fixes this — equal distances in Oklab correspond to equal perceived differences. <a href="https://bottosson.github.io/posts/oklab/" class="citation">[Björn Ottosson: Oklab perceptual color space]</a></p>
+
+<pre data-file="palette_snap.gdshader"><code>shader_type canvas_item;
+
+// Artist-defined palette (set in Inspector — up to 16 colors)
+uniform vec4 palette[16] : source_color;
+uniform int palette_size : hint_range(2, 16) = 8;
+
+uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap;
+
+// Convert linear RGB to Oklab (perceptually uniform color space)
+vec3 rgb_to_oklab(vec3 rgb) {
+    float l = 0.4122 * rgb.r + 0.5363 * rgb.g + 0.0514 * rgb.b;
+    float m = 0.2119 * rgb.r + 0.6807 * rgb.g + 0.1074 * rgb.b;
+    float s = 0.0883 * rgb.r + 0.2817 * rgb.g + 0.6300 * rgb.b;
+
+    l = pow(l, 1.0 / 3.0);
+    m = pow(m, 1.0 / 3.0);
+    s = pow(s, 1.0 / 3.0);
+
+    return vec3(
+        0.2105 * l + 0.7936 * m - 0.0041 * s,
+        1.9780 * l - 2.4286 * m + 0.4506 * s,
+        0.0259 * l + 0.7828 * m - 0.8087 * s
+    );
+}
+
+void fragment() {
+    vec3 color = texture(SCREEN_TEXTURE, SCREEN_UV).rgb;
+    vec3 lab = rgb_to_oklab(color);
+
+    // Find the perceptually nearest palette color
+    float min_dist = 1e10;
+    vec3 nearest = palette[0].rgb;
+
+    for (int i = 0; i < palette_size; i++) {
+        vec3 palette_lab = rgb_to_oklab(palette[i].rgb);
+        float dist = distance(lab, palette_lab);
+        if (dist < min_dist) {
+            min_dist = dist;
+            nearest = palette[i].rgb;
+        }
+    }
+
+    COLOR.rgb = nearest;
+    COLOR.a = 1.0;
+}</code></pre>
+
+<p>Set the <code>palette</code> uniform in the Inspector by clicking each color swatch. Start with 4–8 colors that define your scene's mood — the shader maps every pixel in the frame to the closest match. Warm palettes produce sunset feels; cool palettes produce night scenes; limited palettes (3–4 colors) produce strong graphic novel aesthetics.</p>
+
+<div class="note">
+<strong>Performance note:</strong> The brute-force loop (O(n) per pixel for n palette colors) is fast for small palettes (≤16). For larger palettes (32+) or higher resolutions (4K), consider precomputing a 3D lookup texture that maps RGB → palette index. The <a href="https://codeberg.org/Aurora_Bee/posterize-to-palette">posterize-to-palette</a> addon demonstrates this compute-shader LUT approach for production use.
+</div>
+
+<h2>Kuwahara: Paint-Style Edge-Preserving Smoothing</h2>
+
+<p>Posterization and palette snapping reduce the <em>number</em> of colors but preserve texture detail (noise, micro-gradients). What if you want the surface to look <em>painted</em> — broad flat strokes with hard edges between color regions, like a watercolor or gouache illustration?</p>
+
+<p>The Kuwahara filter achieves this by dividing the area around each pixel into four quadrants, computing the average color and variance (how much the colors differ) in each quadrant, then outputting the average of the <em>least variable</em> quadrant. This eliminates fine detail while preserving sharp edges — exactly how a painter's brush fills regions with flat color but stops at boundaries. <a href="https://www.shadertoy.com/view/MsXSz4" class="citation">[Shadertoy: Kuwahara implementations]</a></p>
+
+<pre data-file="kuwahara_basic.gdshader"><code>shader_type canvas_item;
+
+uniform int kernel_size : hint_range(1, 10) = 3;
+uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap;
+
+void fragment() {
+    vec2 pixel = 1.0 / vec2(textureSize(SCREEN_TEXTURE, 0));
+    int radius = kernel_size;
+
+    // Sample four quadrants around the pixel
+    // For each: compute mean color and variance
+    vec3 means[4];
+    float variances[4];
+
+    // Quadrant offsets: top-left, top-right, bottom-left, bottom-right
+    ivec2 offsets[4] = ivec2[](
+        ivec2(-1, -1), ivec2(1, -1),
+        ivec2(-1, 1), ivec2(1, 1)
+    );
+
+    for (int q = 0; q < 4; q++) {
+        vec3 sum = vec3(0.0);
+        vec3 sum_sq = vec3(0.0);
+        float count = 0.0;
+
+        for (int x = 0; x <= radius; x++) {
+            for (int y = 0; y <= radius; y++) {
+                vec2 offset = vec2(
+                    float(x * offsets[q].x),
+                    float(y * offsets[q].y)
+                ) * pixel;
+
+                vec3 sample_color = texture(SCREEN_TEXTURE, SCREEN_UV + offset).rgb;
+                sum += sample_color;
+                sum_sq += sample_color * sample_color;
+                count += 1.0;
+            }
+        }
+
+        means[q] = sum / count;
+        vec3 variance = (sum_sq / count) - (means[q] * means[q]);
+        variances[q] = variance.r + variance.g + variance.b;
+    }
+
+    // Output the mean of the quadrant with lowest variance
+    // (flattest region = most paint-like)
+    int min_idx = 0;
+    float min_var = variances[0];
+    for (int q = 1; q < 4; q++) {
+        if (variances[q] < min_var) {
+            min_var = variances[q];
+            min_idx = q;
+        }
+    }
+
+    COLOR.rgb = means[min_idx];
+    COLOR.a = 1.0;
+}</code></pre>
+
+<p>The result: textured surfaces become flat-colored regions with sharp boundaries — the mesh looks hand-painted without any artist having to paint it. Increase <code>kernel_size</code> for broader strokes (more abstraction); decrease it for subtle smoothing that retains more detail.</p>
+
+<div class="note">
+<strong>Performance note:</strong> Kuwahara samples (kernel_size+1)² × 4 texels per pixel. At kernel_size=3 this is 64 samples; at kernel_size=8 it's 324. Keep the kernel small (2–4) for real-time use. For higher quality, the generalized 8-sector variant (Papari extension) produces smoother results with fewer blocky artifacts, but costs proportionally more.
+</div>
+
+<div class="note">
+<strong>When to use Kuwahara vs posterization:</strong> Posterization creates a <em>poster</em> look — distinct flat bands with abrupt transitions between them. Kuwahara creates a <em>painted</em> look — smooth regions that follow the image's natural structure. Posterization is cheaper and more dramatic; Kuwahara is more subtle and organic. Many games stack both: Kuwahara first (smooth the texture), posterize after (reduce the smoothed result to discrete colors).
+</div>
+
+<h2>Choosing Your Technique</h2>
+
+<table>
+<caption>Color simplification techniques compared — each produces a different aesthetic from the same input</caption>
+<thead><tr><th scope="col">Criterion</th><th scope="col">Posterization</th><th scope="col">Palette Snapping</th><th scope="col">Kuwahara</th></tr></thead>
+<tbody>
+<tr><th scope="row">Aesthetic</th><td>Comic book / poster print</td><td>Graphic novel / limited palette</td><td>Watercolor / gouache painting</td></tr>
+<tr><th scope="row">Art direction control</th><td>Levels count only</td><td>Full (pick exact colors)</td><td>Brush size only</td></tr>
+<tr><th scope="row">Pipeline stage</th><td>fragment() or post-process</td><td>Post-process</td><td>Post-process</td></tr>
+<tr><th scope="row">Performance</th><td>Trivial (1 floor per channel)</td><td>Cheap (loop over palette)</td><td>Moderate (kernel² × 4 samples)</td></tr>
+<tr><th scope="row">Preserves detail</th><td>No (sharp banding)</td><td>No (color snapping)</td><td>Partially (edges preserved, detail removed)</td></tr>
+<tr><th scope="row">Stacks with toon lighting</th><td>Yes (either stage)</td><td>Yes (post-process)</td><td>Yes (post-process)</td></tr>
+<tr><th scope="row">Best for</th><td>Retro, PICO-8, Dead Cells</td><td>Specific mood/brand palettes</td><td>Ghibli, painterly, Okami</td></tr>
+</tbody></table>
+
+<div class="note">
+<strong>The production stack:</strong> Shipped cel-shaded games typically combine:
+<ol>
+  <li><strong>Toon banding</strong> in <code>light()</code> — discretize lighting (lesson 4)</li>
+  <li><strong>One color simplification technique</strong> — either posterization (comic look), palette (art-directed), or Kuwahara (painterly)</li>
+  <li><strong>Outlines</strong> — inverted hull + screen-space (lessons 6–7)</li>
+</ol>
+The order matters: Kuwahara → posterize → outline produces a different result than posterize → Kuwahara → outline. Experiment with stacking order — there's no single "correct" pipeline.
+</div>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A colleague posterizes their toon-shaded character in <code>fragment()</code> with 4 color levels, but complains that the toon lighting bands disappear — the character looks uniformly flat with no shadow definition. Why is this happening, and what would you change?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Think about the pipeline order: what has already happened to the color by the time <code>light()</code> runs? What does reducing to 4 levels before lighting do to the NdotL calculation's input?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p><strong>The problem:</strong> With only 4 color levels in the albedo, the posterized surface is already nearly flat. When <code>light()</code> then applies toon banding, it's banding an almost-uniform color — the shadow-to-lit transition is invisible because both sides of the band boundary are the same posterized value. The posterization ate the variation that the toon banding needed to create visible shadows.</p>
+  <p><strong>The fix:</strong> Move posterization to <em>post-process</em> instead. Let the toon lighting operate on the full-fidelity albedo (producing visible shadow bands), then posterize the final output. Alternatively, increase the color levels in fragment() (8–16 instead of 4) so enough color variation survives for the lighting to band against.</p>
+  <p>This is the threshold concept: where you simplify determines what gets simplified. fragment() posterization simplifies the lighting's <em>input</em>. Post-process posterization simplifies the lighting's <em>output</em>.</p>
+  </details>
+</div>
+
+<h2>Code Files</h2>
+<p>Download the shaders from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/color-simplification/posterize_albedo.gdshader" download><code>posterize_albedo.gdshader</code></a> — fragment()-level posterization with toon banding (per-material)</li>
+  <li><a href="../reference/code/color-simplification/posterize_screen.gdshader" download><code>posterize_screen.gdshader</code></a> — post-process posterization with Bayer dithering (canvas_item, fullscreen ColorRect)</li>
+  <li><a href="../reference/code/color-simplification/palette_snap.gdshader" download><code>palette_snap.gdshader</code></a> — Oklab perceptual palette snapping (canvas_item, fullscreen ColorRect)</li>
+  <li><a href="../reference/code/color-simplification/kuwahara_basic.gdshader" download><code>kuwahara_basic.gdshader</code></a> — basic 4-quadrant Kuwahara filter (canvas_item, fullscreen ColorRect)</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Expansion topics:</strong> Anisotropic Kuwahara (brush-stroke-aligned smoothing via structure tensors), halftone/crosshatch patterns, dithering deep-dive (blue noise, temporal), palette design and color theory.</p>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "posterization": "Reducing color to discrete levels via floor(color × N) / N. Creates flat bands where smooth gradients once existed — the signature comic-book/poster-print look.",
+  "palette-snapping": "Mapping each pixel's color to the perceptually nearest color in an artist-defined set. Gives full art-directorial control over the output colors.",
+  "oklab": "A perceptual color space where equal numerical distances correspond to equal perceived color differences. Used for palette snapping because RGB distance does not match human perception.",
+  "kuwahara-filter": "An edge-preserving smoothing filter that divides pixel neighborhoods into sectors, computes mean and variance for each, and outputs the mean of the flattest sector. Creates a painted look.",
+  "bayer-dithering": "An ordered dithering technique using a fixed threshold matrix to break up posterization bands into a regular stipple pattern, reducing perceived banding without blurring.",
+  "color-quantization": "The general process of reducing the number of distinct colors in an image. Posterization and palette snapping are both forms of color quantization.",
+  "pipeline-stage": "Where in the rendering pipeline an effect is applied. fragment() runs per-material before lighting; post-process runs on the final composited frame after all 3D rendering."
+}
+</script>
+
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
