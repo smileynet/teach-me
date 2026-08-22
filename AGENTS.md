@@ -54,6 +54,9 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 | Migrate SVG colors | `python3 tools/check-svg-vars.py --workspace X` | Flags hardcoded hex in lesson SVGs |
 | Init workspace | `tools/init-workspace.sh [--default]` | Scaffold workspace; --default for generic first-launch content |
 | Serve workspace | `mise run serve -- [--workspace PATH]` | Start server (default: workspace/). Auto-creates workspace on first run |
+| Validate shaders | `godot --path test-scene --editor` | Open test-scene in Godot; apply shaders to meshes, visually confirm |
+| Validate shaders (headless) | `godot --headless --editor --import --quit --path test-scene` | Catches compilation errors only (no visual check) |
+| tkt (direct) | `D:\code\tkt\target\release\tkt.exe` | Bypass mise shim recursion for ticket management |
 | Serve on LAN | `mise run serve:lan -- [--workspace PATH]` | Same but on 0.0.0.0:8787 for network access |
 | Serve restart | `mise run serve:restart` | Kill existing server and restart |
 | SR status | `mise run sr` | What's due, health summary |
