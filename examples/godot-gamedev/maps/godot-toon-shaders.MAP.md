@@ -42,11 +42,19 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **status:** complete
 
 ### toon-outlines
-- **title:** Toon Outlines
-- **why:** Outlines complete the cel-shading look — two families (inverted hull for per-object control, screen-space depth+normal for production quality) with different trade-offs that shipped games combine
+- **title:** Toon Outlines — Geometry & Screen-Space
+- **why:** Outlines complete the cel-shading look — the inverted hull gives per-object control while screen-space edge detection provides production quality with zero mesh prep
 - **scope:** substantial
 - **prereqs:** [toon-banding]
 - **lesson_file:** 0006-toon-outlines.html
+- **status:** complete
+
+### advanced-outlines
+- **title:** Advanced Outlines — Per-Object & Wide
+- **why:** Dual-viewport color-ID gives per-object control in screen-space, and JFA distance fields enable pixel-perfect outlines at any width — the techniques shipped games combine for different object categories
+- **scope:** substantial
+- **prereqs:** [toon-outlines]
+- **lesson_file:** 0007-advanced-outlines.html
 - **status:** complete
 
 

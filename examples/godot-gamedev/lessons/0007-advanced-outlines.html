@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 7: Advanced Outlines — Per-Object &amp; Wide</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-toon-shaders-map.html">Godot Toon Shaders</a> <span class="nav-sep">›</span> <span>Advanced Outlines — Per-Object &amp; Wide</span></nav>
+<h1>Advanced Outlines — Per-Object &amp; Wide</h1>
+
+<div class="lesson-meta">
+  Lesson 7 · Godot Toon Shaders · ~15 min read<br>
+  <strong>Win:</strong> You can implement a dual-viewport color-ID outline system for per-object screen-space control, explain how JFA builds distance fields for arbitrarily wide outlines, and select the right technique for any art direction.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> You understand two advanced outline architectures — dual-viewport color-ID (per-object control without geometry modification) and JFA distance fields (pixel-perfect at any width) — and can articulate which of the four total techniques fits a given production scenario.
+</div>
+
+<h2>The Gap Between Hull and Sobel</h2>
+
+<p>The <a href="0006-toon-outlines.html">previous lesson</a> taught two fundamental approaches:</p>
+<ul>
+  <li><strong>Inverted hull</strong> — per-object control, but geometry-based (needs mesh prep for hard edges, silhouette only)</li>
+  <li><strong>Screen-space Sobel</strong> — image-based (no mesh prep, catches creases), but no per-object control (everything gets the same outline)</li>
+</ul>
+
+<p>What if you need <em>both</em> — screen-space quality (consistent pixel width, no mesh prep) AND per-object control (different colors, toggle per object)? And what if you need outlines wider than the 1–3px that Sobel handles well?</p>
+
+<p>This lesson introduces two techniques that solve these problems: a dual-viewport color-ID approach for per-object screen-space outlines, and the Jump Flood Algorithm (JFA) for wide outlines at any pixel width.</p>
+
+<h2>Dual-Viewport Color-ID Outlines</h2>
+
+<p>The idea: render the scene <em>twice</em> into separate viewports. The first viewport renders normally. The second renders every object as a flat color (its "ID color"). A post-process shader then finds pixels where the ID color changes — those are the outlines. Since each object has its own ID color, you get per-object control while operating entirely in screen space. <a href="https://github.com/SimonPiCarter/demo_pixel_outline_godot" class="citation">[SimonPiCarter: Pixel Outline Demo]</a></p>
+
+<svg role="img" aria-labelledby="dual-viewport-title" viewBox="0 0 700 160" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="dual-viewport-title">Dual-viewport architecture: the scene renders twice — once normal (viewport A) and once as flat-colored silhouettes (viewport B). A canvas shader detects color boundaries in B to draw outlines over A.</title>
+  <!-- Viewport A -->
+  <rect x="20" y="20" width="180" height="120" rx="8" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="110" y="50" text-anchor="middle" font-size="11" font-weight="bold" fill="var(--svg-primary-text)">Viewport A</text>
+  <text x="110" y="68" text-anchor="middle" font-size="9" fill="var(--svg-primary-text)">Normal render</text>
+  <text x="110" y="82" text-anchor="middle" font-size="9" fill="var(--svg-primary-text)">(camera sees layer 1)</text>
+  <rect x="50" y="92" width="30" height="30" rx="3" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="1"/>
+  <circle cx="140" cy="107" r="15" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="1"/>
+  <!-- Viewport B -->
+  <rect x="260" y="20" width="180" height="120" rx="8" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="2"/>
+  <text x="350" y="50" text-anchor="middle" font-size="11" font-weight="bold" fill="var(--svg-neutral-text)">Viewport B</text>
+  <text x="350" y="68" text-anchor="middle" font-size="9" fill="var(--svg-neutral-text)">Flat color-ID render</text>
+  <text x="350" y="82" text-anchor="middle" font-size="9" fill="var(--svg-neutral-text)">(camera sees layer 5)</text>
+  <rect x="290" y="92" width="30" height="30" rx="3" fill="var(--svg-error-fill)" stroke="var(--svg-error)" stroke-width="1"/>
+  <circle cx="380" cy="107" r="15" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1"/>
+  <!-- Arrow to result -->
+  <text x="480" y="82" text-anchor="middle" font-size="14" fill="var(--svg-line)">→</text>
+  <text x="480" y="98" text-anchor="middle" font-size="9" fill="var(--svg-text)">edge detect B</text>
+  <text x="480" y="108" text-anchor="middle" font-size="9" fill="var(--svg-text)">composite on A</text>
+  <!-- Result -->
+  <rect x="520" y="20" width="160" height="120" rx="8" fill="var(--svg-primary-fill)" stroke="var(--svg-success)" stroke-width="3"/>
+  <text x="600" y="50" text-anchor="middle" font-size="11" font-weight="bold" fill="var(--svg-primary-text)">Result</text>
+  <text x="600" y="68" text-anchor="middle" font-size="9" fill="var(--svg-primary-text)">Per-object outlines!</text>
+  <rect x="550" y="89" width="36" height="36" rx="3" fill="var(--svg-warning-fill)" stroke="var(--svg-error)" stroke-width="2.5"/>
+  <circle cx="640" cy="107" r="18" fill="var(--svg-success-fill)" stroke="var(--svg-error)" stroke-width="2.5"/>
+</svg>
+
+<h3>Architecture: Render Layers + CAMERA_VISIBLE_LAYERS</h3>
+
+<p>The trick is that both cameras see the <em>same objects</em> — but the shader outputs different colors depending on which camera is rendering. Godot's <code>CAMERA_VISIBLE_LAYERS</code> built-in tells the shader which camera's cull mask triggered this draw call:</p>
+
+<pre data-file="toon_outline_colorid.gdshader"><code>shader_type spatial;
+render_mode unshaded;
+
+uniform vec4 original_color : source_color = vec4(1.0);
+uniform vec4 outline_color : source_color = vec4(1.0, 0.0, 0.0, 1.0);
+
+// Bit masks for render layers
+const int LAYER_NORMAL = 1;    // Layer 1: normal render
+const int LAYER_OUTLINE = 16;  // Layer 5: color-ID render (1 << 4)
+
+void fragment() {
+    if ((int(CAMERA_VISIBLE_LAYERS) & LAYER_NORMAL) != 0) {
+        // Camera A sees us — render normally
+        ALBEDO = original_color.rgb;
+    } else if ((int(CAMERA_VISIBLE_LAYERS) & LAYER_OUTLINE) != 0) {
+        // Camera B sees us — output flat ID color for edge detection
+        ALBEDO = outline_color.rgb;
+    }
+}</code></pre>
+
+<p>Each object's <code>outline_color</code> uniform is its unique identifier. Objects that should share an outline boundary get different colors. Objects that shouldn't outline against each other get the same color.</p>
+
+<div class="note">
+<strong>New concept — <code>CAMERA_VISIBLE_LAYERS</code>:</strong> A shader built-in that exposes which render layers the current camera can see (its cull_mask). By checking specific bits, a single shader can branch its behavior per camera — rendering lit color for the main camera and flat ID color for the outline camera. This avoids duplicating materials.
+</div>
+
+<h3>The Edge Detection Shader (Canvas Post-Process)</h3>
+
+<p>The outline camera's viewport renders flat-colored silhouettes. A canvas_item shader composited on top detects where adjacent pixels have different colors — those color boundaries are the outlines:</p>
+
+<pre data-file="toon_outline_colorid_detect.gdshader"><code>shader_type canvas_item;
+
+uniform vec4 outline_color : source_color = vec4(0.0, 0.0, 0.0, 1.0);
+uniform float outline_width : hint_range(0.5, 8.0) = 1.0;
+
+const vec2 DIRECTIONS[8] = {
+    vec2(1.0, 0.0), vec2(0.0, 1.0), vec2(-1.0, 0.0), vec2(0.0, -1.0),
+    vec2(1.0, 1.0), vec2(-1.0, 1.0), vec2(-1.0, -1.0), vec2(1.0, -1.0)
+};
+
+void fragment() {
+    vec4 center = texture(TEXTURE, UV);
+    float edge = 0.0;
+
+    // Compare center pixel to 8 neighbors
+    for (int i = 0; i < 8; i++) {
+        vec2 offset = DIRECTIONS[i] * TEXTURE_PIXEL_SIZE * outline_width;
+        vec4 neighbor = texture(TEXTURE, UV + offset);
+
+        // Color difference = different objects = edge
+        float diff = abs(neighbor.r - center.r)
+                   + abs(neighbor.g - center.g)
+                   + abs(neighbor.b - center.b);
+
+        // Only outline if neighbor is "behind" (lower alpha or black background)
+        float is_boundary = step(0.01, diff);
+        edge = max(edge, is_boundary);
+    }
+
+    COLOR.rgb = outline_color.rgb;
+    COLOR.a = edge * center.a; // No outline on transparent background
+}</code></pre>
+
+<p>The logic is simple: if any neighbor pixel has a different color than the center pixel, this is an edge. Multiply by <code>center.a</code> so transparent background areas don't generate outlines.</p>
+
+<h3>Scene Setup</h3>
+
+<p>The architecture requires two SubViewports with synchronized cameras:</p>
+
+<ol>
+  <li><strong>All meshes:</strong> Set <code>layers</code> to include both layer 1 (normal) and layer 5 (outline)</li>
+  <li><strong>Main SubViewport:</strong> Camera with <code>cull_mask</code> that includes layer 1 but NOT layer 5</li>
+  <li><strong>Outline SubViewport:</strong> Camera with <code>cull_mask</code> that includes layer 5 but NOT layer 1</li>
+  <li><strong>CanvasLayer:</strong> Two TextureRect nodes — one showing the main viewport, one showing the outline viewport with the edge detection shader</li>
+  <li><strong>Camera sync:</strong> Use a RemoteTransform3D on the main camera targeting the outline camera (keeps them in lockstep)</li>
+</ol>
+
+<div class="note">
+<strong>Performance cost:</strong> This technique renders the scene twice — every object is drawn in both viewports. For simple scenes this is fine. For complex scenes with many draw calls, consider limiting which objects participate in the outline pass (remove layer 5 from background props that don't need outlines).
+</div>
+
+<div class="note">
+<strong>When to use dual-viewport over inverted hull:</strong> When you need per-object outline colors AND consistent pixel width without worrying about mesh topology (no smooth normals baking). The trade-off is doubled render cost and more complex scene setup. Use it for selection highlights, interaction feedback, or stylized games where every object needs its own outline color.
+</div>
+
+<h2>Jump Flood Algorithm (Wide Pixel-Perfect Outlines)</h2>
+
+<p>Both the screen-space Sobel (from the previous lesson) and the dual-viewport approach above produce outlines that are 1–8 pixels wide at most. Increase the sample radius further and you get artifacts — gaps at corners, inconsistent thickness, fuzzy edges. The fundamental problem: edge detection doesn't understand <em>distance from the edge</em>. <a href="https://bgolus.medium.com/the-quest-for-very-wide-outlines-ba82ed442cd9" class="citation">[Ben Golus: The Quest for Very Wide Outlines]</a></p>
+
+<p>The Jump Flood Algorithm (JFA) solves this by computing a <strong>distance field</strong> — every pixel knows exactly how far it is from the nearest edge. That distance drives the outline: if <code>distance &lt; threshold</code>, draw outline color. The result is mathematically clean at any width — 5px or 500px — with O(log₂ n) cost.</p>
+
+<h3>How JFA Works</h3>
+
+<p>JFA builds a distance field in three stages:</p>
+
+<svg role="img" aria-labelledby="jfa-pipeline-title" viewBox="0 0 700 120" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="jfa-pipeline-title">JFA pipeline: three stages — extraction finds edge seeds, jump flood passes propagate nearest-seed coordinates outward, overlay reads the distance field to render the outline</title>
+  <rect x="10" y="25" width="170" height="70" rx="8" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="95" y="55" text-anchor="middle" font-size="11" font-weight="bold" fill="var(--svg-primary-text)">1. Extraction</text>
+  <text x="95" y="72" text-anchor="middle" font-size="9" fill="var(--svg-primary-text)">Find edges → mark as "seeds"</text>
+  <text x="95" y="85" text-anchor="middle" font-size="9" fill="var(--svg-primary-text)">Each seed stores its position</text>
+  <line x1="185" y1="60" x2="225" y2="60" stroke="var(--svg-line)" stroke-width="2" marker-end="url(#arrowhead-jfa)"/>
+  <rect x="230" y="25" width="210" height="70" rx="8" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="2"/>
+  <text x="335" y="55" text-anchor="middle" font-size="11" font-weight="bold" fill="var(--svg-warning-text)">2. Jump Flood (×N passes)</text>
+  <text x="335" y="72" text-anchor="middle" font-size="9" fill="var(--svg-warning-text)">Propagate nearest seed outward</text>
+  <text x="335" y="85" text-anchor="middle" font-size="9" fill="var(--svg-warning-text)">N = ⌈log₂(outline_width)⌉</text>
+  <line x1="445" y1="60" x2="485" y2="60" stroke="var(--svg-line)" stroke-width="2" marker-end="url(#arrowhead-jfa)"/>
+  <rect x="490" y="25" width="190" height="70" rx="8" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="2"/>
+  <text x="585" y="55" text-anchor="middle" font-size="11" font-weight="bold" fill="var(--svg-success-text)">3. Overlay</text>
+  <text x="585" y="72" text-anchor="middle" font-size="9" fill="var(--svg-success-text)">distance &lt; threshold → outline</text>
+  <text x="585" y="85" text-anchor="middle" font-size="9" fill="var(--svg-success-text)">Anti-aliased, any width</text>
+  <text x="350" y="115" text-anchor="middle" font-size="9" fill="var(--svg-text)">30px outline → ⌈log₂(30)⌉ = 5 passes → ~0.6ms at 1080p</text>
+  <defs>
+    <marker id="arrowhead-jfa" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <polygon points="0,0 6,3 0,6" fill="var(--svg-line)"/>
+    </marker>
+  </defs>
+</svg>
+
+<ol>
+  <li><strong>Extraction:</strong> Run edge detection (Sobel on viewport color). Pixels at edges become "seeds" and store their screen coordinates. Non-seeds get a sentinel value.</li>
+  <li><strong>Jump Flood (repeated N times):</strong> Each pass, every pixel checks 8 neighbors at a decreasing grid offset (128, 64, 32, 16, 8, 4, 2, 1). If a neighbor has a closer seed, adopt it. After all passes, every pixel knows its nearest edge pixel.</li>
+  <li><strong>Overlay:</strong> Compute distance to nearest seed. If within threshold, draw outline. The smooth distance field allows anti-aliasing, gradients, and glow effects for free.</li>
+</ol>
+
+<p>The key insight: each JFA pass doubles the propagation range. A 100-pixel outline costs the same as a 64-pixel one — both need 7 passes. This is why JFA outperforms naive dilation (which needs N passes for N-pixel width).</p>
+
+<h3>JFA in Godot</h3>
+
+<p>JFA requires multi-pass rendering with ping-pong textures. Two community implementations handle the orchestration:</p>
+
+<div class="note">
+<strong>When to use which JFA implementation:</strong>
+<ul>
+  <li><strong><a href="https://github.com/pink-arcana/godot-distance-field-outlines">pink-arcana/godot-distance-field-outlines</a></strong> (150★, MIT) — CanvasItem version (all renderers + web) and CompositorEffect version (Forward+ only, faster). Best for learning.</li>
+  <li><strong><a href="https://github.com/L0UARN/godot-outlines">L0UARN/godot-outlines</a></strong> (MIT) — C# + compute shaders via CompositorEffect. Supports per-node outline colors.</li>
+</ul>
+<strong>Default:</strong> Start with pink-arcana's DFOutlineNode (CanvasItem) — works everywhere, simplest to understand.
+</div>
+
+<p>The core flood pass — the essential algorithm that runs N times with halving offsets (adapted from <a href="https://github.com/pink-arcana/godot-distance-field-outlines" class="citation">pink-arcana</a>, MIT):</p>
+
+<pre data-file="toon_outline_jfa_pass.gdshader" data-mode="fragment"><code>shader_type canvas_item;
+render_mode blend_mix;
+
+uniform sampler2D in_texture : hint_screen_texture, filter_nearest;
+uniform float offset; // Halves each pass: 128, 64, 32, 16, 8, 4, 2, 1
+uniform float distance_denominator;
+uniform bool last_pass;
+
+const vec2 NEIGHBOR_OFFSETS[8] = {
+    vec2(-1.0,-1.0), vec2(0.0,-1.0), vec2(1.0,-1.0),
+    vec2(-1.0,0.0),                   vec2(1.0,0.0),
+    vec2(-1.0,1.0),  vec2(0.0,1.0),  vec2(1.0,1.0) };
+
+void fragment() {
+    vec2 texture_size = vec2(textureSize(in_texture, 0));
+    vec2 pixel_size = 1.0 / texture_size;
+    vec2 tex_coord = UV / pixel_size;
+
+    vec4 seed_color = texelFetch(in_texture, ivec2(tex_coord), 0);
+    vec2 seed_coord = seed_color.rg * texture_size;
+    bool valid_seed = seed_color.a > 0.5;
+    float min_dist_sq = valid_seed ? distance(tex_coord, seed_coord) : 1000000.0;
+    min_dist_sq = min_dist_sq * min_dist_sq;
+
+    for (int i = 0; i < 8; i++) {
+        vec2 neighbor_coord = tex_coord + NEIGHBOR_OFFSETS[i] * offset;
+        neighbor_coord = clamp(neighbor_coord, vec2(0.0), texture_size - vec2(1.0));
+
+        vec4 neighbor_color = texelFetch(in_texture, ivec2(neighbor_coord), 0);
+        if (neighbor_color.a < 0.5) continue;
+
+        vec2 neighbor_seed = neighbor_color.rg * texture_size;
+        float dist_sq = distance(tex_coord, neighbor_seed);
+        dist_sq = dist_sq * dist_sq;
+
+        if (dist_sq < min_dist_sq) {
+            min_dist_sq = dist_sq;
+            seed_coord = neighbor_seed;
+            seed_color = neighbor_color;
+            valid_seed = true;
+        }
+    }
+
+    if (last_pass) {
+        float dist = valid_seed ? sqrt(min_dist_sq) / distance_denominator : 1.0;
+        COLOR = vec4(dist, 0.0, 0.0, 1.0);
+    } else {
+        COLOR = valid_seed ? vec4(seed_coord / texture_size, 0.0, 1.0) : vec4(0.0);
+    }
+}</code></pre>
+
+<p>Each invocation halves <code>offset</code>. After all passes, every pixel contains its normalized distance to the nearest seed. The overlay pass thresholds this to produce the final outline.</p>
+
+<div class="note">
+<strong>Why JFA is more complex to set up:</strong> Unlike single-shader techniques, JFA needs orchestration — multiple render passes with intermediate textures. In Godot, the CanvasItem version uses SubViewports (ping-ponging between them each pass). The CompositorEffect version uses compute dispatches. Both addons handle this automatically — you don't write the multi-pass loop yourself.
+</div>
+
+<h2>Choosing Your Outline Technique</h2>
+
+<p>You now have four outline techniques across two lessons. The progression builds competence: each technique teaches a new shader architecture pattern.</p>
+
+<table>
+<thead><tr><th>Criterion</th><th>Inverted Hull</th><th>Screen-Space Sobel</th><th>Dual-Viewport Color-ID</th><th>JFA Distance Field</th></tr></thead>
+<tbody>
+<tr><td>Outline width</td><td>Any (world-space)</td><td>1–3px max</td><td>1–8px</td><td>Any (pixel-perfect at 50px+)</td></tr>
+<tr><td>Internal edges</td><td>No (silhouette)</td><td>Yes</td><td>No (silhouette)</td><td>No (silhouette)</td></tr>
+<tr><td>Per-object control</td><td>Yes</td><td>No</td><td>Yes</td><td>Per-node (L0UARN)</td></tr>
+<tr><td>Hard-edge meshes</td><td>Needs smooth normals</td><td>Works perfectly</td><td>Works perfectly</td><td>Works perfectly</td></tr>
+<tr><td>Renderer</td><td>All</td><td>Forward+ / Mobile</td><td>All</td><td>All (CanvasItem) or F+ (CE)</td></tr>
+<tr><td>Setup complexity</td><td>Low</td><td>Low</td><td>Medium (2 viewports)</td><td>High (multi-pass)</td></tr>
+<tr><td>Performance</td><td>~0.1ms/mesh</td><td>~0.1ms total</td><td>~2× scene render</td><td>~0.6ms (30px width)</td></tr>
+<tr><td>Effects (glow, gradient)</td><td>No</td><td>No</td><td>No</td><td>Yes (distance field)</td></tr>
+<tr><td>Transparent objects</td><td>Works</td><td>Doesn't detect</td><td>Works (alpha-aware)</td><td>Depends on extraction</td></tr>
+</tbody></table>
+
+<div class="note">
+<strong>The decision tree:</strong>
+<ul>
+  <li><strong>Need per-object control + consistent pixel width?</strong> → Dual-viewport color-ID. Best when you can afford the double render.</li>
+  <li><strong>Need thin outlines everywhere with internal creases?</strong> → Screen-space Sobel. Zero setup, catches every fold.</li>
+  <li><strong>Need per-object control but can modify meshes?</strong> → Inverted hull (cheapest, all renderers).</li>
+  <li><strong>Need wide outlines (10+ pixels) or effects?</strong> → JFA. Only technique with clean results at any width.</li>
+  <li><strong>Targeting Compatibility/web?</strong> → Hull (always works) or JFA CanvasItem version.</li>
+</ul>
+</div>
+
+<h3>The Production Combination</h3>
+
+<p>Shipped games combine techniques by category — Guilty Gear Strive, Hi-Fi Rush, Genshin Impact, and Borderlands all use multiple approaches simultaneously:</p>
+
+<ul>
+  <li><strong>Characters:</strong> Inverted hull (artistic control over thickness per body part, smooth normals baked)</li>
+  <li><strong>Environment:</strong> Screen-space Sobel (automatic coverage, catches every architectural crease)</li>
+  <li><strong>Selection/Interaction:</strong> Dual-viewport or JFA (wide glowing outlines for the selected object)</li>
+</ul>
+
+<p>The learning progression mirrors this: hull teaches vertex manipulation, Sobel teaches buffer access, dual-viewport teaches multi-viewport architecture, JFA teaches multi-pass algorithms. Each builds competence the next assumes.</p>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> Your art director wants three different outline styles in the same scene:</p>
+  <ul>
+    <li>The player character needs a thick (8px) outline with per-limb width control</li>
+    <li>Environmental architecture (all hard-edge cubes and pillars) needs thin outlines at every crease</li>
+    <li>The selected interactable object needs a wide (30px) glowing highlight</li>
+  </ul>
+  <p>Which technique would you use for each, and why can't the others do the job?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Think about what each technique excels at: per-object control, internal edges, outline width range, effects support. One technique fails on wide outlines. One can't do per-object. One can't detect creases.</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p><strong>Character (8px, per-limb):</strong> Inverted hull — per-mesh width/color control, cheapest option that gives artistic per-limb control. Needs smooth normals baked if the character has hard edges. Dual-viewport could also work but is more expensive and doesn't offer per-limb variation as naturally.</p>
+  <p><strong>Architecture (thin, every crease):</strong> Screen-space Sobel — detects internal edges (normal discontinuities) which no other technique can. Works perfectly on hard-edge geometry without mesh prep. The others only catch silhouettes.</p>
+  <p><strong>Selection highlight (30px, glowing):</strong> JFA distance field — the only technique producing pixel-perfect wide outlines. The distance field naturally supports glow/gradient effects. Screen-space maxes out at ~3px. Dual-viewport maxes at ~8px before artifacts. Hull at 30px world-space distorts badly.</p>
+  </details>
+</div>
+
+<h2>Code Files</h2>
+<p>Download the shaders from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/advanced-outlines/toon_outline_colorid.gdshader" download><code>toon_outline_colorid.gdshader</code></a> — spatial shader with CAMERA_VISIBLE_LAYERS branching (renders normal or flat ID color)</li>
+  <li><a href="../reference/code/advanced-outlines/toon_outline_colorid_detect.gdshader" download><code>toon_outline_colorid_detect.gdshader</code></a> — canvas_item edge detection on the color-ID viewport</li>
+  <li><a href="../reference/code/advanced-outlines/toon_outline_jfa_pass.gdshader" download><code>toon_outline_jfa_pass.gdshader</code></a> — JFA flood pass (educational — use pink-arcana addon for production)</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next lesson:</strong> Shadow Color Theory — warm/cool tinting for stylized shadow rendering</p>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "dual-viewport-outline": "An outline technique using two SubViewports — one renders normally, one renders flat ID colors. Edge detection on the ID viewport produces per-object screen-space outlines without geometry modification.",
+  "camera-visible-layers": "A Godot shader built-in exposing which render layers the current camera can see. Lets a single shader branch behavior per camera (e.g., lit color for main camera, flat ID for outline camera).",
+  "color-id": "A flat color assigned to each object that serves as its identifier in the outline viewport. Color boundaries between adjacent pixels indicate object edges.",
+  "jump-flood-algorithm": "A GPU algorithm that builds a distance field in O(log₂ n) passes by propagating nearest-seed coordinates outward at halving grid offsets. Enables pixel-perfect wide outlines.",
+  "distance-field": "A texture where each pixel stores its distance to the nearest edge. Enables width-independent outline rendering, smooth anti-aliasing, and glow effects from a single computation.",
+  "compositor-effect": "A Godot 4.3+ API that lets you inject custom compute shaders into the rendering pipeline, enabling multi-pass post-processing like JFA. Forward+ renderer only.",
+  "subviewport": "A Godot node that renders a separate view of the scene into a texture. Used for dual-viewport techniques, picture-in-picture, and render-to-texture pipelines.",
+  "render-layers": "A bitmask on both cameras (cull_mask) and objects (layers) that controls which objects each camera draws. Foundation for multi-viewport rendering pipelines."
+}
+</script>
+
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>

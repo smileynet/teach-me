@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lesson 6: Toon Outlines</title>
+  <title>Lesson 6: Toon Outlines — Geometry & Screen-Space</title>
   <script src="../assets/typography-prefs.js"></script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/glossary.css">
@@ -21,28 +21,28 @@
 </head>
 <body>
 
-<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-toon-shaders-map.html">Godot Toon Shaders</a> <span class="nav-sep">›</span> <span>Toon Outlines</span></nav>
-<h1>Toon Outlines</h1>
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-toon-shaders-map.html">Godot Toon Shaders</a> <span class="nav-sep">›</span> <span>Toon Outlines — Geometry &amp; Screen-Space</span></nav>
+<h1>Toon Outlines — Geometry &amp; Screen-Space</h1>
 
 <div class="lesson-meta">
-  Lesson 6 · Godot Toon Shaders · ~25 min read<br>
-  <strong>Win:</strong> You can implement three outline approaches (inverted hull, screen-space edge detection, JFA distance field), explain the hard-edge problem and its fix, and select the right technique for a given art direction.
+  Lesson 6 · Godot Toon Shaders · ~15 min read<br>
+  <strong>Win:</strong> You can implement an inverted hull outline (including the smooth-normals fix for hard edges) and a screen-space depth+normal edge detector, and explain when each approach is the right tool.
 </div>
 <div class="key-concept">
-  <strong>After this lesson:</strong> You can create an inverted hull outline (including the smooth-normals fix for hard edges), set up screen-space depth+normal edge detection, explain how JFA builds a distance field for wide outlines, and articulate why shipped games combine techniques for different object categories.
+  <strong>After this lesson:</strong> You understand the two foundational outline families — geometry-based (inverted hull via <code>next_pass</code>) and image-based (depth+normal Sobel on a fullscreen quad) — including why hard-edge meshes break the hull approach and how to fix it.
 </div>
 
 <h2>The Problem: Toon Shading Without Outlines Looks Unfinished</h2>
 
 <p>The banding shaders from the previous lessons give us discrete brightness steps — the "inside" of the cel look. But without outlines, the shapes don't pop off the background the way they do in anime or comic-book games. The dark border is what tells your brain "this is a stylized object, not a realistic one with flat lighting." <a href="https://github.com/eldskald/godot4-cel-shader" class="citation">[eldskald: Complete Cel Shader]</a></p>
 
-<p>Two families of outline techniques exist:</p>
+<p>Two foundational families of outline techniques exist:</p>
 <ul>
-  <li><strong>Inverted hull (mesh-based)</strong> — renders the mesh a second time, inflated and front-face-culled, so you see a dark shell behind the original. Per-object, cheap, works everywhere.</li>
-  <li><strong>Screen-space edge detection (post-process)</strong> — samples the depth/normal buffers and draws edges where values change sharply. Whole-scene, detects internal edges, but no per-object control.</li>
+  <li><strong>Geometry-based (inverted hull)</strong> — renders the mesh a second time, inflated and front-face-culled, so you see a dark shell behind the original. Per-object, cheap, works everywhere.</li>
+  <li><strong>Image-based (screen-space edge detection)</strong> — samples the depth/normal buffers and draws edges where values change sharply. Whole-scene, detects internal edges, zero mesh prep.</li>
 </ul>
 
-<p>This lesson teaches the inverted hull approach — it's the industry standard (Guilty Gear, Genshin Impact, Persona) and integrates cleanly with our existing <code>toon_bands</code> shader. We'll mention screen-space at the end with decision criteria for when you'd pick it instead.</p>
+<p>This lesson teaches both. They're the building blocks that shipped games combine — and understanding their strengths and limits tells you when you need the more advanced techniques in the next lesson.</p>
 
 <svg role="img" aria-labelledby="outline-concept-title" viewBox="0 0 600 160" style="max-width:100%; height:auto; margin: 1.5rem 0;">
   <title id="outline-concept-title">Inverted hull concept: original mesh rendered normally, then a slightly larger copy rendered with front-face culling and black color creates the outline silhouette</title>
@@ -144,29 +144,6 @@ void fragment() {
 <strong>Why write to <code>POSITION</code> instead of <code>VERTEX</code>?</strong> Once we transform manually via <code>MODELVIEW_MATRIX</code>, we've left model space. Writing to <code>POSITION</code> (a clip-space vec4) tells Godot "I've done the full transform myself — skip the built-in modelview+projection." This is the standard pattern for any vertex shader that needs to operate in view or clip space.
 </div>
 
-<h2>View-Space Outline (Distance-Independent)</h2>
-
-<p>Combining the view-space expansion with a small minimum thickness so outlines don't vanish completely at extreme distances:</p>
-
-<pre data-file="toon_outline.gdshader"><code>shader_type spatial;
-render_mode cull_front, unshaded;
-
-uniform float outline_width : hint_range(0.0, 0.1) = 0.02;
-uniform vec4 outline_color : source_color = vec4(0.0, 0.0, 0.0, 1.0);
-
-void vertex() {
-    vec4 clip_pos = MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
-    vec3 view_normal = normalize((MODELVIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
-    clip_pos.xyz += view_normal * outline_width * -clip_pos.z;
-    POSITION = PROJECTION_MATRIX * clip_pos;
-}
-
-void fragment() {
-    ALBEDO = outline_color.rgb;
-}</code></pre>
-
-<p><strong>Try it:</strong> Apply this as <code>next_pass</code> on any of the toon-shaded meshes from previous lessons. Orbit the camera close and far — the outline stays the same apparent thickness. Change <code>outline_color</code> to dark blue or brown for a softer look than pure black.</p>
-
 <h2>The Hard-Edge Problem</h2>
 
 <p>Try the outline on a cube and you'll see it immediately: the outline is disjointed, with visible gaps at every edge. The sphere looked fine — so what's different?</p>
@@ -175,10 +152,8 @@ void fragment() {
 
 <svg role="img" aria-labelledby="split-normals-title" viewBox="0 0 500 180" style="max-width:100%; height:auto; margin: 1.5rem 0;">
   <title id="split-normals-title">Diagram showing how split normals at a hard edge cause the extruded hull to tear apart — co-located vertices move in different directions</title>
-  <!-- Shared vertex point -->
   <circle cx="150" cy="90" r="5" fill="var(--svg-error)" stroke="var(--svg-error)" stroke-width="2"/>
   <text x="150" y="75" text-anchor="middle" font-size="10" fill="var(--svg-text)">shared position</text>
-  <!-- Three divergent normals -->
   <line x1="150" y1="90" x2="110" y2="50" stroke="var(--svg-error)" stroke-width="2" marker-end="url(#arrowhead-err)"/>
   <line x1="150" y1="90" x2="190" y2="50" stroke="var(--svg-error)" stroke-width="2" marker-end="url(#arrowhead-err)"/>
   <line x1="150" y1="90" x2="150" y2="140" stroke="var(--svg-error)" stroke-width="2" marker-end="url(#arrowhead-err)"/>
@@ -186,16 +161,13 @@ void fragment() {
   <text x="195" y="45" font-size="9" fill="var(--svg-error-text)">N₂</text>
   <text x="160" y="148" font-size="9" fill="var(--svg-error-text)">N₃</text>
   <text x="150" y="170" text-anchor="middle" font-size="9" fill="var(--svg-text)">Extrusion tears hull apart</text>
-  <!-- Arrow to fix -->
   <text x="260" y="92" text-anchor="middle" font-size="16" fill="var(--svg-line)">→</text>
   <text x="260" y="108" text-anchor="middle" font-size="9" fill="var(--svg-text)">fix</text>
-  <!-- Averaged normal -->
   <circle cx="370" cy="90" r="5" fill="var(--svg-success)" stroke="var(--svg-success)" stroke-width="2"/>
   <text x="370" y="75" text-anchor="middle" font-size="10" fill="var(--svg-text)">same position</text>
   <line x1="370" y1="90" x2="370" y2="40" stroke="var(--svg-success)" stroke-width="2.5" marker-end="url(#arrowhead-ok)"/>
   <text x="385" y="45" font-size="9" fill="var(--svg-success-text)">N_avg</text>
   <text x="370" y="170" text-anchor="middle" font-size="9" fill="var(--svg-text)">All vertices extrude together</text>
-  <!-- Arrowhead definitions -->
   <defs>
     <marker id="arrowhead-err" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
       <polygon points="0,0 6,3 0,6" fill="var(--svg-error)"/>
@@ -233,7 +205,7 @@ void fragment() {
     ALBEDO = outline_color.rgb;
 }</code></pre>
 
-<p>The only change from the basic version: <code>smooth_normal</code> decoded from <code>COLOR.rgb</code> replaces <code>NORMAL</code>. This gives every vertex at a shared position the same extrusion direction, eliminating the gaps entirely.</p>
+<p>The only change from the view-space version: <code>smooth_normal</code> decoded from <code>COLOR.rgb</code> replaces <code>NORMAL</code>. This gives every vertex at a shared position the same extrusion direction, eliminating the gaps entirely.</p>
 
 <div class="note">
 <strong>New concept — vertex color encoding:</strong> Vertex colors store values in [0, 1] range (RGBA, 8 bits per channel). Normals range from [-1, 1]. The standard encoding is <code>color = normal * 0.5 + 0.5</code> and decoding is <code>normal = color * 2.0 - 1.0</code>. This is the same trick normal maps use — just stored per-vertex instead of per-texel. <a href="https://www.poiyomi.com/outlines/main" class="citation">[Poiyomi Docs]</a>
@@ -243,17 +215,13 @@ void fragment() {
 <strong>Blender pipeline required:</strong> The smooth normals must be baked into vertex colors before export. This involves a Blender Python script that iterates vertices, averages normals at shared positions, and writes to a color attribute. This is a standard production workflow used by Guilty Gear Strive, Genshin Impact, and most anime-style games. <a href="https://github.com/Philipp-Seifried/Blender-Normals-To-Vertex-Color" class="citation">[Philipp-Seifried: Normals to Vertex Color addon]</a>
 </div>
 
-<div class="note">
-<strong>When to use which fix:</strong> If you control the art pipeline (Blender → Godot), bake smooth normals — it's the standard production approach used by Guilty Gear and Genshin Impact. If you can't modify meshes (asset store models, prototyping), use screen-space edge detection instead — it operates on the rendered image, so mesh topology is irrelevant.
-</div>
+<h2>Screen-Space Edge Detection</h2>
 
-<h2>Approach B: Screen-Space Edge Detection (Production Quality)</h2>
+<p>The inverted hull gives you control per object — different characters can have different outline widths and colors. But it only outlines the <em>silhouette</em>. Internal creases, folds in clothing, sharp edges within the mesh — those don't get outlines. And as we just saw, hard-edge meshes require extra pipeline work.</p>
 
-<p>The inverted hull gives you control per object — different characters can have different outline widths and colors. But it only outlines the <em>silhouette</em>. Internal creases, folds in clothing, sharp edges within the mesh — those don't get outlines. And as we just saw, hard-edge meshes require extra pipeline work to avoid artifacts.</p>
+<p>Screen-space edge detection takes a completely different approach. Instead of modifying geometry, it reads the depth and normal buffers after the scene renders and draws lines wherever values change sharply. Every edge in the scene gets an outline — silhouettes AND internal details — with zero mesh preparation. <a href="https://godotshaders.com/shader/simple-outline-for/" class="citation">[MInteractive: Simple Outline For, CC0]</a></p>
 
-<p>Screen-space edge detection solves all of this. Instead of modifying geometry, it reads the depth and normal buffers after the scene renders and draws lines wherever values change sharply. Every edge in the scene gets an outline — silhouettes AND internal details — with zero mesh preparation. <a href="https://godotshaders.com/shader/simple-outline-for/" class="citation">[MInteractive: Simple Outline For, CC0]</a></p>
-
-<p>This shader runs as a post-process on a full-screen quad (a MeshInstance3D with a QuadMesh sized 2×2, placed as a child of the camera or at the scene root).</p>
+<p>This shader runs as a post-process on a full-screen quad (a MeshInstance3D with a QuadMesh sized 2×2, placed as a child of the camera).</p>
 
 <pre data-file="toon_outline_screen.gdshader"><code>shader_type spatial;
 render_mode unshaded, depth_test_disabled;
@@ -274,32 +242,27 @@ float getLinearDepth(vec2 uv, mat4 inv_proj) {
 }
 
 void vertex() {
-    // Fullscreen quad — bypass model transform
     POSITION = vec4(VERTEX.xy, 1.0, 1.0);
 }
 
 void fragment() {
     vec2 pixel = outline_thickness / VIEWPORT_SIZE;
 
-    // Sample depth at 4 neighbors
     float depth_center = getLinearDepth(SCREEN_UV, INV_PROJECTION_MATRIX);
     float depth_left   = getLinearDepth(SCREEN_UV + vec2(-pixel.x, 0.0), INV_PROJECTION_MATRIX);
     float depth_right  = getLinearDepth(SCREEN_UV + vec2( pixel.x, 0.0), INV_PROJECTION_MATRIX);
     float depth_up     = getLinearDepth(SCREEN_UV + vec2(0.0,  pixel.y), INV_PROJECTION_MATRIX);
     float depth_down   = getLinearDepth(SCREEN_UV + vec2(0.0, -pixel.y), INV_PROJECTION_MATRIX);
 
-    // Depth edge: difference between opposing neighbors
     float depth_diff = abs(depth_left - depth_right) + abs(depth_up - depth_down);
     float depth_edge = smoothstep(depth_threshold * 0.1, depth_threshold, depth_diff);
 
-    // Sample normals at 4 neighbors
     vec3 normal_center = texture(NORMAL_TEXTURE, SCREEN_UV).rgb * 2.0 - 1.0;
     vec3 normal_left   = texture(NORMAL_TEXTURE, SCREEN_UV + vec2(-pixel.x, 0.0)).rgb * 2.0 - 1.0;
     vec3 normal_right  = texture(NORMAL_TEXTURE, SCREEN_UV + vec2( pixel.x, 0.0)).rgb * 2.0 - 1.0;
     vec3 normal_up     = texture(NORMAL_TEXTURE, SCREEN_UV + vec2(0.0,  pixel.y)).rgb * 2.0 - 1.0;
     vec3 normal_down   = texture(NORMAL_TEXTURE, SCREEN_UV + vec2(0.0, -pixel.y)).rgb * 2.0 - 1.0;
 
-    // Normal edge: how much normals diverge from center
     float normal_diff = 0.0;
     normal_diff += 1.0 - dot(normal_center, normal_left);
     normal_diff += 1.0 - dot(normal_center, normal_right);
@@ -307,14 +270,13 @@ void fragment() {
     normal_diff += 1.0 - dot(normal_center, normal_down);
     float normal_edge = smoothstep(normal_threshold, normal_threshold * 2.0, normal_diff);
 
-    // Combine: either signal triggers the outline
     float edge = max(depth_edge, normal_edge);
 
     ALBEDO = outline_color.rgb;
     ALPHA = edge * outline_color.a;
 }</code></pre>
 
-<h3>Setting up the full-screen quad</h3>
+<h3>Setting Up the Fullscreen Quad</h3>
 
 <ol>
   <li>Add a <strong>MeshInstance3D</strong> as a child of your Camera3D</li>
@@ -325,216 +287,69 @@ void fragment() {
 </ol>
 
 <div class="note">
-<strong>Why <code>depth_test_disabled</code>?</strong> Without it, the quad would be occluded by scene geometry (it's only 1 unit from camera). In Godot 4.4+, this render mode is required for screen-space post-process shaders to work correctly — without it, outlines only appear against the sky.
+<strong>Why <code>depth_test_disabled</code>?</strong> Without it, the quad would be occluded by scene geometry (it's only 1 unit from camera). In Godot 4.4+, this render mode is required for screen-space post-process shaders to work correctly.
 </div>
 
 <div class="note">
-<strong>New concept — <code>hint_normal_roughness_texture</code>:</strong> Godot's G-buffer stores surface normals (and roughness in the alpha channel) in a texture accessible via this sampler hint. Only available in Forward+ and Mobile renderers — NOT in Compatibility. This is why screen-space outlines don't work on all platforms. <a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html">Docs: Spatial Shader</a>
+<strong>New concept — <code>hint_normal_roughness_texture</code>:</strong> Godot's G-buffer stores surface normals (and roughness in the alpha channel) in a texture accessible via this sampler hint. Only available in Forward+ and Mobile renderers — NOT in Compatibility. <a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html">Docs: Spatial Shader</a>
 </div>
 
-<p><strong>Try it:</strong> Adjust <code>depth_threshold</code> and <code>normal_threshold</code> independently. Depth edges catch silhouettes and object boundaries. Normal edges catch surface creases and hard edges within a single mesh. Lower thresholds = more lines; higher = only the strongest edges.</p>
+<p><strong>Try it:</strong> Adjust <code>depth_threshold</code> and <code>normal_threshold</code> independently. Depth edges catch silhouettes and object boundaries. Normal edges catch surface creases and hard edges within a single mesh.</p>
 
-<h2>Approach C: Jump Flood Algorithm (Wide Pixel-Perfect Outlines)</h2>
-
-<p>Screen-space edge detection works beautifully for thin outlines (1–3 pixels). But what if your art direction calls for thick, dramatic borders — 10, 20, even 50 pixels wide? Simply increasing the sample offset in the Sobel shader produces fuzzy, inconsistent results because edge detection doesn't understand <em>distance</em>. <a href="https://bgolus.medium.com/the-quest-for-very-wide-outlines-ba82ed442cd9" class="citation">[Ben Golus: The Quest for Very Wide Outlines]</a></p>
-
-<p>The Jump Flood Algorithm (JFA) solves this by computing a <strong>distance field</strong> — every pixel knows exactly how far it is from the nearest edge. That distance drives the outline: if <code>distance &lt; threshold</code>, draw outline color. The result is mathematically clean, works at any width, and costs only O(log₂ n) passes regardless of how thick the outline is.</p>
-
-<h3>How JFA Works (The Concept)</h3>
-
-<p>JFA builds a distance field in three stages:</p>
-
-<svg role="img" aria-labelledby="jfa-pipeline-title" viewBox="0 0 700 120" style="max-width:100%; height:auto; margin: 1.5rem 0;">
-  <title id="jfa-pipeline-title">JFA pipeline: three stages — extraction finds edge seeds, jump flood passes propagate nearest-seed coordinates outward, overlay reads the distance field to render the outline</title>
-  <!-- Stage 1 -->
-  <rect x="10" y="25" width="170" height="70" rx="8" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
-  <text x="95" y="55" text-anchor="middle" font-size="11" font-weight="bold" fill="var(--svg-primary-text)">1. Extraction</text>
-  <text x="95" y="72" text-anchor="middle" font-size="9" fill="var(--svg-primary-text)">Find edges → mark as "seeds"</text>
-  <text x="95" y="85" text-anchor="middle" font-size="9" fill="var(--svg-primary-text)">Each seed stores its position</text>
-  <!-- Arrow -->
-  <line x1="185" y1="60" x2="225" y2="60" stroke="var(--svg-line)" stroke-width="2" marker-end="url(#arrowhead-jfa)"/>
-  <!-- Stage 2 -->
-  <rect x="230" y="25" width="210" height="70" rx="8" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="2"/>
-  <text x="335" y="55" text-anchor="middle" font-size="11" font-weight="bold" fill="var(--svg-warning-text)">2. Jump Flood (×N passes)</text>
-  <text x="335" y="72" text-anchor="middle" font-size="9" fill="var(--svg-warning-text)">Propagate nearest seed outward</text>
-  <text x="335" y="85" text-anchor="middle" font-size="9" fill="var(--svg-warning-text)">N = ⌈log₂(outline_width)⌉</text>
-  <!-- Arrow -->
-  <line x1="445" y1="60" x2="485" y2="60" stroke="var(--svg-line)" stroke-width="2" marker-end="url(#arrowhead-jfa)"/>
-  <!-- Stage 3 -->
-  <rect x="490" y="25" width="190" height="70" rx="8" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="2"/>
-  <text x="585" y="55" text-anchor="middle" font-size="11" font-weight="bold" fill="var(--svg-success-text)">3. Overlay</text>
-  <text x="585" y="72" text-anchor="middle" font-size="9" fill="var(--svg-success-text)">distance &lt; threshold → outline</text>
-  <text x="585" y="85" text-anchor="middle" font-size="9" fill="var(--svg-success-text)">Anti-aliased, any width</text>
-  <!-- Pass count note -->
-  <text x="350" y="115" text-anchor="middle" font-size="9" fill="var(--svg-text)">30px outline → ⌈log₂(30)⌉ = 5 passes → ~0.6ms at 1080p</text>
-  <defs>
-    <marker id="arrowhead-jfa" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-      <polygon points="0,0 6,3 0,6" fill="var(--svg-line)"/>
-    </marker>
-  </defs>
-</svg>
-
-<ol>
-  <li><strong>Extraction:</strong> Run edge detection (Sobel on viewport color, or a depth/normal check). Pixels at edges become "seeds" and store their own screen coordinates. Non-seeds get a sentinel value (infinity).</li>
-  <li><strong>Jump Flood (repeated N times):</strong> Each pass, every pixel checks 8 neighbors at a decreasing grid offset (128, 64, 32, 16, 8, 4, 2, 1). If a neighbor has a closer seed, adopt it. After all passes, every pixel knows the coordinates of its nearest edge pixel.</li>
-  <li><strong>Overlay:</strong> Compute <code>distance = length(my_position - nearest_seed_position)</code>. If distance is within the outline threshold, draw the outline color. The smooth distance field allows anti-aliasing, gradients, glow effects, and any width.</li>
-</ol>
-
-<p>The key insight: each JFA pass doubles the propagation range. After 5 passes, seeds have propagated 32 pixels outward. After 7 passes, 128 pixels. A 100-pixel outline costs the same as a 64-pixel one — both need 7 passes. This is why JFA outperforms naive dilation (which needs N passes for N-pixel width).</p>
-
-<h3>JFA in Godot: Two Implementations</h3>
-
-<p>JFA requires multiple render passes with ping-pong textures, which makes it more complex to set up than a single-shader solution. In Godot 4.3+, two community implementations exist:</p>
-
-<div class="note">
-<strong>When to use which JFA implementation:</strong>
-<ul>
-  <li><strong><a href="https://github.com/pink-arcana/godot-distance-field-outlines">pink-arcana/godot-distance-field-outlines</a></strong> (150★, MIT) — two versions: a CanvasItem shader version (works in Compatibility renderer + web exports) and a CompositorEffect compute shader version (Forward+ only, faster). Best choice for learning and cross-platform support.</li>
-  <li><strong><a href="https://github.com/L0UARN/godot-outlines">L0UARN/godot-outlines</a></strong> (MIT) — C# + compute shaders via CompositorEffect. Forward+ only. Supports per-node outline colors via a special "outlineable" material flag.</li>
-</ul>
-<strong>Default recommendation:</strong> Start with pink-arcana's DFOutlineNode (CanvasItem version) — it works on all renderers and is the simplest to understand. Move to the CompositorEffect version when you need better performance at high resolutions.
-</div>
-
-<p>The core JFA pass is conceptually simple — here's the essential logic (adapted from <a href="https://github.com/pink-arcana/godot-distance-field-outlines" class="citation">pink-arcana</a>, MIT license):</p>
-
-<pre data-file="toon_outline_jfa_pass.gdshader" data-mode="fragment"><code>shader_type canvas_item;
-render_mode blend_mix;
-
-// This shader runs multiple times with decreasing offset values
-uniform sampler2D in_texture : hint_screen_texture, filter_nearest;
-uniform float offset; // Halves each pass: 128, 64, 32, 16, 8, 4, 2, 1
-uniform float distance_denominator;
-uniform bool last_pass;
-
-const vec2 NEIGHBOR_OFFSETS[8] = {
-    vec2(-1.0,-1.0), vec2(0.0,-1.0), vec2(1.0,-1.0),
-    vec2(-1.0,0.0),                   vec2(1.0,0.0),
-    vec2(-1.0,1.0),  vec2(0.0,1.0),  vec2(1.0,1.0) };
-
-void fragment() {
-    vec2 texture_size = vec2(textureSize(in_texture, 0));
-    vec2 pixel_size = 1.0 / texture_size;
-    vec2 tex_coord = UV / pixel_size; // Current pixel coordinate
-
-    // Read current best seed (packed as UV coordinates in RG channels)
-    vec4 seed_color = texelFetch(in_texture, ivec2(tex_coord), 0);
-    vec2 seed_coord = seed_color.rg * texture_size;
-    bool valid_seed = seed_color.a > 0.5;
-    float min_dist_sq = valid_seed ? distance(tex_coord, seed_coord) : 1000000.0;
-    min_dist_sq = min_dist_sq * min_dist_sq;
-
-    // Check 8 neighbors at current offset distance
-    for (int i = 0; i < 8; i++) {
-        vec2 neighbor_coord = tex_coord + NEIGHBOR_OFFSETS[i] * offset;
-        neighbor_coord = clamp(neighbor_coord, vec2(0.0), texture_size - vec2(1.0));
-
-        vec4 neighbor_color = texelFetch(in_texture, ivec2(neighbor_coord), 0);
-        if (neighbor_color.a < 0.5) continue; // No seed here
-
-        vec2 neighbor_seed = neighbor_color.rg * texture_size;
-        float dist_sq = distance(tex_coord, neighbor_seed);
-        dist_sq = dist_sq * dist_sq;
-
-        if (dist_sq < min_dist_sq) {
-            min_dist_sq = dist_sq;
-            seed_coord = neighbor_seed;
-            seed_color = neighbor_color;
-            valid_seed = true;
-        }
-    }
-
-    if (last_pass) {
-        // Output normalized distance (0 = on edge, 1 = far from edge)
-        float dist = valid_seed ? sqrt(min_dist_sq) / distance_denominator : 1.0;
-        COLOR = vec4(dist, 0.0, 0.0, 1.0);
-    } else {
-        // Pass seed coordinates to next iteration
-        COLOR = valid_seed ? vec4(seed_coord / texture_size, 0.0, 1.0) : vec4(0.0);
-    }
-}</code></pre>
-
-<p>This single shader runs multiple times — each invocation halves the <code>offset</code> uniform. After all passes complete, every pixel contains its distance to the nearest seed. The overlay pass then thresholds this distance to produce the final outline.</p>
-
-<div class="note">
-<strong>Why this is more complex to set up:</strong> Unlike the inverted hull (one shader on one mesh) or screen-space (one shader on one quad), JFA needs orchestration — multiple render passes with intermediate textures. In Godot, you'd use SubViewports for the CanvasItem version or CompositorEffect for the compute version. The pink-arcana addon handles all this scaffolding for you.
-</div>
-
-<h2>Choosing Your Outline Technique</h2>
-
-<p>You now have three outline techniques, each solving different problems. The progression isn't "basic → advanced" in a simple line — each has a distinct niche. Here's how to select:</p>
+<h2>Two Approaches Compared</h2>
 
 <table>
-<thead><tr><th>Criterion</th><th>Inverted Hull</th><th>Screen-Space (Sobel)</th><th>JFA Distance Field</th></tr></thead>
+<thead><tr><th>Criterion</th><th>Inverted Hull</th><th>Screen-Space (Sobel)</th></tr></thead>
 <tbody>
-<tr><td>Outline width range</td><td>Any (world-space)</td><td>1–3px (practical max)</td><td>Any (pixel-perfect at 50px+)</td></tr>
-<tr><td>Internal edges (creases)</td><td>No (silhouette only)</td><td>Yes</td><td>No (silhouette only)</td></tr>
-<tr><td>Per-object control</td><td>Yes (width/color per mesh)</td><td>No (scene-wide)</td><td>Per-node possible (L0UARN)</td></tr>
-<tr><td>Hard-edge meshes</td><td>Needs smooth normals bake</td><td>Works perfectly</td><td>Works perfectly</td></tr>
-<tr><td>Renderer support</td><td>All (Forward+, Mobile, Compat)</td><td>Forward+ / Mobile only</td><td>All (CanvasItem) or Forward+ (CE)</td></tr>
-<tr><td>Setup complexity</td><td>Low (one shader, next_pass)</td><td>Low (one shader, one quad)</td><td>High (multi-pass, SubViewports/CE)</td></tr>
-<tr><td>Performance (1080p)</td><td>~0.1ms per outlined mesh</td><td>~0.1ms (single pass)</td><td>~0.6ms (5-7 passes for 30px)</td></tr>
-<tr><td>Anti-aliasing quality</td><td>Hardware MSAA</td><td>Aliased edges</td><td>Subpixel-accurate (built-in)</td></tr>
-<tr><td>Effects (glow, gradients)</td><td>No</td><td>No</td><td>Yes (distance field enables all)</td></tr>
-<tr><td>Transparent objects</td><td>Works</td><td>Doesn't detect</td><td>Depends on extraction method</td></tr>
+<tr><td>What it outlines</td><td>Silhouette only</td><td>Silhouettes AND internal edges</td></tr>
+<tr><td>Per-object control</td><td>Yes (width/color per mesh)</td><td>No (scene-wide settings)</td></tr>
+<tr><td>Hard-edge meshes</td><td>Needs smooth normals bake</td><td>Works perfectly (benefits from them)</td></tr>
+<tr><td>Renderer support</td><td>All (Forward+, Mobile, Compat)</td><td>Forward+ / Mobile only</td></tr>
+<tr><td>Outline width</td><td>Any (world-space or view-space)</td><td>1–3px practical max</td></tr>
+<tr><td>Performance</td><td>~0.1ms per outlined mesh</td><td>~0.1ms (single fullscreen pass)</td></tr>
+<tr><td>Transparent objects</td><td>Works</td><td>Doesn't detect (no depth written)</td></tr>
 </tbody></table>
 
 <div class="note">
-<strong>When to use which — the decision tree:</strong>
+<strong>When to use which:</strong>
 <ul>
-  <li><strong>Need per-object artistic control (character outlines)?</strong> → Inverted hull. Bake smooth normals if the mesh has hard edges.</li>
-  <li><strong>Need thin outlines everywhere with internal detail?</strong> → Screen-space Sobel. Zero setup, catches every crease and fold.</li>
-  <li><strong>Need wide outlines (10+ pixels)?</strong> → JFA. It's the only technique that produces clean results at any width.</li>
-  <li><strong>Need outline effects (glow, gradient, animation)?</strong> → JFA. The distance field unlocks all of these as a free bonus.</li>
-  <li><strong>Targeting Compatibility renderer / web?</strong> → Inverted hull (always works) or JFA CanvasItem version (pink-arcana).</li>
+  <li><strong>Inverted hull</strong> — characters and key props where you need per-object artistic control. Works on all renderers including Compatibility/web.</li>
+  <li><strong>Screen-space</strong> — environments where every surface needs consistent thin outlines and you want internal edge detail. Zero mesh prep.</li>
+  <li><strong>Both combined</strong> — the industry standard. Characters get inverted hull (artistic control). Environment gets screen-space (automatic coverage). This is what Guilty Gear, Hi-Fi Rush, and Genshin Impact do.</li>
 </ul>
+<strong>Default recommendation:</strong> Start with screen-space (better visual quality, zero mesh prep). Add inverted hull on specific characters that need custom outline thickness.
 </div>
-
-<h3>The Production Combination</h3>
-
-<p>Shipped games rarely use just one technique. The industry standard — used by Guilty Gear Strive, Hi-Fi Rush, Genshin Impact, and Borderlands — combines techniques by category:</p>
-
-<ul>
-  <li><strong>Characters:</strong> Inverted hull (artistic control over thickness per body part, with smooth normals baked in Blender)</li>
-  <li><strong>Environment:</strong> Screen-space edge detection (automatic coverage, catches every architectural edge)</li>
-  <li><strong>UI/Selection highlights:</strong> JFA (wide glowing outlines that look clean at any width)</li>
-</ul>
-
-<p>The progression for learning is: inverted hull first (teaches vertex manipulation and render passes), then screen-space (teaches buffer access and post-processing), then JFA (teaches multi-pass algorithms and distance fields). Each builds shader mechanics competence that the next technique assumes.</p>
 
 <div class="next-steps">
   <h3>Check Your Understanding</h3>
-  <p><strong>Exercise:</strong> Your art director wants three different outline styles in the same scene:</p>
-  <ul>
-    <li>The player character needs a thick (8px) outline with per-limb width control</li>
-    <li>Environmental architecture (all hard-edge cubes and pillars) needs thin outlines at every crease</li>
-    <li>The selected interactable object needs a wide (30px) glowing highlight</li>
-  </ul>
-  <p>Which technique from this lesson would you use for each, and why can't the others do the job?</p>
+  <p><strong>Exercise:</strong> A colleague adds the inverted hull outline to their character but reports two problems:</p>
+  <ol>
+    <li>The outline is thick when the camera is close but vanishes when zoomed out</li>
+    <li>The character's sword (a hard-edge mesh) has spiky, disconnected outline gaps</li>
+  </ol>
+  <p>For each problem: what's causing it, and what would you change in the shader?</p>
   <details>
   <summary>Hint</summary>
-  <p>Think about what each technique is good at: per-object control, internal edges, outline width range. One technique fails on wide outlines. One fails on per-object control. One fails on internal edges.</p>
+  <p>Problem 1: Think about what coordinate space the inflation happens in. Problem 2: Think about what <code>NORMAL</code> means on a mesh with split vertices at hard edges.</p>
   </details>
   <details>
   <summary>Answer</summary>
-  <p><strong>Character (8px, per-limb):</strong> Inverted hull — it's the only technique with per-mesh width/color control. Needs smooth normals baked into vertex colors (Blender pipeline) since character meshes have some hard edges. Screen-space can't do per-object. JFA could work but is overkill for a single mesh.</p>
-  <p><strong>Architecture (thin, every crease):</strong> Screen-space edge detection — it detects internal edges (normal discontinuities) which inverted hull can't, and works perfectly on hard-edge geometry without any mesh preparation. JFA would only catch silhouettes (misses interior creases). Inverted hull would need smooth normals baked on every environment mesh.</p>
-  <p><strong>Selection highlight (30px, glowing):</strong> JFA distance field — it's the only technique that produces pixel-perfect wide outlines. The distance field naturally supports smooth falloff/glow effects. Screen-space edge detection can only do 1-3px practically. Inverted hull at 30px world-space would look terrible (non-uniform, distorted by geometry).</p>
+  <p><strong>1. Vanishes at distance:</strong> They're using the basic version (<code>VERTEX += NORMAL * width</code>) which inflates by a fixed world-space amount. At distance, that maps to sub-pixel thickness. Fix: use the view-space version that multiplies by <code>-clip_pos.z</code> so inflation scales with camera distance.</p>
+  <p><strong>2. Spiky gaps:</strong> Hard-edge meshes have split normals — the same vertex position has different normals for each adjacent face. Extruding along these pulls adjacent faces apart. Fix: bake averaged smooth normals into vertex colors in Blender, then read <code>COLOR.rgb * 2.0 - 1.0</code> instead of <code>NORMAL</code> in the shader.</p>
   </details>
 </div>
 
 <h2>Code Files</h2>
 <p>Download the final-state shaders from this lesson:</p>
 <ul>
-  <li><a href="../reference/code/toon-outlines/toon_outline.gdshader" download><code>toon_outline.gdshader</code></a> — inverted hull outline (per-object, apply as <code>next_pass</code>)</li>
+  <li><a href="../reference/code/toon-outlines/toon_outline.gdshader" download><code>toon_outline.gdshader</code></a> — inverted hull outline (view-space, per-object via <code>next_pass</code>)</li>
   <li><a href="../reference/code/toon-outlines/toon_outline_smooth.gdshader" download><code>toon_outline_smooth.gdshader</code></a> — inverted hull with smooth normals from vertex color (fixes hard-edge gaps)</li>
-  <li><a href="../reference/code/toon-outlines/toon_outline_screen.gdshader" download><code>toon_outline_screen.gdshader</code></a> — screen-space edge detection (scene-wide, apply to fullscreen quad)</li>
-  <li><a href="../reference/code/toon-outlines/toon_outline_jfa_pass.gdshader" download><code>toon_outline_jfa_pass.gdshader</code></a> — JFA flood pass (educational reference — use pink-arcana addon for production)</li>
+  <li><a href="../reference/code/toon-outlines/toon_outline_screen.gdshader" download><code>toon_outline_screen.gdshader</code></a> — screen-space edge detection (scene-wide, fullscreen quad)</li>
 </ul>
 
 <div class="next-steps">
   <h3>What's Next</h3>
-  <p><strong>Next lesson:</strong> Shadow Color Theory — warm/cool tinting for stylized shadow rendering</p>
-  <p><strong>Reference:</strong> <a href="../reference/0006-toon-outlines.html">Toon Outlines cheat sheet</a></p>
+  <p><strong>Next lesson:</strong> <a href="0007-advanced-outlines.html">Advanced Outlines — Per-Object Screen-Space &amp; Wide</a> — dual-viewport color-ID outlines for per-object control without geometry modification, and the Jump Flood Algorithm for pixel-perfect wide outlines at any thickness.</p>
 </div>
 
 <script type="application/json" id="glossary-data">
@@ -546,11 +361,8 @@ void fragment() {
   "screen-space-edge-detection": "A post-process technique that reads the depth and normal buffers to find pixels where values change sharply, drawing outlines at those edges.",
   "depth-texture": "A GPU buffer storing how far each pixel is from the camera. Used for post-processing effects like outlines, fog, and DOF.",
   "normal-roughness-texture": "Godot's G-buffer texture storing surface normals (RGB) and roughness (A). Available in Forward+ and Mobile renderers via hint_normal_roughness_texture.",
-  "jump-flood-algorithm": "A GPU algorithm that builds a distance field in O(log₂ n) passes by propagating nearest-seed coordinates outward at halving grid offsets. Enables pixel-perfect wide outlines.",
-  "distance-field": "A texture where each pixel stores its distance to the nearest edge. Enables width-independent outline rendering, smooth anti-aliasing, and glow effects from a single computation.",
   "split-normals": "Vertices duplicated at hard edges so each copy can have a different normal for flat shading. Causes inverted hull outlines to tear apart because co-located vertices extrude in different directions.",
-  "smooth-normals-bake": "A mesh preprocessing step (usually in Blender) that averages normals at shared positions and stores them in vertex colors or UV channels, fixing inverted hull gaps on hard-edge geometry.",
-  "compositor-effect": "A Godot 4.3+ API that lets you inject custom compute shaders into the rendering pipeline, enabling multi-pass post-processing like JFA. Forward+ renderer only."
+  "smooth-normals-bake": "A mesh preprocessing step (usually in Blender) that averages normals at shared positions and stores them in vertex colors or UV channels, fixing inverted hull gaps on hard-edge geometry."
 }
 </script>
 
