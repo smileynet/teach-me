@@ -144,7 +144,7 @@ void fragment() {
 <strong>Why write to <code>POSITION</code> instead of <code>VERTEX</code>?</strong> Once we transform manually via <code>MODELVIEW_MATRIX</code>, we've left model space. Writing to <code>POSITION</code> (a clip-space vec4) tells Godot "I've done the full transform myself — skip the built-in modelview+projection." This is the standard pattern for any vertex shader that needs to operate in view or clip space.
 </div>
 
-<h2>The Final Outline Shader</h2>
+<h2>View-Space Outline (Distance-Independent)</h2>
 
 <p>Combining the view-space expansion with a small minimum thickness so outlines don't vanish completely at extreme distances:</p>
 
