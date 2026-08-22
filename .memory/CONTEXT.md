@@ -98,3 +98,7 @@ _Avoid_: app shell (implies SPA), framework
 **Blocking head script**:
 A synchronous `<script>` in `<head>` that runs before CSS paints — reads preferences from localStorage and applies CSS custom properties to prevent FOUC (flash of unstyled content). Currently `typography-prefs.js`.
 _Avoid_: inline script (it's a separate file, loaded synchronously)
+
+**ATTENUATION (Godot shader)**:
+In `light()`, ATTENUATION is a float combining distance falloff AND shadow state (0.0 = fully shadowed, 1.0 = fully lit at full range). It is NOT just distance. The `+ (ATTENUATION - 1.0)` pattern (from FlexibleToonShader) bakes both into the banding calculation.
+_Avoid_: assuming ATTENUATION is purely distance-based
