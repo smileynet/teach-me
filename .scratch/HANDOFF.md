@@ -1,44 +1,45 @@
 ---
-created_at: 2026-08-20T18:59:00-07:00
-base_commit: a6269b4
+created_at: 2026-08-22T07:52:00-07:00
+base_commit: 82d1c22
 handoff_key: toon-shader-lessons
 ---
 
 # Handoff
 
 ## Objective
-Adopt proto shader lessons from gdhelper-pipeline into teach-me, establishing conventions for code block presentation, downloadable files, mechanical linting, and exercise quality — then continue generating the Godot Toon Shaders lesson track.
+Godot Toon Shaders lesson track: research-backed shader lessons with validated code, tested in a real Godot project.
 
 ## Constraints
-- Windows: git symlinks are text files. Use `python tools/serve.py --workspace X` (never `http.server` + junctions).
-- Mise shim recursion: invoke `.venv\Scripts\python.exe` directly.
-- Background servers: `Start-Process -WindowStyle Hidden`, verify via port poll.
-- All lessons must pass `check-lesson.py` (11 checks) before completion.
+- Shader validation = Godot runtime only. No homebrewed linters (tried and deleted validate-shaders.py — false confidence).
+- test-scene project at `D:\code\teach-me\test-scene` for compilation checks; `D:\code\gdhelper-pipeline\test-scene` for visual validation on real meshes.
+- tkt: use `D:\code\tkt\target\release\tkt.exe` directly (mise shim recursion).
+- `cull_disabled` required for triplanar on open geometry (sidewalks, roads).
+- ATTENUATION includes shadow state (0–1), not just distance.
 
 ## Prior Decisions
-- Per-domain numbering (01, 02...) not global — but rename deferred to #166.
-- Code blocks need `data-file`/`data-mode` attrs + downloadable files at `reference/code/{slug}/`.
-- Exercises test the Win statement (core concepts), not gotchas. Research: Agarwal 2019, Wiliam 2015.
-- Component abstraction: CSS-only < progressive enhancement < full Preact. No Storybook.
-- Concept hints: composite scoring (depth .30, freq .20, first-appear .20, survivor .15, in-degree .15).
+- Callout hierarchy: 6 types (key-concept, decision, new-concept, comparison, gotcha, FYI). Decision callouts MUST include when-to-use + default. Enforced by Q14 in check-lesson.py.
+- Code validation steering: use the learner's runtime, not regex linters. Visual confirmation non-negotiable for shaders.
+- Outline lesson teaches both inverted hull (per-object) AND screen-space depth+normal (production quality). Industry pattern: combine both.
 
 ## Current State
-- **Lessons complete:** 0001-0005 (all pass linter). Toon shader track: spatial anatomy → banding → triplanar.
-- **#173 in-progress:** CSS layer done (filename labels, diff borders, fragment styling). JS CodeBlockToolbar (copy + download) remaining.
-- **#181 open:** Codex review findings addressed (F1-F4 fixed), needs regression tests + fresh review.
-- **Serve tool works:** `python tools/serve.py --workspace examples/godot-gamedev --lan` — no junctions.
+- **Lessons complete:** 0001–0006. Lesson 0006 (Toon Outlines) generated with both approaches but NOT yet validated in Godot.
+- **MAP.md outdated:** 0005 still shows `in-progress`, 0006 not added yet.
+- **test-scene created:** `test-scene/` in teach-me repo with all 7 shaders + godot_ai MCP addon. Not yet opened/validated.
+- **#173 still in-progress:** CodeBlockToolbar JS component (CSS done, JS remaining).
+- **#182 open:** Shader validation tooling — may descope now that approach is "use Godot runtime."
 
 ## Next Steps
-1. **#179** — Validate concept hints on real corpora (Rust, code-design, toon shaders). Quick: run script, inspect, report.
-2. **#173** — Build CodeBlockToolbar.js (copy button + download link). Mount in page-shell.js.
-3. **#166** — Domain subfolder scripts (rename lessons, update paths in page_template.py).
-4. **Next lesson** — Outline Shaders (screen-space + mesh-extrusion toon outlines).
+1. **Validate lesson 0006 shaders** — open test-scene in Godot, apply toon_outline.gdshader as next_pass and toon_outline_screen.gdshader on a fullscreen quad. Visually confirm.
+2. **Update MAP.md** — mark 0005 complete, add 0006 toon-outlines topic.
+3. **#173 CodeBlockToolbar** — build the JS component (copy + download buttons), mount in page-shell.js.
+4. **Descope #182** — close with "resolved: use Godot runtime, not custom tooling."
+5. **#181** — regression tests for Codex review F1–F4 fixes, dispatch fresh review.
 
 ## Fog
-- How to handle reference repos (`.references/`) for shader lessons — clone into teach-me or keep external? No decision yet.
-- Ticket #139/#142 (ingest pipeline, quick quiz) closed with unchecked ACs — tracked in #159 but scope unclear.
+- Screen-space outline shader not yet tested in Godot — may need `depth_test_disabled` tweaks for 4.7.
+- Outline lesson exercise references "smooth normals in Blender" — learner may not have Blender workflow. Consider whether to add a Blender sidebar or keep it as a mention.
 
 ## Evidence
-- Linter: `D:\code\teach-me\.venv\Scripts\python.exe tools/check-lesson.py --workspace examples/godot-gamedev --all` → 5/5 pass
-- Serve: `python tools/serve.py --workspace examples/godot-gamedev --lan` → http://192.168.0.187:8787
-- Tests: 46/46 concept extraction tests pass; 161/182 total (21 pre-existing failures in enrich/ingest modules)
+- Linter: `check-lesson.py --workspace examples/godot-gamedev --all` → 6/6 pass
+- Shaders in test-scene: `test-scene/shaders/` (7 files: toon_test, toon_bands, toon_ramp, toon_smoothstep, triplanar_toon, toon_outline, toon_outline_screen)
+- Research: consumed and deleted from .scratch/ — findings applied to lessons and steering
