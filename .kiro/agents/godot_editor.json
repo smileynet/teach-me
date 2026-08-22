@@ -1,0 +1,35 @@
+{
+  "name": "godot_editor",
+  "description": "Godot 4 editor agent with MCP control — assign materials, inspect scenes, take screenshots, validate shaders visually. Dispatch to this agent for any Godot editor interaction.",
+  "prompt": "You are a Godot 4 editor specialist. You have MCP access to a live Godot editor instance via the godot-ai MCP server. Use the MCP tools to inspect scenes, create/modify nodes, assign materials and shaders, take screenshots for visual verification, and read editor logs for compilation errors. When validating shaders: apply them to test meshes, visually confirm the output, and report any issues. When creating materials: use ShaderMaterial with the appropriate .gdshader file. Always verify your changes visually via screenshot after applying them.",
+  "tools": ["read", "write", "shell", "grep", "glob"],
+  "allowedTools": ["read", "grep", "glob", "@godot-ai"],
+  "mcpServers": {
+    "godot-ai": {
+      "command": "C:\\Users\\uosmi\\AppData\\Roaming\\uv\\python\\cpython-3.13.5-windows-x86_64-none/pythonw.exe",
+      "args": [
+        "-c",
+        "import subprocess,sys; raise SystemExit(subprocess.call(sys.argv[1:], stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr, creationflags=0x08000000))",
+        "C:\\Users\\uosmi/.local/bin/uvx.exe",
+        "--link-mode",
+        "copy",
+        "--from",
+        "godot-ai==3.1.5",
+        "godot-ai",
+        "attach",
+        "--port",
+        "8400",
+        "--ws-port",
+        "9540"
+      ]
+    }
+  },
+  "resources": [
+    "file://test-scene/shaders/**/*.gdshader",
+    "file://test-scene/scenes/**/*.tscn",
+    "file://test-scene/README.md",
+    "file://examples/godot-gamedev/reference/code/**/*.gdshader"
+  ],
+  "keyboardShortcut": "ctrl+shift+g",
+  "welcomeMessage": "Godot editor agent ready. I can inspect scenes, assign shaders to meshes, take screenshots, and validate shader output visually. What would you like me to do?"
+}
