@@ -291,7 +291,7 @@ void fragment() {
 </div>
 
 <div class="note">
-<strong>New concept — <code>hint_normal_roughness_texture</code>:</strong> Godot's G-buffer stores surface normals (and roughness in the alpha channel) in a texture accessible via this sampler hint. Only available in Forward+ and Mobile renderers — NOT in Compatibility. <a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html">Docs: Spatial Shader</a>
+<strong>New concept — <code>hint_normal_roughness_texture</code>:</strong> Godot's G-buffer stores surface normals (and roughness in the alpha channel) in a texture accessible via this sampler hint. Only available in the Forward+ renderer — NOT in Mobile or Compatibility. <a href="https://docs.godotengine.org/en/stable/tutorials/shaders/screen-reading_shaders.html#normal-roughness-texture">Docs: Screen-Reading Shaders</a>
 </div>
 
 <p><strong>Try it:</strong> Adjust <code>depth_threshold</code> and <code>normal_threshold</code> independently. Depth edges catch silhouettes and object boundaries. Normal edges catch surface creases and hard edges within a single mesh.</p>
@@ -299,15 +299,16 @@ void fragment() {
 <h2>Two Approaches Compared</h2>
 
 <table>
-<thead><tr><th>Criterion</th><th>Inverted Hull</th><th>Screen-Space (Sobel)</th></tr></thead>
+<caption>Comparison of inverted hull and screen-space edge detection outline techniques</caption>
+<thead><tr><th scope="col">Criterion</th><th scope="col">Inverted Hull</th><th scope="col">Screen-Space (Sobel)</th></tr></thead>
 <tbody>
-<tr><td>What it outlines</td><td>Silhouette only</td><td>Silhouettes AND internal edges</td></tr>
-<tr><td>Per-object control</td><td>Yes (width/color per mesh)</td><td>No (scene-wide settings)</td></tr>
-<tr><td>Hard-edge meshes</td><td>Needs smooth normals bake</td><td>Works perfectly (benefits from them)</td></tr>
-<tr><td>Renderer support</td><td>All (Forward+, Mobile, Compat)</td><td>Forward+ / Mobile only</td></tr>
-<tr><td>Outline width</td><td>Any (world-space or view-space)</td><td>1–3px practical max</td></tr>
-<tr><td>Performance</td><td>~0.1ms per outlined mesh</td><td>~0.1ms (single fullscreen pass)</td></tr>
-<tr><td>Transparent objects</td><td>Works</td><td>Doesn't detect (no depth written)</td></tr>
+<tr><th scope="row">What it outlines</th><td>Silhouette only</td><td>Silhouettes AND internal edges</td></tr>
+<tr><th scope="row">Per-object control</th><td>Yes (width/color per mesh)</td><td>No (scene-wide settings)</td></tr>
+<tr><th scope="row">Hard-edge meshes</th><td>Needs smooth normals bake</td><td>Works perfectly (benefits from them)</td></tr>
+<tr><th scope="row">Renderer support</th><td>All (Forward+, Mobile, Compat)</td><td>Forward+ only</td></tr>
+<tr><th scope="row">Outline width</th><td>Any (world-space or view-space)</td><td>1–3px practical max</td></tr>
+<tr><th scope="row">Performance</th><td>Cheap (1 extra draw per outlined mesh)</td><td>Cheap (single fullscreen pass)</td></tr>
+<tr><th scope="row">Transparent objects</th><td>Works</td><td>Doesn't detect (no depth written)</td></tr>
 </tbody></table>
 
 <div class="note">
@@ -349,7 +350,7 @@ void fragment() {
 
 <div class="next-steps">
   <h3>What's Next</h3>
-  <p><strong>Next lesson:</strong> <a href="0007-advanced-outlines.html">Advanced Outlines — Per-Object Screen-Space &amp; Wide</a> — dual-viewport color-ID outlines for per-object control without geometry modification, and the Jump Flood Algorithm for pixel-perfect wide outlines at any thickness.</p>
+  <p><strong>Next lesson:</strong> <a href="0007-advanced-outlines.html">Advanced Outlines — Per-Object Screen-Space &amp; Wide</a> — dual-viewport color-ID outlines for per-object control without geometry modification, and the Jump Flood Algorithm for clean wide outlines at any thickness.</p>
 </div>
 
 <script type="application/json" id="glossary-data">
