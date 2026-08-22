@@ -106,6 +106,10 @@ void fragment() {
 <strong>New concept — <code>CAMERA_VISIBLE_LAYERS</code>:</strong> A shader built-in that exposes which render layers the current camera can see (its cull_mask). By checking specific bits, a single shader can branch its behavior per camera — rendering lit color for the main camera and flat ID color for the outline camera. This avoids duplicating materials.
 </div>
 
+<div class="note">
+<strong>Simplified example:</strong> This shader uses <code>render_mode unshaded</code> for clarity, so both branches output flat color. In production, you'd use your normal lit toon shader (e.g., <code>toon_bands</code>) for the main viewport and only the flat color-ID output for the outline camera — either via two separate materials on different render layers, or by adding the <code>CAMERA_VISIBLE_LAYERS</code> branch to your existing toon shader. The outline SubViewport's clear color must have alpha = 0 (transparent) so the background doesn't generate false outlines.
+</div>
+
 <h3>The Edge Detection Shader (Canvas Post-Process)</h3>
 
 <p>The outline camera's viewport renders flat-colored silhouettes. A canvas_item shader composited on top detects where adjacent pixels have different colors — those color boundaries are the outlines:</p>
