@@ -1,36 +1,67 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://dwpaw7m0lhjl1"]
+
+[ext_resource type="PackedScene" uid="uid://8wihu01dspe0" path="res://assets/kenney-retro-urban/wall-a-flat.glb" id="1_tvlit"]
+[ext_resource type="PackedScene" uid="uid://dbfpxlpxlpj4h" path="res://assets/kenney-retro-urban/truck-green.glb" id="2_feivp"]
+[ext_resource type="PackedScene" uid="uid://eq2prnr6lhcm" path="res://assets/kenney-retro-urban/tree-large.glb" id="3_thwts"]
+[ext_resource type="Shader" uid="uid://7k5ui68xch7a" path="res://shaders/kuwahara_basic.gdshader" id="4_poster"]
+[ext_resource type="PackedScene" uid="uid://cd23sgo16xf4i" path="res://assets/polyhaven/Barrel_01/Barrel_01_1k.gltf" id="4_thw5b"]
+[ext_resource type="PackedScene" uid="uid://dvvq68rvqhfdy" path="res://assets/polyhaven/Camera_01/Camera_01_1k.gltf" id="5_th1yo"]
+[ext_resource type="PackedScene" uid="uid://n3dwn27r8df5" path="res://assets/polyhaven/Lantern_01/Lantern_01_1k.gltf" id="6_4xulr"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_1"]
 size = Vector2(20, 20)
 
-[node name="ColorTestScene" type="Node3D"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_post"]
+shader = ExtResource("4_poster")
+shader_parameter/kernel_size = 3
+
+[node name="ColorTestScene" type="Node3D" unique_id=167189166]
 metadata/_edit_description_ = "Scene for testing color simplification shaders (posterization, palette snapping, Kuwahara) on textured geometry."
 
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.87, 0.5, 0, -0.5, 0.87, 0, 5, 8)
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1383163854]
+transform = Transform3D(1, 0, 0, 0, 0.87, 0.5, 0, -0.5, 0.87, 0, 2.5195975, 3.6840997)
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=289580711]
 transform = Transform3D(1, 0, 0, 0, 0.707, -0.707, 0, 0.707, 0.707, 0, 8, 0)
 
-[node name="Floor" type="MeshInstance3D" parent="."]
+[node name="Floor" type="MeshInstance3D" parent="." unique_id=1274280635]
 mesh = SubResource("PlaneMesh_1")
 
-[node name="UrbanModels" type="Node3D" parent="."]
+[node name="UrbanModels" type="Node3D" parent="." unique_id=353202424]
 
-[node name="Wall" type="Node3D" parent="UrbanModels"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -2)
-
-[node name="WallCorner" type="Node3D" parent="UrbanModels"]
+[node name="WallCorner" type="Node3D" parent="UrbanModels" unique_id=357821595]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -2)
 
-[node name="Door" type="Node3D" parent="UrbanModels"]
+[node name="Door" type="Node3D" parent="UrbanModels" unique_id=1337637151]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
 
-[node name="Truck" type="Node3D" parent="UrbanModels"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
-
-[node name="Tree" type="Node3D" parent="UrbanModels"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 2)
-
-[node name="Bench" type="Node3D" parent="UrbanModels"]
+[node name="Bench" type="Node3D" parent="UrbanModels" unique_id=409897424]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 3)
+
+[node name="Wall" parent="UrbanModels" unique_id=493362865 instance=ExtResource("1_tvlit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -2)
+
+[node name="Truck" parent="UrbanModels" unique_id=417375150 instance=ExtResource("2_feivp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 0)
+
+[node name="Tree" parent="UrbanModels" unique_id=884748423 instance=ExtResource("3_thwts")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 2)
+
+[node name="Barrel" parent="UrbanModels" unique_id=1010542 instance=ExtResource("4_thw5b")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.5, 0)
+
+[node name="VintageCamera" parent="UrbanModels" unique_id=185022026 instance=ExtResource("5_th1yo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 1)
+
+[node name="Lantern" parent="UrbanModels" unique_id=665332632 instance=ExtResource("6_4xulr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 1)
+
+[node name="PostProcess" type="CanvasLayer" parent="." unique_id=220390935]
+
+[node name="PostProcessRect" type="ColorRect" parent="PostProcess" unique_id=1592407211]
+material = SubResource("ShaderMaterial_post")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2

@@ -4,11 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cd23sgo16xf4i"
-valid=false
+path="res://.godot/imported/Barrel_01_1k.gltf-ca306fa9cca01fa22ce0bd9c495db80e.scn"
 
 [deps]
 
 source_file="res://assets/polyhaven/Barrel_01/Barrel_01_1k.gltf"
+dest_files=["res://.godot/imported/Barrel_01_1k.gltf-ca306fa9cca01fa22ce0bd9c495db80e.scn"]
 
 [params]
 

@@ -4,11 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dvvq68rvqhfdy"
-valid=false
+path="res://.godot/imported/Camera_01_1k.gltf-8a03f289192db65a5078e01f6d71ef7b.scn"
 
 [deps]
 
 source_file="res://assets/polyhaven/Camera_01/Camera_01_1k.gltf"
+dest_files=["res://.godot/imported/Camera_01_1k.gltf-8a03f289192db65a5078e01f6d71ef7b.scn"]
 
 [params]
 
