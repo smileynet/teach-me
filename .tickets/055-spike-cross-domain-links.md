@@ -34,6 +34,22 @@ At `sr:analytics` time, detect when SR cards from different domains share tags. 
 ### 3. leads_to intersection
 If domain A's `leads_to` includes a slug that domain B already covers → that's a confirmed connection.
 
+### 4. Sibling map prereq references (new)
+When two child MAPs under the same parent reference each other's topics via `prereqs`:
+```yaml
+# godot-mktoon.MAP.md (child of godot-gamedev)
+prereqs: [toon-banding]  # ← topic lives in sibling map godot-toon-shaders
+```
+This is a **fork point** — the shared topic feeds two divergent tracks. Detection:
+scan all depth-1 MAPs under the same parent, find topic slugs referenced in `prereqs`
+that don't exist in the referencing MAP but DO exist in a sibling MAP. These are
+confirmed structural connections (not heuristic).
+
+**Real case:** `godot-toon-shaders` and `godot-mktoon` both descend from `godot-gamedev`.
+The MKToon track requires `toon-banding` from the toon-shaders track. This creates a
+visible fork: after toon-banding, learner can go post-process (outlines → Kuwahara) OR
+per-material (Gooch → wrap → rim).
+
 ## What to build in the spike
 
 A simple script that scans all MAP.md files + JSONL question banks and reports potential cross-domain connections:

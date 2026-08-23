@@ -302,16 +302,16 @@ The order matters: Kuwahara → posterize → outline produces a different resul
 
 <div class="next-steps">
   <h3>Check Your Understanding</h3>
-  <p><strong>Exercise:</strong> A colleague posterizes their toon-shaded character in <code>fragment()</code> with 4 color levels, but complains that the toon lighting bands disappear — the character looks uniformly flat with no shadow definition. Why is this happening, and what would you change?</p>
+  <p><strong>Exercise:</strong> A colleague posterizes their toon-shaded character in <code>fragment()</code> with 4 color levels. The toon shadow bands are still visible — there's a clear light/dark split — but the character looks muddy and detail-less. Distinct color regions on the texture (belt, skin, armor) have collapsed into the same flat shade. Why, and what would you change?</p>
   <details>
   <summary>Hint</summary>
-  <p>Think about the pipeline order: what has already happened to the color by the time <code>light()</code> runs? What does reducing to 4 levels before lighting do to the NdotL calculation's input?</p>
+  <p>Toon banding in <code>light()</code> is driven by NdotL — a geometric quantity. Does posterizing ALBEDO in <code>fragment()</code> affect the geometry? What <em>does</em> it affect?</p>
   </details>
   <details>
   <summary>Answer</summary>
-  <p><strong>The problem:</strong> With only 4 color levels in the albedo, the posterized surface is already nearly flat. When <code>light()</code> then applies toon banding, it's banding an almost-uniform color — the shadow-to-lit transition is invisible because both sides of the band boundary are the same posterized value. The posterization ate the variation that the toon banding needed to create visible shadows.</p>
-  <p><strong>The fix:</strong> Move posterization to <em>post-process</em> instead. Let the toon lighting operate on the full-fidelity albedo (producing visible shadow bands), then posterize the final output. Alternatively, increase the color levels in fragment() (8–16 instead of 4) so enough color variation survives for the lighting to band against.</p>
-  <p>This is the threshold concept: where you simplify determines what gets simplified. fragment() posterization simplifies the lighting's <em>input</em>. Post-process posterization simplifies the lighting's <em>output</em>.</p>
+  <p><strong>The problem:</strong> Posterizing to 4 levels forces many distinct albedo colors into the same output bucket. Belt brown, skin tan, and armor olive all map to the same posterized value — so they become indistinguishable. The toon bands (light/dark split) survive because NdotL is geometric and independent of ALBEDO values. But the <em>color variation within each band</em> is gone — the surface reads as a flat uniform color with lighting on top.</p>
+  <p><strong>The fix:</strong> Move posterization to <em>post-process</em> instead. Let the toon lighting operate on the full-fidelity albedo (preserving material detail), then posterize the final composited output. This simplifies the lighting's <em>output</em> (both albedo and light combined), keeping the relative color differences visible while still achieving the flat-color aesthetic.</p>
+  <p>This is the threshold concept: where you simplify determines what gets simplified. fragment() posterization collapses color detail that lighting can't recover. Post-process posterization works on the final image — the simplification respects whatever visual distinctions the lighting created.</p>
   </details>
 </div>
 

@@ -287,7 +287,7 @@ void fragment() {
 </ol>
 
 <div class="note">
-<strong>Why <code>depth_test_disabled</code>?</strong> Without it, the quad would be occluded by scene geometry (it's only 1 unit from camera). In Godot 4.4+, this render mode is required for screen-space post-process shaders to work correctly.
+<strong>Why <code>depth_test_disabled</code>?</strong> Without it, the quad would be occluded by scene geometry (it's only 1 unit from camera). This render mode ensures the fullscreen quad always draws on top regardless of scene depth.
 </div>
 
 <div class="note">
@@ -361,7 +361,7 @@ void fragment() {
   "view-space": "A coordinate system relative to the camera — X is right, Y is up, Z points backward from the screen. Objects at different distances have different Z values.",
   "screen-space-edge-detection": "A post-process technique that reads the depth and normal buffers to find pixels where values change sharply, drawing outlines at those edges.",
   "depth-texture": "A GPU buffer storing how far each pixel is from the camera. Used for post-processing effects like outlines, fog, and DOF.",
-  "normal-roughness-texture": "Godot's G-buffer texture storing surface normals (RGB) and roughness (A). Available in Forward+ and Mobile renderers via hint_normal_roughness_texture.",
+  "normal-roughness-texture": "Godot's G-buffer texture storing surface normals (RGB) and roughness (A). Available in Forward+ only via hint_normal_roughness_texture.",
   "split-normals": "Vertices duplicated at hard edges so each copy can have a different normal for flat shading. Causes inverted hull outlines to tear apart because co-located vertices extrude in different directions.",
   "smooth-normals-bake": "A mesh preprocessing step (usually in Blender) that averages normals at shared positions and stores them in vertex colors or UV channels, fixing inverted hull gaps on hard-edge geometry."
 }

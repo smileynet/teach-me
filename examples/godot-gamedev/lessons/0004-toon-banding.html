@@ -187,12 +187,12 @@ void light() {
 
 <p><strong>The uniforms explained:</strong></p>
 <ul>
-  <li><code>bands</code> — number of brightness levels (1 = flat, 2 = classic toon, 3-4 = anime style)</li>
+  <li><code>bands</code> — number of boundary cuts in the brightness range. Produces <code>bands + 1</code> visible shade levels (e.g., <code>bands = 3</code> → 4 shades from dark to full bright; <code>bands = 1</code> → a single cut reproducing Approach A's hard split)</li>
   <li><code>wrap</code> — shifts the shadow terminator. Positive = more lit area, negative = more shadow.</li>
   <li><code>steepness</code> — compresses the bands. Higher = bands bunch toward the light-facing side.</li>
 </ul>
 
-<p><strong>Try it:</strong> In the Inspector's Shader Parameters, set <code>bands = 2</code> for classic cel. Set <code>bands = 4</code> for anime. Adjust <code>wrap</code> to move where shadow starts. These are live sliders — drag them and watch the viewport update instantly.</p>
+<p><strong>Try it:</strong> In the Inspector's Shader Parameters, set <code>bands = 1</code> for a hard two-shade cel cut. Set <code>bands = 3</code> for anime-style multi-step shading. Adjust <code>wrap</code> to move where shadow starts. These are live sliders — drag them and watch the viewport update instantly.</p>
 
 <div class="comparison">
   <div><strong>Pros:</strong> N bands from one integer uniform. No texture needed. Branchless. Fast.</div>
