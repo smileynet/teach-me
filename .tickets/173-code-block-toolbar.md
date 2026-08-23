@@ -111,11 +111,11 @@ Does it need JavaScript to function?
 ## Acceptance criteria
 
 - [x] CSS styles for `pre[data-file]`, `pre[data-mode="diff"]`, `pre[data-mode="fragment"]` in style.css
-- [ ] `CodeBlockToolbar.js` component with copy + conditional download
-- [ ] Mounted via page-shell.js `initCodeBlockToolbar()`
-- [ ] Copy strips diff spans (outputs clean code)
-- [ ] Shared signal prevents multiple "Copied!" feedback simultaneously
-- [ ] Download button appears only when `code/` directory exists (HEAD check)
+- [x] `CodeBlockToolbar.js` component with copy + conditional download
+- [x] Mounted via page-shell.js `initCodeBlockToolbar()`
+- [x] Copy strips diff spans (outputs clean code)
+- [x] Shared signal prevents multiple "Copied!" feedback simultaneously
+- [x] Download button appears only when `code/` directory exists (HEAD check)
 - [ ] `assets/showcase.html` renders all components in key states
 - [ ] Component abstraction strategy documented in `.memory/` or steering
 - [ ] Tickets #162 and #168 reference this as parent

@@ -217,6 +217,56 @@ pre[data-mode="fragment"]::after {
   font-style: italic;
 }
 
+/* CodeBlockToolbar — copy + download buttons */
+.code-toolbar {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.5rem;
+  display: flex;
+  gap: 0.25rem;
+  z-index: 1;
+}
+.code-toolbar button,
+.code-toolbar a {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--code-bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1.4;
+  transition: color 0.15s, border-color 0.15s;
+}
+.code-toolbar button:hover,
+.code-toolbar a:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+.code-toolbar button:focus-visible,
+.code-toolbar a:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 1px;
+}
+.code-toolbar .copied {
+  color: var(--success);
+  border-color: var(--success);
+}
+
+/* Screen-reader only (visually hidden, accessible to AT) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 blockquote {
   border-left: 3px solid var(--text-muted);
   padding-left: 1rem;
