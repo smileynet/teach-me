@@ -1,45 +1,54 @@
 ---
-created_at: 2026-08-22T07:52:00-07:00
-base_commit: 82d1c22
+created_at: 2026-08-23T06:36:00-07:00
+base_commit: c2490be
 handoff_key: toon-shader-lessons
 ---
 
 # Handoff
 
 ## Objective
-Godot Toon Shaders lesson track: research-backed shader lessons with validated code, tested in a real Godot project.
+Godot Toon Shaders lesson track: research-backed shader lessons with validated code, tested in a real Godot project against proper assets.
 
 ## Constraints
-- Shader validation = Godot runtime only. No homebrewed linters (tried and deleted validate-shaders.py — false confidence).
-- test-scene project at `D:\code\teach-me\test-scene` for compilation checks; `D:\code\gdhelper-pipeline\test-scene` for visual validation on real meshes.
-- tkt: use `D:\code\tkt\target\release\tkt.exe` directly (mise shim recursion).
-- `cull_disabled` required for triplanar on open geometry (sidewalks, roads).
-- ATTENUATION includes shadow state (0–1), not just distance.
+- Shader validation = Godot runtime only (no regex linters — ADR in `.kiro/steering/code-validation-teaching.md`).
+- test-scene project at `D:\code\teach-me\test-scene` for compilation + visual validation.
+- Low-res pixel-art assets (Kenney, KayKit) are UNSUITABLE for color simplification testing — they're already "simplified" by design.
+- Poly Haven 1K PBR textures are the correct choice for Kuwahara/posterization/palette testing.
+- `codex exec --dangerously-bypass-approvals-and-sandbox` required for Codex dispatch (updated in crew-research + deployed).
 
 ## Prior Decisions
-- Callout hierarchy: 6 types (key-concept, decision, new-concept, comparison, gotcha, FYI). Decision callouts MUST include when-to-use + default. Enforced by Q14 in check-lesson.py.
-- Code validation steering: use the learner's runtime, not regex linters. Visual confirmation non-negotiable for shaders.
-- Outline lesson teaches both inverted hull (per-object) AND screen-space depth+normal (production quality). Industry pattern: combine both.
+- Lesson split: 0006 (hull + Sobel fundamentals) → 0007 (dual-viewport + JFA advanced). Codex-reviewed.
+- Lesson 0008 (Color Simplification) complete: posterize in fragment() vs post-process, palette snap, Kuwahara.
+- ADR 0008: component abstraction strategy (flowchart, bright lines, rule of three).
+- Ticket #173 (CodeBlockToolbar) DONE — all 9/9 AC checked.
+- Ticket #182 (shader validation) DONE — resolved as "use Godot runtime."
+- Tickets #183/#184 (shared lesson library + private lessons) created as high-priority architectural tickets.
 
 ## Current State
-- **Lessons complete:** 0001–0006. Lesson 0006 (Toon Outlines) generated with both approaches but NOT yet validated in Godot.
-- **MAP.md outdated:** 0005 still shows `in-progress`, 0006 not added yet.
-- **test-scene created:** `test-scene/` in teach-me repo with all 7 shaders + godot_ai MCP addon. Not yet opened/validated.
-- **#173 still in-progress:** CodeBlockToolbar JS component (CSS done, JS remaining).
-- **#182 open:** Shader validation tooling — may descope now that approach is "use Godot runtime."
+- **Lessons 0003–0008 complete**, all passing linter, all shaders compile in Godot 4.7.1 headless.
+- **test-scene has 15 shaders**, 28 low-poly models (Kenney/KayKit/Quaternius), 3 Poly Haven models (Barrel_01, Camera_01, Lantern_01) with 1K PBR textures downloaded + importing clean.
+- **Visual validation gap**: color_test.tscn uses Kenney pixel-art textures which DON'T show Kuwahara effect (A/B screenshot proved identical). Poly Haven models downloaded but NOT yet instanced into a scene.
+- **MAP.md** up to date: toon-outlines, advanced-outlines (complete), color-simplification (in-progress).
 
 ## Next Steps
-1. **Validate lesson 0006 shaders** — open test-scene in Godot, apply toon_outline.gdshader as next_pass and toon_outline_screen.gdshader on a fullscreen quad. Visually confirm.
-2. **Update MAP.md** — mark 0005 complete, add 0006 toon-outlines topic.
-3. **#173 CodeBlockToolbar** — build the JS component (copy + download buttons), mount in page-shell.js.
-4. **Descope #182** — close with "resolved: use Godot runtime, not custom tooling."
-5. **#181** — regression tests for Codex review F1–F4 fixes, dispatch fresh review.
+1. **Instance Poly Haven models into color_test.tscn** — replace/supplement Kenney assets with Barrel_01/Camera_01/Lantern_01. These are glTF format (not GLB), located at `test-scene/assets/polyhaven/{model_name}/`.
+2. **Visual A/B validation** — screenshot without shader, then with Kuwahara (kernel_size=5+). The effect MUST be unmistakable on 1K textures.
+3. **Update MAP.md** — mark color-simplification as `complete` once visually validated.
+4. **#183 design questions** — shared lesson library architecture (still unanswered from earlier session).
+5. **Consider**: Poly Haven API (`api.polyhaven.com/assets?type=models`) for more test assets if needed.
 
 ## Fog
-- Screen-space outline shader not yet tested in Godot — may need `depth_test_disabled` tweaks for 4.7.
-- Outline lesson exercise references "smooth normals in Blender" — learner may not have Blender workflow. Consider whether to add a Blender sidebar or keep it as a mention.
+- Poly Haven glTF models may need manual scene instantiation (they imported as resources, not PackedScene). The `filesystem_manage(op="search", type="PackedScene")` returned empty — may need to open in editor GUI first.
+- #183/#184 design questions unanswered: SR card definition shared vs local, completion semantics, map integration for private lessons.
 
 ## Evidence
-- Linter: `check-lesson.py --workspace examples/godot-gamedev --all` → 6/6 pass
-- Shaders in test-scene: `test-scene/shaders/` (7 files: toon_test, toon_bands, toon_ramp, toon_smoothstep, triplanar_toon, toon_outline, toon_outline_screen)
-- Research: consumed and deleted from .scratch/ — findings applied to lessons and steering
+- Linter: `check-lesson.py --workspace examples/godot-gamedev --all` → all pass
+- Headless validation: `godot --headless --import --quit --path test-scene` → 0 errors (15 shaders + all assets)
+- A/B screenshots: Kenney truck with/without Kuwahara = identical (proves pixel-art unsuitable)
+- Codex review: `.scratch/reviews/codex-review.md` — 5 findings all addressed
+- Research: `.scratch/research/` contains highres-texture-assets.md, kaykit-texture-analysis.md
+
+## Recommended Updates
+- [ ] .tickets/new: "Visual validation with Poly Haven PBR assets" — instance models, run A/B, capture proof
+- [ ] AGENTS.md: add Poly Haven API as asset source (`api.polyhaven.com`, CC0, 1K-8K PBR textures)
+- [ ] test-scene/README.md: document that color simplification testing requires Poly Haven assets (not pixel-art)
