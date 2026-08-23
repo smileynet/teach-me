@@ -18,6 +18,7 @@
 import { prefs } from './preferences.js';
 import { applyLayout } from './components/LayoutMode.js';
 import { initGlossary, initInlineQuizzes } from './components/GlossaryQuiz.js';
+import { initCodeBlockToolbar } from './components/CodeBlockToolbar.js';
 import { mountLessonActions } from './components/LessonActions.js';
 import { mountTypographyPanel } from './components/TypographyPanel.js';
 
@@ -25,14 +26,17 @@ function init() {
   // 1. Layout: restructure DOM into collapsible sections (reads prefs signal)
   applyLayout(prefs.value.sectionsCollapsed);
 
-  // 2. Glossary: attach tooltips/tray to .term and [data-term] elements
+  // 2. Code block toolbars: copy + download buttons on pre[data-file]
+  initCodeBlockToolbar();
+
+  // 3. Glossary: attach tooltips/tray to .term and [data-term] elements
   initGlossary();
   initInlineQuizzes();
 
-  // 3. LessonActions: bottom navigation bar
+  // 4. LessonActions: bottom navigation bar
   mountLessonActions();
 
-  // 4. TypographyPanel: reading preferences panel
+  // 5. TypographyPanel: reading preferences panel
   mountTypographyPanel();
 }
 
