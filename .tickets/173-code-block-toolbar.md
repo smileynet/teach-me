@@ -1,7 +1,7 @@
 ---
 id: "173"
 title: "CodeBlockToolbar component: copy + download + filename label"
-status: in_progress
+status: done
 blocked_by: []
 priority: high
 ---
@@ -116,6 +116,6 @@ Does it need JavaScript to function?
 - [x] Copy strips diff spans (outputs clean code)
 - [x] Shared signal prevents multiple "Copied!" feedback simultaneously
 - [x] Download button appears only when `code/` directory exists (HEAD check)
-- [ ] `assets/showcase.html` renders all components in key states
-- [ ] Component abstraction strategy documented in `.memory/` or steering
-- [ ] Tickets #162 and #168 reference this as parent
+- [x] `assets/showcase.html` renders all components in key states
+- [x] Component abstraction strategy documented in `.memory/` or steering
+- [x] Tickets #162 and #168 reference this as parent

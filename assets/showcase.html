@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Component Showcase</title>
+  <script src="typography-prefs.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "./vendor/preact.module.js",
+        "preact/hooks": "./vendor/preact-hooks.module.js",
+        "@preact/signals": "./vendor/preact-signals.module.js",
+        "@preact/signals-core": "./vendor/signals-core.module.js",
+        "htm": "./vendor/htm.module.js"
+    }
+}
+  </script>
+  <style>
+    .showcase-section { margin: 3rem 0; padding: 2rem 0; border-top: 2px solid var(--border); }
+    .showcase-section:first-of-type { border-top: none; }
+    .showcase-label { font-size: 0.7rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+    .showcase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+    .showcase-card { border: 1px solid var(--border); border-radius: 6px; padding: 1.5rem; }
+    .showcase-card h4 { margin: 0 0 1rem; font-size: 0.9rem; color: var(--text-muted); }
+    body { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+  </style>
+</head>
+<body>
+
+<h1>Component Showcase</h1>
+<p>All UI components and CSS patterns in their key states. Used for design review, visual-qa screenshots, and regression testing.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section class="showcase-section" data-component="css-patterns">
+<h2>CSS-Only Patterns (Level 0–2)</h2>
+<p class="showcase-label">No JavaScript required — pure styling via classes and attributes</p>
+
+<div class="showcase-grid">
+
+<div class="showcase-card" data-state="key-concept">
+<h4>.key-concept</h4>
+<div class="key-concept">
+  <strong>After this lesson:</strong> You can implement three outline approaches and explain when to use each — inverted hull for per-object control, screen-space for production quality, and JFA for wide outlines.
+</div>
+</div>
+
+<div class="showcase-card" data-state="note-info">
+<h4>.note (info / new concept)</h4>
+<div class="note">
+<strong>New concept — <code>CAMERA_VISIBLE_LAYERS</code>:</strong> A shader built-in that exposes which render layers the current camera can see. By checking specific bits, a single shader can branch its behavior per camera.
+</div>
+</div>
+
+<div class="showcase-card" data-state="note-decision">
+<h4>.note (decision guidance)</h4>
+<div class="note">
+<strong>When to use which:</strong>
+<ul>
+  <li><strong>Inverted hull</strong> — characters where you need per-object artistic control.</li>
+  <li><strong>Screen-space</strong> — environments where every surface needs outlines.</li>
+</ul>
+<strong>Default recommendation:</strong> Start with screen-space.
+</div>
+</div>
+
+<div class="showcase-card" data-state="lesson-meta">
+<h4>.lesson-meta</h4>
+<div class="lesson-meta">
+  Lesson 6 · Godot Toon Shaders · ~15 min read<br>
+  <strong>Win:</strong> You can implement an inverted hull outline and a screen-space edge detector.
+</div>
+</div>
+
+<div class="showcase-card" data-state="comparison">
+<h4>.comparison</h4>
+<div class="comparison">
+  <div><strong>Inverted Hull:</strong> Per-object control, silhouette only, all renderers</div>
+  <div><strong>Screen-Space:</strong> All edges, scene-wide, Forward+ only, production quality</div>
+</div>
+</div>
+
+<div class="showcase-card" data-state="next-steps">
+<h4>.next-steps</h4>
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next lesson:</strong> <a href="#">Advanced Outlines</a> — per-object screen-space and wide outlines.</p>
+</div>
+</div>
+
+</div><!-- showcase-grid -->
+
+<h3>Code Blocks</h3>
+
+<div class="showcase-card" data-state="code-complete">
+<h4>pre[data-file] — complete (default)</h4>
+<pre data-file="toon_outline.gdshader"><code>shader_type spatial;
+render_mode cull_front, unshaded;
+
+uniform float outline_width : hint_range(0.0, 0.1) = 0.02;
+uniform vec4 outline_color : source_color = vec4(0.0, 0.0, 0.0, 1.0);
+
+void vertex() {
+    VERTEX += NORMAL * outline_width;
+}
+
+void fragment() {
+    ALBEDO = outline_color.rgb;
+}</code></pre>
+</div>
+
+<div class="showcase-card" data-state="code-diff">
+<h4>pre[data-file][data-mode="diff"]</h4>
+<pre data-file="toon_outline.gdshader" data-mode="diff"><code> shader_type spatial;
+ render_mode cull_front, unshaded;
+
+ void vertex() {
+<span style="color:var(--error)">-    VERTEX += NORMAL * outline_width;</span>
+<span style="color:var(--success)">+    vec4 clip_pos = MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
++    clip_pos.xyz += view_normal * outline_width * -clip_pos.z;
++    POSITION = PROJECTION_MATRIX * clip_pos;</span>
+ }</code></pre>
+</div>
+
+<div class="showcase-card" data-state="code-fragment">
+<h4>pre[data-file][data-mode="fragment"]</h4>
+<pre data-file="example.gdshader" data-mode="fragment"><code>// This illustrates the concept — not a complete shader
+float bands = floor(NdotL * float(num_bands)) / float(num_bands);</code></pre>
+</div>
+
+<h3>Tables</h3>
+<div class="showcase-card" data-state="table-accessible">
+<h4>Accessible table (caption + scope)</h4>
+<table>
+<caption>Outline techniques compared</caption>
+<thead><tr><th scope="col">Criterion</th><th scope="col">Hull</th><th scope="col">Sobel</th></tr></thead>
+<tbody>
+<tr><th scope="row">Internal edges</th><td>No</td><td>Yes</td></tr>
+<tr><th scope="row">Per-object</th><td>Yes</td><td>No</td></tr>
+<tr><th scope="row">Performance</th><td>Cheap</td><td>Cheap</td></tr>
+</tbody></table>
+</div>
+
+<h3>SVG Diagram</h3>
+<div class="showcase-card" data-state="svg-themed">
+<h4>Inline SVG with CSS variables</h4>
+<svg role="img" aria-labelledby="showcase-svg-title" viewBox="0 0 300 80" style="max-width:100%; height:auto;">
+  <title id="showcase-svg-title">Example pipeline diagram using CSS custom property colors</title>
+  <rect x="10" y="15" width="80" height="50" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="50" y="45" text-anchor="middle" font-size="10" fill="var(--svg-primary-text)">Input</text>
+  <line x1="95" y1="40" x2="125" y2="40" stroke="var(--svg-line)" stroke-width="2"/>
+  <rect x="130" y="15" width="80" height="50" rx="6" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="2"/>
+  <text x="170" y="45" text-anchor="middle" font-size="10" fill="var(--svg-success-text)">Output</text>
+</svg>
+</div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section class="showcase-section" data-component="progressive-enhancement">
+<h2>Progressive Enhancement (Level 3–4)</h2>
+<p class="showcase-label">JS adds behavior — content is readable without it</p>
+
+<div class="showcase-grid">
+
+<div class="showcase-card" data-state="toolbar-idle">
+<h4>CodeBlockToolbar — idle state</h4>
+<pre data-file="example_shader.gdshader"><code>shader_type spatial;
+uniform vec4 color : source_color = vec4(1.0);
+void fragment() { ALBEDO = color.rgb; }</code></pre>
+</div>
+
+<div class="showcase-card" data-state="toolbar-no-download">
+<h4>CodeBlockToolbar — no download available</h4>
+<pre data-file="nonexistent_file.gdshader"><code>// This file doesn't exist in reference/code/
+// Download button should be hidden
+void fragment() { ALBEDO = vec3(1.0); }</code></pre>
+</div>
+
+<div class="showcase-card" data-state="glossary-term">
+<h4>Glossary term with tooltip</h4>
+<p>The <span class="term" data-term="inverted-hull">inverted hull</span> technique renders a slightly inflated copy of the mesh with front-face culling.</p>
+</div>
+
+<div class="showcase-card" data-state="details-collapsible">
+<h4>Collapsible details</h4>
+<details>
+  <summary>Click to expand hint</summary>
+  <p>Think about what coordinate space the inflation happens in.</p>
+</details>
+</div>
+
+</div><!-- showcase-grid -->
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section class="showcase-section" data-component="full-components">
+<h2>Full Components (Level 5)</h2>
+<p class="showcase-label">Preact-rendered — require JavaScript to function</p>
+
+<div class="showcase-grid">
+
+<div class="showcase-card" data-state="lesson-actions">
+<h4>LessonActions bar</h4>
+<div id="showcase-lesson-actions"></div>
+</div>
+
+<div class="showcase-card" data-state="typography-panel">
+<h4>TypographyPanel</h4>
+<p><em>Panel renders in fixed position (bottom-right). Toggle via the Aa button.</em></p>
+</div>
+
+</div><!-- showcase-grid -->
+</section>
+
+<!-- Glossary data for the term tooltip demo -->
+<script type="application/json" id="glossary-data">
+{
+  "inverted-hull": "An outline technique that renders a slightly inflated copy of the mesh with front-face culling — the visible back faces create a silhouette border."
+}
+</script>
+
+<!-- Mount all components via page-shell -->
+<script type="module">
+import { initCodeBlockToolbar } from './components/CodeBlockToolbar.js';
+import { initGlossary } from './components/GlossaryQuiz.js';
+import { mountTypographyPanel } from './components/TypographyPanel.js';
+
+// Initialize progressive enhancement components
+initCodeBlockToolbar();
+initGlossary();
+mountTypographyPanel();
+</script>
+
+</body>
+</html>
