@@ -1,54 +1,46 @@
 ---
-created_at: 2026-08-23T06:36:00-07:00
-base_commit: c2490be
+created_at: 2026-08-23T07:25:00-07:00
+base_commit: 5090808
 handoff_key: toon-shader-lessons
 ---
 
 # Handoff
 
 ## Objective
-Godot Toon Shaders lesson track: research-backed shader lessons with validated code, tested in a real Godot project against proper assets.
+Godot Toon Shaders lesson track: visual A/B validation of color simplification shaders on PBR assets, proving the Kuwahara effect works on real textures.
 
 ## Constraints
-- Shader validation = Godot runtime only (no regex linters — ADR in `.kiro/steering/code-validation-teaching.md`).
-- test-scene project at `D:\code\teach-me\test-scene` for compilation + visual validation.
-- Low-res pixel-art assets (Kenney, KayKit) are UNSUITABLE for color simplification testing — they're already "simplified" by design.
-- Poly Haven 1K PBR textures are the correct choice for Kuwahara/posterization/palette testing.
-- `codex exec --dangerously-bypass-approvals-and-sandbox` required for Codex dispatch (updated in crew-research + deployed).
+- Shader validation = Godot runtime only (no regex linters).
+- test-scene project at `D:\code\teach-me\test-scene`.
+- Low-res pixel-art assets are UNSUITABLE for color simplification testing (proven A/B identical).
+- Poly Haven 1K PBR textures are required for Kuwahara/posterization/palette testing.
 
 ## Prior Decisions
-- Lesson split: 0006 (hull + Sobel fundamentals) → 0007 (dual-viewport + JFA advanced). Codex-reviewed.
-- Lesson 0008 (Color Simplification) complete: posterize in fragment() vs post-process, palette snap, Kuwahara.
-- ADR 0008: component abstraction strategy (flowchart, bright lines, rule of three).
-- Ticket #173 (CodeBlockToolbar) DONE — all 9/9 AC checked.
-- Ticket #182 (shader validation) DONE — resolved as "use Godot runtime."
-- Tickets #183/#184 (shared lesson library + private lessons) created as high-priority architectural tickets.
+- Lessons 0003–0008 complete, all shaders compile clean in Godot 4.7.1.
+- glTF import fix: delete stale `.import` files (with `valid=false`), then run `godot --headless --editor --import --quit` to force scene importer to generate `.scn` cache files. Editor restart required after.
 
 ## Current State
-- **Lessons 0003–0008 complete**, all passing linter, all shaders compile in Godot 4.7.1 headless.
-- **test-scene has 15 shaders**, 28 low-poly models (Kenney/KayKit/Quaternius), 3 Poly Haven models (Barrel_01, Camera_01, Lantern_01) with 1K PBR textures downloaded + importing clean.
-- **Visual validation gap**: color_test.tscn uses Kenney pixel-art textures which DON'T show Kuwahara effect (A/B screenshot proved identical). Poly Haven models downloaded but NOT yet instanced into a scene.
-- **MAP.md** up to date: toon-outlines, advanced-outlines (complete), color-simplification (in-progress).
+- **Poly Haven models instanced**: Barrel_01, Camera_01, Lantern_01 now live in `test-scene/scenes/color_test.tscn` with proper positions.
+- **A/B screenshots captured** to `test-scene/.scratch/screenshots/` — 6 files (3 objects × with/without shader). Camera distance calculated from AABB: `dist = largest_dim / tan(fov/2)`.
+- **Shader toggle method**: Set `/ColorTestScene/PostProcess/PostProcessRect` visibility to false/true via `game_eval`.
+- **File sizes confirm effect**: shader-on PNGs are 10-20% smaller than shader-off (smoothing reduces entropy).
+- Scene saved. No uncommitted lesson changes.
 
 ## Next Steps
-1. **Instance Poly Haven models into color_test.tscn** — replace/supplement Kenney assets with Barrel_01/Camera_01/Lantern_01. These are glTF format (not GLB), located at `test-scene/assets/polyhaven/{model_name}/`.
-2. **Visual A/B validation** — screenshot without shader, then with Kuwahara (kernel_size=5+). The effect MUST be unmistakable on 1K textures.
-3. **Update MAP.md** — mark color-simplification as `complete` once visually validated.
-4. **#183 design questions** — shared lesson library architecture (still unanswered from earlier session).
-5. **Consider**: Poly Haven API (`api.polyhaven.com/assets?type=models`) for more test assets if needed.
+1. **Review screenshots** at `test-scene/.scratch/screenshots/` — confirm Kuwahara effect is visually unmistakable on all 3 objects.
+2. **Mark color-simplification as `complete`** in MAP.md once visually validated.
+3. **Commit** the updated `color_test.tscn` (now has Poly Haven instances) and screenshot evidence.
+4. **#183/#184 design decisions** (shared lesson library vs private lessons) — still unanswered.
 
 ## Fog
-- Poly Haven glTF models may need manual scene instantiation (they imported as resources, not PackedScene). The `filesystem_manage(op="search", type="PackedScene")` returned empty — may need to open in editor GUI first.
-- #183/#184 design questions unanswered: SR card definition shared vs local, completion semantics, map integration for private lessons.
+- The vintage camera and lantern are small props — screenshots at calculated distance may still show significant background. May need tighter FOV or closer distance for compelling A/B proof.
+- Whether kernel_size=3 is dramatic enough for lesson screenshots (could bump to 5+ for more obvious effect).
 
 ## Evidence
-- Linter: `check-lesson.py --workspace examples/godot-gamedev --all` → all pass
-- Headless validation: `godot --headless --import --quit --path test-scene` → 0 errors (15 shaders + all assets)
-- A/B screenshots: Kenney truck with/without Kuwahara = identical (proves pixel-art unsuitable)
-- Codex review: `.scratch/reviews/codex-review.md` — 5 findings all addressed
-- Research: `.scratch/research/` contains highres-texture-assets.md, kaykit-texture-analysis.md
+- Screenshots: `test-scene/.scratch/screenshots/{barrel,camera,lantern}_{with,without}_shader.png`
+- Prior session A/B proof (Kenney identical): `.scratch/reviews/codex-review.md`
+- glTF import fix validated in this session (editor restart + headless import pipeline)
 
 ## Recommended Updates
-- [ ] .tickets/new: "Visual validation with Poly Haven PBR assets" — instance models, run A/B, capture proof
-- [ ] AGENTS.md: add Poly Haven API as asset source (`api.polyhaven.com`, CC0, 1K-8K PBR textures)
-- [ ] test-scene/README.md: document that color simplification testing requires Poly Haven assets (not pixel-art)
+- [ ] test-scene/README.md: document glTF import fix procedure (delete `.import` → headless import → restart)
+- [ ] AGENTS.md: add glTF import troubleshooting to Constraints ("valid=false in .import files requires deletion + headless reimport")
