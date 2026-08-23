@@ -1,7 +1,7 @@
 ---
 id: "185"
 title: "Fix verified prose errors in shader lessons (review findings)"
-status: open
+status: done
 blocked_by: []
 priority: high
 validation_criteria:
@@ -208,13 +208,13 @@ Fragment() posterizes albedo to 4 levels, light() applies toon banding.
 
 ## Acceptance criteria
 
-- [ ] F1: 0003 exercise/hint no longer state ALBEDO defaults to black; new text matches "default white" docs line
-- [ ] F2: 0003 contains no gdhelper-pipeline/street.tscn/CaliforniaAve references
-- [ ] F3: 0003 glossary view-space entry says −Z into scene
-- [ ] F4: 0004 states total shades = bands + 1 and drops "bands = 2 = classic cel"
-- [ ] F5: toon-outlines README.md and 0006 glossary both say Forward+ only (no Mobile)
-- [ ] F6: 0006 no longer ties depth_test_disabled to Godot 4.4+
-- [ ] F7: 0007 detection-pass inline comment describes any-color-difference behavior
-- [ ] F8: 0007 JFA example uses widths where ⌈log₂⌉ equals stated pass count
-- [ ] F9: 0008 exercise answer's mechanism matches DIFFUSE_LIGHT math (bands survive albedo posterization)
-- [ ] F10: toon-banding README accurately scopes max()/+= usage
+- [x] F1: 0003 exercise/hint no longer state ALBEDO defaults to black; new text matches "default white" docs line
+- [x] F2: 0003 contains no gdhelper-pipeline/street.tscn/CaliforniaAve references
+- [x] F3: 0003 glossary view-space entry says −Z into scene
+- [x] F4: 0004 states total shades = bands + 1 and drops "bands = 2 = classic cel"
+- [x] F5: toon-outlines README.md and 0006 glossary both say Forward+ only (no Mobile)
+- [x] F6: 0006 no longer ties depth_test_disabled to Godot 4.4+
+- [x] F7: 0007 detection-pass inline comment describes any-color-difference behavior
+- [x] F8: 0007 JFA example uses widths where ⌈log₂⌉ equals stated pass count
+- [x] F9: 0008 exercise answer's mechanism matches DIFFUSE_LIGHT math (bands survive albedo posterization)
+- [x] F10: toon-banding README accurately scopes max()/+= usage
