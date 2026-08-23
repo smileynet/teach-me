@@ -5,6 +5,7 @@ generated: 2026-08-19
 depth: 1
 parent: godot-gamedev
 leads_to:
+  - godot-mktoon
   - advanced-shader-effects
   - stylized-rendering
 ---
