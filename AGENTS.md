@@ -114,6 +114,7 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 | Don't ask recall questions in gates | Ask "explain to [person] why..." |
 | Don't omit page-shell.js | Every lesson includes page-shell.js via the template's depth-relative path — single entry point for nav, glossary, typography, layout |
 | Don't ship silent buttons | Interactive buttons must have visible hover state + click feedback (animation, color change, or navigation) |
+| Don't trust visual validation on pixel-art assets | Color simplification shaders (Kuwahara, posterize) produce NO visible effect on low-res flat-color textures — use 1K+ PBR textures (Poly Haven CC0) for honest validation |
 | Don't give partial URLs | When a server is running, always provide full clickable URLs (http://host:port/path) |
 | Don't context-switch to content during infrastructure | Finish the migration/ticket in progress before generating lessons or teaching |
 | Don't create per-topic workspaces | One workspace/ per machine holds all topics. Use examples/ only for demo fixtures |
