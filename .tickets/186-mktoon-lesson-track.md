@@ -1,7 +1,7 @@
 ---
 id: "186"
 title: "MKToon track setup: MAP, test-scene fixture, design decisions"
-status: open
+status: done
 blocked_by: ["185"]
 priority: high
 ---
@@ -44,12 +44,12 @@ The sibling-fork relationship is documented in #155 (global map) and #055 (cross
 
 ## Acceptance criteria
 
-- [ ] `examples/godot-gamedev/maps/godot-mktoon.MAP.md` exists with 6 topics and correct frontmatter
-- [ ] `godot-toon-shaders.MAP.md` updated with `leads_to` including `godot-mktoon`
-- [ ] `test-scene/scenes/mktoon_test.tscn` exists with at least one PBR mesh
-- [ ] Reference shader copied to test-scene (not modified — read-only comparison target)
-- [ ] `godot --headless --editor --import --quit --path test-scene` passes
-- [ ] Design decisions recorded in `.memory/adr/` or `.memory/`
+- [x] `examples/godot-gamedev/maps/godot-mktoon.MAP.md` exists with 6 topics and correct frontmatter
+- [x] `godot-toon-shaders.MAP.md` updated with `leads_to` including `godot-mktoon`
+- [x] `test-scene/scenes/mktoon_test.tscn` exists with at least one PBR mesh
+- [x] Reference shader copied to test-scene (not modified — read-only comparison target)
+- [x] `godot --headless --editor --import --quit --path test-scene` passes
+- [x] Design decisions recorded in `.memory/adr/` or `.memory/`
 
 ## Downstream tickets (one per lesson)
 
