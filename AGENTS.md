@@ -134,10 +134,6 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 - Python tools with Unicode stdout (✓, ✗) fail on Windows cp1252. Use `set PYTHONIOENCODING=utf-8` or avoid non-ASCII in print() output.
 - Mise shim recursion: `mise run` may fail with "recursive shim invocation detected". Workaround: invoke `.venv\Scripts\python.exe` directly instead of `python` or `mise run`.
 - Background servers on Windows: use `Start-Process -WindowStyle Hidden` (never `-NoNewWindow` with redirects — it blocks). Verify with `Get-NetTCPConnection -LocalPort PORT -State Listen`. Never read stdout synchronously from a server process.
-- Godot glTF import with `valid=false`: MCP `reimport`/`scan` do NOT trigger the scene importer. Fix: delete the `.gltf.import` files → run `godot --headless --editor --import --quit` → restart editor. Only then will `node_create` with `scene_path` work.
-- Godot MCP `editor_screenshot`: images are inline base64 content blocks only — cannot be saved to disk. To save screenshots as files, run the game and use `game_eval` with `get_viewport().get_texture().get_image().save_png()`.
-- Godot `game_eval` GDScript: `deg_to_radians()` is not available. Use `angle * PI / 180.0` for manual conversion.
-- Godot visual validation framing: calculate camera distance from object AABB so it fills the frame: `dist = largest_aabb_dim / tan(cam.fov * 0.5 * PI / 180.0)`. Don't guess offsets.
 
 ## Skill Format (kiro-cli)
 
