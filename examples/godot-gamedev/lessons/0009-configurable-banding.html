@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 9: Configurable Toon Banding</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-mktoon-map.html">Per-Material Toon Shading</a> <span class="nav-sep">›</span> <span>Configurable Banding</span></nav>
+<h1>Configurable Toon Banding</h1>
+
+<div class="lesson-meta">
+  Lesson 9 · Per-Material Toon Shading (MKToon) · ~10 min read<br>
+  <strong>Win:</strong> You can build a configurable banding shader with smoothness, scale, and threshold — and explain why <code>mix(banded, continuous, smoothness)</code> gives soft N-band shading.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> You have a shader with five artist-facing sliders that control band count, edge softness, shading intensity, and shadow position — all without touching code. This is the foundation for the entire per-material toon track.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE PROBLEM
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Problem: Hard Bands Aren't Enough</h2>
+
+<p><em>← Prerequisite: <a href="0004-toon-banding.html">Lesson 4: Toon Banding</a> (the modulo trick)</em></p>
+
+<p>In Lesson 4 you built <code>toon_bands.gdshader</code> — the modulo trick gives you N evenly-spaced hard bands from a single integer uniform. That's great for bold comic-book shading, but an art director might ask for:</p>
+
+<ul>
+  <li><strong>Soft transitions</strong> between bands (ink-wash, watercolor, subtle illustration)</li>
+  <li><strong>Adjustable intensity</strong> — how dramatic the shading appears, from barely-there to high-contrast</li>
+  <li><strong>Shifted split point</strong> — more shadow or more light, per-material, without moving the actual light</li>
+</ul>
+
+<p>None of these are possible with the modulo trick alone. You'd need to write three different shaders for three different art styles. What we want is <em>one shader with sliders</em>.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FLOOR-DIVIDE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Step 1: From Modulo to Floor-Divide</h2>
+
+<p>The modulo trick snaps values UP to the next band boundary. For configurable shading, we'll use the floor-divide approach instead — it snaps DOWN and produces output spanning the full [0, 1] range:</p>
+
+<pre data-file="configurable_banding.gdshader" data-mode="fragment"><code>// Band quantization: floor-divide spans full [0,1] range
+float banded = floor(centered * light_bands) / max(light_bands - 1.0, 1.0);</code></pre>
+
+<p>Why <code>/(light_bands - 1)</code> instead of <code>/light_bands</code>? With <code>/N</code>, the brightest band tops out at <code>(N-1)/N</code> — never reaching full white. Dividing by <code>(N-1)</code> guarantees the top band hits 1.0, giving you the full brightness range from dark to fully lit.</p>
+
+<div class="note">
+<strong>Floor vs Modulo:</strong> The modulo trick from Lesson 4 (<code>x + mod(1.0 - x, cuts_inv)</code>) rounds UP — each pixel shows the next boundary's brightness. Floor-divide (<code>floor(x * N) / (N-1)</code>) rounds DOWN — each pixel shows the current band's floor value. Visually they produce similar steps, but floor-divide gives a cleaner [0, 1] output range that's easier to manipulate with smoothness and scale.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CENTERING TRICK
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Step 2: The Centering Trick (Threshold Control)</h2>
+
+<p>Raw NdotL ranges from -1 (facing away from light) to +1 (facing directly at light). Before quantizing, we remap it so that 0.5 sits at a controllable midpoint:</p>
+
+<pre data-file="configurable_banding.gdshader" data-mode="fragment"><code>// Center around threshold (Half Lambert remap)
+float centered = NdotL - light_threshold - diffuse_threshold_offset + 0.5;
+centered = clamp(centered, 0.0, 1.0);</code></pre>
+
+<p>This is the same principle as Valve's Half Lambert technique: make 0.5 the default boundary between "lit" and "unlit." Now <code>light_threshold</code> becomes an intuitive slider — values above 0.5 push the boundary into the lit region (more shadow), values below 0.5 push it into shadow (more lit). The offset provides a secondary fine-tune.</p>
+
+<div class="note">
+<strong>New concept — centering trick:</strong> By subtracting the threshold and adding 0.5, you create a coordinate system where 0.5 is always "the decision point." This means your floor-divide always has the band boundaries distributed symmetrically around your chosen midpoint. Without centering, the threshold slider would work backwards or require mental math.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SMOOTHNESS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Step 3: The Smoothness Blend</h2>
+
+<p>Here's the key insight that makes this shader flexible. After computing the hard-banded value, we blend it with the original continuous value:</p>
+
+<pre data-file="configurable_banding.gdshader" data-mode="fragment"><code>// Smoothness: blend quantized result with continuous value
+float lit_factor = mix(banded, centered, diffuse_smoothness);</code></pre>
+
+<p><code>mix(banded, centered, smoothness)</code> interpolates between two extremes:</p>
+<ul>
+  <li><code>smoothness = 0.0</code> → pure <code>banded</code> — hard cel edges, discrete steps</li>
+  <li><code>smoothness = 1.0</code> → pure <code>centered</code> — smooth continuous gradient, no quantization at all</li>
+  <li><code>smoothness = 0.3</code> → mostly banded with soft transitions — the illustration/anime sweet spot</li>
+</ul>
+
+<p>This is something neither <code>smoothstep()</code> alone nor the modulo trick can do. Smoothstep gives you a soft <em>two-band</em> transition. The modulo trick gives you hard <em>N-band</em> steps. This <code>mix()</code> pattern gives you soft <em>N-band</em> shading — bands are visible but their edges are painterly rather than razor-sharp.</p>
+
+<div class="note">
+<strong>Why not smoothstep between each band?</strong> You could compute per-band smoothsteps, but that requires a loop and scales with band count. The <code>mix()</code> approach achieves the same visual result in one operation regardless of how many bands you have — it's the production-friendly shortcut.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCALE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Step 4: Scale (How Dramatic)</h2>
+
+<p>The final control determines how much contrast the banding creates:</p>
+
+<pre data-file="configurable_banding.gdshader" data-mode="fragment"><code>// Scale: how dramatic the shading appears
+lit_factor = 0.5 + (lit_factor - 0.5) * light_bands_scale;</code></pre>
+
+<p>This formula expands or compresses the lit_factor around 0.5:</p>
+<ul>
+  <li><code>scale = 0.0</code> → everything becomes 0.5 (flat mid-gray, no shading visible)</li>
+  <li><code>scale = 0.5</code> → range compressed to [0.25, 0.75] (subtle, understated shading)</li>
+  <li><code>scale = 1.0</code> → full [0, 1] range (maximum dark-to-light contrast)</li>
+</ul>
+
+<p>Think of it as a "drama dial." Low values produce the subtle ink-wash look of gouache illustration. High values produce bold comic-book contrast. The band count and positions stay the same — only the visual weight of the shading changes.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     COMPLETE SHADER
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Complete Shader</h2>
+
+<p>Putting all four steps together with albedo support and multi-light safety:</p>
+
+<pre data-file="configurable_banding.gdshader" data-mode="complete"><code>shader_type spatial;
+render_mode specular_disabled;
+
+// === Albedo ===
+uniform vec4 albedo_color : source_color = vec4(1.0);
+uniform sampler2D albedo_texture : source_color;
+uniform bool use_albedo_texture = false;
+
+// === Toon Banding Controls ===
+uniform float light_bands : hint_range(1, 9, 1) = 4.0;
+uniform float light_bands_scale : hint_range(0, 1) = 0.5;
+uniform float light_threshold : hint_range(0, 1) = 0.5;
+uniform float diffuse_threshold_offset : hint_range(-1, 1) = 0.0;
+uniform float diffuse_smoothness : hint_range(0, 1) = 0.0;
+
+void fragment() {
+    vec3 col = albedo_color.rgb;
+    if (use_albedo_texture) {
+        col *= texture(albedo_texture, UV).rgb;
+    }
+    ALBEDO = col;
+}
+
+void light() {
+    float NdotL = dot(NORMAL, LIGHT);
+
+    // Center around threshold (Half Lambert remap)
+    float centered = NdotL - light_threshold - diffuse_threshold_offset + 0.5;
+    centered = clamp(centered, 0.0, 1.0);
+
+    // Band quantization: floor-divide spans full [0,1] range
+    float banded = floor(centered * light_bands) / max(light_bands - 1.0, 1.0);
+
+    // Smoothness: blend quantized result with continuous value
+    float lit_factor = mix(banded, centered, diffuse_smoothness);
+
+    // Scale: how dramatic the shading appears
+    lit_factor = 0.5 + (lit_factor - 0.5) * light_bands_scale;
+
+    DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * LIGHT_COLOR * ATTENUATION * lit_factor);
+}</code></pre>
+
+<div class="note">
+<strong>Why <code>specular_disabled</code>?</strong> We're writing our own lighting in <code>light()</code>. Godot's built-in PBR specular would add shiny highlights that clash with our toon look. <code>specular_disabled</code> turns off direct-light specular lobes. We'll add our own flat toon specular in Lesson 12.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TRY IT
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Try It: Five Sliders, Five Looks</h2>
+
+<p>Apply this shader to a mesh in your test scene (TestSphere works well). Then try these presets:</p>
+
+<table>
+<thead><tr><th>Look</th><th>bands</th><th>smoothness</th><th>scale</th><th>threshold</th></tr></thead>
+<tbody>
+<tr><td>Bold comic</td><td>3</td><td>0.0</td><td>1.0</td><td>0.5</td></tr>
+<tr><td>Soft anime</td><td>4</td><td>0.2</td><td>0.7</td><td>0.5</td></tr>
+<tr><td>Ink wash</td><td>6</td><td>0.5</td><td>0.3</td><td>0.4</td></tr>
+<tr><td>Dramatic shadow</td><td>2</td><td>0.0</td><td>1.0</td><td>0.7</td></tr>
+<tr><td>Flat (debug)</td><td>4</td><td>0.0</td><td>0.0</td><td>0.5</td></tr>
+</tbody>
+</table>
+
+<p>Notice how the last row produces perfectly flat gray — that confirms the scale control works. Every other row uses the same shader with different slider values. No code changes needed.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A colleague sets <code>diffuse_smoothness = 1.0</code> expecting "smooth bands" — softened edges between distinct brightness levels. Instead, they get a plain smooth gradient with no visible banding at all. They ask: "Why doesn't smoothness give me smooth-edged bands? I thought it was supposed to soften the steps."</p>
+  <p>Explain what <code>smoothness = 1.0</code> actually does, why it eliminates bands entirely, and what value range would give them the "soft bands" look they want.</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Look at what <code>mix(banded, centered, smoothness)</code> produces at the extremes. What is <code>centered</code> — is it banded, or is it the original continuous value?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p><code>mix(banded, centered, 1.0)</code> returns <code>centered</code> entirely — the pre-quantization continuous value. There are no bands because the floor-divide result is completely ignored. Smoothness doesn't soften band <em>edges</em>; it blends between "quantized output" and "original input." At 1.0, you've blended 100% back to the original.</p>
+  <p>For soft-edged bands, use values in the <strong>0.1–0.4 range</strong>. At 0.2, the floor-divide still dominates (bands clearly visible) but 20% of the continuous signal bleeds through, creating soft transitions between steps. Think of it as "how much of the hard decision to keep" — not "how soft are the edges."</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Code Files</h2>
+<p>Download the shader from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/configurable-banding/configurable_banding.gdshader" download><code>configurable_banding.gdshader</code></a> — floor-divide banding with smoothness, scale, and threshold controls</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next:</strong> <a href="0010-gooch-shading.html">Gooch Warm/Cool Shadows</a> — replace black shadows with a warm-to-cool color ramp that adds perceived depth without breaking the toon look.</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"configurable-banding": "Floor-divide quantization with smoothness blend and scale — the production pattern for per-material toon control with artist-facing sliders.", "light-bands-scale": "How dramatic the shading appears — 0 flattens to mid-gray (no visible shading), 1 gives the full dark-to-light range.", "diffuse-smoothness": "Blend factor between hard band edges (0) and the smooth continuous gradient (1) — controls how much quantization survives in the final output.", "centering-trick": "Remapping NdotL so 0.5 is the default light/dark midpoint — enables intuitive threshold sliders. Equivalent to Valve's Half Lambert remap.", "floor-divide": "The pattern floor(x * N) / (N-1) — quantizes a continuous value into N discrete levels spanning the full [0, 1] range.", "specular-disabled": "A Godot render mode that turns off built-in direct-light specular lobes — use when writing custom specular in light().", "NdotL": "Dot product of the surface normal and light direction — the fundamental measure of how directly a surface faces a light.", "ATTENUATION": "A Godot built-in that represents light falloff with distance — 1.0 at full range, decreasing toward 0 as distance increases."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
