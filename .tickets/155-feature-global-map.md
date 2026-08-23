@@ -99,9 +99,40 @@ global-map.html (interactive Preact page)
 - [ ] Handles the `leads_to` frontmatter field as explicit edges
 - [ ] Visual matches existing map page style (dagre layout, same color palette)
 
+## Concrete use case: sibling map fork (godot-toon-shaders ↔ godot-mktoon)
+
+The godot-gamedev parent has two depth-1 child MAPs that share a prerequisite:
+
+```
+godot-gamedev (parent)
+├── godot-toon-shaders (child)
+│   └── toon-banding ← shared fork point
+│       → outlines → advanced-outlines → color-simplification
+│
+├── godot-mktoon (child)
+│   prereqs: [toon-banding] ← references topic in SIBLING map
+│   → gooch → wrap → specular/rim → outlines-overlays → vfx
+```
+
+Both tracks branch from `toon-banding` (in the toon-shaders map). They teach different
+philosophies for the same problem: post-process filtering vs per-material authored NPR.
+
+**Requirements this case demands:**
+
+1. The parent map page must render the fork visually — `toon-banding` node has two outgoing
+   paths leading to different child maps, not just a single "zoom in" node per child.
+2. Cross-map prereqs (`godot-mktoon` prereqs `toon-banding` from `godot-toon-shaders`) must
+   resolve when building the global graph. This is an intra-parent sibling reference, not a
+   cross-domain connection.
+3. A learner on the parent map sees both paths as alternatives from the fork point, with a
+   brief "Filter vs Author" decision label on the fork.
+
+**This is the primary motivating case for "how to handle depth-1 child maps."**
+
 ## Open questions
 
 - Should connections have a confidence threshold (don't show weak ones by default)?
 - Should the global map auto-regenerate on domain completion, or only on explicit request?
-- How to handle depth-1 child maps (e.g., sub-topics that expand into their own MAP)?
+- ~~How to handle depth-1 child maps (e.g., sub-topics that expand into their own MAP)?~~ → Answered above: render fork points where siblings share prereqs.
 - Does this replace or complement the existing index page (generate_index_page.py)?
+- Should sibling-map forks show inline on the parent map, or require navigating to the global map?

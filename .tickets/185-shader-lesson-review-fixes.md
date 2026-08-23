@@ -140,6 +140,72 @@ test-scene wires up `toon_bands`, `toon_outline*`, `kuwahara_basic` — but
 advanced-outline set (colorid/colorid_detect/jfa_pass) are referenced by no scene
 or material. Lesson 0007 has no runnable fixture. Separate ticket if wanted.
 
+## Research findings (2026-08-23)
+
+Subagent research confirmed all claims in the ticket via official docs + prior art:
+
+### F1 — ALBEDO default
+**Confirmed white.** Godot 4 spatial shader docs, Fragment built-ins table:
+"ALBEDO … Albedo (default white). Base color." Consistent across all 4.x versions.
+BaseMaterial3D.albedo_color also defaults to Color(1,1,1,1).
+
+**Exercise implication:** A shader with only `light()` and no `fragment()` renders as
+**white toon-banded** (not black). The exercise premise ("mesh renders solid black")
+is factually wrong. The fix (add fragment() to sample texture) is still valid, but
+the observable symptom changes from "black" to "flat white, no texture visible."
+
+### F4 — Band count math
+**Confirmed off-by-one.** `floor(x*N)/N` produces N practical shade levels (the N+1th
+at exactly NdotL=1.0 is a degenerate single point). The lesson's `/(N-1)` form
+produces N levels spanning full [0,1]. Key: "bands" parameter is best explained as
+"number of intervals" — 2 intervals = 2 shade levels (not "2 = classic cel" which
+implies a binary light/dark split with step()).
+
+Sources: Offscreen Canvas tutorial, Ronja's Improved Toon Light, CaptainProton42's
+FlexibleToonShader (Godot), dev.to empirical tests with 3/4/5/10 levels.
+
+### F8 — JFA pass count
+**Confirmed ⌈log₂64⌉ = 6, not 7.** The lesson's claim "both need 7 passes" is wrong.
+Original Rong & Tan (2006): passes = ceil(log2(N)). Concrete: 32px=5, 64px=6,
+65-128px=7, 256px=8. The fix: use widths in the 65-128 band (e.g., "A 100-pixel
+outline costs the same as a 65-pixel one — both need 7 passes").
+
+### F3 — View space Z direction
+**Confirmed -Z into scene.** Godot uses right-handed Y-up with -Z forward (OpenGL
+convention), maintained even on Vulkan backend. VIEW built-in points from fragment
+toward camera (+Z in view space).
+
+## Validation plan (test-scene)
+
+Two claims need visual validation (not just doc-checking):
+
+### F1 validation shader (`test-scene/shaders/validation/test_albedo_default.gdshader`)
+Shader with ONLY light(), no fragment(). Apply to TestSphere, render.
+- **Expected (if docs right):** White sphere with toon bands visible.
+- **If black:** docs are wrong and exercise was correct.
+
+### F9 validation shader (`test-scene/shaders/validation/test_posterize_bands.gdshader`)
+Fragment() posterizes albedo to 4 levels, light() applies toon banding.
+- **Expected (if analysis right):** Banding still visible (NdotL is geometric, independent of albedo).
+- **If flat:** the exercise answer was correct and our analysis is wrong.
+
+### Validation method
+1. `godot --headless --editor --import --quit` — confirms compilation
+2. GDScript (`validate_claims.gd`) that applies shaders to TestSphere, renders 1 frame,
+   saves PNG to `test-scene/.scratch/validation/`
+3. If headless can't render: dispatch to godot_editor agent or flag for manual check
+
+## Execution order (revised)
+
+1. Create validation shaders + script, attempt render
+2. Mechanical fixes: F3, F5, F6, F7, F8, F10 (no judgment needed)
+3. F4 — reword band-count explanation per research
+4. F2 — rewrite test-scene section against actual fixtures
+5. F1 — rewrite exercise per validation result
+6. F9 — rewrite exercise answer per validation result
+7. `mise run verify` + grep checks
+8. Commit
+
 ## Acceptance criteria
 
 - [ ] F1: 0003 exercise/hint no longer state ALBEDO defaults to black; new text matches "default white" docs line

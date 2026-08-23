@@ -9,4 +9,4 @@ Final-state shader files from [Lesson 4: Toon Banding](../../lessons/0004-toon-b
 | `toon_bands.gdshader` | Approach B — N configurable evenly-spaced bands via the modulo trick |
 | `toon_ramp.gdshader` | Approach C — artist-paintable 1D gradient texture as lighting curve |
 
-All files use `max()` instead of `+=` for multi-light safety (see lesson exercise).
+Three of four files use `max()` instead of `+=` for multi-light safety (see lesson exercise). `toon_test.gdshader` retains `+=` as the lesson-3 baseline before multi-light is introduced.

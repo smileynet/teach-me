@@ -6,7 +6,7 @@
 
 - **toon_outline_smooth.gdshader** — Inverted hull with smooth normals from vertex color. Same as above but reads extrusion direction from `COLOR.rgb` instead of `NORMAL`, fixing the disjointed outline on hard-edge geometry (cubes, swords). Requires smooth normals baked in Blender.
 
-- **toon_outline_screen.gdshader** — Screen-space edge detection outline (scene-wide). Apply to a fullscreen quad (QuadMesh 2×2, child of Camera3D). Detects both silhouettes AND internal edges via depth + normal discontinuities. Better visual quality, no mesh prep needed. Requires Forward+ or Mobile renderer.
+- **toon_outline_screen.gdshader** — Screen-space edge detection outline (scene-wide). Apply to a fullscreen quad (QuadMesh 2×2, child of Camera3D). Detects both silhouettes AND internal edges via depth + normal discontinuities. Better visual quality, no mesh prep needed. Requires Forward+ renderer.
 
 - **toon_outline_jfa_pass.gdshader** — JFA flood pass (educational reference). Shows the core algorithm: check 8 neighbors at a grid offset, keep the closest seed. Runs multiple times with halving offsets to build a distance field. For production use, install [pink-arcana/godot-distance-field-outlines](https://github.com/pink-arcana/godot-distance-field-outlines).
 

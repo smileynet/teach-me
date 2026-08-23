@@ -170,7 +170,7 @@ void vertex() {
 
 <div class="next-steps">
   <h3>Check Your Understanding</h3>
-  <p><strong>Exercise:</strong> A colleague wrote a toon shader but the mesh renders as solid black — no texture visible, no lighting variation. They show you this:</p>
+  <p><strong>Exercise:</strong> A colleague wrote a toon shader but the mesh renders as plain white with a hard light/dark split — their albedo texture isn't showing up at all. They show you this:</p>
   <pre data-mode="fragment"><code>shader_type spatial;
 uniform sampler2D albedo_texture : source_color;
 
@@ -179,19 +179,19 @@ void light() {
     float lit = step(0.0, NdotL);
     DIFFUSE_LIGHT += ALBEDO * LIGHT_COLOR * ATTENUATION * lit;
 }</code></pre>
-  <p>It compiles without errors. What's missing, which of the three functions should provide it, and why does the shader produce black without it?</p>
+  <p>It compiles without errors and the lighting bands work (there's a visible light/dark split). But the texture is gone — why?</p>
   <details>
   <summary>Hint</summary>
-  <p><code>light()</code> multiplies by <code>ALBEDO</code>. Where does <code>ALBEDO</code> get its value? What's its default if nothing sets it?</p>
+  <p><code>light()</code> multiplies by <code>ALBEDO</code>. Where does <code>ALBEDO</code> get its value? What happens if nothing sets it — and what function <em>should</em> set it?</p>
   </details>
   <details>
   <summary>Answer</summary>
-  <p>There's no <code>fragment()</code> function — so <code>ALBEDO</code> is never set and defaults to <code>vec3(0, 0, 0)</code> (black). Even though <code>light()</code> calculates correct toon banding, multiplying by a black surface produces black.</p>
+  <p>There's no <code>fragment()</code> function — so <code>ALBEDO</code> is never set and keeps its default value of <code>vec3(1.0, 1.0, 1.0)</code> (white). The toon banding works because <code>light()</code> still calculates NdotL correctly, but it's multiplying white by the light — producing a plain white surface with lighting variation but no texture.</p>
   <p>The fix: add <code>fragment()</code> to set the surface color before lighting runs:</p>
   <pre data-mode="fragment"><code>void fragment() {
     ALBEDO = texture(albedo_texture, UV).rgb;
 }</code></pre>
-  <p>This is the pipeline in action: <code>fragment()</code> declares what the surface looks like → <code>light()</code> illuminates what <code>fragment()</code> prepared. Skip a stage and the downstream stage has nothing to work with.</p>
+  <p>This is the pipeline in action: <code>fragment()</code> declares what the surface looks like → <code>light()</code> illuminates what <code>fragment()</code> prepared. Skip a stage and the downstream stage has nothing useful to work with.</p>
   </details>
 </div>
 
@@ -201,16 +201,15 @@ void light() {
 
 <h2>Applying This to Our Test Scene</h2>
 
-<p>In the gdhelper-pipeline project specifically:</p>
+<p>In the test-scene project:</p>
 <ol>
-  <li>Open <code>scenes/street.tscn</code></li>
-  <li>Expand the <strong>CaliforniaAve</strong> node in the scene tree</li>
-  <li>Select a mesh (e.g., "Building Front")</li>
-  <li>Surface Material Override → slot 0 → New ShaderMaterial</li>
-  <li>Shader → Load → pick your <code>toon_test.gdshader</code></li>
-  <li>Set <code>albedo_texture</code> → <code>res://assets/california_ave_easy-street-front-flattened.png</code></li>
+  <li>Open <code>scenes/shader_test.tscn</code></li>
+  <li>Select <strong>TestSphere</strong> (or <strong>TestBox</strong>) in the scene tree</li>
+  <li>In the Inspector, expand Material → Surface Material Override → slot 0 → New ShaderMaterial</li>
+  <li>Click the ShaderMaterial → Shader → New Shader → paste your <code>toon_test.gdshader</code></li>
+  <li>Expand Shader Parameters and set <code>albedo_texture</code> to any texture in the project</li>
 </ol>
-<p>You should see hard toon banding on the building — lit areas show the texture at full brightness, shadow areas are black. We'll add shadow coloring in the next lesson.</p>
+<p>You should see hard toon banding on the mesh — lit areas show the texture at full brightness, shadow areas are black. We'll add shadow coloring in the next lesson.</p>
 
 <!-- ═══════════════════════════════════════════════════════════════
      REFERENCES
@@ -247,7 +246,7 @@ void light() {
   <p><strong>Lesson 4:</strong> <a href="0004-toon-banding.html">Toon Banding</a> — three approaches to turning smooth lighting into discrete bands (step, modulo, curve texture). We'll modify the shader live.</p>
 </div>
 
-<script type="application/json" id="glossary-data">{"spatial-shader": "A shader program that controls how 3D surfaces are rendered — has vertex(), fragment(), and light() entry points.", "fragment-function": "The shader entry point that runs once per visible pixel to set surface properties like color and roughness.", "light-function": "The shader entry point that runs per-pixel per-light to calculate the lighting contribution.", "vertex-function": "The shader entry point that runs per-vertex to transform positions and pass data to later stages.", "varying": "A variable declared in a shader that passes interpolated data from vertex() to fragment()/light().", "view-space": "A coordinate system relative to the camera — origin at the camera, Z pointing toward the scene.", "model-space": "A coordinate system local to the mesh — origin at the object's pivot point.", "NdotL": "Dot product of the surface normal and light direction — the fundamental measure of how directly a surface faces a light."}</script>
+<script type="application/json" id="glossary-data">{"spatial-shader": "A shader program that controls how 3D surfaces are rendered — has vertex(), fragment(), and light() entry points.", "fragment-function": "The shader entry point that runs once per visible pixel to set surface properties like color and roughness.", "light-function": "The shader entry point that runs per-pixel per-light to calculate the lighting contribution.", "vertex-function": "The shader entry point that runs per-vertex to transform positions and pass data to later stages.", "varying": "A variable declared in a shader that passes interpolated data from vertex() to fragment()/light().", "view-space": "A coordinate system relative to the camera — origin at the camera, \u2212Z pointing into the scene (OpenGL convention).", "model-space": "A coordinate system local to the mesh — origin at the object's pivot point.", "NdotL": "Dot product of the surface normal and light direction — the fundamental measure of how directly a surface faces a light."}</script>
 <script type="module" src="../assets/page-shell.js"></script>
 
 </body>

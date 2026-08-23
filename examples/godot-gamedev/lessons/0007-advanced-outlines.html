@@ -138,7 +138,7 @@ void fragment() {
                    + abs(neighbor.g - center.g)
                    + abs(neighbor.b - center.b);
 
-        // Only outline if neighbor is "behind" (lower alpha or black background)
+        // Any color difference above threshold means boundary
         float is_boundary = step(0.01, diff);
         edge = max(edge, is_boundary);
     }
@@ -209,7 +209,7 @@ void fragment() {
   <li><strong>Overlay:</strong> Compute distance to nearest seed. If within threshold, draw outline. The smooth distance field allows anti-aliasing, gradients, and glow effects for free.</li>
 </ol>
 
-<p>The key insight: each JFA pass doubles the propagation range. A 100-pixel outline costs the same as a 64-pixel one — both need 7 passes. The pass count is ⌈log₂(desired_outline_width)⌉, determined by the propagation radius you need — not by the texture size. This is why JFA outperforms naive dilation (which needs N passes for N-pixel width).</p>
+<p>The key insight: each JFA pass doubles the propagation range. A 100-pixel outline costs the same as a 65-pixel one — both need 7 passes (⌈log₂(65)⌉ = ⌈log₂(100)⌉ = 7). The pass count is ⌈log₂(desired_outline_width)⌉, determined by the propagation radius you need — not by the texture size. This is why JFA outperforms naive dilation (which needs N passes for N-pixel width).</p>
 
 <div class="note">
 <strong>Performance note:</strong> JFA is an approximation of a Voronoi diagram, not an exact computation. In practice, the error is sub-pixel for outline rendering — visually indistinguishable from exact. The approximation matters for scientific distance field applications but not for drawing outlines around game objects.
