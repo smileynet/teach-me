@@ -75,17 +75,17 @@ Two phases: ink language fundamentals (engine-agnostic, in Inky), then Godot int
 | 07 | State Bridge | External functions, variable observers, save/load | "You can bind game logic to ink, observe state changes reactively, and persist story state across sessions" |
 | 08 | Production Patterns | Hub architecture, multi-story, SVs as bus, combat-in-ink | "You can architect a multi-story ink game using Ebb's patterns — stateless dialogs, variable bus, and combat as conversation" |
 
-### Open design decisions
+### Design decisions (resolved 2026-08-24)
 
-1. **GDScript vs C# for lesson code?** godot-ink has GDScript interop, but the primary API is C#. Do we teach C# (follows the tool) or show GDScript wrappers (matches the rest of teach-me)?
+1. **GDScript vs C# → GDScript first.** Use godot-ink's GDScript interop for all lessons. Backlog a C# remix of the same lessons (ticket #194) — this is a good first test case for the planned lesson remix feature (#160).
 
-2. **Separate domain or child of godot-gamedev?** ink is a cross-engine skill — the language lessons (01-04) are engine-agnostic. Option: two MAPs (ink-language as root, ink-godot as child).
+2. **Separate domain MAP → Yes.** `ink-godot.MAP.md` as a standalone domain (not child of godot-gamedev). Cross-domain relationships will be expressed via graph/tags once the global map feature (#155) is implemented.
 
-3. **Prerequisites?** Phase A needs nothing. Phase B needs basic Godot (nodes, scenes, signals) — possibly prereqs `nodes-and-scenes` + `gdscript-fundamentals` from the godot-gamedev map.
+3. **Prerequisites → Godot fundamentals domain (new, ticket #195).** Phase B needs nodes, scenes, and signals. Rather than prereq specific godot-gamedev lessons, create a "Godot fundamentals" domain that covers just the prereqs needed by all current topic tracks. This domain becomes the shared foundation.
 
-4. **Inky editor requirement?** Lessons 01-04 use Inky (free, cross-platform). Should we document installation or treat it as assumed?
+4. **Inky editor → No installation docs in lessons.** Assume learners can install Inky (it's a single download). Create a backlog ticket for a Godot fundamentals domain that covers tooling setup as needed.
 
-5. **Reference project?** Should we build a small narrative game alongside the lessons (like test-scene for shaders), or keep it abstract exercises?
+5. **Reference project → Always.** Build a small interactive narrative alongside the lessons (ADR 0010). Each lesson produces runnable artifacts. The final project demonstrates all 8 lessons' concepts working together.
 
 ### References cloned
 
@@ -107,10 +107,17 @@ Two phases: ink language fundamentals (engine-agnostic, in Inky), then Godot int
 
 ## Next steps
 
-1. **Decision:** Resolve the 5 open design decisions above
-2. **Spike:** Set up godot-ink in a test project, verify it works with Godot 4.7.1
-3. **MAP creation:** Write `ink-godot.MAP.md` (or split into `ink-language.MAP.md` + `ink-godot.MAP.md`)
-4. **First lesson:** Generate lesson 01 (Flow & Knots) in Inky — no engine dependency
+1. ~~Decision: Resolve the 5 open design decisions above~~ → Resolved (see above)
+2. **Spike:** Set up godot-ink in a test project, verify GDScript interop works with Godot 4.7.1
+3. **MAP creation:** Write `ink-godot.MAP.md` as standalone domain
+4. **Reference project:** Scaffold `ink-test-project/` alongside test-scene
+5. **First lesson:** Generate lesson 01 (Flow & Knots) in Inky — no engine dependency
+
+## Related tickets
+
+- #194 — C# ink lesson remix (tests #160 remix feature)
+- #195 — Godot fundamentals domain (shared prereqs)
+- ADR 0010 — Always build reference projects alongside lessons
 
 ## Acceptance criteria (for this exploration ticket)
 
