@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 13: Outlines &amp; Artistic Overlays</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-mktoon-map.html">Per-Material Toon Shading</a> <span class="nav-sep">›</span> <span>Outlines &amp; Overlays</span></nav>
+<h1>Outlines &amp; Artistic Overlays</h1>
+
+<div class="lesson-meta">
+  Lesson 13 · Per-Material Toon Shading (MKToon) · ~11 min read<br>
+  <strong>Win:</strong> You can add an inverted-hull outline via next_pass and shadow-weighted overlays — and explain why pipeline order matters for multiplicative vs additive effects.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> Your toon shader has silhouette outlines (a companion shader) and hand-drawn surface texture (hatching in shadows, sketch everywhere). The mesh reads as "illustrated" rather than "rendered by computer."
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE PROBLEM
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Problem: Too Clean, Too CG</h2>
+
+<p><em>← Previous: <a href="0012-specular-rim.html">Lesson 12: Specular &amp; Rim</a></em></p>
+
+<p>Your shader now has banding, Gooch shadows, organic edges, specular stamps, and rim glow. It's feature-complete for lighting. But the surfaces are still perfectly clean CG — no silhouette outlines defining form, no surface texture suggesting a hand-drawn medium. Two finishing touches convert "shader demo" into "illustrated character":</p>
+
+<ul>
+  <li><strong>Inverted-hull outlines</strong> — a second shader pass that draws visible silhouette edges around objects</li>
+  <li><strong>Artistic overlays</strong> — texture patterns that add hatching in shadows and pencil grain everywhere</li>
+</ul>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     OUTLINE SHADER
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Outline Shader (Companion Pass)</h2>
+
+<p>In <a href="0006-toon-outlines.html">Lesson 6</a> you learned the inverted-hull technique: inflate vertices along normals, cull front faces, render the silhouette. The MKToon variant uses a simpler model-space approach with two extra artist controls:</p>
+
+<pre data-file="toon_outline_hull.gdshader" data-mode="complete"><code>shader_type spatial;
+render_mode unshaded, cull_front, depth_draw_opaque;
+
+// === Outline Controls ===
+uniform vec4 outline_color : source_color = vec4(0.008, 0.055, 0.086, 1.0);
+uniform float outline_width : hint_range(0.0, 3.0) = 0.5;
+uniform float outline_scale : hint_range(0.0, 4.0) = 1.0;
+uniform float outline_clip_offset : hint_range(0.0, 1.0) = 0.0;
+
+// Normalizing constant: converts artist-friendly width values to vertex offsets
+const float TARGET_WIDTH_SCALE = 0.006;
+
+void vertex() {
+    // Compute effective width (scale multiplies, clip_offset removes thin outlines)
+    float width = max(outline_width * outline_scale * TARGET_WIDTH_SCALE - outline_clip_offset * TARGET_WIDTH_SCALE, 0.0);
+    VERTEX += NORMAL * width;
+}
+
+void fragment() {
+    ALBEDO = outline_color.rgb;
+    ALPHA = outline_color.a;
+}</code></pre>
+
+<p>What's new compared to Lesson 6's version:</p>
+
+<ul>
+  <li><strong><code>outline_scale</code></strong> — a global multiplier. One slider to scale all outlines up/down without changing per-material width values. Useful for LOD or zoom level.</li>
+  <li><strong><code>outline_clip_offset</code></strong> — subtracts from the width. When the effective width drops to zero, the outline disappears. This lets you remove outlines from thin geometry (grass blades, wire fences) that would otherwise become solid colored blocks.</li>
+  <li><strong><code>TARGET_WIDTH_SCALE = 0.006</code></strong> — normalizes the width so artists think in "visual units" (0.5 = medium outline) rather than raw vertex offsets.</li>
+</ul>
+
+<div class="note">
+<strong>Why model-space (not view-space)?</strong> Lesson 6's view-space version scales outlines with camera distance for consistent screen pixels. The MKToon approach intentionally uses model-space — outlines get thinner as the camera moves away. For authored NPR, this is often desirable: distant objects fade into the background, foreground characters have bold outlines. It's an artistic choice, not a limitation.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WIRING NEXT_PASS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Wiring the Outline via next_pass</h2>
+
+<p>The outline shader is a <em>companion</em> — it renders on the same mesh as your toon material, as a second pass. In Godot's inspector:</p>
+
+<ol>
+  <li>Select your mesh with the toon ShaderMaterial applied</li>
+  <li>In the material inspector, find <strong>Next Pass</strong> (below the shader parameters)</li>
+  <li>Click → New ShaderMaterial</li>
+  <li>Assign <code>toon_outline_hull.gdshader</code></li>
+  <li>Set <code>outline_color</code> to near-black (the default dark navy works well)</li>
+</ol>
+
+<p>No extra MeshInstance nodes, no viewports, no post-processing. One material property wires the entire outline. (For the full inverted-hull deep-dive including view-space scaling and smooth normals, see <a href="0006-toon-outlines.html">Lesson 6</a>.)</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ARTISTIC OVERLAYS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Artistic Overlays: Texture as Character</h2>
+
+<p>Outlines define form from the outside. Overlays add character to the surface itself — the difference between clean vector art and hand-inked illustration. We add two types, each with a different relationship to lighting:</p>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<h3>Hatching (Shadow-Weighted)</h3>
+
+<p>Cross-hatching in traditional illustration appears in shadow areas — artists add more strokes where the surface is darker. We replicate this by weighting the overlay by <code>1.0 - lit_factor</code>:</p>
+
+<pre data-file="overlays_banding.gdshader" data-mode="fragment"><code>// Hatching: shadow-weighted — stronger in dark areas
+if (use_hatching_dark_map) {
+    float hatch = texture(hatching_dark_map, UV * hatching_scale).r;
+    float shadow_weight = 1.0 - lit_factor;
+    toon_color *= mix(1.0, hatch, hatching_strength * shadow_weight);
+}</code></pre>
+
+<p>The <code>mix(1.0, hatch, strength * weight)</code> pattern is the key:</p>
+<ul>
+  <li>When <code>weight = 0</code> (lit areas): result is 1.0 → no effect (surface untouched)</li>
+  <li>When <code>weight = 1</code> (shadow areas): result is <code>hatch</code> scaled by strength → texture darkens the surface</li>
+  <li>The multiply (<code>*=</code>) means the overlay can only darken, never brighten</li>
+</ul>
+
+<p>Assign any grayscale hatching texture — diagonal lines, cross-hatch patterns, or hand-drawn strokes. The <code>hatching_scale</code> tiles it across UVs (higher = finer detail).</p>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<h3>Sketch (Uniform Overlay)</h3>
+
+<p>A subtle pencil/paper texture that appears everywhere regardless of lighting — suggesting the surface was drawn on textured paper:</p>
+
+<pre data-file="overlays_banding.gdshader" data-mode="fragment"><code>// Sketch: uniform overlay — same everywhere regardless of lighting
+if (use_sketch_map) {
+    float sketch = texture(sketch_map, UV * sketch_scale).r;
+    toon_color *= mix(1.0, sketch, sketch_strength);
+}</code></pre>
+
+<p>Same <code>mix(1.0, texture, strength)</code> pattern, but without the shadow_weight. The sketch texture applies uniformly — a constant paper grain or pencil texture across the entire surface.</p>
+
+<div class="note">
+<strong>When to use which:</strong>
+<ul>
+  <li><strong>Hatching</strong> (shadow-weighted) — for ink/pen illustration styles where strokes define shadow. Typical strength: 0.1–0.3.</li>
+  <li><strong>Sketch</strong> (uniform) — for pencil/charcoal/paper-grain styles where texture is part of the medium itself, not the lighting. Typical strength: 0.05–0.15 (very subtle).</li>
+  <li><strong>Both together</strong> — for maximum illustrated feel. The sketch provides base texture; the hatching adds lighting-responsive detail on top.</li>
+</ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PIPELINE ORDER
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Pipeline Order: Why Overlays Before Highlights</h2>
+
+<p>In the shader code, overlays multiply toon_color BEFORE specular and rim are added. This ordering is deliberate:</p>
+
+<pre data-mode="fragment"><code>// 1. Compute toon_color from Gooch (lesson 10)
+vec3 toon_color = mix(shadow_tint, lit_tint, lit_factor);
+
+// 2. OVERLAYS: multiply (darken the surface texture)
+toon_color *= mix(1.0, hatch, strength * shadow_weight);
+toon_color *= mix(1.0, sketch, strength);
+
+// 3. HIGHLIGHTS: add (bright on top of textured surface)
+toon_color += specular;
+toon_color += rim;</code></pre>
+
+<p>Why this order matters:</p>
+<ul>
+  <li><strong>Overlays are multiplicative</strong> — they darken the existing color. If they came after highlights, they'd darken the specular stamps too (pencil marks through your highlights — wrong).</li>
+  <li><strong>Highlights are additive</strong> — they add brightness on top. By applying after overlays, specular and rim "punch through" the hatching cleanly — exactly how highlights work in traditional illustration (white paint over ink).</li>
+</ul>
+
+<p>If you accidentally put overlay code AFTER the specular <code>+=</code> line, the hatching texture would appear inside your specular stamps — visually wrong and physically nonsensical.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TRY IT
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Try It: Textured Overlay Presets</h2>
+
+<p>For overlay textures, use Godot's built-in NoiseTexture2D (set Type to "Simplex" for sketch, "Cellular" for a cross-hatch feel). Or import any grayscale hand-drawn texture.</p>
+
+<table>
+<thead><tr><th>Look</th><th>Hatching</th><th>Sketch</th><th>Outline</th></tr></thead>
+<tbody>
+<tr><td>Clean cel (no overlays)</td><td>off</td><td>off</td><td>width=0.5, color=navy</td></tr>
+<tr><td>Ink illustration</td><td>strength=0.2, scale=4</td><td>off</td><td>width=0.8, color=black</td></tr>
+<tr><td>Pencil on paper</td><td>off</td><td>strength=0.1, scale=2</td><td>width=0.3, color=gray</td></tr>
+<tr><td>Full illustrated</td><td>strength=0.15, scale=4</td><td>strength=0.06, scale=2</td><td>width=0.5, color=navy</td></tr>
+<tr><td>No outline (flat art)</td><td>strength=0.2, scale=3</td><td>strength=0.08, scale=2</td><td>off (remove next_pass)</td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A colleague adds a sketch overlay to their toon shader but places the overlay code AFTER the specular addition. They notice pencil-grain marks appearing inside their bright white specular stamps — the highlights look dirty. They move the overlay to a different position and it works. Explain why the original position was wrong and state the rule for ordering multiplicative vs additive effects in a toon pipeline.</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Multiplicative effects darken everything they touch. If "everything" includes the specular you just added, the overlay darkens the highlight too. What would happen if you multiply BEFORE adding?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>With overlay AFTER specular: <code>toon_color += specular; toon_color *= sketch_mix;</code> — the multiply darkens the specular stamp along with the base surface. You see pencil marks through your highlights.</p>
+  <p>With overlay BEFORE specular: <code>toon_color *= sketch_mix; toon_color += specular;</code> — the multiply only touches the diffuse toon color. Then specular adds clean brightness on top of the textured surface.</p>
+  <p><strong>The rule:</strong> Multiplicative effects (overlays, textures, anything that darkens/tints) go first. Additive effects (highlights, specular, rim, any extra brightness) go last. Multiply modifies the surface; add puts light on top of it. Reversing the order causes later-added brightness to be incorrectly modified by surface texture.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Code Files</h2>
+<p>Download the shaders from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/outlines-overlays/toon_outline_hull.gdshader" download><code>toon_outline_hull.gdshader</code></a> — inverted-hull outline (apply as next_pass)</li>
+  <li><a href="../reference/code/outlines-overlays/overlays_banding.gdshader" download><code>overlays_banding.gdshader</code></a> — full toon pipeline with hatching + sketch overlays</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next:</strong> <a href="0014-vfx-dissolve-vertex.html">VFX Layer — Dissolve &amp; Vertex Animation</a> — map-based dissolve with glowing borders and vertex displacement modes bring toon-shaded characters to life in cutscenes.</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"artistic-overlay": "A grayscale texture multiplied into toon_color to add hand-drawn character — darkens the surface with patterns like hatching or pencil grain without replacing the underlying color.", "shadow-weighted": "An overlay that's stronger where lit_factor is low (in shadow) — mimics traditional illustration where artists add more strokes in darker areas. Formula: strength * (1.0 - lit_factor).", "outline-clip-offset": "A subtractive control on outline width — when the effective width hits zero, the outline disappears. Used to suppress outlines on thin geometry (grass, wires) that would otherwise become solid colored blocks.", "pipeline-order": "The rule that multiplicative effects (overlays, tints) must apply before additive effects (specular, rim) — reversing the order causes highlights to be incorrectly darkened by surface texture.", "inverted-hull": "A two-pass outline technique where back-faces are extruded along normals and rendered with cull_front — produces per-object silhouette outlines without post-processing.", "next-pass": "Godot's mechanism for multi-pass rendering on a single mesh — a second ShaderMaterial that renders after the first using the same geometry. Set via Material → Next Pass in the inspector.", "mix-one-pattern": "The pattern mix(1.0, texture, strength) for multiplicative overlays — returns 1.0 (no effect) when strength is 0, and blends toward the texture value as strength increases. Can only darken.", "NdotL": "Dot product of the surface normal and light direction — the fundamental measure of how directly a surface faces a light."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
