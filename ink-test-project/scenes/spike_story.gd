@@ -1,0 +1,67 @@
+## Spike: proves inkgd works in Godot 4.7.1 with standard (non-.NET) build.
+## Loads hello.ink.json, continues text, handles choices, reads variables.
+extends Control
+
+var InkPlayerFactory := preload("res://addons/inkgd/ink_player_factory.gd") as GDScript
+
+var _ink_player = null
+
+@onready var _text_label: RichTextLabel = $MarginContainer/VBoxContainer/TextLabel
+@onready var _choices_container: VBoxContainer = $MarginContainer/VBoxContainer/ChoicesContainer
+@onready var _continue_button: Button = $MarginContainer/VBoxContainer/ContinueButton
+
+func _ready():
+	_ink_player = InkPlayerFactory.create()
+	add_child(_ink_player)
+
+	_ink_player.ink_file = load("res://stories/hello.ink.json")
+
+	# Connect signals
+	_ink_player.connect("loaded", Callable(self, "_on_story_loaded"))
+	_ink_player.connect("continued", Callable(self, "_on_continued"))
+	_ink_player.connect("prompt_choices", Callable(self, "_on_choices"))
+	_ink_player.connect("ended", Callable(self, "_on_ended"))
+
+	_continue_button.connect("pressed", Callable(self, "_on_continue_pressed"))
+	_continue_button.hide()
+
+	_ink_player.create_story()
+
+func _on_story_loaded(successfully: bool):
+	if not successfully:
+		_text_label.text = "[color=red]ERROR: Story failed to load.[/color]"
+		return
+	print("[SPIKE] Story loaded successfully!")
+	_ink_player.continue_story()
+
+func _on_continued(text: String, _tags: Array):
+	_text_label.text += text + "\n"
+	# Auto-continue if more text available
+	if _ink_player.can_continue:
+		_ink_player.continue_story()
+
+func _on_choices(choices: Array):
+	_continue_button.hide()
+	for i in range(choices.size()):
+		var btn = Button.new()
+		btn.text = choices[i].text
+		btn.connect("pressed", Callable(self, "_on_choice_selected").bind(i))
+		_choices_container.add_child(btn)
+
+func _on_choice_selected(index: int):
+	# Clear choice buttons
+	for child in _choices_container.get_children():
+		child.queue_free()
+
+	_ink_player.choose_choice_index(index)
+	_ink_player.continue_story()
+
+func _on_ended():
+	var player_name = _ink_player.get_variable("player_name")
+	_text_label.text += "\n[color=green]--- STORY ENDED ---[/color]"
+	_text_label.text += "\n[color=gray]Variable 'player_name' = %s[/color]" % str(player_name)
+	print("[SPIKE] Story ended. player_name = %s" % str(player_name))
+	print("[SPIKE] SUCCESS: inkgd works in Godot 4.7.1!")
+
+func _on_continue_pressed():
+	_ink_player.continue_story()

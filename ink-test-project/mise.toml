@@ -1,0 +1,10 @@
+[env]
+INKLECATE = "D:/tools/inklecate/inklecate.exe"
+
+[tasks.compile-ink]
+run = "$INKLECATE -o stories/hello.ink.json stories/hello.ink"
+description = "Compile .ink stories to .json"
+
+[tasks.godot-import]
+run = "godot --headless --editor --import --quit --path ."
+description = "Headless import (validates project structure)"
