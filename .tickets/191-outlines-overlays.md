@@ -1,7 +1,7 @@
 ---
 id: "191"
 title: "Lesson 0013: Outlines and Artistic Overlays"
-status: open
+status: done
 blocked_by: ["190"]
 priority: high
 ---

@@ -1,7 +1,7 @@
 ---
 id: "188"
 title: "Lesson 0010: Gooch Warm/Cool Shadows"
-status: open
+status: done
 blocked_by: ["187"]
 priority: high
 ---

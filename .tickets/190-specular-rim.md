@@ -1,7 +1,7 @@
 ---
 id: "190"
 title: "Lesson 0012: Specular and Rim Lighting"
-status: open
+status: done
 blocked_by: ["189"]
 priority: high
 ---

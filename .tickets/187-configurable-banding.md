@@ -1,7 +1,7 @@
 ---
 id: "187"
 title: "Lesson 0009: Configurable Toon Banding"
-status: open
+status: done
 blocked_by: ["186"]
 priority: high
 ---

@@ -1,7 +1,7 @@
 ---
 id: "189"
 title: "Lesson 0011: Wrapped Lighting and Noise Bias"
-status: open
+status: done
 blocked_by: ["188"]
 priority: high
 ---
