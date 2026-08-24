@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 14: VFX — Dissolve &amp; Vertex Animation</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-mktoon-map.html">Per-Material Toon Shading</a> <span class="nav-sep">›</span> <span>VFX: Dissolve &amp; Vertex</span></nav>
+<h1>VFX — Dissolve &amp; Vertex Animation</h1>
+
+<div class="lesson-meta">
+  Lesson 14 · Per-Material Toon Shading (MKToon) · ~13 min read<br>
+  <strong>Win:</strong> You can add map-based dissolve with a glowing border and vertex displacement with time-stutter — and explain why <code>discard</code> must live in <code>fragment()</code>.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> Your toon shader handles runtime effects — spawn/death dissolves and idle breathing/wobble. The complete shader (190 lines) is a production-ready per-material toon system with every feature independently toggleable.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE PROBLEM
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Problem: Static Rendering in a Dynamic Game</h2>
+
+<p><em>← Previous: <a href="0013-outlines-overlays.html">Lesson 13: Outlines &amp; Overlays</a></em></p>
+
+<p>Your toon shader now handles every aspect of static rendering: banding, Gooch shadows, organic edges, specular, rim, outlines, overlays. But games aren't static. Characters spawn, die, teleport, breathe, idle-wobble, and react to hits. These runtime effects need to work <em>with</em> the toon pipeline — not require a separate shader.</p>
+
+<p>This final lesson adds two independent VFX systems that plug into the existing shader using the two functions we haven't touched yet: <code>vertex()</code> and the discard-capable part of <code>fragment()</code>.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DISSOLVE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Dissolve: Pixel-by-Pixel Disappearance</h2>
+
+<p>A dissolve effect removes pixels progressively according to a noise texture — some areas burn away first, others survive until last. The noise map is a "burn order" where dark pixels dissolve first and bright pixels survive longest.</p>
+
+<pre data-file="vfx_toon.gdshader" data-mode="fragment"><code>// Dissolve (discard pixels + border glow)
+if (dissolve_enabled &amp;&amp; dissolve_amount &gt; 0.0) {
+    if (use_dissolve_map) {
+        float dissolve_val = texture(dissolve_map, UV * dissolve_map_scale).r;
+        if (dissolve_val &lt; dissolve_amount) {
+            discard;
+        }
+        // Border glow at dissolve edge
+        float border = smoothstep(dissolve_amount, dissolve_amount + dissolve_border_size, dissolve_val);
+        col = mix(dissolve_border_color.rgb, col, border);
+    } else {
+        // No map: simple alpha fade
+        ALPHA = 1.0 - dissolve_amount;
+    }
+}</code></pre>
+
+<p>Three things happen in sequence:</p>
+<ol>
+  <li><strong>Compare</strong>: sample noise texture, check if its value is below <code>dissolve_amount</code></li>
+  <li><strong>Discard</strong>: if below threshold → <code>discard</code> removes the pixel entirely (not just transparent — gone from the depth buffer)</li>
+  <li><strong>Border</strong>: pixels just above the threshold get a colored glow via smoothstep — our threshold-smoothstep pattern from Lesson 12, applied to the dissolve edge</li>
+</ol>
+
+<div class="note">
+<strong>New concept — discard:</strong> The <code>discard</code> keyword stops fragment processing entirely — no color write, no depth write, no stencil write. The pixel ceases to exist. This is different from <code>ALPHA = 0</code> (which still processes the fragment and may write depth). Use <code>discard</code> when pixels should be truly absent, not just invisible.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WHY FRAGMENT
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Why Dissolve Lives in fragment()</h2>
+
+<p>The dissolve runs in <code>fragment()</code>, before <code>light()</code> executes. This is critical for two reasons:</p>
+
+<ul>
+  <li><strong>Performance</strong>: discarded pixels skip ALL lighting computation. With 3 lights and 90% dissolved, only 10% of pixels run <code>light()</code> three times — the rest are already gone.</li>
+  <li><strong>Correctness</strong>: the border glow modifies ALBEDO. When <code>light()</code> runs on border pixels, it applies full toon banding to the border color — so the glow integrates with your scene's lighting rather than being a flat unlit overlay.</li>
+</ul>
+
+<div class="note">
+<strong>Performance note:</strong> The presence of <code>discard</code> in a shader disables GPU early-Z optimizations — the hardware can't skip occluded fragments because any fragment might self-discard. For objects that NEVER dissolve, consider using a separate shader without <code>discard</code>. The toggle-pattern (<code>if (dissolve_enabled)</code>) doesn't help here — the GPU sees <code>discard</code> exists in the compiled shader regardless of the branch.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DISSOLVE TEXTURES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Choosing a Dissolve Map</h2>
+
+<p>The noise texture determines the dissolve pattern. Different textures produce different artistic effects:</p>
+
+<ul>
+  <li><strong>Perlin/Simplex noise</strong> — smooth organic burn (fire, magic fade)</li>
+  <li><strong>Cellular/Voronoi</strong> — cracked-glass shatter pattern</li>
+  <li><strong>Gradient ramp (vertical)</strong> — top-to-bottom or bottom-to-top wipe</li>
+  <li><strong>Custom painted</strong> — artistic control over exactly which parts dissolve first (e.g., extremities before core)</li>
+</ul>
+
+<p>Use Godot's built-in NoiseTexture2D for quick prototyping. For production, paint a custom dissolve map that matches your character's anatomy.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     VERTEX ANIMATION
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Vertex Animation: Breathing, Bounce, Jitter</h2>
+
+<p>Vertex animation displaces vertices along their normals, creating organic deformation without skeletal animation. Three modes cover common toon VFX needs:</p>
+
+<pre data-file="vfx_toon.gdshader" data-mode="fragment"><code>void vertex() {
+    if (vertex_animation_enabled &amp;&amp; vertex_animation_intensity &gt; 0.0) {
+        float t = TIME;
+        // Stutter: quantize time for stop-motion feel
+        if (vertex_animation_stutter &gt; 0.0) {
+            t = floor(t / vertex_animation_stutter) * vertex_animation_stutter;
+        }
+
+        float wave = 0.0;
+        vec3 freq = vertex_animation_frequency.xyz;
+
+        if (vertex_animation_mode == 1) {
+            // Sine: smooth breathing/pulsing
+            wave = sin(t * freq.x + VERTEX.x * freq.y + VERTEX.y * freq.z);
+        } else if (vertex_animation_mode == 2) {
+            // Abs-sine: bouncing (always pushes outward)
+            wave = abs(sin(t * freq.x + VERTEX.x * freq.y + VERTEX.y * freq.z));
+        } else if (vertex_animation_mode == 3) {
+            // Hash noise: chaotic jitter
+            wave = vertex_noise(VERTEX + vec3(t * freq.x)) * 2.0 - 1.0;
+        }
+
+        VERTEX += NORMAL * wave * vertex_animation_intensity;
+    }
+}</code></pre>
+
+<p>The three modes produce different visual characters:</p>
+
+<table>
+<thead><tr><th>Mode</th><th>Formula</th><th>Visual</th><th>Use case</th></tr></thead>
+<tbody>
+<tr><td>1 (Sine)</td><td><code>sin(phase)</code></td><td>Smooth rhythmic pulse</td><td>Idle breathing, heartbeat, sway</td></tr>
+<tr><td>2 (Abs-sine)</td><td><code>abs(sin(phase))</code></td><td>Always-outward bounce</td><td>Impact reaction, inflate/deflate</td></tr>
+<tr><td>3 (Noise)</td><td><code>hash(pos + time)</code></td><td>Chaotic jitter</td><td>Glitch, corruption, magical instability</td></tr>
+</tbody>
+</table>
+
+<div class="note">
+<strong>New concept — vertex displacement along normals:</strong> Using <code>VERTEX += NORMAL * offset</code> pushes each vertex outward (positive) or inward (negative) perpendicular to the surface. This preserves the mesh's silhouette shape and works correctly with inverted-hull outlines (the outline shader also reads NORMAL, so it deforms in sync).
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     STUTTER
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Stutter Trick: Stop-Motion in Real-Time</h2>
+
+<p>The most characterful feature for NPR: quantizing TIME into discrete steps so animation only updates at a chosen frame rate — while the game still runs at 60fps:</p>
+
+<pre data-mode="fragment"><code>// Quantize time: floor(t / stutter) * stutter
+// stutter = 0.1 → animation updates 10× per second
+// stutter = 0.25 → animation updates 4× per second (very choppy)
+if (vertex_animation_stutter &gt; 0.0) {
+    t = floor(t / vertex_animation_stutter) * vertex_animation_stutter;
+}</code></pre>
+
+<p>The math is simple: <code>floor(t / step) * step</code> rounds time down to the nearest multiple of <code>step</code>. Between steps, <code>t</code> stays constant — so the wave function holds its value, creating the characteristic "frame-held" look of hand-drawn animation.</p>
+
+<table>
+<thead><tr><th>Stutter value</th><th>Updates/second</th><th>Feel</th></tr></thead>
+<tbody>
+<tr><td>0.0</td><td>Every frame (60+)</td><td>Perfectly smooth (default)</td></tr>
+<tr><td>0.05</td><td>20</td><td>Subtle jitter — "alive" without being obvious</td></tr>
+<tr><td>0.1</td><td>10</td><td>Visible choppiness — classic anime limited animation</td></tr>
+<tr><td>0.25</td><td>4</td><td>Very stylized — paper puppet / stop-motion</td></tr>
+</tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TRY IT
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Try It: VFX Presets</h2>
+
+<p>Apply the shader to your test mesh. For dissolve, assign a NoiseTexture2D (Simplex, 256×256) to the dissolve_map slot.</p>
+
+<table>
+<thead><tr><th>Effect</th><th>Key settings</th></tr></thead>
+<tbody>
+<tr><td>Fire dissolve</td><td>dissolve: on, map: Simplex noise, amount: animate 0→1, border: orange, size: 0.15</td></tr>
+<tr><td>Shatter</td><td>dissolve: on, map: Cellular noise, border: cyan, size: 0.05</td></tr>
+<tr><td>Idle breathing</td><td>vertex: on, mode=1, intensity=0.02, freq=(2,0,0,0), stutter=0</td></tr>
+<tr><td>Glitch corruption</td><td>vertex: on, mode=3, intensity=0.04, freq=(8,0,0,0), stutter=0.08</td></tr>
+<tr><td>Stop-motion sway</td><td>vertex: on, mode=1, intensity=0.03, freq=(1.5,0.5,0,0), stutter=0.15</td></tr>
+</tbody>
+</table>
+
+<p>To animate dissolve_amount over time, connect it to an AnimationPlayer or use a script: <code>material.set_shader_parameter("dissolve_amount", progress)</code>.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ALPHA SCISSOR NOTE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="note">
+<strong>Alternative — ALPHA_SCISSOR_THRESHOLD:</strong> For dissolving objects that need to cast correct shadows, Godot's <code>render_mode alpha_scissor</code> + writing to ALPHA is the production alternative. It keeps the object in the opaque pipeline (correct depth/shadow writes) while still discarding pixels below the threshold. Same early-Z cost as <code>discard</code>, but proper shadow map integration. Use when your dissolved character needs to cast dissolving shadows.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A colleague implements dissolve but places the <code>discard</code> in <code>light()</code> instead of <code>fragment()</code>. Pixels do disappear when <code>dissolve_amount</code> increases, so it seems to work. But they notice two problems: (1) performance doesn't improve as more pixels dissolve, and (2) on some renderers the dissolve looks glitchy — flickering or showing through other objects. Explain both issues.</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Think about when <code>fragment()</code> runs vs when <code>light()</code> runs. What has already happened by the time <code>light()</code> executes? And what does Godot's rendering pipeline expect about pixel validity after <code>fragment()</code> completes?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p><strong>Problem 1 (performance):</strong> <code>light()</code> runs per-light, per-pixel, AFTER <code>fragment()</code>. By the time you discard in <code>light()</code>, the fragment shader has already computed ALBEDO, normal maps, and any other fragment() work. With 3 lights, the first light's <code>light()</code> call discards — but fragment() already ran for that pixel, and on multi-light setups Godot may have already evaluated prior lights. No work is saved.</p>
+  <p><strong>Problem 2 (correctness):</strong> Godot's rendering pipeline determines depth buffer writes and shadow behavior based on what <code>fragment()</code> produces. A pixel that passes fragment() writes to the depth buffer. If <code>light()</code> then discards it, the depth write already happened — creating ghost pixels that occlude objects behind them. This is a documented Godot bug (GitHub #121077) with inconsistent behavior across Forward+, Mobile, and Compatibility renderers.</p>
+  <p><strong>The rule:</strong> <code>discard</code> belongs in <code>fragment()</code>. Always. It's the only place where discarding has correct depth buffer behavior and actually saves downstream computation.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TRACK COMPLETE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Track Complete: The Full MKToon Pipeline</h2>
+
+<p>Over six lessons (0009–0014), you built a production-ready per-material toon shader from scratch — 190 lines covering:</p>
+
+<ol>
+  <li><strong>Configurable banding</strong> — floor-divide + smoothness + scale + threshold</li>
+  <li><strong>Gooch shadows</strong> — warm/cool color ramp replaces black</li>
+  <li><strong>Wrapped lighting + noise</strong> — soft terminator + organic edges</li>
+  <li><strong>Specular + rim</strong> — threshold-smoothstep pattern × 2</li>
+  <li><strong>Outlines + overlays</strong> — companion shader + shadow-weighted textures</li>
+  <li><strong>VFX</strong> — dissolve + vertex animation with stutter</li>
+</ol>
+
+<p>Every feature is independently toggleable via bool uniforms. Disabled features cost nothing (branch elimination on uniform bools). The shader is the same architecture as the one powering 838 materials in a shipped game (Esoteric Ebb) — you now understand every line of it.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Code Files</h2>
+<p>Download the final shader from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/vfx-dissolve-vertex/vfx_toon.gdshader" download><code>vfx_toon.gdshader</code></a> — the complete MKToon shader with all features (190 lines)</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Expansion topics:</strong> Per-material color grading (hue/saturation/contrast in fragment()), iridescence (Fresnel-based additive color shift), threshold maps (per-pixel shadow bias from hand-painted textures), screen-space vs object-space outline hybrid pipelines.</p>
+  <p>Or explore the <a href="godot-toon-shaders-map.html">post-process path</a> (the sibling track) for screen-space outlines, JFA distance fields, and Kuwahara color simplification.</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"dissolve-effect": "A pixel-discard technique using a noise texture as burn order — dissolve_amount controls how far the effect has progressed. Dark noise pixels disappear first, bright pixels survive longest.", "discard-keyword": "A GLSL/Godot statement that removes a pixel entirely from rendering — no color, depth, or stencil write. Must live in fragment() for correct depth behavior and to save downstream lighting computation.", "time-stutter": "Quantizing TIME with floor(t/s)*s to create discrete animation steps — produces stop-motion feel at any frame rate. Stutter=0.1 means 10 updates/second regardless of actual FPS.", "vertex-displacement": "Moving vertices along their normals in vertex() — creates organic deformation that preserves silhouette shape and works correctly with inverted-hull outlines.", "vertex-noise": "A cheap hash function (fract(sin(dot(pos, magic))*43758)) producing spatially discontinuous values — used for chaotic vertex jitter (mode 3) rather than smooth oscillation.", "dissolve-border": "A glowing edge at the dissolve boundary created by smoothstep — pixels just above the discard threshold get tinted with a border color before entering the lighting pipeline.", "alpha-scissor": "Godot's render_mode for cutout transparency — keeps objects in the opaque pipeline with correct depth/shadow writes while still discarding below-threshold pixels. Production alternative to raw discard.", "threshold-smoothstep": "The reusable pattern smoothstep(t-e, t+e, x) that creates a controllable hard/soft cutoff — used here for the dissolve border glow, same pattern as specular and rim from Lesson 12."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
