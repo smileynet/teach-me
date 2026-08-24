@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 11: Wrapped Lighting &amp; Noise Bias</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-mktoon-map.html">Per-Material Toon Shading</a> <span class="nav-sep">›</span> <span>Wrapped Lighting &amp; Noise</span></nav>
+<h1>Wrapped Lighting &amp; Noise Bias</h1>
+
+<div class="lesson-meta">
+  Lesson 11 · Per-Material Toon Shading (MKToon) · ~9 min read<br>
+  <strong>Win:</strong> You can soften the shadow terminator with wrapped lighting and add organic edge variation with noise bias — and explain why full wrap eliminates banding.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> Your toon shader's shadow boundaries feel hand-painted rather than geometrically perfect. Two independent techniques — wrapped lighting and noise perturbation — break the "CG look" with minimal code.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE PROBLEM
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Problem: Geometric Perfection Looks CG</h2>
+
+<p><em>← Previous: <a href="0010-gooch-shading.html">Lesson 10: Gooch Shading</a></em></p>
+
+<p>Your Gooch shader produces beautiful warm/cool shadows — but look at where those shadows fall. On a sphere, the shadow boundary is a perfect circle. On a cube face, it's a razor-straight line. This geometric perfection is a dead giveaway that a computer rendered this. Real illustrated or painted work has two qualities our shader currently lacks:</p>
+
+<ul>
+  <li><strong>Softer terminators</strong> — shadow doesn't cut off abruptly at the 90° angle to the light. Light wraps slightly past the geometric edge.</li>
+  <li><strong>Irregular boundaries</strong> — shadow edges waver and wobble organically, as if brushed by hand rather than computed by dot product.</li>
+</ul>
+
+<p>We'll add both in this lesson, independently, with about 5 lines of code total.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WRAPPED LIGHTING
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Wrapped Lighting: Softening the Terminator</h2>
+
+<p>Standard Lambert lighting drops to zero at the geometric terminator — the exact point where the surface faces 90° away from the light (NdotL = 0). In reality, light scatters and bounces, so surfaces don't go fully dark at this angle. Valve solved this for Half-Life (1998) with what they called "Half Lambert":</p>
+
+<pre data-file="wrapped_noise_banding.gdshader" data-mode="fragment"><code>// Wrapped lighting: raise the floor of NdotL (Half Lambert variant)
+float wrap = clamp(wrapped_lighting * wrapped_lighting_scale, 0.0, 1.0);
+float wrapped = NdotL * (1.0 - wrap) + wrap;</code></pre>
+
+<p>The formula <code>NdotL * (1.0 - wrap) + wrap</code> compresses the lighting range. Instead of [0, 1], the output becomes [wrap, 1]. At the default <code>wrap = 0.35</code>:</p>
+
+<ul>
+  <li>A surface facing directly away from light (NdotL = 0) → output = 0.35 (not pure dark)</li>
+  <li>A surface facing directly at the light (NdotL = 1) → output = 1.0 (unchanged)</li>
+  <li>The shadow "wraps" past the 90° terminator — more of the surface receives some light</li>
+</ul>
+
+<div class="note">
+<strong>New concept — wrapped lighting:</strong> A bias on NdotL that extends illumination past the geometric terminator. Valve's Half Lambert (1998) is the canonical version. Not physically accurate — it violates energy conservation — but for toon shading we're quantizing the result anyway, so conservation doesn't matter. What matters is: the shadow boundary shifts, and more of the surface participates in the banding.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TWO-PARAMETER DESIGN
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Why Two Parameters?</h2>
+
+<p>The effective wrap is <code>wrapped_lighting × wrapped_lighting_scale</code>. Why not a single <code>wrap</code> uniform?</p>
+
+<p>Separation of concerns:</p>
+<ul>
+  <li><code>wrapped_lighting</code> (default 1.0) — a global enable/amount. At 0, no wrap at all (standard Lambert). At 1, the wrap system is fully active.</li>
+  <li><code>wrapped_lighting_scale</code> (default 0.35) — how much the wrap contributes to the final centering. Controls the actual visual strength.</li>
+</ul>
+
+<p>This matters because wrap can blow out band contrast if set too high. You want the terminator to soften without the entire surface becoming uniformly lit. The scale keeps wrap restrained: full half-Lambert wrapping (scale = 1.0) would compress NdotL's range so much that bands become invisible. The 0.35 default was empirically tuned across 468 materials in a shipped game — it softens without flattening.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     NOISE BIAS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Noise Bias: Organic Shadow Edges</h2>
+
+<p>Wrapped lighting softens the terminator but keeps it geometrically smooth. For truly organic-looking shadows, we perturb the band threshold with a noise texture:</p>
+
+<pre data-file="wrapped_noise_banding.gdshader" data-mode="fragment"><code>// Noise bias: per-pixel threshold perturbation for organic edges
+float noise_bias = 0.0;
+if (use_noise_map) {
+    noise_bias = (texture(noise_map, UV * noise_scale).r - 0.5) * noise_strength;
+}</code></pre>
+
+<p>Then add <code>noise_bias</code> to the centering formula:</p>
+
+<pre data-file="wrapped_noise_banding.gdshader" data-mode="fragment"><code>// Center around threshold (with wrap and noise folded in)
+float centered = clamp(wrapped - light_threshold - diffuse_threshold_offset + 0.5 + noise_bias, 0.0, 1.0);</code></pre>
+
+<p>The mechanism: sample a grayscale texture, center it around zero (<code>- 0.5</code>), scale by strength, and add to the centering value. This creates a small signed offset (±0.02 at default strength) that locally shifts where each band boundary falls.</p>
+
+<div class="note">
+<strong>New concept — noise bias:</strong> A per-pixel offset to the banding threshold, sampled from a grayscale texture. It doesn't change brightness — it changes WHERE band transitions occur. The effect: shadow edges become wavy, irregular, organic. Like the difference between a ruler-drawn line and a brush stroke.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     NOISE IS SUBTLE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Noise Should Be Felt, Not Seen</h2>
+
+<p>The <code>noise_strength</code> range is capped at 0.25 for a reason. Since the banding operates on a [0, 1] scale, even a small noise offset creates visible edge variation. The defaults:</p>
+
+<table>
+<thead><tr><th>Strength</th><th>Effect range (±)</th><th>Visual character</th></tr></thead>
+<tbody>
+<tr><td>0.02</td><td>±0.01</td><td>Barely perceptible — breaks mathematical perfection without being obvious</td></tr>
+<tr><td>0.04 (default)</td><td>±0.02</td><td>Subtle organic feel. You notice it's not CG but can't point to why</td></tr>
+<tr><td>0.10</td><td>±0.05</td><td>Painterly — clearly irregular edges, watercolor character</td></tr>
+<tr><td>0.25</td><td>±0.125</td><td>Aggressive — hatched/textured feel, breaks band coherence at high band counts</td></tr>
+</tbody>
+</table>
+
+<p>At low band counts (1–2), noise is nearly invisible because there are few edges to perturb. At high band counts (6+), each band is narrow enough that even subtle noise creates visible rippling along every boundary. Match your noise strength to your band count.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     NOISE TYPES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Choosing a Noise Texture</h2>
+
+<p>The shader samples one channel (red) from whatever texture you assign. Different textures produce different artistic characters:</p>
+
+<ul>
+  <li><strong>Perlin/Simplex noise</strong> — smooth organic variation. The standard choice. Creates gentle rolling edges.</li>
+  <li><strong>Cellular/Worley noise</strong> — produces hard-edged patches. Shadow boundaries break into distinct regions — a cracked-paint or cobblestone feel.</li>
+  <li><strong>Hand-drawn texture</strong> — scan a brushstroke or ink texture. Produces truly unique, non-repeating character.</li>
+  <li><strong>Value noise</strong> — simpler than Perlin, blockier at low resolution. Good for pixel-art adjacent styles.</li>
+</ul>
+
+<p>The <code>noise_scale</code> uniform tiles the texture across UVs. Higher values = smaller noise features = more fine-grained edge variation. A scale of 1.0 means the texture maps 1:1 with the mesh's UV layout.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     COMPLETE SHADER
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Complete Shader</h2>
+
+<p>Building on Lesson 10's Gooch shader, the additions are the wrapped lighting formula (before centering) and the noise bias (added to centering). Everything else — banding, smoothness, scale, Gooch — remains unchanged:</p>
+
+<pre data-file="wrapped_noise_banding.gdshader" data-mode="complete"><code>shader_type spatial;
+render_mode specular_disabled;
+
+// === Albedo ===
+uniform vec4 albedo_color : source_color = vec4(1.0);
+uniform sampler2D albedo_texture : source_color;
+uniform bool use_albedo_texture = false;
+
+// === Toon Banding Controls ===
+uniform float light_bands : hint_range(1, 9, 1) = 4.0;
+uniform float light_bands_scale : hint_range(0, 1) = 0.5;
+uniform float light_threshold : hint_range(0, 1) = 0.5;
+uniform float diffuse_threshold_offset : hint_range(-1, 1) = 0.0;
+uniform float diffuse_smoothness : hint_range(0, 1) = 0.0;
+
+// === Wrapped Lighting ===
+uniform float wrapped_lighting : hint_range(0, 1) = 1.0;
+uniform float wrapped_lighting_scale : hint_range(0, 1) = 0.35;
+
+// === Noise Map ===
+uniform bool use_noise_map = false;
+uniform sampler2D noise_map;
+uniform float noise_strength : hint_range(0.0, 0.25) = 0.04;
+uniform float noise_scale : hint_range(0.1, 10.0) = 1.0;
+
+// === Gooch Shading ===
+uniform vec4 gooch_bright_color : source_color = vec4(1.0);
+uniform vec4 gooch_dark_color : source_color = vec4(0.2, 0.25, 0.35, 1.0);
+uniform float gooch_ramp_intensity : hint_range(0, 1) = 0.5;
+
+void fragment() {
+    vec3 col = albedo_color.rgb;
+    if (use_albedo_texture) {
+        col *= texture(albedo_texture, UV).rgb;
+    }
+    ALBEDO = col;
+}
+
+void light() {
+    float NdotL = clamp(dot(NORMAL, LIGHT), 0.0, 1.0);
+
+    // Wrapped lighting: raise the floor of NdotL (Half Lambert variant)
+    float wrap = clamp(wrapped_lighting * wrapped_lighting_scale, 0.0, 1.0);
+    float wrapped = NdotL * (1.0 - wrap) + wrap;
+
+    // Noise bias: per-pixel threshold perturbation for organic edges
+    float noise_bias = 0.0;
+    if (use_noise_map) {
+        noise_bias = (texture(noise_map, UV * noise_scale).r - 0.5) * noise_strength;
+    }
+
+    // Center around threshold (with wrap and noise folded in)
+    float centered = clamp(wrapped - light_threshold - diffuse_threshold_offset + 0.5 + noise_bias, 0.0, 1.0);
+
+    // Band quantization
+    float banded = floor(centered * light_bands) / max(light_bands - 1.0, 1.0);
+
+    // Smoothness blend
+    float lit_factor = mix(banded, centered, diffuse_smoothness);
+
+    // Scale
+    lit_factor = 0.5 + (lit_factor - 0.5) * light_bands_scale;
+
+    // Gooch shading
+    vec3 shadow_tint = mix(ALBEDO, ALBEDO * gooch_dark_color.rgb, gooch_ramp_intensity);
+    vec3 lit_tint = mix(ALBEDO, ALBEDO * gooch_bright_color.rgb, gooch_ramp_intensity);
+    vec3 toon_color = mix(shadow_tint, lit_tint, lit_factor);
+
+    DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, toon_color * LIGHT_COLOR * ATTENUATION);
+}</code></pre>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TRY IT
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Try It: Wrap &amp; Noise Presets</h2>
+
+<p>Apply the shader to your test mesh. For noise, assign any grayscale texture to the <code>noise_map</code> slot (Godot's built-in NoiseTexture2D works perfectly — set Type to Simplex Smooth and Size to 256×256).</p>
+
+<table>
+<thead><tr><th>Look</th><th>wrap</th><th>scale</th><th>noise</th><th>strength</th></tr></thead>
+<tbody>
+<tr><td>Standard (no wrap)</td><td>0.0</td><td>—</td><td>off</td><td>—</td></tr>
+<tr><td>Default Ebb</td><td>1.0</td><td>0.35</td><td>on</td><td>0.04</td></tr>
+<tr><td>Soft wrap, no noise</td><td>1.0</td><td>0.5</td><td>off</td><td>—</td></tr>
+<tr><td>Painterly</td><td>1.0</td><td>0.35</td><td>on</td><td>0.12</td></tr>
+<tr><td>Maximum (too much)</td><td>1.0</td><td>1.0</td><td>on</td><td>0.25</td></tr>
+</tbody>
+</table>
+
+<p>The "Maximum" row shows what NOT to do — wrap at full scale flattens band contrast, and high noise makes boundaries erratic rather than organic. Compare it against "Default Ebb" to see why restraint matters.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A colleague sets <code>wrapped_lighting = 1.0</code> and <code>wrapped_lighting_scale = 1.0</code> expecting "maximum shadow softness." Instead, their mesh becomes uniformly bright with no visible toon bands — just flat color with Gooch tinting. They expected softer band transitions, not the absence of bands. Explain what happened.</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Plug <code>wrap = 1.0</code> into the formula <code>NdotL * (1.0 - wrap) + wrap</code>. What does NdotL get multiplied by? What's the output regardless of surface angle?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>With <code>wrap = 1.0</code>: <code>NdotL * (1.0 - 1.0) + 1.0 = NdotL * 0 + 1.0 = 1.0</code> for every pixel. The entire surface reports "fully lit" regardless of its angle to the light. When <code>wrapped</code> is constant (1.0), <code>centered</code> is constant, <code>banded</code> is constant — so there's nothing to quantize into bands. The shader still applies Gooch tinting (since <code>lit_factor</code> becomes a constant near 1.0), but the spatial variation that makes bands visible is gone.</p>
+  <p>For soft-but-visible banding, use <code>wrapped_lighting_scale</code> in the <strong>0.3–0.5 range</strong>. This compresses the NdotL range to [0.3–0.5, 1.0] — enough softening to feel natural without eliminating the variation that banding needs. The 0.35 default was tuned across hundreds of materials in a shipped game.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Code Files</h2>
+<p>Download the shader from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/wrapped-lighting-noise/wrapped_noise_banding.gdshader" download><code>wrapped_noise_banding.gdshader</code></a> — configurable banding + Gooch + wrapped lighting + noise bias</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next:</strong> <a href="0012-specular-rim.html">Specular &amp; Rim Lighting</a> — one reusable threshold-smoothstep pattern gives you both flat specular stamps and Fresnel-based rim glow.</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"wrapped-lighting": "A bias on NdotL that extends illumination past the geometric terminator — softens shadow boundaries without adding bands. Valve's Half Lambert (1998) is the canonical version. Not physically accurate, but ideal for toon shading.", "noise-bias": "A per-pixel offset to the banding threshold sampled from a grayscale texture — creates organic, irregular shadow edges instead of geometrically perfect boundaries. Affects WHERE transitions occur, not brightness.", "toggle-pattern": "The shader UI convention of bool enable + float strength for every optional feature — allows the feature to be completely free when disabled (GPU branch elimination on uniform bools).", "half-lambert": "Valve's 1998 technique that remaps NdotL from [0,1] to [0.5,1] (or a general [wrap,1]). Prevents surfaces facing away from light from going fully dark. Named because it squares the result in the original (NdotL*0.5+0.5)².", "noise-scale": "UV tiling factor for the noise texture — higher values produce finer-grained edge variation, lower values produce broad rolling perturbation.", "NdotL": "Dot product of the surface normal and light direction — the fundamental measure of how directly a surface faces a light.", "ATTENUATION": "A Godot built-in that represents light falloff with distance — 1.0 at full range, decreasing toward 0 as distance increases.", "gooch-shading": "A non-photorealistic technique (Gooch et al. 1998) that replaces dark/black shadows with a cool-to-warm color ramp — adds perceived depth without physical accuracy."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
