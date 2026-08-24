@@ -1,7 +1,7 @@
 ---
 id: "192"
 title: "Lesson 0014: VFX Dissolve and Vertex Animation"
-status: open
+status: done
 blocked_by: ["191"]
 priority: high
 ---
