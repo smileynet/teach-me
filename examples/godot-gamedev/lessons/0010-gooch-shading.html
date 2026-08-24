@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 10: Gooch Warm/Cool Shadows</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-mktoon-map.html">Per-Material Toon Shading</a> <span class="nav-sep">›</span> <span>Gooch Shading</span></nav>
+<h1>Gooch Warm/Cool Shadows</h1>
+
+<div class="lesson-meta">
+  Lesson 10 · Per-Material Toon Shading (MKToon) · ~8 min read<br>
+  <strong>Win:</strong> You can implement Gooch shading and explain why tinting shadows cool creates perceived depth — and why the dark_color must have non-zero channels.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> Your toon shader replaces flat dark shadows with a cool-to-warm color ramp. Three new uniforms give per-material control over shadow and highlight tinting — the single highest-impact quality upgrade for any cel shader.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE PROBLEM
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Problem: Black Shadows Look Amateur</h2>
+
+<p><em>← Previous: <a href="0009-configurable-banding.html">Lesson 9: Configurable Banding</a></em></p>
+
+<p>Your configurable banding shader from Lesson 9 produces clean discrete bands — but the shadow side is just darker albedo. At the lowest band, the surface approaches black. This is the single most common "student shader" tell: physically, shadowed surfaces still receive ambient light, reflected bounce, and atmospheric color. Pure black shadows scream "this was rendered by a computer."</p>
+
+<p>Professional toon shading — from Studio Ghibli to Genshin Impact — uses <strong>colored shadows</strong>. Specifically: cool-tinted shadows (blue, purple, blue-gray) and warm-tinted highlights (cream, yellow, warm white). This creates depth through color temperature rather than just brightness.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE PRINCIPLE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Why Warm/Cool Creates Depth</h2>
+
+<p>Three reinforcing mechanisms make this work:</p>
+
+<ol>
+  <li><strong>Color temperature perception:</strong> Warm colors (red, orange, yellow) perceptually advance toward the viewer. Cool colors (blue, purple) perceptually recede. Putting warm on lit surfaces and cool on shadows amplifies the sense of volume.</li>
+  <li><strong>Outdoor lighting physics:</strong> In real outdoor scenes, the key light (sun) is warm (~5000K), while fill light (blue sky) is cool (~10000K). Shadows naturally take on the fill color. Colored shadows are more physically accurate than black ones.</li>
+  <li><strong>Illustration tradition:</strong> Gouache, watercolor, and animation cel painting all use this principle. Learners intuitively recognize "painted quality" even if they can't articulate why.</li>
+</ol>
+
+<p>This technique was formalized by Gooch et al. in 1998 as a non-photorealistic lighting model for technical illustration. We use a simplified "one-sided" version: shadows get a cool tint; lit areas stay at natural albedo.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE IMPLEMENTATION
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Implementation: Three Uniforms, Three Lines</h2>
+
+<p>We add three new uniforms to our configurable banding shader:</p>
+
+<pre data-file="gooch_banding.gdshader" data-mode="fragment"><code>// === Gooch Shading ===
+uniform vec4 gooch_bright_color : source_color = vec4(1.0);
+uniform vec4 gooch_dark_color : source_color = vec4(0.2, 0.25, 0.35, 1.0);
+uniform float gooch_ramp_intensity : hint_range(0, 1) = 0.5;</code></pre>
+
+<p>And replace the final color line in <code>light()</code>. Previously we had:</p>
+
+<pre data-mode="fragment"><code>// OLD: scalar multiply (shadows are just dark albedo)
+DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, ALBEDO * LIGHT_COLOR * ATTENUATION * lit_factor);</code></pre>
+
+<p>The new version computes tinted endpoints and interpolates between them:</p>
+
+<pre data-file="gooch_banding.gdshader" data-mode="fragment"><code>// Gooch shading: tint shadow and lit endpoints, then interpolate by lit_factor
+vec3 shadow_tint = mix(ALBEDO, ALBEDO * gooch_dark_color.rgb, gooch_ramp_intensity);
+vec3 lit_tint = mix(ALBEDO, ALBEDO * gooch_bright_color.rgb, gooch_ramp_intensity);
+vec3 toon_color = mix(shadow_tint, lit_tint, lit_factor);
+
+DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, toon_color * LIGHT_COLOR * ATTENUATION);</code></pre>
+
+<p>Notice: <code>lit_factor</code> is no longer multiplied against ALBEDO directly. Instead, it selects between two pre-tinted versions of the albedo. The banding result drives a color ramp rather than a brightness ramp.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WHY MULTIPLY ALBEDO
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Why Multiply (Not Replace)</h2>
+
+<p>Both endpoints are <code>ALBEDO * gooch_color</code>, not just <code>gooch_color</code>. This is deliberate:</p>
+
+<ul>
+  <li>A <strong>red cloth</strong> with dark_color = blue-gray → shadows become dark desaturated red-blue (not pure blue)</li>
+  <li>A <strong>green tree</strong> with dark_color = blue-gray → shadows become dark teal-green (not pure blue)</li>
+  <li>The object's base color always shows through — Gooch <strong>tints</strong>, never replaces</li>
+</ul>
+
+<p>If you used <code>mix(gooch_dark_color.rgb, gooch_bright_color.rgb, lit_factor)</code> without ALBEDO, every object would look the same in shadow regardless of its base color. The multiply preserves material identity.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE INTENSITY DIAL
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Intensity Dial</h2>
+
+<p>The <code>gooch_ramp_intensity</code> uniform blends between "no Gooch" and "full Gooch":</p>
+
+<ul>
+  <li><code>intensity = 0.0</code> → <code>shadow_tint = ALBEDO</code>, <code>lit_tint = ALBEDO</code> → identical to Lesson 9 (scalar lighting)</li>
+  <li><code>intensity = 0.5</code> → halfway between scalar and full color shift</li>
+  <li><code>intensity = 1.0</code> → shadows fully tinted by dark_color, lit fully tinted by bright_color</li>
+</ul>
+
+<div class="note">
+<strong>When to use which:</strong>
+<ul>
+  <li><strong>High intensity (0.7–1.0)</strong> — cloth, skin, organic materials. These benefit from strong color temperature contrast.</li>
+  <li><strong>Low intensity (0.1–0.3)</strong> — metals, glass, dark materials. Too much Gooch on metallics looks wrong because real metal shadows are their own reflected color.</li>
+  <li><strong>Per-material control</strong> is the point. One material's ideal Gooch is another's worst case. This is why we build it as a uniform rather than a global post-process.</li>
+</ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WHITE BRIGHT COLOR INSIGHT
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The White Bright-Color Shortcut</h2>
+
+<p>With the default <code>gooch_bright_color = white</code>, the lit endpoint simplifies:</p>
+
+<pre data-mode="fragment"><code>lit_tint = mix(ALBEDO, ALBEDO * vec3(1.0), gooch_ramp_intensity)
+         = mix(ALBEDO, ALBEDO, gooch_ramp_intensity)
+         = ALBEDO  // always, regardless of intensity</code></pre>
+
+<p>So lit areas are always the natural albedo. Only shadows get the cool tint. This is "one-sided Gooch" — simpler than the full academic version, and what most shipped games use. If you later want warm highlights (golden lit areas), change <code>gooch_bright_color</code> to a warm cream like <code>vec4(1.0, 0.95, 0.85, 1.0)</code>.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TRY IT
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Try It: Before and After</h2>
+
+<p>Apply <code>gooch_banding.gdshader</code> to your test mesh. Compare these settings:</p>
+
+<table>
+<thead><tr><th>Setting</th><th>intensity</th><th>dark_color</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>No Gooch (Lesson 9)</td><td>0.0</td><td>—</td><td>Dark shadows = dim albedo</td></tr>
+<tr><td>Default Ebb</td><td>0.5</td><td>(0.2, 0.25, 0.35)</td><td>Cool blue-gray shadows</td></tr>
+<tr><td>Strong cool</td><td>1.0</td><td>(0.15, 0.15, 0.4)</td><td>Deep purple-blue shadows</td></tr>
+<tr><td>Warm shadows</td><td>0.7</td><td>(0.4, 0.25, 0.15)</td><td>Warm amber shadows (sunset/indoor)</td></tr>
+</tbody>
+</table>
+
+<p>The "Default Ebb" row uses the exact values from Esoteric Ebb — 838 materials in a shipped game use this as their baseline. It's a safe default for most characters and props.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     COMPLETE SHADER
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Complete Shader</h2>
+
+<p>Here's the full shader with all banding controls from Lesson 9 plus the three Gooch uniforms. The only change in <code>light()</code> is the final four lines — everything above <code>lit_factor</code> is identical to Lesson 9:</p>
+
+<pre data-file="gooch_banding.gdshader" data-mode="complete"><code>shader_type spatial;
+render_mode specular_disabled;
+
+// === Albedo ===
+uniform vec4 albedo_color : source_color = vec4(1.0);
+uniform sampler2D albedo_texture : source_color;
+uniform bool use_albedo_texture = false;
+
+// === Toon Banding Controls ===
+uniform float light_bands : hint_range(1, 9, 1) = 4.0;
+uniform float light_bands_scale : hint_range(0, 1) = 0.5;
+uniform float light_threshold : hint_range(0, 1) = 0.5;
+uniform float diffuse_threshold_offset : hint_range(-1, 1) = 0.0;
+uniform float diffuse_smoothness : hint_range(0, 1) = 0.0;
+
+// === Gooch Shading ===
+uniform vec4 gooch_bright_color : source_color = vec4(1.0);
+uniform vec4 gooch_dark_color : source_color = vec4(0.2, 0.25, 0.35, 1.0);
+uniform float gooch_ramp_intensity : hint_range(0, 1) = 0.5;
+
+void fragment() {
+    vec3 col = albedo_color.rgb;
+    if (use_albedo_texture) {
+        col *= texture(albedo_texture, UV).rgb;
+    }
+    ALBEDO = col;
+}
+
+void light() {
+    float NdotL = dot(NORMAL, LIGHT);
+
+    // Center around threshold (Half Lambert remap)
+    float centered = NdotL - light_threshold - diffuse_threshold_offset + 0.5;
+    centered = clamp(centered, 0.0, 1.0);
+
+    // Band quantization
+    float banded = floor(centered * light_bands) / max(light_bands - 1.0, 1.0);
+
+    // Smoothness blend
+    float lit_factor = mix(banded, centered, diffuse_smoothness);
+
+    // Scale
+    lit_factor = 0.5 + (lit_factor - 0.5) * light_bands_scale;
+
+    // Gooch shading: tint shadow and lit endpoints, then interpolate by lit_factor
+    vec3 shadow_tint = mix(ALBEDO, ALBEDO * gooch_dark_color.rgb, gooch_ramp_intensity);
+    vec3 lit_tint = mix(ALBEDO, ALBEDO * gooch_bright_color.rgb, gooch_ramp_intensity);
+    vec3 toon_color = mix(shadow_tint, lit_tint, lit_factor);
+
+    DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, toon_color * LIGHT_COLOR * ATTENUATION);
+}</code></pre>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A colleague adds Gooch shading to their toon shader but sets <code>gooch_dark_color = vec4(0.0, 0.0, 0.0, 1.0)</code> — pure black — expecting "really dark cool shadows." They report that the shadow areas look identical to the version without Gooch. "It's not doing anything," they say. Explain why black doesn't work and what they should set instead.</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Look at the formula: <code>ALBEDO * gooch_dark_color.rgb</code>. What happens when you multiply any color by <code>vec3(0, 0, 0)</code>?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p><code>ALBEDO * vec3(0, 0, 0) = vec3(0, 0, 0)</code> — black. And <code>mix(ALBEDO, vec3(0, 0, 0), intensity)</code> just darkens toward black — which is exactly what the original scalar lighting did. Black as a tint color produces the same result as no Gooch at all.</p>
+  <p>The dark_color needs actual <strong>color channels</strong> to create a visible tint shift. Set it to something like <code>vec4(0.2, 0.25, 0.4, 1.0)</code> (cool blue-gray) or <code>vec4(0.3, 0.15, 0.35, 1.0)</code> (purple). The non-zero channels are what make shadows look like they're receiving colored ambient light rather than just getting darker.</p>
+  <p>This is the core Gooch insight: shadows aren't the absence of light — they're the <em>presence of a different color of light</em>.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Code Files</h2>
+<p>Download the shader from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/gooch-shading/gooch_banding.gdshader" download><code>gooch_banding.gdshader</code></a> — configurable banding with Gooch warm/cool shadow tinting</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next:</strong> <a href="0011-wrapped-lighting-noise.html">Wrapped Lighting &amp; Noise Bias</a> — soften the geometric terminator and add organic irregularity that reads as hand-painted.</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"gooch-shading": "A non-photorealistic technique (Gooch et al. 1998) that replaces dark/black shadows with a cool-to-warm color ramp — adds perceived depth without physical accuracy.", "gooch-ramp-intensity": "How strongly the warm/cool color shift applies — 0 means pure scalar lighting (no tint), 1 means fully tinted shadow and highlight endpoints.", "warm-cool-shadows": "The illustration principle that lit areas lean warm (yellow/cream) and shadow areas lean cool (blue/purple) — creates depth through color temperature rather than just brightness.", "one-sided-gooch": "A simplified Gooch where bright_color is white (lit areas stay at natural albedo) and only shadows receive the cool tint. Used by most shipped toon games.", "configurable-banding": "Floor-divide quantization with smoothness blend and scale — the production pattern for per-material toon control with artist-facing sliders.", "NdotL": "Dot product of the surface normal and light direction — the fundamental measure of how directly a surface faces a light.", "lit-factor": "The final scalar output of the banding pipeline (0=full shadow, 1=full light) — used to interpolate between Gooch endpoints.", "ATTENUATION": "A Godot built-in that represents light falloff with distance — 1.0 at full range, decreasing toward 0 as distance increases."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
