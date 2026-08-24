@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 12: Specular &amp; Rim Lighting</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-mktoon-map.html">Per-Material Toon Shading</a> <span class="nav-sep">›</span> <span>Specular &amp; Rim</span></nav>
+<h1>Specular &amp; Rim Lighting</h1>
+
+<div class="lesson-meta">
+  Lesson 12 · Per-Material Toon Shading (MKToon) · ~11 min read<br>
+  <strong>Win:</strong> You can add toon highlights using one reusable threshold-smoothstep pattern applied two ways — and explain why both are additive.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> Your shader has flat specular stamps (anime eye-catch lights) and Fresnel rim glow (character separation). Both use the same math — <code>smoothstep(t-e, t+e, x)</code> — with different inputs. Learn the pattern once, apply it everywhere.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE PROBLEM
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Problem: All Diffuse, No Highlights</h2>
+
+<p><em>← Previous: <a href="0011-wrapped-lighting-noise.html">Lesson 11: Wrapped Lighting &amp; Noise</a></em></p>
+
+<p>Your toon shader has beautiful banded diffuse shading with warm/cool colors and organic edges. But it's still purely diffuse — no specular highlights, no edge definition. In cel-shaded art, two highlight effects are nearly universal:</p>
+
+<ul>
+  <li><strong>Flat specular</strong> — a hard-edged white stamp where light reflects toward the camera. The anime "eye-catch light" or the sharp gleam on metallic surfaces.</li>
+  <li><strong>Rim glow</strong> — a bright edge where the surface turns away from the camera. Separates characters from backgrounds, especially in dark scenes.</li>
+</ul>
+
+<p>Both effects share one mathematical pattern. We'll learn the pattern once, then apply it twice.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE PATTERN
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Threshold-Smoothstep Pattern</h2>
+
+<p>This is the most reusable technique in shader programming. Given any value in [0, 1], it produces a controllable hard-or-soft mask:</p>
+
+<pre data-mode="fragment"><code>// THE PATTERN: threshold-smoothstep
+// t = threshold (where the cutoff sits)
+// e = edge softness (0 = razor-hard, 0.5 = very soft)
+// x = input value (any 0-1 scalar)
+float mask = smoothstep(t - e, t + e, x);</code></pre>
+
+<p>When <code>x</code> exceeds the threshold <code>t</code>, the mask transitions from 0 to 1. The <code>e</code> parameter controls how wide that transition is:</p>
+
+<ul>
+  <li><code>e ≈ 0</code> → nearly binary (hard step, like <code>step()</code> but anti-aliased)</li>
+  <li><code>e = 0.1</code> → slight feathering at the edge</li>
+  <li><code>e = 0.5</code> → wide, smooth transition</li>
+</ul>
+
+<p>You'll see this exact pattern in specular highlights, rim lighting, dissolve edges (Lesson 14), outline falloff, and fog boundaries. It's the universal "binary decision with controllable softness" tool.</p>
+
+<div class="note">
+<strong>New concept — threshold-smoothstep:</strong> The pattern <code>smoothstep(t-e, t+e, x)</code> creates a soft binary mask from any continuous input. Unlike raw <code>step()</code>, it provides built-in anti-aliasing and artist-tunable edge width. Every hard/soft cutoff in toon shading is this pattern with different inputs and threshold positions.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FLAT SPECULAR
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Flat Specular: The Blinn-Phong Half-Vector</h2>
+
+<p>PBR specular uses <code>pow(NdotH, shininess)</code> to create a smooth, physically-based highlight. Toon specular replaces the power curve with our threshold-smoothstep — producing a flat colored stamp instead of a smooth falloff:</p>
+
+<pre data-file="specular_rim_banding.gdshader" data-mode="fragment"><code>// Flat specular (additive): threshold-smoothstep on Blinn-Phong half-vector
+if (specular_enabled) {
+    vec3 half_dir = normalize(LIGHT + VIEW);
+    float NdotH = clamp(dot(NORMAL, half_dir), 0.0, 1.0);
+    float spec_threshold = 1.0 - flat_specular_size;
+    float spec_edge = max(flat_specular_edge_smoothness, 0.001);
+    float spec_mask = smoothstep(spec_threshold - spec_edge, spec_threshold + spec_edge, NdotH);
+    toon_color += flat_specular_color.rgb * spec_mask * specular_intensity;
+}</code></pre>
+
+<p>The key steps:</p>
+<ol>
+  <li><strong>Half-vector</strong>: <code>normalize(LIGHT + VIEW)</code> — the direction exactly between the light and the camera. When the surface normal aligns with this, you get maximum specular reflection.</li>
+  <li><strong>NdotH</strong>: How aligned the surface is with the half-vector. Values near 1.0 = strong specular, near 0.0 = no specular.</li>
+  <li><strong>Threshold inversion</strong>: <code>1.0 - flat_specular_size</code> — higher size = lower threshold = more pixels pass = bigger highlight. Think of <code>size</code> as "how much of the NdotH range to include."</li>
+  <li><strong>Additive</strong>: <code>toon_color +=</code> — the highlight adds on top of the diffuse toon shading.</li>
+</ol>
+
+<div class="note">
+<strong>Why <code>1.0 - size</code>?</strong> NdotH is highest (near 1.0) at the specular peak. A threshold of 0.9 means "only pixels with NdotH > 0.9 get specular" — a small highlight. A threshold of 0.5 means "everything above 0.5" — a large highlight. <code>size = 0.1</code> → threshold = 0.9 (small), <code>size = 0.5</code> → threshold = 0.5 (large). The inversion makes the slider intuitive: bigger number = bigger highlight.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     RIM LIGHTING
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Rim Lighting: The Fresnel Edge</h2>
+
+<p>Rim lighting uses the same threshold-smoothstep pattern, but with a different input: how much the surface faces away from the <em>camera</em> (not the light):</p>
+
+<pre data-file="specular_rim_banding.gdshader" data-mode="fragment"><code>// Rim lighting (additive): threshold-smoothstep on Fresnel
+if (rim_enabled) {
+    float fresnel = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), rim_size);
+    float rim_edge = max(rim_smoothness, 0.001);
+    float rim_mask = smoothstep(0.5 - rim_edge, 0.5 + rim_edge, fresnel);
+    toon_color += rim_color.rgb * rim_mask * rim_intensity;
+}</code></pre>
+
+<p>The mechanism:</p>
+<ol>
+  <li><strong>Fresnel</strong>: <code>1.0 - dot(NORMAL, VIEW)</code> — 0 when facing camera directly, 1 at glancing angles (edges). This is the view-dependent "edge detection" signal.</li>
+  <li><strong>Power curve</strong>: <code>pow(fresnel, rim_size)</code> — the exponent controls how thin the rim is. Higher values concentrate the effect at extreme edges. <code>rim_size = 2</code> = medium rim, <code>rim_size = 5</code> = very thin edge line.</li>
+  <li><strong>Threshold-smoothstep</strong>: Same pattern as specular, applied to the powered fresnel value. The threshold at 0.5 means "the rim appears where fresnel × power exceeds 50%."</li>
+  <li><strong>Additive</strong>: Like specular, rim adds on top of the existing toon color.</li>
+</ol>
+
+<div class="note">
+<strong>Size semantics are inverted:</strong> For specular, bigger <code>flat_specular_size</code> = bigger highlight. For rim, bigger <code>rim_size</code> = <em>thinner</em> rim (because it's a power exponent, not a linear size). This is a common source of confusion — remember: specular size is "how much to include," rim size is "how aggressively to concentrate."
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ADDITIVE COMPOSITION
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Why Additive (Not Multiplicative)</h2>
+
+<p>Both specular and rim use <code>+=</code> to add their contribution on top of the diffuse toon color. Compare to Gooch shading from Lesson 10, which <em>multiplies</em> the albedo. The difference reflects what each effect represents physically:</p>
+
+<ul>
+  <li><strong>Gooch (multiplicative)</strong>: modifies the surface's own color — the material <em>is</em> tinted cool in shadow. It changes what's already there.</li>
+  <li><strong>Specular/Rim (additive)</strong>: adds extra light on top of the surface — the material <em>receives</em> additional energy at highlight points. It contributes new brightness.</li>
+</ul>
+
+<p>This additive approach means specular and rim can push the final color above the maximum of the diffuse toon shading — which is exactly what highlights should do. They're brighter than the brightest diffuse band.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SPECULAR VS RIM COMPARISON
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Same Pattern, Different Inputs</h2>
+
+<p>The two effects are structurally identical — the only difference is what feeds into the threshold-smoothstep:</p>
+
+<table>
+<thead><tr><th>Aspect</th><th>Flat Specular</th><th>Rim Lighting</th></tr></thead>
+<tbody>
+<tr><td>Input signal</td><td>NdotH (half-vector, Blinn-Phong)</td><td>1.0 - NdotV (Fresnel)</td></tr>
+<tr><td>Depends on</td><td>Light direction + view direction</td><td>View direction only</td></tr>
+<tr><td>Moves with</td><td>Light source (rotate light → highlight moves)</td><td>Camera (orbit camera → rim moves)</td></tr>
+<tr><td>Size meaning</td><td>Bigger = larger highlight (linear inclusion)</td><td>Bigger = thinner rim (power exponent)</td></tr>
+<tr><td>Typical default</td><td>size=0.1, edge=0.0 (small, hard)</td><td>size=2.0, smoothness=0.5 (medium, soft)</td></tr>
+<tr><td>Use case</td><td>Eye-catch, metallic gleam, wet surfaces</td><td>Character separation, backlit halo, magical glow</td></tr>
+</tbody>
+</table>
+
+<p>Once you internalize the threshold-smoothstep pattern, you can create any binary shader effect with controllable edges: dissolve borders, fog distance, outline falloff, color zone masking — all the same math with different input signals.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TRY IT
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Try It: Highlight Presets</h2>
+
+<p>Apply the shader to your test mesh. Enable specular and/or rim, then try these combinations:</p>
+
+<table>
+<thead><tr><th>Look</th><th>Specular</th><th>Rim</th></tr></thead>
+<tbody>
+<tr><td>Anime eye-catch</td><td>size=0.05, edge=0.0, color=white</td><td>off</td></tr>
+<tr><td>Metallic gleam</td><td>size=0.15, edge=0.3, color=white</td><td>off</td></tr>
+<tr><td>Character separation</td><td>off</td><td>size=2.0, smooth=0.5, color=white</td></tr>
+<tr><td>Magical glow</td><td>off</td><td>size=1.5, smooth=0.3, color=(0.5, 0.8, 1.0)</td></tr>
+<tr><td>Full highlight set</td><td>size=0.1, edge=0.0</td><td>size=3.0, smooth=0.5</td></tr>
+</tbody>
+</table>
+
+<p>Notice how specular moves when you rotate the light, but rim moves when you orbit the camera. They respond to different geometric relationships.</p>
+
+<div class="note">
+<strong>Alternative — lit-side-only rim:</strong> The MKToon reference shader applies rim everywhere (lit and shadowed faces both glow). Some styles prefer rim only on the lit side — like a backlit halo. To achieve this, multiply <code>rim_mask</code> by <code>lit_factor</code> before adding. This masks the rim so it only appears where diffuse lighting is strong. We use the simpler "everywhere" version here; the lit-side variant is one line to add if your art style needs it.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     COMPLETE SHADER
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Complete Shader</h2>
+
+<p>The full shader with all previous features (banding, Gooch, wrap, noise) plus the two new highlight systems. The specular and rim blocks sit at the end of <code>light()</code>, after the diffuse toon_color is computed:</p>
+
+<pre data-file="specular_rim_banding.gdshader" data-mode="complete"><code>shader_type spatial;
+render_mode specular_disabled;
+
+// === Albedo ===
+uniform vec4 albedo_color : source_color = vec4(1.0);
+uniform sampler2D albedo_texture : source_color;
+uniform bool use_albedo_texture = false;
+
+// === Toon Banding Controls ===
+uniform float light_bands : hint_range(1, 9, 1) = 4.0;
+uniform float light_bands_scale : hint_range(0, 1) = 0.5;
+uniform float light_threshold : hint_range(0, 1) = 0.5;
+uniform float diffuse_threshold_offset : hint_range(-1, 1) = 0.0;
+uniform float diffuse_smoothness : hint_range(0, 1) = 0.0;
+
+// === Wrapped Lighting ===
+uniform float wrapped_lighting : hint_range(0, 1) = 1.0;
+uniform float wrapped_lighting_scale : hint_range(0, 1) = 0.35;
+
+// === Noise Map ===
+uniform bool use_noise_map = false;
+uniform sampler2D noise_map;
+uniform float noise_strength : hint_range(0.0, 0.25) = 0.04;
+uniform float noise_scale : hint_range(0.1, 10.0) = 1.0;
+
+// === Gooch Shading ===
+uniform vec4 gooch_bright_color : source_color = vec4(1.0);
+uniform vec4 gooch_dark_color : source_color = vec4(0.2, 0.25, 0.35, 1.0);
+uniform float gooch_ramp_intensity : hint_range(0, 1) = 0.5;
+
+// === Flat Specular ===
+uniform bool specular_enabled = false;
+uniform vec4 flat_specular_color : source_color = vec4(1.0);
+uniform float flat_specular_size : hint_range(0.0, 1.0) = 0.1;
+uniform float flat_specular_edge_smoothness : hint_range(0.0, 1.0) = 0.0;
+uniform float specular_intensity : hint_range(0.0, 2.0) = 1.0;
+
+// === Rim Lighting ===
+uniform bool rim_enabled = false;
+uniform vec4 rim_color : source_color = vec4(1.0);
+uniform float rim_size : hint_range(0.5, 8.0) = 2.0;
+uniform float rim_smoothness : hint_range(0.0, 1.0) = 0.5;
+uniform float rim_intensity : hint_range(0.0, 2.0) = 1.0;
+
+void fragment() {
+    vec3 col = albedo_color.rgb;
+    if (use_albedo_texture) {
+        col *= texture(albedo_texture, UV).rgb;
+    }
+    ALBEDO = col;
+}
+
+void light() {
+    float NdotL = clamp(dot(NORMAL, LIGHT), 0.0, 1.0);
+
+    // Wrapped lighting
+    float wrap = clamp(wrapped_lighting * wrapped_lighting_scale, 0.0, 1.0);
+    float wrapped = NdotL * (1.0 - wrap) + wrap;
+
+    // Noise bias
+    float noise_bias = 0.0;
+    if (use_noise_map) {
+        noise_bias = (texture(noise_map, UV * noise_scale).r - 0.5) * noise_strength;
+    }
+
+    // Centering
+    float centered = clamp(wrapped - light_threshold - diffuse_threshold_offset + 0.5 + noise_bias, 0.0, 1.0);
+
+    // Band quantization
+    float banded = floor(centered * light_bands) / max(light_bands - 1.0, 1.0);
+
+    // Smoothness blend
+    float lit_factor = mix(banded, centered, diffuse_smoothness);
+
+    // Scale
+    lit_factor = 0.5 + (lit_factor - 0.5) * light_bands_scale;
+
+    // Gooch shading
+    vec3 shadow_tint = mix(ALBEDO, ALBEDO * gooch_dark_color.rgb, gooch_ramp_intensity);
+    vec3 lit_tint = mix(ALBEDO, ALBEDO * gooch_bright_color.rgb, gooch_ramp_intensity);
+    vec3 toon_color = mix(shadow_tint, lit_tint, lit_factor);
+
+    // Flat specular (additive): threshold-smoothstep on Blinn-Phong half-vector
+    if (specular_enabled) {
+        vec3 half_dir = normalize(LIGHT + VIEW);
+        float NdotH = clamp(dot(NORMAL, half_dir), 0.0, 1.0);
+        float spec_threshold = 1.0 - flat_specular_size;
+        float spec_edge = max(flat_specular_edge_smoothness, 0.001);
+        float spec_mask = smoothstep(spec_threshold - spec_edge, spec_threshold + spec_edge, NdotH);
+        toon_color += flat_specular_color.rgb * spec_mask * specular_intensity;
+    }
+
+    // Rim lighting (additive): threshold-smoothstep on Fresnel
+    if (rim_enabled) {
+        float fresnel = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), rim_size);
+        float rim_edge = max(rim_smoothness, 0.001);
+        float rim_mask = smoothstep(0.5 - rim_edge, 0.5 + rim_edge, fresnel);
+        toon_color += rim_color.rgb * rim_mask * rim_intensity;
+    }
+
+    DIFFUSE_LIGHT = max(DIFFUSE_LIGHT, toon_color * LIGHT_COLOR * ATTENUATION);
+}</code></pre>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A colleague adds flat specular with <code>flat_specular_size = 0.9</code> expecting a large highlight covering most of the lit surface. Instead they get a tiny dot barely visible at the specular peak. They try <code>flat_specular_size = 0.05</code> and get a huge bright area. "The size slider is backwards!" they say. Explain what's happening and what value gives a medium anime-style highlight.</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Look at the threshold formula: <code>spec_threshold = 1.0 - flat_specular_size</code>. What threshold does size=0.9 produce? How much of the NdotH range passes that threshold?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>The formula is <code>spec_threshold = 1.0 - size</code>. With size=0.9: threshold = 0.1 — meaning ANY pixel with NdotH > 0.1 gets specular. That's nearly the entire surface (huge highlight). With size=0.05: threshold = 0.95 — only pixels with NdotH > 0.95 pass (tiny dot at the exact reflection peak).</p>
+  <p>Wait — that's the opposite of what the colleague reports! Re-read: size=0.9 gives threshold=0.1 = huge. Size=0.05 gives threshold=0.95 = tiny. The slider IS intuitive: bigger size = bigger highlight. The colleague likely confused which value they entered, or their mesh's normals are producing unexpected NdotH values.</p>
+  <p>For a medium anime-style highlight: <strong>size = 0.1–0.2</strong> (threshold 0.8–0.9). This produces a discrete stamp at the highlight peak without overwhelming the surface. Set <code>edge_smoothness = 0.0</code> for the classic hard-edged anime look, or <code>0.1–0.2</code> for a slightly feathered metallic gleam.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Code Files</h2>
+<p>Download the shader from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/specular-rim/specular_rim_banding.gdshader" download><code>specular_rim_banding.gdshader</code></a> — full toon pipeline with flat specular + rim lighting</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next:</strong> <a href="0013-outlines-overlays.html">Outlines &amp; Overlays</a> — a companion outline shader (inverted hull, second pass) completes the cel look, while hatch/sketch textures add hand-drawn authenticity.</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"threshold-smoothstep": "The reusable pattern smoothstep(t-e, t+e, x) that creates a controllable hard/soft cutoff from any 0-1 input — the fundamental building block for toon specular, rim, dissolve edges, and any binary mask with feathering.", "flat-specular": "A toon highlight that appears as a discrete stamp (hard-edged blob) rather than PBR's smooth falloff — achieved by applying threshold-smoothstep to the Blinn-Phong half-vector dot product (NdotH).", "rim-lighting": "Fresnel-based edge glow that separates objects from their background — computed from 1.0 - dot(NORMAL, VIEW) raised to a power, then shaped by threshold-smoothstep.", "fresnel": "The geometric relationship between surface normal and view direction — surfaces facing away from camera have high fresnel values (edges glow), surfaces facing toward camera have low values (centers stay dark).", "half-vector": "The direction exactly between the light and camera: normalize(LIGHT + VIEW). When the surface normal aligns with the half-vector, you get maximum specular reflection (Blinn-Phong model).", "NdotH": "Dot product of surface normal and half-vector — measures how close the surface is to the perfect specular reflection angle. High NdotH = strong highlight.", "additive-composition": "A composition mode where effects ADD brightness on top of the existing color (+=). Used for highlights that should exceed the maximum diffuse brightness. Compare to multiplicative (Gooch) which modifies existing color.", "specular-disabled": "A Godot render mode that turns off built-in direct-light specular lobes — use when writing custom specular in light()."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
