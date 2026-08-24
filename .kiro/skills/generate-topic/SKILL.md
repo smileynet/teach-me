@@ -191,6 +191,7 @@ Dispatch simultaneously:
 | Link + lint check | `mise run verify` | MUST pass |
 | Visual check | Browser: navigate to lesson URL, confirm SVG visible in dark mode, theme toggle works, bottom nav present, glossary tooltips appear | MUST pass |
 | Structural compliance | `python3 tools/check-topic-completeness.py --workspace {workspace} --topic {slug}` | MUST pass |
+| Reference project | If a reference project exists for this track: copy code to project, validate via toolchain (compile, import, lint). See ADR 0010. | MUST pass (if applicable) |
 
 **Gate:** ALL must pass. Any failure blocks the topic from being marked complete.
 

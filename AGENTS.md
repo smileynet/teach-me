@@ -85,6 +85,7 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 | **New user arrives** | Detect no populated workspace → introduce ("I'm a teaching workspace"), ask what they want to learn, scaffold their workspace, begin research |
 | Someone asks "what is this?" | Orient: research-backed lessons + quizzes + spaced repetition. Offer to start with any topic. |
 | User names a topic to learn | Run `generate-topic` pipeline (research → lesson → post-process → verify) |
+| Starting a new lesson track | Scaffold reference project first (ADR 0010): test-scene, ink project, or equivalent. Each lesson produces a runnable artifact in the project. Validate via the project's toolchain before closing lessons. |
 | User wants to customize | Ask about pace (detailed vs direct), visuals (diagrams vs text), then save to NOTES.md |
 | User says "quiz me" or "test me" | Socratic dialog — learner explains, agent probes understanding |
 | Writing a lesson | Teach skill produces lesson + reference doc + SR questions + glossary JSON |
