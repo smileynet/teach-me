@@ -1,6 +1,6 @@
 // 01_flow_and_knots.ink
 // Reference story for Lesson 01: Flow & Knots
-// Demonstrates: knots, diverts, fallthrough, basic choices, comments, -> END
+// Demonstrates: knots, diverts, loose-end-free endings, basic choices, comments, -> END
 
 // The story starts here — flow begins at the top
 -> opening

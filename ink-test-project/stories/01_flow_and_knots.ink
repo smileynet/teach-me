@@ -1,6 +1,6 @@
 // 01_flow_and_knots.ink
 // Reference story for Lesson 01: Flow & Knots
-// Demonstrates: knots, diverts, fallthrough, basic choices, comments, -> END
+// Demonstrates: knots, diverts, loose-end-free endings, basic choices, comments, -> END
 
 // The story starts here — flow begins at the top
 -> opening
@@ -13,6 +13,7 @@ A note on the door reads: "Meeting in the archive. Come when ready."
 
 * [Head to the archive] -> archive_entrance
 * [Finish your coffee first] -> coffee_first
+- -> archive_entrance
 
 === coffee_first ===
 You take a long sip. The coffee is terrible — but it's yours.
