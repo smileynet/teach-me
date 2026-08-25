@@ -56,6 +56,8 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 | Serve workspace | `mise run serve -- [--workspace PATH]` | Start server (default: workspace/). Auto-creates workspace on first run |
 | Validate shaders | `godot --path test-scene --editor` | Open test-scene in Godot; apply shaders to meshes, visually confirm |
 | Validate shaders (headless) | `godot --headless --editor --import --quit --path test-scene` | Catches compilation errors only (no visual check) |
+| Validate ink stories | `mise run ink:validate` | Compile all .ink files via inklecate, report errors/warnings |
+| Validate ink (strict) | `mise run ink:validate:strict` | Same but warnings = errors (for release gates) |
 | tkt (direct) | `D:\code\tkt\target\release\tkt.exe` | Bypass mise shim recursion for ticket management |
 | Serve on LAN | `mise run serve:lan -- [--workspace PATH]` | Same but on 0.0.0.0:8787 for network access |
 | Serve restart | `mise run serve:restart` | Kill existing server and restart |
@@ -134,6 +136,11 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 - Git symlinks on Windows are text files (contain target path as text). For local serving, use `python tools/serve.py --workspace examples/godot-gamedev` — it mounts `/assets` from project root automatically (no junctions needed). Only use junctions for `python -m http.server` debugging.
 - Python tools with Unicode stdout (✓, ✗) fail on Windows cp1252. Use `set PYTHONIOENCODING=utf-8` or avoid non-ASCII in print() output.
 - Mise shim recursion: `mise run` may fail with "recursive shim invocation detected". Workaround: invoke `.venv\Scripts\python.exe` directly instead of `python` or `mise run`.
+- serve.py serves ONE workspace at a time. To view a different domain, restart: `mise run serve -- --workspace examples/{domain}`. Cross-workspace index page links are broken until #198 is resolved.
+- examples/*/lessons/ is gitignored. Use `git add -f` when committing generated lesson HTML files.
+- tkt new creates `{id}-{slug}.md`. Write ticket content to THAT file — don't create a separate file or you get duplicates requiring manual cleanup.
+- inkgd (godot4 branch): first headless import shows SVG icon error ("plugin could not be initialized") — harmless, resolves on editor relaunch or second import.
+- maps:regenerate mise task uses bash for-loop syntax (fails on Windows). Use manual Python calls per-MAP: `.venv\Scripts\python.exe tools/generate_map_page.py {MAP} --workspace {ws} --output {out}`
 - Background servers on Windows: use `Start-Process -WindowStyle Hidden` (never `-NoNewWindow` with redirects — it blocks). Verify with `Get-NetTCPConnection -LocalPort PORT -State Listen`. Never read stdout synchronously from a server process.
 
 ## Skill Format (kiro-cli)
