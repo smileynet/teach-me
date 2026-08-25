@@ -125,6 +125,8 @@ Two phases: ink language fundamentals (engine-agnostic, in Inky), then Godot int
 - [x] Research completed (ink language, ecosystem, teaching, advanced patterns)
 - [x] Proposed lesson arc documented with win statements
 - [x] Open decisions identified
-- [ ] Design decisions resolved (separate session)
-- [ ] Spike: godot-ink running in test project
-- [ ] MAP file(s) created
+- [x] Design decisions resolved
+- [x] Spike: inkgd (godot4 branch) installed in ink-test-project, hello.ink compiled, scene scaffolded, headless import passes
+- [ ] Full interactive validation (open editor, confirm story plays through choices)
+- [ ] MAP file created (`ink-godot.MAP.md`)
+- [ ] First lesson generated (01: Flow & Knots)
