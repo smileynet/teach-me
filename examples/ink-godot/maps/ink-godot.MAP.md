@@ -28,8 +28,8 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **status:** complete
 
 ### ink-choices-and-weave
-- **title:** Choices & Weave
-- **why:** Choices are how players interact with ink — once-only vs sticky, nested branches, and the gather pattern that prevents spaghetti convergence
+- **title:** Choices, Stitches & Weave
+- **why:** Choices are how players interact with ink — once-only vs sticky, nested branches, stitches for organizing within knots, and the gather pattern that prevents spaghetti convergence
 - **scope:** substantial
 - **prereqs:** [ink-flow-and-knots]
 - **lesson_file:** 0002-ink-choices-and-weave.html
