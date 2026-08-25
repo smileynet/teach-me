@@ -211,3 +211,13 @@ run = "python tools/check-topic-completeness.py"
 description = "Mechanical lesson linter — checks conventions/structure. Pass --workspace X --all or --lesson FILE."
 depends = ["setup"]
 run = "python tools/check-lesson.py"
+
+[tasks."ink:validate"]
+description = "Compile and lint all .ink stories in ink-test-project."
+depends = ["setup"]
+run = "python tools/validate-ink.py --dir ink-test-project/stories"
+
+[tasks."ink:validate:strict"]
+description = "Same as ink:validate but treats warnings as errors."
+depends = ["setup"]
+run = "python tools/validate-ink.py --dir ink-test-project/stories --strict"
