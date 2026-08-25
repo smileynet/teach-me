@@ -88,7 +88,7 @@ A librarian nods as you pass.</code></pre>
 
 <h2>Diverts: Sending Flow Somewhere Else</h2>
 
-<p>Knots alone don't do much — flow just falls through them top to bottom. The <strong>divert</strong> (<code>-></code>) sends flow to a named knot:</p>
+<p>Knots alone don't do much — flow just passes through them top to bottom. The <strong>divert</strong> (<code>-></code>) sends flow to a named knot:</p>
 
 <pre data-mode="fragment"><code>-> opening
 
@@ -111,23 +111,26 @@ The archive smells like old paper.
 <p>Think of diverts as pipe fittings: they redirect the flow of text from one knot to another. The story is a plumbing system — knots are rooms, diverts are doors between them.</p>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     FALLTHROUGH
+     LOOSE ENDS
      ═══════════════════════════════════════════════════════════════ -->
 
-<h2>Fallthrough: When You Don't Divert</h2>
+<h2>Loose Ends: Every Path Needs an Exit</h2>
 
-<p>If a knot doesn't end with a divert, flow <strong>falls through</strong> to the next knot below it:</p>
+<p>If a knot runs out of lines without a divert or <code>-> END</code>, the story doesn't continue into the next knot — it stops dead. Ink calls this a <strong>loose end</strong>, and it's always a bug:</p>
 
 <pre data-mode="fragment"><code>-> scene_one
 
 === scene_one ===
 The train pulls into the station.
+-> scene_two
 
 === scene_two ===
 You step onto the platform.
 -> END</code></pre>
 
-<p>Here <code>scene_one</code> has no divert at its end, so flow continues directly into <code>scene_two</code>. This is intentional — sequential scenes can be written one after another without explicit diverts between them. But be careful: accidental fallthrough is a common source of bugs. If you don't want flow to continue past a knot, always end it with <code>-> somewhere</code> or <code>-> END</code>.</p>
+<p>Every knot ends by diverting somewhere or ending the story — there is no "fall through to the knot below." If you delete the <code>-> scene_two</code> line, Inky warns at compile time: <em>"Apparent loose end where flow runs out. Do you need a '-> END' statement, choice or divert?"</em> And if you play it anyway, the runtime errors with <em>"ran out of content. Do you need a '-> DONE' or '-> END'?"</em></p>
+
+<p><strong>Try breaking it:</strong> remove the <code>-> scene_two</code> line in Inky and run the story. Seeing the error yourself — and the warning that predicts it — is the fastest way to internalize the rule. Rooms without doors aren't passages; every pipe in the plumbing needs an outlet.</p>
 
 <!-- ═══════════════════════════════════════════════════════════════
      CHOICES (BRIEF)
@@ -185,7 +188,7 @@ like old paper and forgotten intentions.
 <p>Here's the full story file that combines everything from this lesson — 4 knots, 2 choices, converging paths, comments, and a proper <code>-> END</code>:</p>
 
 <pre data-file="01_flow_and_knots.ink" data-mode="complete"><code>// 01_flow_and_knots.ink
-// Demonstrates: knots, diverts, fallthrough, basic choices, comments, -> END
+// Demonstrates: knots, diverts, loose-end-free endings, basic choices, comments, -> END
 
 -> opening
 
@@ -281,7 +284,7 @@ The sun is setting. Time to rest.
   <p><strong>Next:</strong> <a href="0002-ink-choices-and-weave.html">Choices &amp; Weave</a> — the full choice system: once-only vs sticky, text suppression with brackets, and the gather pattern that brings branches together without needing a new knot.</p>
 </div>
 
-<script type="application/json" id="glossary-data">{"knot": "A named section in an ink story (=== name ===). The primary organizational unit — like a function or chapter. Flow passes through knots top-to-bottom unless diverted.", "divert": "The -> name instruction that sends flow to a knot. The 'pipe fitting' that connects sections — flow moves from the current point to the named destination.", "flow": "The top-to-bottom execution of ink text. Each line is output in sequence until a divert, choice, or END is reached. Ink's fundamental model: text flows like water through pipes.", "fallthrough": "When a knot doesn't end with a divert, flow continues to the next knot below. Intentional for sequential scenes but a common bug source — always end knots explicitly.", "inky-editor": "Inkle's free editor for ink (inklestudios.com/ink). Left pane = source text, right pane = live preview. Changes update instantly — the standard authoring tool.", "end-divert": "The special divert -> END that terminates the story. Every path through the story must eventually reach -> END or the runtime will error.", "textile-metaphor": "Ink's terminology comes from weaving: knots (anchor points), stitches (sub-sections), gathers (convergence), weave (choice flow), thread (parallel flow). The language mirrors how thread moves through cloth.", "convergence": "When multiple story paths (from different choices) arrive at the same knot — the 'diverge then converge' pattern that gives readers agency without fragmenting the narrative into incompatible branches."}</script>
+<script type="application/json" id="glossary-data">{"knot": "A named section in an ink story (=== name ===). The primary organizational unit — like a function or chapter. Flow passes through knots top-to-bottom unless diverted.", "divert": "The -> name instruction that sends flow to a knot. The 'pipe fitting' that connects sections — flow moves from the current point to the named destination.", "flow": "The top-to-bottom execution of ink text. Each line is output in sequence until a divert, choice, or END is reached. Ink's fundamental model: text flows like water through pipes.", "fallthrough": "Ink does NOT fall through between knots — a knot that runs out of content without a divert or -> END is a loose end (compile warning, runtime 'ran out of content' error). Flow only continues automatically within a knot's own content and from choices into gathers.", "inky-editor": "Inkle's free editor for ink (inklestudios.com/ink). Left pane = source text, right pane = live preview. Changes update instantly — the standard authoring tool.", "end-divert": "The special divert -> END that terminates the story. Every path through the story must eventually reach -> END or the runtime will error.", "textile-metaphor": "Ink's terminology comes from weaving: knots (anchor points), stitches (sub-sections), gathers (convergence), weave (choice flow), thread (parallel flow). The language mirrors how thread moves through cloth.", "convergence": "When multiple story paths (from different choices) arrive at the same knot — the 'diverge then converge' pattern that gives readers agency without fragmenting the narrative into incompatible branches."}</script>
 <script type="module" src="../assets/page-shell.js"></script>
 
 </body>

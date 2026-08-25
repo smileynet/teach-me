@@ -10,7 +10,7 @@ Reference story from [Lesson 1: Flow & Knots](../../lessons/0001-ink-flow-and-kn
 
 - **Knots** (`=== name ===`) — named sections as story structure
 - **Diverts** (`-> name`) — sending flow between knots
-- **Fallthrough** — flow continues to the next knot without explicit divert
+- **Loose ends** — every path must end with a divert or `-> END`; knots never fall through to the next knot
 - **Basic choices** (`* [text] -> knot`) — branching that leads to different knots
 - **Convergence** — multiple paths arriving at the same destination knot
 - **Comments** (`//`, `/* */`) — annotations ignored by the runtime
