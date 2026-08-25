@@ -127,6 +127,6 @@ Two phases: ink language fundamentals (engine-agnostic, in Inky), then Godot int
 - [x] Open decisions identified
 - [x] Design decisions resolved
 - [x] Spike: inkgd (godot4 branch) installed in ink-test-project, hello.ink compiled, scene scaffolded, headless import passes
-- [ ] Full interactive validation (open editor, confirm story plays through choices)
+- [x] Full interactive validation (open editor, confirm story plays through choices) — validated via godot_editor agent 2026-08-24
 - [ ] MAP file created (`ink-godot.MAP.md`)
 - [ ] First lesson generated (01: Flow & Knots)
