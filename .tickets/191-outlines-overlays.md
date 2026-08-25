@@ -19,11 +19,11 @@ priority: high
 
 ## Acceptance criteria
 
-- [ ] Lesson HTML at `examples/godot-gamedev/lessons/0013-outlines-overlays.html`
-- [ ] Outline shader at `examples/godot-gamedev/reference/code/outlines-overlays/toon_outline_hull.gdshader`
-- [ ] Main shader at `examples/godot-gamedev/reference/code/outlines-overlays/overlays_banding.gdshader`
-- [ ] README.md in the reference/code directory
-- [ ] Both shaders compile via Godot headless
-- [ ] Glossary entries: artistic-overlay, shadow-weighted, outline-clip-offset, pipeline-order
-- [ ] Exercise tests the win statement (pipeline ordering misconception)
-- [ ] check-lesson.py passes
+- [x] Lesson HTML at `examples/godot-gamedev/lessons/0013-outlines-overlays.html`
+- [x] Outline shader at `examples/godot-gamedev/reference/code/outlines-overlays/toon_outline_hull.gdshader`
+- [x] Main shader at `examples/godot-gamedev/reference/code/outlines-overlays/overlays_banding.gdshader`
+- [x] README.md in the reference/code directory
+- [x] Both shaders compile via Godot headless
+- [x] Glossary entries: artistic-overlay, shadow-weighted, outline-clip-offset, pipeline-order
+- [x] Exercise tests the win statement (pipeline ordering misconception)
+- [x] check-lesson.py passes
