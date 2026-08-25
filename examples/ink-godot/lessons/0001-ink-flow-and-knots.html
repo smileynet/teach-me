@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1: Flow &amp; Knots</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="ink-godot-map.html">Ink + Godot</a> <span class="nav-sep">›</span> <span>Flow &amp; Knots</span></nav>
+<h1>Flow &amp; Knots</h1>
+
+<div class="lesson-meta">
+  Lesson 1 · Ink + Godot · ~8 min read<br>
+  <strong>Win:</strong> You can structure a branching story with named sections (knots) connected by diverts — and explain how ink's top-to-bottom flow works.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> You can write a multi-knot ink story where paths diverge via choices and reconverge at a shared destination. You understand that ink flows like water through pipes — downward until a divert sends it elsewhere or <code>-> END</code> stops it.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WHAT IS INK
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>What Is Ink?</h2>
+
+<p>Ink is a narrative scripting language by Inkle Studios — the engine behind <em>80 Days</em>, <em>Heaven's Vault</em>, and <em>Esoteric Ebb</em>. Unlike visual tools (Twine's node graph, Yarn's flowcharts), ink stories are plain text files. You can read them in Notepad, diff them in git, and write them without any special editor.</p>
+
+<p>The key idea: <strong>text flows top-to-bottom</strong> like a program executing line by line. Each line becomes one paragraph of output. Flow continues downward until something redirects it — a divert, a choice, or the end of the story.</p>
+
+<p>For this lesson, open the <strong>Inky editor</strong> (free from <a href="https://www.inklestudios.com/ink/">inklestudios.com/ink</a>). Left pane = source text, right pane = live preview. Every edit updates the preview instantly.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PLAIN TEXT
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Plain Text: The Simplest Story</h2>
+
+<p>The absolute minimum ink story is just text:</p>
+
+<pre data-mode="fragment"><code>Hello, world.
+This is the second line.
+The story ends here.</code></pre>
+
+<p>Paste this into Inky's left pane. The right pane shows each line as a paragraph. That's it — three lines of plain text, played in order. No special syntax, no setup. Ink's default behavior is "output each line, one after another."</p>
+
+<p>This top-to-bottom execution is <strong>flow</strong>. Text flows downward like water — until something redirects it.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     KNOTS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Knots: Named Sections</h2>
+
+<p>A real story needs structure. In ink, you organize content into <strong>knots</strong> — named sections marked with triple equals:</p>
+
+<pre data-mode="fragment"><code>=== opening ===
+The morning sun filters through dusty blinds.
+A note on the door reads: "Meeting in the archive."
+
+=== archive ===
+The archive smells like old paper and forgotten intentions.
+A librarian nods as you pass.</code></pre>
+
+<p>Each <code>=== name ===</code> creates a knot. The name is how you refer to it from elsewhere in the story. Knot names must be unique and use lowercase with underscores (like variable names in programming).</p>
+
+<div class="note">
+<strong>New concept — the textile metaphor:</strong> Ink's terminology comes from weaving. A "knot" is an anchor point in a thread. Later you'll learn stitches (sub-sections within knots), gathers (where threads converge), and weave (the flow pattern through choices). The language was literally named after ink on paper — and its structure mirrors how thread moves through cloth.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DIVERTS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Diverts: Sending Flow Somewhere Else</h2>
+
+<p>Knots alone don't do much — flow just falls through them top to bottom. The <strong>divert</strong> (<code>-></code>) sends flow to a named knot:</p>
+
+<pre data-mode="fragment"><code>-> opening
+
+=== opening ===
+The morning sun filters through dusty blinds.
+A note on the door reads: "Meeting in the archive."
+-> archive
+
+=== archive ===
+The archive smells like old paper.
+-> END</code></pre>
+
+<p>Three things to notice:</p>
+<ol>
+  <li><code>-> opening</code> at the top tells ink where to start (the first line of your story should divert to the opening knot)</li>
+  <li><code>-> archive</code> at the end of <code>opening</code> sends flow to the <code>archive</code> knot</li>
+  <li><code>-> END</code> terminates the story — without it, the runtime would error</li>
+</ol>
+
+<p>Think of diverts as pipe fittings: they redirect the flow of text from one knot to another. The story is a plumbing system — knots are rooms, diverts are doors between them.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FALLTHROUGH
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Fallthrough: When You Don't Divert</h2>
+
+<p>If a knot doesn't end with a divert, flow <strong>falls through</strong> to the next knot below it:</p>
+
+<pre data-mode="fragment"><code>-> scene_one
+
+=== scene_one ===
+The train pulls into the station.
+
+=== scene_two ===
+You step onto the platform.
+-> END</code></pre>
+
+<p>Here <code>scene_one</code> has no divert at its end, so flow continues directly into <code>scene_two</code>. This is intentional — sequential scenes can be written one after another without explicit diverts between them. But be careful: accidental fallthrough is a common source of bugs. If you don't want flow to continue past a knot, always end it with <code>-> somewhere</code> or <code>-> END</code>.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CHOICES (BRIEF)
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Choices: Why Knots Exist</h2>
+
+<p>Knots become powerful when combined with <strong>choices</strong>. A choice (<code>*</code>) presents the reader with options, each of which can divert to a different knot:</p>
+
+<pre data-file="01_flow_and_knots.ink" data-mode="fragment"><code>-> opening
+
+=== opening ===
+A note on the door reads: "Meeting in the archive. Come when ready."
+
+* [Head to the archive] -> archive_entrance
+* [Finish your coffee first] -> coffee_first
+
+=== coffee_first ===
+You take a long sip. The coffee is terrible — but it's yours.
+Feeling slightly more awake, you grab your coat and head out.
+-> archive_entrance
+
+=== archive_entrance ===
+The archive is three floors down, past rows of shelves that smell
+like old paper and forgotten intentions.
+-> END</code></pre>
+
+<p>This creates a <strong>branching structure</strong>: the reader picks a path, each path leads to a different knot, and both paths converge at <code>archive_entrance</code>. This convergence — branches splitting then rejoining — is the fundamental pattern of interactive narrative. The full choice system (once-only, sticky, nested, text suppression) comes in Lesson 2.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     COMMENTS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Comments</h2>
+
+<p>Comments are ignored by the runtime — use them to annotate your intent:</p>
+
+<pre data-mode="fragment"><code>// This is a single-line comment
+
+/* This is a
+   multi-line comment */
+
+=== meeting ===
+// TODO: add more dialogue options here
+"We found something," says Maren.</code></pre>
+
+<p>Comments are essential in large ink projects (Esoteric Ebb has 286 files). They document why a section exists, not what the text says.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     COMPLETE STORY
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Complete Reference Story</h2>
+
+<p>Here's the full story file that combines everything from this lesson — 4 knots, 2 choices, converging paths, comments, and a proper <code>-> END</code>:</p>
+
+<pre data-file="01_flow_and_knots.ink" data-mode="complete"><code>// 01_flow_and_knots.ink
+// Demonstrates: knots, diverts, fallthrough, basic choices, comments, -> END
+
+-> opening
+
+=== opening ===
+The morning sun filters through dusty blinds. Your desk is cluttered
+with half-finished maps and cold coffee.
+
+A note on the door reads: "Meeting in the archive. Come when ready."
+
+* [Head to the archive] -> archive_entrance
+* [Finish your coffee first] -> coffee_first
+
+=== coffee_first ===
+You take a long sip. The coffee is terrible — but it's yours.
+
+Feeling slightly more awake, you grab your coat and head out.
+-> archive_entrance
+
+=== archive_entrance ===
+The archive is three floors down, past rows of shelves that smell
+like old paper and forgotten intentions.
+
+A librarian nods as you pass. The meeting room door is ajar.
+
+// Both paths converge here — this is what makes knots powerful.
+-> meeting
+
+=== meeting ===
+Inside, two colleagues are already arguing over a map spread
+across the table.
+
+"Ah, you're here," says Maren, not looking up. "We found something."
+
+She taps a point on the map where three rivers converge.
+"This doesn't match any survey on record."
+
+The meeting has begun. Whatever comes next will require
+leaving the building — and your comfortable routine — behind.
+
+-> END</code></pre>
+
+<p>Paste this into Inky and play through both paths. Notice: regardless of whether you drank coffee or went straight to the archive, you always arrive at the meeting. The choice gives the reader agency without fragmenting the story into incompatible branches.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> Write a 3-knot story in Inky. The opening knot should offer a choice that diverts to one of two middle knots (different locations or different approaches). Both middle knots should converge at the same ending knot. Verify in Inky's preview that both paths reach the ending.</p>
+  <details>
+  <summary>Hint</summary>
+  <p>You need: an initial <code>-> opening</code>, two <code>*</code> choices with <code>-> knot_name</code> diverts, two middle knots that each end with <code>-> ending</code>, and an ending knot with <code>-> END</code>.</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>Any structure that follows this pattern works:</p>
+<pre data-mode="fragment"><code>-> start
+
+=== start ===
+You reach a fork in the path.
+* [Take the mountain trail] -> mountain
+* [Follow the river] -> river
+
+=== mountain ===
+The trail is steep but the view is worth it.
+-> camp
+
+=== river ===
+The river guides you through a cool valley.
+-> camp
+
+=== camp ===
+Both paths led here — a clearing with a fire pit.
+The sun is setting. Time to rest.
+-> END</code></pre>
+  <p>The key insight: <strong>knots are destinations, diverts are connections between them.</strong> The choice creates a fork, and both forks can converge at the same knot. This "diverge then converge" pattern is the foundation of all interactive narrative — you'll use it constantly.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Code Files</h2>
+<p>Download the reference story from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/ink-flow-and-knots/01_flow_and_knots.ink" download><code>01_flow_and_knots.ink</code></a> — complete reference story (4 knots, branching + convergence)</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next:</strong> <a href="0002-ink-choices-and-weave.html">Choices &amp; Weave</a> — the full choice system: once-only vs sticky, text suppression with brackets, and the gather pattern that brings branches together without needing a new knot.</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"knot": "A named section in an ink story (=== name ===). The primary organizational unit — like a function or chapter. Flow passes through knots top-to-bottom unless diverted.", "divert": "The -> name instruction that sends flow to a knot. The 'pipe fitting' that connects sections — flow moves from the current point to the named destination.", "flow": "The top-to-bottom execution of ink text. Each line is output in sequence until a divert, choice, or END is reached. Ink's fundamental model: text flows like water through pipes.", "fallthrough": "When a knot doesn't end with a divert, flow continues to the next knot below. Intentional for sequential scenes but a common bug source — always end knots explicitly.", "inky-editor": "Inkle's free editor for ink (inklestudios.com/ink). Left pane = source text, right pane = live preview. Changes update instantly — the standard authoring tool.", "end-divert": "The special divert -> END that terminates the story. Every path through the story must eventually reach -> END or the runtime will error.", "textile-metaphor": "Ink's terminology comes from weaving: knots (anchor points), stitches (sub-sections), gathers (convergence), weave (choice flow), thread (parallel flow). The language mirrors how thread moves through cloth.", "convergence": "When multiple story paths (from different choices) arrive at the same knot — the 'diverge then converge' pattern that gives readers agency without fragmenting the narrative into incompatible branches."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
