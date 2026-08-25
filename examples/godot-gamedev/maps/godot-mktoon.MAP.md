@@ -25,7 +25,7 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **scope:** substantial
 - **prereqs:** [toon-banding]
 - **lesson_file:** 0009-configurable-banding.html
-- **status:** not-started
+- **status:** in-progress
 
 ### gooch-shading
 - **title:** Gooch Warm/Cool Shadows
@@ -33,7 +33,7 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **scope:** substantial
 - **prereqs:** [configurable-banding]
 - **lesson_file:** 0010-gooch-shading.html
-- **status:** not-started
+- **status:** in-progress
 
 ### wrapped-lighting-noise
 - **title:** Wrapped Lighting & Noise Bias
@@ -41,7 +41,7 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **scope:** substantial
 - **prereqs:** [gooch-shading]
 - **lesson_file:** 0011-wrapped-lighting-noise.html
-- **status:** not-started
+- **status:** in-progress
 
 ### specular-rim
 - **title:** Specular & Rim Lighting (Threshold-Smoothstep)
@@ -49,7 +49,7 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **scope:** substantial
 - **prereqs:** [wrapped-lighting-noise]
 - **lesson_file:** 0012-specular-rim.html
-- **status:** not-started
+- **status:** in-progress
 
 ### outlines-overlays
 - **title:** Inverted-Hull Outlines & Artistic Overlays
@@ -57,7 +57,7 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **scope:** substantial
 - **prereqs:** [specular-rim]
 - **lesson_file:** 0013-outlines-overlays.html
-- **status:** not-started
+- **status:** in-progress
 
 ### vfx-dissolve-vertex
 - **title:** VFX Layer — Dissolve & Vertex Animation
@@ -65,7 +65,7 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **scope:** substantial
 - **prereqs:** [outlines-overlays]
 - **lesson_file:** 0014-vfx-dissolve-vertex.html
-- **status:** not-started
+- **status:** in-progress
 
 ## Expansion Opportunities
 
