@@ -18,11 +18,11 @@ priority: high
 
 ## Acceptance criteria
 
-- [ ] Lesson HTML at `examples/godot-gamedev/lessons/0014-vfx-dissolve-vertex.html`
-- [ ] Reference shader at `examples/godot-gamedev/reference/code/vfx-dissolve-vertex/vfx_toon.gdshader`
-- [ ] README.md in the reference/code directory
-- [ ] Shader compiles via Godot headless
-- [ ] Glossary entries: dissolve-effect, discard-keyword, time-stutter, vertex-displacement
-- [ ] Exercise tests the win statement (discard in light() misconception)
-- [ ] check-lesson.py passes
-- [ ] Final lesson in the MKToon track — marks completion of the 6-lesson arc
+- [x] Lesson HTML at `examples/godot-gamedev/lessons/0014-vfx-dissolve-vertex.html`
+- [x] Reference shader at `examples/godot-gamedev/reference/code/vfx-dissolve-vertex/vfx_toon.gdshader`
+- [x] README.md in the reference/code directory
+- [x] Shader compiles via Godot headless
+- [x] Glossary entries: dissolve-effect, discard-keyword, time-stutter, vertex-displacement
+- [x] Exercise tests the win statement (discard in light() misconception)
+- [x] check-lesson.py passes
+- [x] Final lesson in the MKToon track — marks completion of the 6-lesson arc

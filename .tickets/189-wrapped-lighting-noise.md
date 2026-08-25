@@ -18,10 +18,10 @@ priority: high
 
 ## Acceptance criteria
 
-- [ ] Lesson HTML at `examples/godot-gamedev/lessons/0011-wrapped-lighting-noise.html`
-- [ ] Reference shader at `examples/godot-gamedev/reference/code/wrapped-lighting-noise/wrapped_noise_banding.gdshader`
-- [ ] README.md in the reference/code directory
-- [ ] Shader compiles via Godot headless
-- [ ] Glossary entries: wrapped-lighting, noise-bias, toggle-pattern
-- [ ] Exercise tests the win statement (misconception: full wrap = no banding)
-- [ ] check-lesson.py passes
+- [x] Lesson HTML at `examples/godot-gamedev/lessons/0011-wrapped-lighting-noise.html`
+- [x] Reference shader at `examples/godot-gamedev/reference/code/wrapped-lighting-noise/wrapped_noise_banding.gdshader`
+- [x] README.md in the reference/code directory
+- [x] Shader compiles via Godot headless
+- [x] Glossary entries: wrapped-lighting, noise-bias, toggle-pattern
+- [x] Exercise tests the win statement (misconception: full wrap = no banding)
+- [x] check-lesson.py passes

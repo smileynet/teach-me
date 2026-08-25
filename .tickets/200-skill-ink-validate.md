@@ -23,8 +23,8 @@ A skill and/or tool that:
 
 ## Acceptance criteria
 
-- [ ] `mise run ink:validate` compiles all `.ink` files in ink-test-project/stories/
-- [ ] Errors cause non-zero exit (blocks lesson completion)
-- [ ] Warnings are reported but don't block (with option to promote to errors)
-- [ ] Integrates with generate-topic Phase 4 verification gate
-- [ ] Skill doc at `.kiro/skills/ink-validate/SKILL.md`
+- [x] `mise run ink:validate` compiles all `.ink` files in ink-test-project/stories/
+- [x] Errors cause non-zero exit (blocks lesson completion)
+- [x] Warnings are reported but don't block (with option to promote to errors)
+- [x] Integrates with generate-topic Phase 4 verification gate
+- [x] Skill doc at `.kiro/skills/ink-validate/SKILL.md`

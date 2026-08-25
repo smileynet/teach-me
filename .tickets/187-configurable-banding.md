@@ -18,11 +18,11 @@ priority: high
 
 ## Acceptance criteria
 
-- [ ] Lesson HTML at `examples/godot-gamedev/lessons/0009-configurable-banding.html`
-- [ ] Reference shader at `examples/godot-gamedev/reference/code/configurable-banding/configurable_banding.gdshader`
-- [ ] README.md in the reference/code directory
-- [ ] Shader compiles via Godot headless
-- [ ] SR questions in learning record
-- [ ] Glossary entries: configurable-banding, light-bands-scale, diffuse-smoothness, centering-trick
-- [ ] Exercise tests the win statement (near-transfer with misconception probe)
-- [ ] check-lesson.py passes
+- [x] Lesson HTML at `examples/godot-gamedev/lessons/0009-configurable-banding.html`
+- [x] Reference shader at `examples/godot-gamedev/reference/code/configurable-banding/configurable_banding.gdshader`
+- [x] README.md in the reference/code directory
+- [x] Shader compiles via Godot headless
+- [x] SR questions in learning record
+- [x] Glossary entries: configurable-banding, light-bands-scale, diffuse-smoothness, centering-trick
+- [x] Exercise tests the win statement (near-transfer with misconception probe)
+- [x] check-lesson.py passes
