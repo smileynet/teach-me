@@ -1,7 +1,7 @@
 ---
 id: "200"
 title: "Skill: ink-validate — compile and lint .ink files"
-status: open
+status: done
 blocked_by: []
 priority: high
 type: feature
