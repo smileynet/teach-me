@@ -21,12 +21,12 @@
 </head>
 <body>
 
-<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="ink-godot-map.html">Ink + Godot</a> <span class="nav-sep">›</span> <span>Flow &amp; Knots</span></nav>
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="ink-godot-map.html">Ink + Godot</a> <span class="nav-sep">›</span> <span><span class="term" data-term="flow">Flow</span> &amp; <span class="term" data-term="knot">Knot</span>s</span></nav>
 <h1>Flow &amp; Knots</h1>
 
 <div class="lesson-meta">
   Lesson 1 · Ink + Godot · ~8 min read<br>
-  <strong>Win:</strong> You can structure a branching story with named sections (knots) connected by diverts — and explain how ink's top-to-bottom flow works.
+  <strong>Win:</strong> You can structure a branching story with named sections (knots) connected by <span class="term" data-term="divert">divert</span>s — and explain how ink's top-to-bottom flow works.
 </div>
 <div class="key-concept">
   <strong>After this lesson:</strong> You can write a multi-knot ink story where paths diverge via choices and reconverge at a shared destination. You understand that ink flows like water through pipes — downward until a divert sends it elsewhere or <code>-> END</code> stops it.
@@ -42,7 +42,7 @@
 
 <p>The key idea: <strong>text flows top-to-bottom</strong> like a program executing line by line. Each line becomes one paragraph of output. Flow continues downward until something redirects it — a divert, a choice, or the end of the story.</p>
 
-<p>For this lesson, open the <strong>Inky editor</strong> (free from <a href="https://www.inklestudios.com/ink/">inklestudios.com/ink</a>). Left pane = source text, right pane = live preview. Every edit updates the preview instantly.</p>
+<p>For this lesson, open the <strong><span class="term" data-term="inky-editor">Inky editor</span></strong> (free from <a href="https://www.inklestudios.com/ink/">inklestudios.com/ink</a>). Left pane = source text, right pane = live preview. Every edit updates the preview instantly.</p>
 
 <!-- ═══════════════════════════════════════════════════════════════
      PLAIN TEXT
@@ -79,7 +79,7 @@ A librarian nods as you pass.</code></pre>
 <p>Each <code>=== name ===</code> creates a knot. The name is how you refer to it from elsewhere in the story. Knot names must be unique and use lowercase with underscores (like variable names in programming).</p>
 
 <div class="note">
-<strong>New concept — the textile metaphor:</strong> Ink's terminology comes from weaving. A "knot" is an anchor point in a thread. Later you'll learn stitches (sub-sections within knots), gathers (where threads converge), and weave (the flow pattern through choices). The language was literally named after ink on paper — and its structure mirrors how thread moves through cloth.
+<strong>New concept — the <span class="term" data-term="textile-metaphor">textile metaphor</span>:</strong> Ink's terminology comes from weaving. A "knot" is an anchor point in a thread. Later you'll learn stitches (sub-sections within knots), gathers (where threads converge), and weave (the flow pattern through choices). The language was literally named after ink on paper — and its structure mirrors how thread moves through cloth.
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════
@@ -155,7 +155,7 @@ The archive is three floors down, past rows of shelves that smell
 like old paper and forgotten intentions.
 -> END</code></pre>
 
-<p>This creates a <strong>branching structure</strong>: the reader picks a path, each path leads to a different knot, and both paths converge at <code>archive_entrance</code>. This convergence — branches splitting then rejoining — is the fundamental pattern of interactive narrative. The full choice system (once-only, sticky, nested, text suppression) comes in Lesson 2.</p>
+<p>This creates a <strong>branching structure</strong>: the reader picks a path, each path leads to a different knot, and both paths converge at <code>archive_entrance</code>. This <span class="term" data-term="convergence">convergence</span> — branches splitting then rejoining — is the fundamental pattern of interactive narrative. The full choice system (once-only, sticky, nested, text suppression) comes in Lesson 2.</p>
 
 <!-- ═══════════════════════════════════════════════════════════════
      COMMENTS
