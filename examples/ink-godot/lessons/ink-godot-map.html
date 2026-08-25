@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Map: Ink + Godot: Narrative Scripting</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+
+    body { max-width: none; padding: 2rem; }
+    .dag-container { position: relative; width: 100%; overflow-x: auto; }
+    .dag-canvas { position: relative; min-width: min-content; }
+    .edge-layer { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1; }
+    .topic-card {
+      position: absolute; width: 420px; padding: 1rem 1.2rem;
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+      z-index: 2; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .topic-card:hover { border-color: var(--accent); box-shadow: 0 2px 16px rgba(203, 166, 247, 0.1); }
+    .topic-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text); flex-wrap: wrap; }
+    .topic-card .why { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
+    .topic-card .prereq-label { font-size: 0.75rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.5rem; }
+    .topic-card .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .btn {
+      font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px;
+      border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+      cursor: pointer; transition: border-color 0.15s, color 0.15s;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.primary { border-color: var(--accent); color: var(--accent); }
+    .badge { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 3px; font-weight: 500; white-space: nowrap; }
+    .badge.not-started { background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    .badge.generating { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
+    .badge.complete { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
+    .badge.in-progress { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+    .gen-progress { font-size: 0.75rem; color: var(--warning); margin-top: 0.4rem; font-family: monospace; }
+    .gen-stream { margin-top: 0.5rem; }
+    .gen-stream-header { font-size: 0.8rem; margin-bottom: 0.3rem; }
+    .gen-status.connecting { color: var(--text-muted); }
+    .gen-status.streaming { color: var(--warning); }
+    .gen-status.done { color: var(--success); }
+    .gen-status.error { color: var(--error); }
+    .gen-stream-output {
+      background: var(--code-bg); padding: 0.5rem; border-radius: 4px;
+      font-size: 0.72rem; font-family: monospace; max-height: 150px;
+      overflow-y: auto; line-height: 1.4;
+    }
+    .gen-stream-output .line { padding: 1px 0; }
+    .gen-stream-output .phase-tool { color: var(--accent); }
+    .gen-stream-output .phase-writing { color: var(--success); }
+    .gen-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex;
+      align-items: center; justify-content: center; z-index: 1000;
+    }
+    .gen-modal {
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1.5rem; max-width: 550px; width: 90%;
+    }
+    .gen-modal-actions { display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: flex-end; }
+    .leads-to { margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); }
+    .leads-to-grid { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+    .leads-to-btn {
+      display: flex; flex-direction: column; align-items: flex-start; padding: 0.75rem 1rem;
+      border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);
+      font-weight: 500; font-size: 0.95rem; cursor: pointer; text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .leads-to-btn:hover { border-color: var(--accent); background: var(--bg-elevated); }
+    .leads-to-desc { font-weight: 400; font-size: 0.83rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .loading { color: var(--text-muted); padding: 2rem; }
+    .map-header { margin-bottom: 1.5rem; }
+    .map-header h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    .map-header .orientation { color: var(--text-muted); font-size: 0.9rem; max-width: 700px; line-height: 1.5; }
+
+  </style>
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+  <script src="../assets/vendor/dagre.min.js"></script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <span>Ink + Godot: Narrative Scripting</span></nav>
+<div class="map-header">
+    <h1>Ink + Godot: Narrative Scripting</h1>
+    <p class="orientation">Ink is a narrative scripting language by Inkle Studios — the engine behind 80 Days, Heaven's Vault, and Esoteric Ebb. It separates story logic from game code: writers work in plain-text `.ink` files, programmers integrate via a runtime API. This track teaches ink from zero, then wires it into Godot using the inkgd addon (pure GDScript, no .NET required).
+
+Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky editor and learn the language itself. Phase B (lessons 05–08) integrates with Godot, building a playable narrative prototype that demonstrates production patterns from a shipped 500K-word game.</p>
+  </div>
+  <div id="app"></div>
+
+<script type="application/json" id="page-data">{"title": "Ink + Godot: Narrative Scripting", "orientation": "Ink is a narrative scripting language by Inkle Studios — the engine behind 80 Days, Heaven's Vault, and Esoteric Ebb. It separates story logic from game code: writers work in plain-text `.ink` files, programmers integrate via a runtime API. This track teaches ink from zero, then wires it into Godot using the inkgd addon (pure GDScript, no .NET required).\n\nPhase A (lessons 01–04) is engine-agnostic — you write ink in the Inky editor and learn the language itself. Phase B (lessons 05–08) integrates with Godot, building a playable narrative prototype that demonstrates production patterns from a shipped 500K-word game.", "topics": [{"id": "ink-flow-and-knots", "title": "Flow & Knots", "why": "Stories in ink are built from named sections (knots) connected by diverts — understanding this flow is the foundation for everything that follows", "prereqs": [], "status": "in-progress", "lessonPath": "0001-ink-flow-and-knots.html"}, {"id": "ink-choices-and-weave", "title": "Choices & Weave", "why": "Choices are how players interact with ink — once-only vs sticky, nested branches, and the gather pattern that prevents spaghetti convergence", "prereqs": ["ink-flow-and-knots"], "status": "not-started", "lessonPath": "0002-ink-choices-and-weave.html"}, {"id": "ink-variables-and-conditionals", "title": "Variables & Conditionals", "why": "Tracking state across knots lets stories remember what the player did — conditional content, read counts, and variable types make stories reactive", "prereqs": ["ink-choices-and-weave"], "status": "not-started", "lessonPath": "0003-ink-variables-and-conditionals.html"}, {"id": "ink-functions-and-tunnels", "title": "Functions & Tunnels", "why": "Reusable logic keeps large ink projects manageable — pure functions for computation, tunnels for scene templates that return to the caller", "prereqs": ["ink-variables-and-conditionals"], "status": "not-started", "lessonPath": "0004-ink-functions-and-tunnels.html"}, {"id": "godot-ink-integration", "title": "First Godot Integration", "why": "Loading an ink story in Godot, displaying text line-by-line, and handling player choices via the InkPlayer node — the bridge from writing to playing", "prereqs": ["ink-functions-and-tunnels"], "status": "not-started", "lessonPath": "0005-godot-ink-integration.html"}, {"id": "tags-as-commands", "title": "Tags as Commands", "why": "Ink tags become structured game commands (speaker, audio, camera, items) — a protocol that drives game systems from narrative without coupling ink to engine code", "prereqs": ["godot-ink-integration"], "status": "not-started", "lessonPath": "0006-tags-as-commands.html"}, {"id": "state-bridge", "title": "State Bridge (External Functions & Variable Observers)", "why": "Binding game logic to ink and observing state changes reactively — the two-way communication between story and game that makes narrative-driven gameplay possible", "prereqs": ["tags-as-commands"], "status": "not-started", "lessonPath": "0007-state-bridge.html"}, {"id": "production-patterns", "title": "Production Patterns (Multi-Story, Hub Architecture, Combat-in-Ink)", "why": "Scaling from one story to hundreds requires architecture — stateless-per-dialog, story variables as a state bus, hub-and-spoke flow, and combat as conversation are patterns from a shipped 500K-word game", "prereqs": ["state-bridge"], "status": "not-started", "lessonPath": "0008-production-patterns.html"}], "leadsTo": [{"slug": "interactive-fiction", "why": ""}, {"slug": "game-narrative-design", "why": ""}]}</script>
+<script type="module">
+
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { MapView } from '../assets/components/MapView.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    render(
+      html`<${MapView} topics=${data.topics} leadsTo=${data.leadsTo} orientation=${data.orientation} title=${data.title} />`,
+      document.getElementById('app')
+    );
+
+</script>
+
+</body>
+</html>

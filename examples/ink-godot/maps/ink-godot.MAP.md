@@ -25,7 +25,7 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **scope:** substantial
 - **prereqs:** []
 - **lesson_file:** 0001-ink-flow-and-knots.html
-- **status:** not-started
+- **status:** in-progress
 
 ### ink-choices-and-weave
 - **title:** Choices & Weave

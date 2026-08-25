@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Map: Per-Material Toon Shading (MKToon)</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+
+    body { max-width: none; padding: 2rem; }
+    .dag-container { position: relative; width: 100%; overflow-x: auto; }
+    .dag-canvas { position: relative; min-width: min-content; }
+    .edge-layer { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1; }
+    .topic-card {
+      position: absolute; width: 420px; padding: 1rem 1.2rem;
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+      z-index: 2; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .topic-card:hover { border-color: var(--accent); box-shadow: 0 2px 16px rgba(203, 166, 247, 0.1); }
+    .topic-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text); flex-wrap: wrap; }
+    .topic-card .why { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
+    .topic-card .prereq-label { font-size: 0.75rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.5rem; }
+    .topic-card .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .btn {
+      font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px;
+      border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+      cursor: pointer; transition: border-color 0.15s, color 0.15s;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.primary { border-color: var(--accent); color: var(--accent); }
+    .badge { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 3px; font-weight: 500; white-space: nowrap; }
+    .badge.not-started { background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    .badge.generating { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
+    .badge.complete { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
+    .badge.in-progress { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+    .gen-progress { font-size: 0.75rem; color: var(--warning); margin-top: 0.4rem; font-family: monospace; }
+    .gen-stream { margin-top: 0.5rem; }
+    .gen-stream-header { font-size: 0.8rem; margin-bottom: 0.3rem; }
+    .gen-status.connecting { color: var(--text-muted); }
+    .gen-status.streaming { color: var(--warning); }
+    .gen-status.done { color: var(--success); }
+    .gen-status.error { color: var(--error); }
+    .gen-stream-output {
+      background: var(--code-bg); padding: 0.5rem; border-radius: 4px;
+      font-size: 0.72rem; font-family: monospace; max-height: 150px;
+      overflow-y: auto; line-height: 1.4;
+    }
+    .gen-stream-output .line { padding: 1px 0; }
+    .gen-stream-output .phase-tool { color: var(--accent); }
+    .gen-stream-output .phase-writing { color: var(--success); }
+    .gen-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex;
+      align-items: center; justify-content: center; z-index: 1000;
+    }
+    .gen-modal {
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1.5rem; max-width: 550px; width: 90%;
+    }
+    .gen-modal-actions { display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: flex-end; }
+    .leads-to { margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); }
+    .leads-to-grid { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+    .leads-to-btn {
+      display: flex; flex-direction: column; align-items: flex-start; padding: 0.75rem 1rem;
+      border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);
+      font-weight: 500; font-size: 0.95rem; cursor: pointer; text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .leads-to-btn:hover { border-color: var(--accent); background: var(--bg-elevated); }
+    .leads-to-desc { font-weight: 400; font-size: 0.83rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .loading { color: var(--text-muted); padding: 2rem; }
+    .map-header { margin-bottom: 1.5rem; }
+    .map-header h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    .map-header .orientation { color: var(--text-muted); font-size: 0.9rem; max-width: 700px; line-height: 1.5; }
+
+  </style>
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+  <script src="../assets/vendor/dagre.min.js"></script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <span>Per-Material Toon Shading (MKToon)</span></nav>
+<div class="map-header">
+    <h1>Per-Material Toon Shading (MKToon)</h1>
+    <p class="orientation">Where the toon-shaders track simplifies lighting with post-process filters (outlines, Kuwahara), this track builds the look from scratch inside the material. Each surface gets its own shadow colors, band count, and artistic overlays — authored per-material, not filtered globally. The reference is a real shipped game (Esoteric Ebb, 838 materials using MK.Toon in Unity, ported to Godot).
+
+This is the "authored shading" fork from `toon-banding`. You need to understand floor-based quantization (lesson 0004) before starting here.</p>
+  </div>
+  <div id="app"></div>
+
+<script type="application/json" id="page-data">{"title": "Per-Material Toon Shading (MKToon)", "orientation": "Where the toon-shaders track simplifies lighting with post-process filters (outlines, Kuwahara), this track builds the look from scratch inside the material. Each surface gets its own shadow colors, band count, and artistic overlays — authored per-material, not filtered globally. The reference is a real shipped game (Esoteric Ebb, 838 materials using MK.Toon in Unity, ported to Godot).\n\nThis is the \"authored shading\" fork from `toon-banding`. You need to understand floor-based quantization (lesson 0004) before starting here.", "topics": [{"id": "configurable-banding", "title": "Configurable Toon Banding", "why": "The simple floor() from lesson 0004 is fixed — a production shader needs artist-facing controls for band count, smoothness blend, and intensity scale without changing code", "prereqs": ["toon-banding"], "status": "in-progress", "lessonPath": "0009-configurable-banding.html"}, {"id": "gooch-shading", "title": "Gooch Warm/Cool Shadows", "why": "Black shadows look amateur — Gooch shading replaces them with a cool-to-warm color ramp that adds perceived depth without breaking the stylized look", "prereqs": ["configurable-banding"], "status": "in-progress", "lessonPath": "0010-gooch-shading.html"}, {"id": "wrapped-lighting-noise", "title": "Wrapped Lighting & Noise Bias", "why": "Hard geometric terminators look CG — half-Lambert wrap softens the shadow boundary while noise texture bias adds organic irregularity that reads as hand-painted", "prereqs": ["gooch-shading"], "status": "in-progress", "lessonPath": "0011-wrapped-lighting-noise.html"}, {"id": "specular-rim", "title": "Specular & Rim Lighting (Threshold-Smoothstep)", "why": "One reusable pattern — threshold + smoothstep — gives you both flat specular stamps (anime eye-catch lights) and Fresnel-based rim glow, adding dimension without breaking flat-color regions", "prereqs": ["wrapped-lighting-noise"], "status": "in-progress", "lessonPath": "0012-specular-rim.html"}, {"id": "outlines-overlays", "title": "Inverted-Hull Outlines & Artistic Overlays", "why": "A companion outline shader (second material pass) completes the cel look, while hatch/sketch textures weighted by shadow add hand-drawn authenticity", "prereqs": ["specular-rim"], "status": "in-progress", "lessonPath": "0013-outlines-overlays.html"}, {"id": "vfx-dissolve-vertex", "title": "VFX Layer — Dissolve & Vertex Animation", "why": "Map-based dissolve with glowing borders and vertex displacement (sine, bounce, noise with stutter) are the runtime effects that bring toon-shaded characters to life in cutscenes and gameplay", "prereqs": ["outlines-overlays"], "status": "in-progress", "lessonPath": "0014-vfx-dissolve-vertex.html"}], "leadsTo": [{"slug": "stylized-rendering", "why": ""}, {"slug": "advanced-shader-effects", "why": ""}]}</script>
+<script type="module">
+
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { MapView } from '../assets/components/MapView.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    render(
+      html`<${MapView} topics=${data.topics} leadsTo=${data.leadsTo} orientation=${data.orientation} title=${data.title} />`,
+      document.getElementById('app')
+    );
+
+</script>
+
+</body>
+</html>
