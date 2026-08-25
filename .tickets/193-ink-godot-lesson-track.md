@@ -1,7 +1,7 @@
 ---
 id: "193"
 title: "Explore: ink + Godot narrative scripting lesson track"
-status: open
+status: done
 blocked_by: []
 priority: medium
 type: exploration
@@ -128,5 +128,5 @@ Two phases: ink language fundamentals (engine-agnostic, in Inky), then Godot int
 - [x] Design decisions resolved
 - [x] Spike: inkgd (godot4 branch) installed in ink-test-project, hello.ink compiled, scene scaffolded, headless import passes
 - [x] Full interactive validation (open editor, confirm story plays through choices) — validated via godot_editor agent 2026-08-24
-- [ ] MAP file created (`ink-godot.MAP.md`)
-- [ ] First lesson generated (01: Flow & Knots)
+- [x] MAP file created (`ink-godot.MAP.md`)
+- [x] First lesson generated (01: Flow & Knots)
