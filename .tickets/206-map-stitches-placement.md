@@ -1,13 +1,24 @@
 ---
 id: "206"
 title: "Decide stitches placement in ink-godot MAP"
-status: open
+status: done
 blocked_by: []
 priority: high
 type: decision
 ---
 
 # Decide stitches placement in ink-godot MAP
+
+## Decision (2026-08-25)
+
+**Add stitches to lesson 02.** MAP title updated: "Choices & Weave" → "Choices, Stitches & Weave".
+
+Rationale:
+- Stitches are lightweight (just "knots within knots", `= name` syntax)
+- Official docs introduce stitches BEFORE variables (Part 1§6)
+- Esoteric Ebb uses them extensively (avg 8.6 per file) as conversation sub-topics
+- Pairs naturally with gathers/weave (both are structural flow tools)
+- Keeps MAP at 8 lessons (no new lesson needed)
 
 ## Problem
 

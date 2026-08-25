@@ -1,13 +1,19 @@
 ---
 id: "205"
 title: "Fix loose-end warning in lesson 01 ink story"
-status: open
+status: done
 blocked_by: ["200"]
 priority: high
 type: fix
 ---
 
 # Fix loose-end warning in lesson 01 ink story
+
+## Resolution (2026-08-25)
+
+**Resolved by #207.** The loose-end warnings were caused by the false "fallthrough" teaching — knots without exit diverts. The #207 rewrite added proper `-> END` / `-> scene_two` exits to all knots, eliminating the compiler warnings.
+
+Verification: `mise run ink:validate:strict` → 2 files, 0 errors, 0 warnings (PASSED).
 
 ## Problem
 

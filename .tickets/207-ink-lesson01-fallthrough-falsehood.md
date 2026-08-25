@@ -1,7 +1,7 @@
 ---
 id: "207"
 title: "Lesson 01 falsely teaches knot fallthrough; rewrite loose-ends framing"
-status: open
+status: done
 blocked_by: []
 priority: high
 type: fix
@@ -29,10 +29,10 @@ Verification gap: no local inklecate / ink-validate tooling yet (#199 open) — 
 
 ## Phase 2 — Implementation (after validation)
 
-- [ ] Rewrite lesson Fallthrough section as "Loose ends: every path needs an exit" with fixed snippet (`-> scene_two` added) and a "try breaking it" exercise (delete the divert, observe the error)
-- [ ] Fix glossary `fallthrough` entry (or remove from lesson 1, reintroduce with stitches)
-- [ ] Fix README "Fallthrough" bullet → "Loose ends — every path must end with a divert or `-> END`"
-- [ ] Fix reference story header comment: remove "fallthrough" from Demonstrates list
-- [ ] Tweak line ~90 "falls through them top to bottom" wording to avoid the loaded term
-- [ ] Verify: compile `01_flow_and_knots.ink` warning-free; lesson snippet compiles and runs (Inky/inklecate)
-- [ ] Re-check #205 — if its warnings stem from this same false model, fold findings there
+- [x] Rewrite lesson Fallthrough section as "Loose ends: every path needs an exit" with fixed snippet (`-> scene_two` added) and a "try breaking it" exercise (delete the divert, observe the error)
+- [x] Fix glossary `fallthrough` entry (or remove from lesson 1, reintroduce with stitches)
+- [x] Fix README "Fallthrough" bullet → "Loose ends — every path must end with a divert or `-> END`"
+- [x] Fix reference story header comment: remove "fallthrough" from Demonstrates list
+- [x] Tweak line ~90 "falls through them top to bottom" wording to avoid the loaded term
+- [x] Verify: compile `01_flow_and_knots.ink` warning-free; lesson snippet compiles and runs (Inky/inklecate)
+- [x] Re-check #205 — if its warnings stem from this same false model, fold findings there
