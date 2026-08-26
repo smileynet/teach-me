@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3: Variables &amp; Conditionals</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="ink-godot-map.html">Ink + Godot</a> <span class="nav-sep">›</span> <span><span class="term" data-term="variable">Variable</span>s &amp; Conditionals</span></nav>
+<h1>Variables &amp; Conditionals</h1>
+
+<div class="lesson-meta">
+  Lesson 3 · Ink + Godot · ~14 min read<br>
+  <strong>Win:</strong> You can make ink stories that remember what the player did — using <span class="term" data-term="read-count">read count</span>s, <span class="term" data-term="conditional-text">conditional text</span>, variables, and alternatives to create reactive, varied prose.
+</div>
+
+<div class="key-concept">
+  <strong>After this lesson:</strong> You can track state across knots (both implicitly via read counts and explicitly via VAR), gate choices on conditions, branch prose with if/else blocks, and vary text with sequences, cycles, and shuffles.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE STORY REACTS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Story Reacts</h2>
+
+<p>In lesson 02's reference story, there was a line you may have noticed without fully understanding:</p>
+
+<pre data-mode="fragment"><code>* {weapons || potions || maps} [Leave the market] -> tavern</code></pre>
+
+<p>This choice only appeared after visiting at least one stall. The <code>{weapons || potions || maps}</code> is a <strong>condition</strong> — it checks whether any of those stitches have been visited. Ink tracks this automatically: every knot and stitch has a <span class="term" data-term="read-count">read count</span> — the number of times flow has passed through it.</p>
+
+<pre data-mode="fragment"><code>-> greet
+
+=== greet ===
+{greet == 1: Hello, stranger!}
+{greet == 2: Oh, it's you again.}
+{greet > 2: You're becoming a regular.}
+* [Say hello again] -> greet
+* [Leave] -> END</code></pre>
+
+<p>The read count <code>{greet}</code> is truthy (non-zero) after the first visit. You can test it as a boolean (<code>{greet: text}</code> = "if visited") or compare it to a number (<code>{greet > 2: text}</code>). This is state tracking with <strong>zero setup</strong> — no declarations, no initialization. Every knot and stitch is already a counter.</p>
+
+<div class="note">
+  <strong>New concept — logical operators:</strong> <code>||</code> means OR (true if either side is true), <code>&amp;&amp;</code> means AND (true if both sides are true), <code>not</code> negates. These work everywhere conditions are tested.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CONDITIONAL CONTENT
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Conditional Content</h2>
+
+<p>Read counts let you detect visits. <span class="term" data-term="conditional-text">Conditional text</span> lets you <em>react</em> to them — showing different prose based on whether a condition is true:</p>
+
+<pre data-mode="fragment"><code>-> shop
+
+=== shop ===
+{shop > 1: "Welcome back," the merchant says.|"A new face!" the merchant exclaims.}
+What would you like to see?
+* [Browse] -> browse
+* [Leave] -> END</code></pre>
+
+<p>The syntax: <code>{condition: text if true | text if false}</code>. The <code>|</code> separates the two cases. If you don't need an else branch, omit it: <code>{shop > 1: "Welcome back."}</code> — this prints nothing when the condition is false.</p>
+
+<p>Conditional text is inline — it lives inside a line of prose. For longer branching (multiple lines, multiple conditions), you'll use if/else blocks later in this lesson.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TEXT THAT VARIES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Text That Varies</h2>
+
+<p>Conditional text reacts to specific conditions. But what about text that varies <em>on its own</em> — changing each time the player sees it, without you checking any state? Ink has four types of <span class="term" data-term="alternatives">alternatives</span>:</p>
+
+<pre data-mode="fragment"><code>-> street
+
+=== street ===
+// Sequence (stopping): shows each in order, then sticks on the last
+{I entered the shop.|I entered the shop again.|Once more, I went inside.}
+
+// Cycle: loops forever
+{&Monday|Tuesday|Wednesday|Thursday|Friday}
+
+// Shuffle: random each time
+{~rain pattered on the window|sun streamed through the glass|fog obscured the street}
+
+// Once-only: shows each once, then nothing
+{!A bell chimed as I entered.|The bell was silent this time.|}
+
+* [Enter again] -> street
+* [Move on] -> END</code></pre>
+
+<p>The markers: no marker = <strong>stopping sequence</strong> (default), <code>&amp;</code> = <strong>cycle</strong>, <code>~</code> = <strong>shuffle</strong>, <code>!</code> = <strong>once-only</strong>. All use the same <code>{...|...}</code> syntax — the marker before the first element determines the type.</p>
+
+<p>Alternatives are most useful inside loops (like the <code>-> street</code> loop above). A stopping sequence in a scene you visit once is just... showing text. But in a hub you return to repeatedly, it creates the illusion of a living world — each visit feels different without you writing conditional logic for each case.</p>
+
+<div class="note">
+  <strong>New concept — the <code>{}</code> unifier:</strong> Every use of curly braces in ink is the story <em>reacting to state</em>. Read counts (<code>{knot}</code>), conditional text (<code>{condition: text}</code>), and alternatives (<code>{a|b|c}</code>) are all the same mechanism at different complexity levels. Think of <code>{}</code> as "something dynamic happens here."
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     VARIABLES: CUSTOM STATE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Variables: Custom State</h2>
+
+<p>Read counts track visits. Alternatives vary text. But what about things that aren't visits — gold, inventory, relationships? For that, you declare a <span class="term" data-term="variable">variable</span> with <code>VAR</code>:</p>
+
+<pre data-mode="fragment"><code>VAR gold = 15
+VAR has_map = false
+VAR player_name = "Emilia"
+
+-> shop
+
+=== shop ===
+Welcome, {player_name}. You have {gold} gold.
++ {not has_map} [Buy the map - 8 gold]
+    ~ gold = gold - 8
+    ~ has_map = true
+    "Here's your map."
+    -> shop
++ [Leave] -> END</code></pre>
+
+<p>Three things happening here:</p>
+<ol>
+  <li><code>VAR gold = 15</code> — declares a global variable with an initial value (the value determines the type: integer, boolean, or string)</li>
+  <li><code>{gold}</code> and <code>{player_name}</code> — prints the variable's current value inline</li>
+  <li><code>~ gold = gold - 8</code> — the <code>~</code> marker signals a logic line (assignment or operation). It means "this line changes state, don't print it."</li>
+</ol>
+
+<p>Variables are <strong>global</strong> — accessible and modifiable from any knot. Declare them at the top of your file (before any knots) so they're initialized once.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PRINTING AND MATH
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Printing and Math</h2>
+
+<p>You've already seen <code>{variable}</code> for printing. Ink also supports basic arithmetic on logic lines:</p>
+
+<pre data-mode="fragment"><code>VAR health = 100
+VAR damage = 0
+
+-> combat
+
+=== combat ===
+~ damage = RANDOM(5, 20)
+~ health = health - damage
+The creature strikes! You take {damage} damage. Health: {health}/100.
+{health <= 0:
+    You collapse. The world goes dark.
+    -> END
+}
+* [Fight back] -> combat
+* [Run away] -> escape
+
+=== escape ===
+You flee into the trees.
+-> END</code></pre>
+
+<p><code>RANDOM(min, max)</code> produces a random integer between min and max (inclusive on both ends — like rolling a die). Other arithmetic: <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code> (integer division — <code>7/3</code> gives <code>2</code>), <code>%</code> (remainder).</p>
+
+<div class="note">
+  <strong>Performance note:</strong> <code>RANDOM</code> evaluates once when the line executes. If you need to reuse a random result, store it with <code>~ temp roll = RANDOM(1,6)</code> (temp variables are covered in lesson 04).
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     IF/ELSE BLOCKS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>If/Else Blocks</h2>
+
+<p>Inline conditionals work for short text. For longer branching — multiple lines, multiple conditions — use an <span class="term" data-term="if-else-block">if/else block</span>:</p>
+
+<pre data-mode="fragment"><code>VAR gold = 3
+
+-> assess
+
+=== assess ===
+{
+- gold >= 10:
+    You're well funded. The merchant will take you seriously.
+- gold >= 5:
+    You have enough for basics, but nothing fancy.
+- else:
+    Your pockets are nearly empty. This will be difficult.
+}
+-> END</code></pre>
+
+<p>The block syntax: open <code>{</code> on its own line, each condition prefixed with <code>-</code>, and an optional <code>- else:</code> at the end. Ink evaluates top to bottom — the first matching condition wins, the rest are skipped.</p>
+
+<p>This is the same <code>{}</code> syntax, just in block form. The key difference from inline conditionals: the opening brace is <strong>alone on its line</strong>, and each branch starts with <code>-</code>.</p>
+
+<div class="note">
+  <strong>Why <code>-</code> again?</strong> In ink, <code>-</code> means different things in different contexts: a gather (after choices), a condition branch (inside <code>{}</code> blocks), or an else clause. Context determines meaning — if you're inside curly braces, <code>-</code> introduces a condition.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CONDITIONAL CHOICES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Conditional Choices</h2>
+
+<p>The final piece: choices that only appear when a condition is met. Put the condition before the choice text:</p>
+
+<pre data-mode="fragment"><code>VAR has_key = false
+
+-> door
+
+=== door ===
+The door is locked.
+* {has_key} [Unlock the door]
+    You slide the key in and turn. Click.
+    -> END
+* [Search the room] -> search
+* [Give up] -> END
+
+=== search ===
+You find a rusty key under the mat.
+~ has_key = true
+-> door</code></pre>
+
+<p>The <code>* {has_key}</code> pattern means: this choice exists only when <code>has_key</code> is true. The player never sees it until they've found the key. This is how ink creates the classic "locked door" puzzle — the solution appears in the choice list only when you've earned it.</p>
+
+<p>You can combine conditions with logical operators: <code>* {has_key &amp;&amp; gold >= 5} [Bribe the guard and unlock]</code>. And remember: read counts work here too — <code>* {search} [Try the key]</code> appears only after visiting the search knot.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     COMPLETE STORY
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Complete Reference Story</h2>
+
+<p>Here's the full reference file — a reactive shop scene where the merchant remembers your visits, you manage gold, items gate later choices, and the story's ending varies based on your preparation:</p>
+
+<pre data-file="03_variables_and_conditionals.ink" data-mode="complete"><code>// 03_variables_and_conditionals.ink
+// Reference story for Lesson 03: Variables &amp; Conditionals
+// Demonstrates: read counts, conditional text, alternatives (sequences/cycles/shuffles),
+//               VAR, arithmetic, printing, if/else blocks, conditional choices
+
+VAR gold = 15
+VAR has_compass = false
+VAR has_map = false
+
+-> shop
+
+=== shop ===
+
+// --- Read count: greeting changes on repeat visits ---
+{
+- shop == 1:
+    The old merchant looks up as you enter. "A new face! Welcome to my humble shop."
+- shop == 2:
+    "Back again?" The merchant smiles. "I knew you'd return."
+- else:
+    The merchant nods without looking up. "The usual browse?"
+}
+
+// --- Cycle: ambient description varies each visit ---
+{&amp;The shelves are dusty but well-organized.|A cat sleeps on the counter.|Wind rattles the shuttered window.|The candle flickers, casting long shadows.}
+
+You have {gold} gold coins.
+
+// --- Conditional choices: gated on state ---
++ {not has_compass} [Buy the compass - 5 gold]
+    {gold >= 5:
+        ~ gold = gold - 5
+        ~ has_compass = true
+        "A fine instrument," the merchant says, wrapping it in cloth.
+    - else:
+        "You'll need more coin for that, friend." You put it back.
+    }
+    -> shop
+
++ {not has_map} [Buy the map - 8 gold]
+    {gold >= 8:
+        ~ gold = gold - 8
+        ~ has_map = true
+        "The northern pass," he says, tapping the parchment. "Dangerous but fast."
+    - else:
+        "Maps don't come cheap," he shrugs. You leave it on the shelf.
+    }
+    -> shop
+
++ {has_compass || has_map} [Ask about the journey north]
+    -> journey_advice
+
++ [Leave the shop]
+    -> crossroads
+
+=== journey_advice ===
+"Heading north, are you?" The merchant leans in.
+{
+- has_compass &amp;&amp; has_map:
+    "With a compass AND a map? You're better prepared than most. Take the high pass — the landmarks will guide you."
+- has_map:
+    "The map will show you the way, but without a compass you'll struggle in fog. Stick to clear days."
+- has_compass:
+    "A compass keeps you on course, but without a map you won't know the landmarks. Follow the river — it leads north eventually."
+}
+-> shop
+
+=== crossroads ===
+
+// --- Shuffle: different traveler each time (random) ---
+{~A merchant caravan rattles past.|A lone rider gallops by without a glance.|Two children chase a dog across the road.|An old woman sells wildflowers by the path.}
+
+The road forks here.
+
+* {has_map} [Follow the map north]
+    The map shows a clear route through the pass. You set off with confidence.
+    -> ending
+
+* {has_compass} [Use the compass to navigate]
+    The needle points true north. You follow it into the hills.
+    -> ending
+
+* [Head north without aid]
+    You pick a direction and hope for the best.
+    -> ending
+
+=== ending ===
+{
+- has_compass &amp;&amp; has_map:
+    The journey is swift. Your map marks every turn; your compass confirms the heading. By nightfall you've cleared the pass.
+- has_compass || has_map:
+    The path is uncertain at times, but your {has_compass:compass|map} keeps you from losing your way entirely. You arrive tired but safe.
+- else:
+    You wander for two days before finding the northern road. Exhausted, hungry, but alive.
+}
+
+// --- Print remaining gold ---
+{
+- gold > 0:
+    You still have {gold} gold coins jingling in your pocket.
+- else:
+    Your pockets are empty — every coin spent on preparation.
+}
+
+-> END</code></pre>
+
+<p>Play through this in Inky at least twice — once buying both items, once buying nothing. Notice how the merchant's greeting, the ambient descriptions, the available choices, the journey advice, and the ending all change based on your state. That's the power of reactive narrative.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> Write a tavern scene where: (1) a <code>VAR gold</code> starts at 10, (2) the barkeep's greeting uses a stopping sequence that progresses each visit, (3) you can buy a drink for 3 gold (choice disappears when gold &lt; 3), and (4) after buying at least one drink, a new choice appears to "Ask the barkeep for a rumor." Verify in Inky that the choices gate correctly and the greeting changes.</p>
+  <details>
+  <summary>Hint</summary>
+  <p>You need: <code>VAR gold = 10</code> at top, <code>-> tavern</code> entry, a stopping sequence <code>{greeting1|greeting2|greeting3}</code> in the tavern knot, <code>+ {gold >= 3} [Buy a drink]</code> with <code>~ gold = gold - 3</code> inside, and <code>+ {tavern > 1} [Ask for a rumor]</code> using the read count to detect a previous purchase loop.</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>Any structure with these elements works:</p>
+<pre data-mode="fragment"><code>VAR gold = 10
+
+-> tavern
+
+=== tavern ===
+{&"What'll it be?"|"You again. The usual?"|The barkeep just nods.}
+You have {gold} gold.
++ {gold >= 3} [Buy a drink - 3 gold]
+    ~ gold = gold - 3
+    You slide the coins across. The ale is cold and bitter.
+    -> tavern
++ {tavern > 1} [Ask for a rumor]
+    "Word is," she whispers, "the northern pass opened up last week."
+    -> END
++ [Leave] -> END</code></pre>
+  <p>The key insight: <strong>read counts and variables work together</strong> — the read count <code>{tavern > 1}</code> detects you've looped (meaning you bought something), while <code>{gold >= 3}</code> gates the purchase on affordability. No explicit "has_bought_drink" boolean needed — the structure itself tracks the state.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Code Files</h2>
+<p>Download the reference story from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/ink-variables-and-conditionals/03_variables_and_conditionals.ink" download><code>03_variables_and_conditionals.ink</code></a> — reactive shop scene (read counts, VAR, alternatives, conditional choices, if/else blocks)</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next:</strong> <a href="0004-ink-functions-and-tunnels.html">Functions &amp; Tunnels</a> — reusable logic with pure functions, temporary variables for scratch calculations, and tunnels that let you jump into a sub-scene and return to where you left off.</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"read-count": "The number of times flow has passed through a knot or stitch. Ink tracks this automatically — {knot_name} is truthy (non-zero) if visited, and you can compare it: {knot > 2}. Zero setup required.", "conditional-text": "Text that appears only when a condition is true: {condition: text if true | text if false}. The simplest way to make prose react to state — inline, no block structure needed.", "alternatives": "Text that varies automatically using {a|b|c} syntax. Four types: stopping (default, sticks on last), cycle (&, loops), shuffle (~, random), once-only (!, then empty). Most useful inside loops.", "variable": "A named container for persistent state, declared with VAR name = value. Types determined by initial value: integer, boolean, string. Modified with ~ (logic lines). Global — accessible from any knot.", "if-else-block": "A multi-line conditional block: { on its own line, each branch prefixed with - condition:, optional - else: at end. First matching condition wins. Used when inline conditionals aren't enough.", "logic-line": "A line prefixed with ~ that modifies state without producing output. Used for assignment (~ gold = 5), arithmetic (~ health = health - damage), and boolean changes (~ has_key = true).", "conditional-choice": "A choice gated by a condition: * {condition} [text]. The choice only appears when the condition is true. Combines with read counts, variables, and logical operators.", "sequence": "A stopping alternative {a|b|c} that shows each element in order, then repeats the last forever. The default type (no marker needed). Best for progressive NPC dialogue in loops.", "cycle": "An alternative marked with & that loops: {&morning|afternoon|evening} cycles endlessly through its elements. Useful for time-of-day, rotating descriptions, repeating patterns.", "shuffle": "An alternative marked with ~ that picks randomly: {~rain|sun|fog} shows a different element each time. Creates variety without tracking which was shown before."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
