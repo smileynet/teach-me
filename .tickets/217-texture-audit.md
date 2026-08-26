@@ -121,16 +121,71 @@ Near-transfer with misconception probing:
 
 Both use `assets/svg-patterns.md` accessibility patterns + CSS color variables.
 
-### Screenshots needed (4, via Godot MCP)
+### Screenshots (4, captured via Godot MCP)
 
-1. Flat color only (already captured: `mktoon_flat_color.png`)
-2. Albedo only (toggle normal off, albedo on) — **needs capture**
-3. Normal only (toggle albedo off, normal on) — **needs capture**
-4. Both (already captured: `mktoon_before_pbr.png`)
+1. Flat color only — `mktoon_flat_color.png` ✅ captured
+2. Albedo only (normal off) — `mktoon_albedo_only.png` ✅ captured
+3. Normal only (albedo off) — `mktoon_normal_only.png` ✅ captured
+4. Both — `mktoon_before_pbr.png` ✅ captured
+
+All in `test-scene/.scratch/screenshots/` (gitignored). Copy to `examples/godot-gamedev/assets/img/` for lesson embedding (committed with `git add -f` since lessons/ is gitignored).
 
 ### No code files section
 
 This lesson references existing shaders but produces no new files. Code snippets use `data-mode="fragment"` (illustration only, skip extraction). No `reference/code/` directory needed.
+
+## Validation strategy
+
+Layered — each tool proves what the others can't.
+
+### Layer 1: Screenshot content (image analysis, BEFORE embedding)
+
+Verify each screenshot shows the claimed state. One attribute per question, pre-resize ≤1568px, fresh session per image.
+
+| Screenshot | Question | Expected |
+|-----------|----------|----------|
+| flat_color | "Are discrete lighting bands visible? How many?" | Yes, ~4 |
+| albedo_only | "Fine surface detail/text, or flat color?" | Detailed |
+| normal_only | "Shadow edges smooth curves or jagged?" | Jagged |
+| before_pbr | "Clean cartoon art or realistic model with odd lighting?" | Realistic/broken |
+
+Multi-validator consensus on the 2 pedagogically-critical claims (band clarity, jagged edges). Catches the wrong-state-capture failure mode.
+
+### Layer 2: Diagram readability (image analysis, AFTER authoring SVGs)
+
+Render lesson, screenshot each SVG region, verify:
+- Quantization diagram: "signal passing through a step function?"
+- Triage diagram: "three branches labeled keep/discard/repurpose?"
+- Color-independence: "can you tell branches apart WITHOUT color?" (WCAG)
+
+### Layer 3: Lesson page (Playwright via browser agent)
+
+Load `http://localhost:8787/lessons/blender-texture-prep/01-texture-audit.html`, verify:
+- `.key-concept` present
+- 4 `<img>` load (naturalWidth > 0, no broken paths)
+- 2 inline `<svg>` with `role="img"` + `<title>`
+- Exercise `<details>` expands on click
+- Full-page screenshot in light + dark theme
+
+### Layer 4: Contract check (mise run verify)
+
+Links + lint + SVG var check (no hardcoded hex). Catches contract violations.
+
+### Godot MCP: NOT needed for #217
+
+All runtime-dependent states already captured as screenshots. The one remaining claim ("roughness has no effect") is provable from code (no roughness uniform exists) — no runtime check needed. Skip Godot re-invocation.
+
+### Pipeline order
+
+```
+1. Image analysis on 4 screenshots (parallel)  → catches wrong-state capture
+2. Author HTML + 2 SVGs
+3. Serve + Playwright (structure, img load, theme) → catches broken page
+4. Image analysis on rendered diagrams → catches unreadable SVG
+5. mise run verify → catches contract violations
+```
+
+
 
 ## Acceptance criteria
 
@@ -144,6 +199,10 @@ This lesson references existing shaders but produces no new files. Code snippets
 - [ ] SR questions generated (4 cards) in blender-texture-prep.jsonl
 - [ ] No `data-file` code blocks (no downloadable files needed)
 - [ ] Page generated via `page_template.py` with correct structure
+- [ ] Layer 1: 4 screenshots validated via image analysis (correct state each)
+- [ ] Layer 2: 2 SVG diagrams validated via image analysis (readable, color-independent)
+- [ ] Layer 3: Playwright confirms page structure + img load + both themes
+- [ ] Layer 4: `mise run verify` passes (links, lint, SVG vars)
 
 ## Research context
 
