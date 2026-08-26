@@ -54,9 +54,9 @@ The fire crackles. You rest your legs and eat dried provisions.
     ~ player_health = 100
 }
 You feel {describe_condition(player_health)}.
-* [Stare into the flames]
++ [Stare into the flames]
     The embers shift. Tomorrow will be harder.
-* [Sleep immediately]
++ [Sleep immediately]
     You're unconscious before your head hits the bedroll.
 - Dawn breaks. Time to move.
 ->->
@@ -87,8 +87,8 @@ You feel {describe_condition(player_health)}.
     -> defeat
 }
 
-* [Press the attack] -> battle(enemy, enemy_attack, enemy_armor)
-* [Disengage and flee]
++ [Press the attack] -> battle(enemy, enemy_attack, enemy_armor)
++ [Disengage and flee]
     You break away, gasping.
 -
 ->->
@@ -99,41 +99,41 @@ You feel {describe_condition(player_health)}.
 The forest road is quiet. You are {describe_condition(player_health)}.
 {gold_text()}
 
-* [Enter the dark grove]
++ [Enter the dark grove]
     A wolf emerges from the shadows.
     -> battle("wolf", 2, 1) ->
     The wolf limps away. You find 5 gold on a nearby corpse.
     ~ gold = gold + 5
     -> forest_path
 
-* [Make camp for the night]
++ [Make camp for the night]
     -> camp ->
     -> forest_path
 
-* [Continue to the cave]
++ [Continue to the cave]
     -> cave_entrance
 
 === cave_entrance ===
 The cave mouth yawns before you. Cold air seeps out.
 {gold_text()}
 
-* [Enter the cave]
++ [Enter the cave]
     A goblin shrieks and charges!
     -> battle("goblin", 3, 2) ->
     The goblin collapses. A glint of gold catches your eye.
     ~ gold = gold + 8
     -> cave_entrance
 
-* [Rest outside the cave]
++ [Rest outside the cave]
     -> camp ->
     -> cave_entrance
 
-* {gold >= 15} [Pay the troll toll (15 gold)]
++ {gold >= 15} [Pay the troll toll (15 gold)]
     ~ gold = gold - 15
     The troll steps aside with a grunt.
     -> victory
 
-* [Turn back to the forest]
++ [Turn back to the forest]
     -> forest_path
 
 === victory ===
