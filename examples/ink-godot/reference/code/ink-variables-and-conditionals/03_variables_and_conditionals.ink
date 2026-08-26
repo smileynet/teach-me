@@ -21,7 +21,7 @@ VAR has_map = false
     The merchant nods without looking up. "The usual browse?"
 }
 
-// --- Sequence: ambient description varies each visit ---
+// --- Cycle: ambient description varies each visit ---
 {&The shelves are dusty but well-organized.|A cat sleeps on the counter.|Wind rattles the shuttered window.|The candle flickers, casting long shadows.}
 
 You have {gold} gold coins.
