@@ -6,6 +6,7 @@ status: open
 priority: high
 blocked_by: ["221"]
 parent: "216"
+tags: [mktoon, blender]
 ---
 
 # Lesson: Wiring It All Up — Populate mk_toon_lite in Godot (0020)

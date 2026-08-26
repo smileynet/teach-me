@@ -6,6 +6,7 @@ status: open
 priority: high
 blocked_by: ["217"]
 parent: "216"
+tags: [mktoon, blender]
 ---
 
 # Lesson: Albedo Posterization in Blender Nodes (0016)

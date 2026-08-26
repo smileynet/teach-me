@@ -4,6 +4,7 @@ title: "Lesson 0014: VFX Dissolve and Vertex Animation"
 status: done
 blocked_by: ["191"]
 priority: high
+tags: [mktoon]
 ---
 
 # Lesson 0014: VFX Dissolve and Vertex Animation

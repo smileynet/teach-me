@@ -4,6 +4,7 @@ title: "Lesson 0011: Wrapped Lighting and Noise Bias"
 status: done
 blocked_by: ["188"]
 priority: high
+tags: [mktoon]
 ---
 
 # Lesson 0011: Wrapped Lighting and Noise Bias

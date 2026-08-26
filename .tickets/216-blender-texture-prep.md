@@ -6,6 +6,7 @@ status: open
 priority: high
 blocked_by: []
 parent: "186"
+tags: [mktoon, blender]
 ---
 
 # Blender texture prep pipeline — rebake PBR textures to toon-friendly style for mktoon shader

@@ -4,6 +4,7 @@ title: "Lesson 0010: Gooch Warm/Cool Shadows"
 status: done
 blocked_by: ["187"]
 priority: high
+tags: [mktoon]
 ---
 
 # Lesson 0010: Gooch Warm/Cool Shadows

@@ -4,6 +4,7 @@ title: "MKToon track setup: MAP, test-scene fixture, design decisions"
 status: done
 blocked_by: ["185"]
 priority: high
+tags: [mktoon]
 ---
 
 # MKToon track setup: MAP, test-scene fixture, design decisions

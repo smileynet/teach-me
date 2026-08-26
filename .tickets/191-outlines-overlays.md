@@ -4,6 +4,7 @@ title: "Lesson 0013: Outlines and Artistic Overlays"
 status: done
 blocked_by: ["190"]
 priority: high
+tags: [mktoon]
 ---
 
 # Lesson 0013: Outlines and Artistic Overlays
