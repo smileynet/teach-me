@@ -105,7 +105,7 @@ The archive smells like old paper.
 <ol>
   <li><code>-> opening</code> at the top tells ink where to start (the first line of your story should divert to the opening knot)</li>
   <li><code>-> archive</code> at the end of <code>opening</code> sends flow to the <code>archive</code> knot</li>
-  <li><code>-> END</code> terminates the story — without it, the runtime would error</li>
+  <li><span class="term" data-term="end-divert"><code>-> END</code></span> terminates the story — without it, the runtime would error</li>
 </ol>
 
 <p>Think of diverts as pipe fittings: they redirect the flow of text from one knot to another. The story is a plumbing system — knots are rooms, diverts are doors between them.</p>
@@ -132,7 +132,7 @@ The train pulls into the station.
 You step onto the platform.
 -> END</code></pre>
 
-<p>Every knot ends by diverting somewhere or ending the story — there is no "fall through to the knot below." If you delete the <code>-> scene_two</code> line, Inky warns at compile time: <em>"Apparent loose end where flow runs out. Do you need a '-> END' statement, choice or divert?"</em> And if you play it anyway, the runtime errors with <em>"ran out of content. Do you need a '-> DONE' or '-> END'?"</em></p>
+<p>Every knot ends by diverting somewhere or ending the story — there is no "<span class="term" data-term="fallthrough">fall through</span> to the knot below." If you delete the <code>-> scene_two</code> line, Inky warns at compile time: <em>"Apparent loose end where flow runs out. Do you need a '-> END' statement, choice or divert?"</em> And if you play it anyway, the runtime errors with <em>"ran out of content. Do you need a '-> DONE' or '-> END'?"</em></p>
 
 <p><strong>Try breaking it:</strong> remove the <code>-> scene_two</code> line in Inky and run the story. Seeing the error yourself — and the warning that predicts it — is the fastest way to internalize the rule. Rooms without doors aren't passages; every pipe in the plumbing needs an outlet.</p>
 

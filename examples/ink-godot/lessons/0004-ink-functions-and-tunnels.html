@@ -71,7 +71,7 @@
 
 <p>The parameter <code>who</code> acts like a temp variable inside the knot — it holds whatever value was passed in. You can pass strings, numbers, or booleans. Multiple parameters use commas: <code>=== trade(item, cost) ===</code>.</p>
 
-<p>Parameters solve the "almost identical knots" problem. Without them, you'd copy-paste a knot for each suspect/item/enemy. With them, one knot serves many callers — the data varies, the structure stays the same.</p>
+<p>Parameters solve the "almost identical knots" problem. Without them, you'd copy-paste a knot for each suspect/item/enemy. With them, one knot serves many callers — the data varies, the structure stays the same. Parameters are <span class="term" data-term="pass-by-value">passed by value</span> — the knot receives a copy of the data, not the original variable. Modifying a parameter inside doesn't affect the caller.</p>
 
 <!-- ═══════════════════════════════════════════════════════════════
      FUNCTIONS: INLINE COMPUTATION
@@ -101,7 +101,7 @@
 You feel {describe_condition(health)}.
 -> END</code></pre>
 
-<p>Two things make functions special: (1) they're declared with <code>=== function name() ===</code>, and (2) they can be called <strong>inline</strong> with <code>{function_name(args)}</code> — the return value is inserted directly into the text. "You feel battered." — the function computed the word.</p>
+<p>Two things make functions special: (1) they're declared with <code>=== function name() ===</code>, and (2) they can be <span class="term" data-term="inline-calling">called inline</span> with <code>{function_name(args)}</code> — the return value is inserted directly into the text. "You feel battered." — the function computed the word.</p>
 
 <p>The trade-off: functions <strong>cannot</strong> contain choices, diverts, or stitches. They're pure computation — data in, value out. If you need choices or flow control in a reusable section, you need a tunnel (next section).</p>
 
@@ -172,7 +172,7 @@ A quiet clearing.
 * [Continue onward]
     -> END</code></pre>
 
-<p>The key syntax: <code>-> camp -></code> calls the tunnel (note the second <code>-></code> after the knot name). Inside <code>camp</code>, the <code>->-></code> at the end means "return to the caller." Flow resumes right after <code>-> camp -></code> — the line "Refreshed, you continue." prints after camp finishes.</p>
+<p>The key syntax: <code>-> camp -></code> calls the tunnel (note the second <code>-></code> after the knot name). Inside <code>camp</code>, the <span class="term" data-term="tunnel-return"><code>->-></code></span> at the end means "return to the caller." Flow resumes right after <code>-> camp -></code> — the line "Refreshed, you continue." prints after camp finishes.</p>
 
 <p>Tunnels have <strong>full story capabilities</strong> — choices, diverts to other knots, variables, conditionals. The only rule: every path through the tunnel must end with <code>->-></code> (or divert to END/DONE). If you forget, the story silently stops — no compiler warning.</p>
 
@@ -186,7 +186,7 @@ A quiet clearing.
 
 <h2>When to Use What</h2>
 
-<p>You now have four reuse mechanisms. Here's when each one fits:</p>
+<p>You now have four <span class="term" data-term="reuse-mechanism">reuse mechanisms</span>. Here's when each one fits:</p>
 
 <div class="note">
   <strong>When to use which:</strong>
@@ -205,7 +205,7 @@ A quiet clearing.
      INCLUDE
      ═══════════════════════════════════════════════════════════════ -->
 
-<h2>INCLUDE: Splitting Into Files</h2>
+<h2><span class="term" data-term="include">INCLUDE</span>: Splitting Into Files</h2>
 
 <p>As stories grow, a single file becomes unwieldy. <code>INCLUDE</code> lets you split across files:</p>
 

@@ -1,7 +1,7 @@
 ---
 id: "223"
 title: "Additional Terms section for orphaned glossary entries"
-status: open
+status: done
 blocked_by: []
 priority: high
 type: feature
