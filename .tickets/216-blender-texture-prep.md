@@ -81,13 +81,13 @@ Start with existing test-scene Poly Haven assets:
 
 ## Acceptance criteria
 
-- [ ] MAP.md created for `blender-texture-prep` domain under godot-gamedev
+- [x] MAP.md created for `blender-texture-prep` domain under godot-gamedev
 - [ ] Blender "Toon Prep" node group works on any PBR albedo (posterize + palette snap + emit bake)
 - [ ] Simplified albedo for Barrel_01 renders with configurable_banding shader
 - [ ] At least one ramp texture exists and works with `toon_ramp.gdshader`
 - [ ] Noise map populates `noise_map` uniform in mk_toon_lite and visibly breaks band edges
 - [ ] Threshold map derived from AO data creates per-pixel shadow variation
-- [ ] `mktoon_test.tscn` updated: albedo texture ON, normal map connected, noise_map assigned
+- [x] `mktoon_test.tscn` updated: albedo texture ON, normal map connected, noise_map assigned
 - [ ] Before/after screenshots demonstrate PBR vs toon-prepped under same shader
 - [ ] glTF export → Godot import round-trip validated
 - [ ] Pipeline documented as lesson-ready (reusable on any PBR asset)
