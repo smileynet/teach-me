@@ -92,11 +92,13 @@ The barkeep polishes a glass.
   "Bandits on the north road," she says. -> tavern
 * "One more ale."
   She fills your mug without a word. -> tavern
-* ->
-  You've exhausted your questions. Time to move on.
-  -> END</code></pre>
+* -> tavern_end
 
-<p>That last entry — <code>* -></code> with no text — is a <span class="term" data-term="fallback-choice">fallback choice</span>. It's invisible to the player and triggers automatically when no other options remain. Without it, you'd get a runtime error ("ran out of content") once both real choices are used.</p>
+=== tavern_end ===
+You've exhausted your questions. Time to move on.
+-> END</code></pre>
+
+<p>That last entry — <code>* -> tavern_end</code> with no display text — is a <span class="term" data-term="fallback-choice">fallback choice</span>. It's invisible to the player and triggers automatically when no other options remain. Without it, you'd get a runtime error ("ran out of content") once both real choices are used.</p>
 
 <p>For situations where choices should persist — a menu, a browseable location — use <code>+</code> instead of <code>*</code>:</p>
 
@@ -396,7 +398,7 @@ Red blooms climb a wooden trellis.
   <p><strong>Next:</strong> <a href="0003-ink-variables-and-conditionals.html">Variables &amp; Conditionals</a> — tracking state across knots so your story remembers what the player did. Conditional text, read counts, and variable types make stories reactive.</p>
 </div>
 
-<script type="application/json" id="glossary-data">{"choice": "A player-facing option in ink, marked with * (once-only) or + (sticky). Choices are how players interact with the story — they diverge flow into branches.", "once-only-choice": "A choice marked with * that disappears after being selected. The default choice type — prevents repetition in conversations and forces forward progress.", "sticky-choice": "A choice marked with + that persists across visits. Used for menus, explorable locations, and any situation where the player should be able to repeat an action.", "fallback-choice": "A choice with no display text (* ->) that triggers automatically when no visible choices remain. Prevents 'ran out of content' runtime errors in loops.", "bracket-syntax": "Square brackets [] in choice text that control what appears where: text before [ shows in both choice and output, text inside [] shows only in the choice, text after ] shows only in the output.", "stitch": "A sub-section within a knot, marked with = name. Stitches organize content within a knot like rooms within a building. Addressed locally (-> name) or fully (-> knot.name).", "gather": "A - mark that brings divergent choice branches back together. The convergence counterpart to choices' divergence — flow always reaches the gather regardless of which branch was taken.", "weave": "The pattern of alternating choices and gathers that forms ink's core structural idiom. Choices diverge, gathers converge, and flow always moves downward. Guarantees no broken links.", "nested-choice": "A sub-choice within a branch, marked with ** (or *** for deeper). Paired with nested gathers (--) to reconverge sub-branches before rejoining the outer flow.", "local-divert": "A divert within a knot that omits the knot prefix: -> stitch_name instead of -> knot.stitch_name. Works because stitches live within their parent knot."}</script>
+<script type="application/json" id="glossary-data">{"choice": "A player-facing option in ink, marked with * (once-only) or + (sticky). Choices are how players interact with the story — they diverge flow into branches.", "once-only-choice": "A choice marked with * that disappears after being selected. The default choice type — prevents repetition in conversations and forces forward progress.", "sticky-choice": "A choice marked with + that persists across visits. Used for menus, explorable locations, and any situation where the player should be able to repeat an action.", "fallback-choice": "A choice with no display text (* -> knot_name) that triggers automatically when no visible choices remain. Prevents 'ran out of content' runtime errors in loops.", "bracket-syntax": "Square brackets [] in choice text that control what appears where: text before [ shows in both choice and output, text inside [] shows only in the choice, text after ] shows only in the output.", "stitch": "A sub-section within a knot, marked with = name. Stitches organize content within a knot like rooms within a building. Addressed locally (-> name) or fully (-> knot.name).", "gather": "A - mark that brings divergent choice branches back together. The convergence counterpart to choices' divergence — flow always reaches the gather regardless of which branch was taken.", "weave": "The pattern of alternating choices and gathers that forms ink's core structural idiom. Choices diverge, gathers converge, and flow always moves downward. Guarantees no broken links.", "nested-choice": "A sub-choice within a branch, marked with ** (or *** for deeper). Paired with nested gathers (--) to reconverge sub-branches before rejoining the outer flow.", "local-divert": "A divert within a knot that omits the knot prefix: -> stitch_name instead of -> knot.stitch_name. Works because stitches live within their parent knot."}</script>
 <script type="module" src="../assets/page-shell.js"></script>
 
 </body>
