@@ -1,13 +1,27 @@
-[gd_scene load_steps=5 format=3 uid="uid://bmktoon_test_scene"]
+[gd_scene load_steps=8 format=3 uid="uid://bmktoon_test_scene"]
 
 [ext_resource type="PackedScene" uid="uid://cd23sgo16xf4i" path="res://assets/polyhaven/Barrel_01/Barrel_01_1k.gltf" id="1_barrel"]
 [ext_resource type="Shader" path="res://shaders/reference/mk_toon_lite.gdshader" id="2_shader"]
 [ext_resource type="Shader" path="res://shaders/reference/mk_toon_lite_outline.gdshader" id="3_outline"]
+[ext_resource type="Texture2D" uid="uid://bifq8ujd57bgd" path="res://assets/polyhaven/Barrel_01/textures/Barrel_01_explosive_diff_1k.jpg" id="4_diff"]
+[ext_resource type="Texture2D" uid="uid://hdeqeffdyg2n" path="res://assets/polyhaven/Barrel_01/textures/Barrel_01_explosive_nor_gl_1k.jpg" id="5_nor"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mktoon_outline"]
+shader = ExtResource("3_outline")
+shader_parameter/outline_color = Color(0.008, 0.055, 0.086, 1.0)
+shader_parameter/outline_width = 0.5
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mktoon"]
 shader = ExtResource("2_shader")
+next_pass = SubResource("ShaderMaterial_mktoon_outline")
 shader_parameter/albedo_color = Color(0.85, 0.65, 0.4, 1.0)
-shader_parameter/use_albedo_texture = false
+shader_parameter/use_albedo_texture = true
+shader_parameter/albedo_texture = ExtResource("4_diff")
+shader_parameter/albedo_texture_intensity = 1.0
+shader_parameter/use_normal_map = true
+shader_parameter/normal_map = ExtResource("5_nor")
+shader_parameter/normal_map_intensity = 1.0
+shader_parameter/normal_map_scale = 1.0
 shader_parameter/light_bands = 4.0
 shader_parameter/light_bands_scale = 0.5
 shader_parameter/light_threshold = 0.5
