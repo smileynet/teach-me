@@ -185,6 +185,34 @@ All runtime-dependent states already captured as screenshots. The one remaining 
 5. mise run verify → catches contract violations
 ```
 
+## Validation findings (2026-08-26)
+
+**Layer 1 caught a real issue.** Independent image analysis of `mktoon_flat_color.png` reported "no discrete cel-shading bands, ~2 broad brightness zones blending gradually" — NOT the crisp 4-band toon the lesson premise assumed.
+
+Root cause (scene shader params):
+- `light_bands_scale = 0.5` — only 50% band contribution, rest is smooth
+- `wrapped_lighting = 1.0` + `wrapped_lighting_scale = 0.35` — softens terminator
+- `gooch_ramp_intensity = 0.5` — adds smooth gradient over the bands
+
+These are production-realistic MKToon settings, but they wash out the discrete banding that the "quantization amplifies noise" lesson needs to show clearly.
+
+**Resolution:** Capture an additional "strong toon" reference (`light_bands_scale=1.0`, `gooch_ramp_intensity=0.0`, `wrapped_lighting=0.0`) so the opening A/B contrast is unambiguous. The lesson uses the strong-band version to teach the principle, then can note that production settings soften it. This is why Layer 1 runs BEFORE authoring — validated the premise before writing to it.
+
+### Second finding: over-corrected + agent self-report unreliable
+
+The "strong toon" attempt (`wrapped_lighting=0.0`, `light_bands_scale=1.0`) OVER-corrected — independent image analysis of `mktoon_strong_flat.png` reported "single flat uniform orange, one brightness level." Removing wrapped_lighting collapsed nearly the entire visible face into ONE band (the lighting angle + cylinder geometry compresses the terminator into a thin strip off the visible face).
+
+**Critical process lesson:** the `godot_editor` agent's visual self-report claimed "crisp stepped gradient clearly visible" — but the actual pixels (confirmed by independent headless image analysis AND direct inspection) show flat orange. **Do NOT trust the capturing agent's visual description.** Always validate captures with an independent read. This is exactly the "silent success" failure mode from subagent-reliability steering.
+
+**Correct next step (NOT more blind parameter guessing):** The banding visibility is a lighting/camera + parameter tuning problem best solved interactively in the live editor with real-time feedback, not via blind fire-and-capture. Options:
+1. Tune interactively: rotate the light so the terminator crosses the visible face, keep moderate wrapped_lighting (~0.2), band_scale ~0.8, gooch off. Iterate with live view.
+2. OR: accept the original production-realistic settings and reframe the lesson around "even subtle toon intent is destroyed by PBR noise" (weaker but honest).
+3. OR: use a sphere/simpler mesh for the reference where banding reads cleanly regardless of angle.
+
+Recommend option 1 (interactive tune) — pause automated capture, tune the material live in the editor, then re-capture once the reference reads correctly. Blind parameter guessing has failed twice.
+
+
+
 
 
 ## Acceptance criteria
