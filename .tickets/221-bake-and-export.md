@@ -1,16 +1,99 @@
 ---
 id: "221"
 title: "Lesson: Emit Bake and glTF Export — Blender to Godot (0019)"
+type: feature
 status: open
-blocked_by: []
+priority: high
+blocked_by: ["219", "220"]
+parent: "216"
 ---
 
 # Lesson: Emit Bake and glTF Export — Blender to Godot (0019)
 
 ## What to build
 
-TBD
+A substantial lesson teaching the actual bake-and-export pipeline: capturing simplified textures via Cycles Emit pass and exporting a toon-ready glTF that Godot imports cleanly.
+
+### Lesson arc
+
+1. Why Emit bake? — Captures material color WITHOUT lighting. Combined/Diffuse bakes include scene lighting, which kills dynamic toon shading in Godot. Emit is the one safe bake type.
+2. Bake setup in Cycles: add unconnected Image Texture node (selected), set bake type, configure margin/samples
+3. Walk through the full bake for Barrel_01: posterized + palette-snapped albedo → Emit bake → saved PNG
+4. Handle the multi-material case (Camera_01 has 3 materials) — bake each material's albedo to the same atlas or separate textures
+5. Bake the control maps: noise (from procedural) and threshold (from AO extraction)
+6. glTF export settings: what to include (mesh + textures), what to exclude (lights, camera, animations)
+7. Godot import: verify textures load correctly, color space settings (sRGB for albedo, Non-Color/Linear for control maps)
+8. Before/after: Barrel_01 with raw PBR diff vs toon-prepped diff, same configurable_banding shader
+
+### Key concept
+
+> The Emit bake captures what the material outputs BEFORE lighting touches it — the only bake type safe for dynamic toon shading. Any other bake type freezes lighting into the texture, making the toon shader fight baked shadows.
+
+### Code deliverables
+
+- Step-by-step bake settings table (samples, margin, color space per map type)
+- glTF export preset for toon-ready assets
+- Final texture set for Barrel_01: simplified albedo (1K), noise (256), threshold (1K)
+
+### Exercise
+
+"A colleague bakes using Combined pass with Direct lighting enabled. Their texture looks great in Blender but terrible in Godot under the toon shader — shadows are doubled. Why? What bake type should they use instead?"
 
 ## Acceptance criteria
 
-- [ ] TBD
+- [ ] Lesson file: `examples/godot-gamedev/lessons/blender-texture-prep/05-bake-and-export.html`
+- [ ] Complete bake settings reference (table format)
+- [ ] Barrel_01 baked: albedo (posterized+snapped), noise, threshold
+- [ ] Multi-material workflow shown (Camera_01 or explanation)
+- [ ] glTF export → Godot import verified (textures load, color spaces correct)
+- [ ] Before/after screenshot under configurable_banding shader
+- [ ] Common pitfalls documented (wrong color space, lighting in bake, margin artifacts)
+- [ ] SR questions generated (3-5 cards)
+
+## Research context
+
+**From blender-bake-nodes research:**
+
+Bake settings reference:
+| Setting | Value | Notes |
+|---------|-------|-------|
+| Render Engine | Cycles | EEVEE cannot bake |
+| Bake Type | **Emit** | For color-only (no lighting) |
+| Samples | 1-16 | Flat shading needs minimal samples |
+| Margin | 4-16 px | Prevents UV seam artifacts |
+| Selected to Active | Off | Self-bake (same mesh) |
+| Direct/Indirect | N/A (Emit ignores) | Only Combined/Diffuse have these |
+| Image Size | 1024 px | Match source resolution |
+| Color Space | sRGB (albedo), Non-Color (control maps) | Set BEFORE baking |
+| 32-bit Float | No (color), Yes (if precision needed) | |
+
+Emit Pass Bake workflow:
+1. Connect stylized/posterized material to Emission shader
+2. Set Bake Type to Emit
+3. OR: Bake Type = Diffuse with Direct and Indirect UNCHECKED
+4. Result: pure material color, no lighting influence
+5. Source: BSE #165175
+
+**Critical constraint:** EEVEE cannot bake (as of Blender 4.x/5.x). Shader to RGB works in EEVEE viewport but NOT in Cycles bake. Workaround: replicate the effect with Cycles-compatible nodes (which we do — posterize uses Math nodes, not Shader to RGB).
+
+**From toon-texture-pipelines research:**
+
+RJean Lee's web export workflow (analogous to ours):
+1. Design stylized material (using Cycles-compatible nodes only!)
+2. UV unwrap
+3. Switch to Cycles
+4. Create unconnected Image Texture node (selected)
+5. Bake Combined (for their unlit use case) — we use Emit instead
+6. Save baked texture
+7. Export .glb
+
+Limitations documented:
+- Screen-space effects cannot be baked
+- EEVEE-only nodes break in Cycles baking
+- Only surface shading portion bakeable — post-process must be recreated in target engine
+
+**glTF export notes:**
+- Poly Haven assets already use glTF (Barrel_01_1k.gltf)
+- Blender's glTF exporter handles PBR maps natively
+- For toon: we only export albedo (simplified) + normal (if keeping). ARM textures excluded.
+- Set texture export to PNG (not JPEG — lossy compression adds noise back)
