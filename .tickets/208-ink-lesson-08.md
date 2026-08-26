@@ -1,7 +1,7 @@
 ---
 id: "208"
 title: "Ink Lesson 02: Choices, Stitches and Weave"
-status: open
+status: done
 blocked_by: []
 priority: high
 ---
