@@ -40,7 +40,7 @@ transform = Transform3D(1, 0, 0, 0, 0.94, 0.34, 0, -0.34, 0.94, 0, 1.2, 2.5)
 fov = 50.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.87, 0.36, -0.34, 0, 0.68, 0.73, 0.5, -0.64, 0.59, 0, 3, 0)
+transform = Transform3D(0.25971046, -0.24917363, 0.9317522, 0, 0.962733, 0.2584694, -0.9692525, -0.06676588, 0.2496623, 0, 3, 0)
 shadow_enabled = true
 
 [node name="Barrel" parent="." instance=ExtResource("1_barrel")]

@@ -211,6 +211,56 @@ The "strong toon" attempt (`wrapped_lighting=0.0`, `light_bands_scale=1.0`) OVER
 
 Recommend option 1 (interactive tune) — pause automated capture, tune the material live in the editor, then re-capture once the reference reads correctly. Blind parameter guessing has failed twice.
 
+### ROOT CAUSE FOUND (diagnostic, 2026-08-26)
+
+Ran a diagnostic that read back actual state + sampled pixels. Findings:
+- Light `rotation_degrees` read `(-47, -29, 0)` — the ORIGINAL scene value, NOT my iter1 `(-35,-55,0)` or iter2 `(-20,-85,0)` edits.
+- `use_albedo_texture` read `true` despite my `set_shader_parameter(..., false)`.
+- Sampled pixels were dark red (PBR texture), not flat orange.
+
+**Root cause:** `project_run` launches a FRESH instance from the saved `.tscn` each time. Runtime `game_eval` mutations (`rotation_degrees`, `set_shader_parameter`) either don't persist across the run or don't land on the actually-rendered material_override. That's why iter1 and iter2 were pixel-identical — neither edit took effect. All my "tuning" was a no-op; I was looking at the same unchanged render each time.
+
+**Correct approach:** Edit the `.tscn` file DIRECTLY (persistent, version-controlled) for light rotation + shader params, then `project_run` picks up the saved state. Runtime game_eval is only reliable for READING (diagnostics/sampling), not for persistent visual tuning. This matches the godot-validation skill's editor_screenshot note — MCP mutations are fragile.
+
+**Process win:** Independent pixel sampling (not agent self-report, not visual guess) revealed the mutations were no-ops. Three "failed" iterations were actually ONE unchanged state captured three times.
+
+### Disk-edit path confirmed working; band-angle tuning still open (2026-08-26)
+
+After switching to direct `.tscn` edits (persistent), the flat orange color renders correctly (pixels confirmed `(1.0, 0.72, 0.28)`) — proving disk edits work where runtime mutation didn't. Light transform edited to a side-raking angle.
+
+BUT: the visible front face of the cylinder still renders as one uniform band. Geometry analysis: camera views along -Z; the visible front face normals point toward +Z (camera). For a toon terminator to cross that face, the light needs a strong horizontal (±X) travel component so NdotL varies left-to-right across the visible surface. Current light still has too much Z-component (lighting the front evenly).
+
+**Honest status:** I can reliably (a) edit the scene on disk, (b) capture, (c) validate via independent pixel sampling + image read. What remains is finding the light basis that rakes the terminator across the front face. Hand-computing Transform3D basis matrices for a precise light angle is error-prone; this is the one step genuinely better done with live editor manipulation (drag the light gizmo, watch the viewport).
+
+**Recommendation:** Either (1) human drags the light in the editor to a raking angle while watching live, then I capture; or (2) I compute the light basis from a target forward-vector using look_at math and write it to disk. Option 2 is tractable — will try next: set light forward ≈ (0.9, -0.3, 0.1) via a computed basis.
+
+### DEFINITIVE ROOT CAUSE + resolution (2026-08-26)
+
+Two separate MCP failure modes, both now understood:
+
+1. **Runtime `game_eval` mutations are ephemeral/unreliable** — `set_shader_parameter` and `rotation_degrees` set on a running instance don't reliably affect the render (or get reset on the fresh `project_run` instance). Confirmed by pixel diagnostic showing original values after "setting" new ones. → Use for READING only.
+
+2. **MCP `save_scene` is DESTRUCTIVE on hand-authored scenes** — when the agent saved the scene, it STRIPPED all inline SubResources (the ShaderMaterial, outline pass), all shader/texture ext_resources, and the material_override. The saved file reverted the barrel to its default glTF PBR material. `git diff` showed the entire toon material block deleted. → NEVER use MCP save_scene on hand-authored .tscn files with inline resources.
+
+**Resolution applied:**
+- `git restore` recovered the known-good scene (textures + mk_toon_lite wired).
+- Applied ONLY the validated raking light transform via direct disk `strReplace` (rotation -15,75,0 = the angle whose pixel row showed distinct band steps 0.29→0.15→0.01→0.47→0.60).
+- Validated: headless `--check-only` import clean.
+
+**The validated light angle** produces a terminator that rakes across the visible front face — this is the correct lighting for showing toon bands. The `light_bands_scale` etc. remain at committed values (0.5 + wrapped + gooch = production-realistic subtle bands).
+
+**Reliable workflow going forward (for capturing lesson screenshots):**
+1. Edit `.tscn` params + light DIRECTLY on disk (persistent, git-tracked, non-destructive)
+2. `project_run` picks up saved state
+3. `game_eval` ONLY to capture viewport + sample pixels (read-only)
+4. Validate every capture with independent image analysis / direct read (agent self-reports proven unreliable — claimed "crisp bands" on flat orange)
+5. NEVER call MCP save_scene on the hand-authored scene
+
+**Remaining choice for the lesson:** with the raking light now correct, decide band strength via disk edits (try light_bands_scale=0.85, wrapped=0.15, gooch=0.0 for stronger bands) OR keep production-subtle. Capture flat + PBR pairs from the corrected scene. This is now a tractable disk-edit + capture + validate loop.
+
+
+
+
 
 
 
