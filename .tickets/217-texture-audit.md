@@ -43,18 +43,39 @@ Show two textures side by side (one PBR-noisy, one simplified). Ask: "Which text
 
 ## Research context
 
-**From toon-texture-pipelines research:**
-- Redshift docs: "Tone mapping is the most important element — it allows direct control over lighting. PBR albedo can often be used directly."
-- Guilty Gear: Single texture + ILM map replaces entire PBR set. Hand-painted from scratch, not converted.
-- Strategy ranking: A (keep albedo, change lighting) → B (posterize albedo) → C (hand-paint control maps) → D (bake lighting — avoid)
+**From toon-texture-problems research (8 specific artifacts):**
 
-**From existing-test-scene review:**
-- ARM textures use channel packing: R=AO, G=Roughness, B=Metallic
-- `mk_toon_lite` uses `render_mode specular_disabled` — roughness/metallic literally ignored
-- Normal maps from Poly Haven exist (`_nor_gl_`) but aren't connected to any toon shader scene
-- The shader declares 7 texture uniforms; all are empty in mktoon_test.tscn
+| # | Artifact | Cause | Visual description |
+|---|----------|-------|-------------------|
+| 1 | Shadow speckle/chattering | Normal map micro-detail pushes pixels across threshold | Salt-and-pepper noise at shadow boundaries |
+| 2 | Visual noise / "busy" look | High-frequency albedo detail overwhelms flat bands | "Neither stylized nor realistic — just broken" (McKenney, Velan Studios) |
+| 3 | Broken specular | Roughness variation → scattered highlights | "Wet/oily" appearance instead of clean cartoon lobe |
+| 4 | TAA flickering | Hard step edges + temporal jitter = oscillation | Buzzing/shimmering on shadow edges per-frame |
+| 5 | Dirty flat regions | AO noise quantized into what should be uniform areas | Speckly dark patches in shadow bands |
+| 6 | Lumpy shadow edges | Mesh topology → lumpy normal interpolation | Shadow follows edge loops instead of clean shapes |
+| 7 | Lumen/GI noise | Inherent GI noise visible in hard-banded output | Visible speckle in band interiors |
+| 8 | Rim artifacts | Flat surfaces have poor NdotV variation | Rim light appears/disappears abruptly |
 
-**From MK.Toon requirements research:**
-- Toon shaders don't need special base textures — standard albedo works
-- Stylization is procedural (in shader math), not in texture content
-- Normal maps can soften toon band edges (gotcha to document)
+Key quote (Erik McKenney, Velan Studios 2019): "Be they hand-painted textures, high-poly sculpted height maps, or fully-procedural materials, too many small details detract from the stylized look. They create a noise frequency that is too high, and they distract from the key shapes of the model."
+
+Key quote (Hyper3D docs): "Noisy normals shatter clean tone bands into speckle. Micro-detail belongs in realistic assets — for cel work, smooth surfaces and let the silhouette talk."
+
+**From mk_toon_lite shader analysis:**
+- All 9 texture samplers guarded by `use_*` booleans (default `false`)
+- `render_mode specular_disabled` — roughness/metallic completely irrelevant
+- Noise/threshold maps centered at 0.5 (bias operation, not multiplicative)
+- Pattern-overlay maps (hatching/sketch/drawn) are multiplicative (1.0 = identity)
+- The shader is designed for progressive opt-in: toggle features one at a time
+
+**From mktoon-scene-analysis:**
+- `mktoon_test.tscn` uses flat color only (`use_albedo_texture = false`)
+- Barrel_01 textures exist and are properly imported (diff, nor_gl, arm)
+- ARM texture R channel = AO (extractable as threshold_map)
+- Outline shader loaded but not wired (dangling ext_resource)
+- Lesson should reference the SPECIFIC UIDs for texture assignment
+
+**From godot-texture-import research:**
+- `source_color` hint REQUIRED on albedo in Forward+ (without it: washed out)
+- mk_toon_lite already has `source_color` on albedo_texture ✓
+- Normal map uniform lacks `hint_normal` — document this as potential issue
+- Poly Haven `_nor_gl_` normals are OpenGL-format (Y+) — no inversion needed in Godot
