@@ -33,7 +33,7 @@ def extract_glossary_data(content: str, filename: str = "") -> dict:
     try:
         return json.loads(match.group(1))
     except json.JSONDecodeError as e:
-        print(f"  ⚠ {filename}: malformed glossary-data JSON: {e}", file=sys.stderr)
+        print(f"  [!] {filename}: malformed glossary-data JSON: {e}", file=sys.stderr)
         return {}
 
 
@@ -191,7 +191,7 @@ def main():
     total_annotated = 0
     for f in files:
         if not f.exists():
-            print(f"  ⚠ {f}: file not found (skipped)", file=sys.stderr)
+            print(f"  [!] {f}: file not found (skipped)", file=sys.stderr)
             continue
         result = annotate_file(f, dry_run=args.dry_run)
         if result["status"] == "annotated":
@@ -203,9 +203,9 @@ def main():
 
     if total_annotated > 0:
         action = "would annotate" if args.dry_run else "annotated"
-        print(f"\n✓ {action} {total_annotated} terms across {len(files)} files")
+        print(f"\nOK: {action} {total_annotated} terms across {len(files)} files")
     else:
-        print(f"\n✓ {len(files)} files checked, no new annotations needed")
+        print(f"\nOK: {len(files)} files checked, no new annotations needed")
 
 
 if __name__ == "__main__":
