@@ -6,6 +6,7 @@ status: open
 priority: high
 blocked_by: ["218"]
 parent: "216"
+tags: [mktoon, blender]
 ---
 
 # Lesson: Palette Snapping — Color Ramp and 1D Lookup (0017)

@@ -6,6 +6,7 @@ status: open
 priority: high
 blocked_by: ["219", "220"]
 parent: "216"
+tags: [mktoon, blender]
 ---
 
 # Lesson: Emit Bake and glTF Export — Blender to Godot (0019)

@@ -6,6 +6,7 @@ status: open
 priority: high
 blocked_by: []
 parent: "216"
+tags: [mktoon, blender]
 ---
 
 # Lesson: What Makes a Texture Toon-Unfriendly? (0015)

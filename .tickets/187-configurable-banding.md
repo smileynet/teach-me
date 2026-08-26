@@ -4,6 +4,7 @@ title: "Lesson 0009: Configurable Toon Banding"
 status: done
 blocked_by: ["186"]
 priority: high
+tags: [mktoon]
 ---
 
 # Lesson 0009: Configurable Toon Banding

@@ -4,6 +4,7 @@ title: "Lesson 0012: Specular and Rim Lighting"
 status: done
 blocked_by: ["189"]
 priority: high
+tags: [mktoon]
 ---
 
 # Lesson 0012: Specular and Rim Lighting
