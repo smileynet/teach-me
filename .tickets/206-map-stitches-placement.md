@@ -5,6 +5,7 @@ status: done
 blocked_by: []
 priority: high
 type: decision
+tags: [ink]
 ---
 
 # Decide stitches placement in ink-godot MAP

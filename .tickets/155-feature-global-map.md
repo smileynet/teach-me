@@ -5,6 +5,7 @@ status: open
 blocked_by: ["150", "152"]
 priority: medium
 type: feature
+tags: [source-ingest, platform]
 ---
 
 # Feature: global map

@@ -5,6 +5,7 @@ status: open
 priority: low
 blocked_by: []
 type: spike
+tags: [platform]
 ---
 
 # Spike: big-request detection

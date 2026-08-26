@@ -4,6 +4,7 @@ title: "Ink Lesson 04: Functions and Tunnels"
 status: open
 blocked_by: ["209"]
 priority: high
+tags: [ink]
 ---
 
 # Ink Lesson 04: Functions and Tunnels

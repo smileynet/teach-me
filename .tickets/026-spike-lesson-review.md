@@ -5,6 +5,7 @@ status: done
 priority: high
 blocked_by: ["021", "023"]
 type: spike
+tags: [platform]
 ---
 
 # Spike: lesson-review checklist skill

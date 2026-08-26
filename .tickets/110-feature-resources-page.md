@@ -5,6 +5,7 @@ type: feature
 status: done
 priority: high
 blocked_by: []
+tags: [platform]
 ---
 
 # Themed resources page with source trust ratings

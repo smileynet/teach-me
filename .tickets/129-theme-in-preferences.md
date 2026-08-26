@@ -4,6 +4,7 @@ title: "Feature: Theme toggle (dark/light/auto) integrated into preferences pane
 status: done
 blocked_by: ["126"]
 priority: high
+tags: [platform]
 ---
 
 # Feature: Theme toggle (dark/light/auto) in preferences panel

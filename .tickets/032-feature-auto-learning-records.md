@@ -5,6 +5,7 @@ status: done
 priority: low
 blocked_by: []
 type: feature
+tags: [platform]
 ---
 
 # Feature: open-ended knowledge and interests analysis from SR + dialog

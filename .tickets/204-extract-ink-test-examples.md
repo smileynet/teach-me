@@ -5,6 +5,7 @@ status: backlog
 blocked_by: []
 priority: low
 type: feature
+tags: [ink]
 ---
 
 # Extract teaching examples from ink Tests.cs as fixture .ink files

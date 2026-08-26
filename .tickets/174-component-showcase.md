@@ -3,6 +3,7 @@ id: "174"
 title: "Component showcase page for design review"
 status: open
 blocked_by: []
+tags: [platform]
 ---
 
 # Component showcase page for design review

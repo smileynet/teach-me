@@ -5,6 +5,7 @@ status: done
 priority: high
 blocked_by: ["021"]
 type: spike
+tags: [platform]
 ---
 
 # Spike: challenge/exercise component

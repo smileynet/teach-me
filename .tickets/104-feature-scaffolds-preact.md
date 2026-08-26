@@ -6,6 +6,7 @@ status: done
 priority: medium
 blocked_by: ["101", "102", "103"]
 work_order: 8
+tags: [platform]
 ---
 
 # Update scaffolds for Preact mount points

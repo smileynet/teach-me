@@ -4,6 +4,7 @@ title: "Feature: SVG diagrams use CSS custom properties for theme-aligned colors
 status: done
 blocked_by: []
 priority: medium
+tags: [platform]
 ---
 
 # Feature: SVG diagrams use CSS custom properties for theme-aligned colors

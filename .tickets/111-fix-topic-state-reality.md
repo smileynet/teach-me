@@ -5,6 +5,7 @@ type: fix
 status: done
 priority: high
 blocked_by: []
+tags: [platform]
 ---
 
 # Fix topic state logic — status must reflect actual generated content

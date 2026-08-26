@@ -5,6 +5,7 @@ status: done
 priority: high
 blocked_by: ["079", "080", "081"]
 type: feature
+tags: [platform]
 ---
 
 # Feature: publishing preparation

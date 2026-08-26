@@ -4,6 +4,7 @@ title: "Ink Lesson 02: Choices, Stitches and Weave"
 status: done
 blocked_by: []
 priority: high
+tags: [ink]
 ---
 
 # Ink Lesson 02: Choices, Stitches and Weave

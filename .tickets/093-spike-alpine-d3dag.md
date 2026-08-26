@@ -5,6 +5,7 @@ type: spike
 status: done
 priority: high
 blocked_by: []
+tags: [platform]
 ---
 
 # Spike: Alpine.js + d3-dag map page prototype

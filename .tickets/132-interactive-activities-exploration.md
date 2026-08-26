@@ -4,6 +4,7 @@ title: "Explore: additional interactive activity types (label-diagram, code-play
 status: open
 blocked_by: ["117"]
 priority: low
+tags: [platform]
 ---
 
 # Explore: additional interactive activity types

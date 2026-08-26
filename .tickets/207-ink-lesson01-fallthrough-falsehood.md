@@ -5,6 +5,7 @@ status: done
 blocked_by: []
 priority: high
 type: fix
+tags: [ink]
 ---
 
 # Lesson 01 falsely teaches knot fallthrough; rewrite loose-ends framing

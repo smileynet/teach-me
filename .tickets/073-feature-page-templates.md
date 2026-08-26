@@ -5,6 +5,7 @@ status: done
 priority: high
 blocked_by: []
 type: feature
+tags: [platform]
 ---
 
 # Feature: standardize page templates

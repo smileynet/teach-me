@@ -4,6 +4,7 @@ title: "Fix: add Core Concept and Decision Aid sections to oidc-rust reference 0
 status: done
 blocked_by: []
 priority: low
+tags: [platform]
 ---
 
 # Fix: add Core Concept and Decision Aid sections to oidc-rust reference 0002

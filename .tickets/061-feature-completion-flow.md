@@ -5,6 +5,7 @@ status: done
 priority: medium
 blocked_by: ["059", "060"]
 type: feature
+tags: [platform]
 ---
 
 # Feature: generation completion flow

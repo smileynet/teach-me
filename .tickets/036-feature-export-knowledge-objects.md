@@ -5,6 +5,7 @@ status: done
 priority: low
 blocked_by: []
 type: feature
+tags: [platform]
 ---
 
 # Feature: export self-contained knowledge objects for sharing

@@ -3,6 +3,7 @@ id: "178"
 title: "Theme and componentize end-of-lesson resources section"
 status: open
 blocked_by: []
+tags: [platform]
 ---
 
 # Theme and componentize end-of-lesson resources section

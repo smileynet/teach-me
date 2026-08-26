@@ -4,6 +4,7 @@ title: "Validate: run concept hints + enrichment on all live workspace topics"
 status: open
 blocked_by: ["175"]
 priority: high
+tags: [source-ingest, content-quality]
 ---
 
 # Validate: run concept hints + enrichment on all live workspace topics

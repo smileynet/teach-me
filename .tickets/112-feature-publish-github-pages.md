@@ -5,6 +5,7 @@ type: feature
 status: done
 priority: medium
 blocked_by: []
+tags: [platform]
 ---
 
 # Publish examples on GitHub Pages as live demo

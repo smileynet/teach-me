@@ -5,6 +5,7 @@ status: open
 priority: medium
 blocked_by: []
 type: research
+tags: [platform]
 ---
 
 # Research: free-form topic generation from the map page

@@ -4,6 +4,7 @@ title: "Confirm and address Codex review findings through d02d612"
 status: done
 blocked_by: []
 priority: high
+tags: [platform]
 ---
 
 # Confirm and address Codex review findings through d02d612

@@ -4,6 +4,7 @@ title: "Feature: Add interactive Playwright checks to mise run verify pipeline"
 status: done
 blocked_by: []
 priority: high
+tags: [platform]
 ---
 
 # Feature: Add interactive Playwright checks to mise run verify pipeline

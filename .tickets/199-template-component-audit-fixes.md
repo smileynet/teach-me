@@ -3,6 +3,7 @@ id: "199"
 title: "Address validated findings from template & component system audit"
 status: open
 blocked_by: []
+tags: [platform]
 ---
 
 # Address validated findings from template & component system audit

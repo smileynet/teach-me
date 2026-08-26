@@ -6,6 +6,7 @@ status: done
 priority: medium
 blocked_by: ["095"]
 work_order: 2
+tags: [platform]
 ---
 
 # Convert generate_index_page.py to Preact output

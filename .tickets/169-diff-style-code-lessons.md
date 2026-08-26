@@ -4,6 +4,7 @@ title: "Adopt diff-style code presentation in lessons"
 status: done
 priority: medium
 blocked_by: []
+tags: [content-quality]
 ---
 
 # Adopt Diff-Style Code Presentation in Lessons

@@ -3,6 +3,7 @@ id: "117"
 title: "Feature: Interactive quiz components — drag-and-drop, fill-in-blanks, matching"
 status: done
 blocked_by: ["127"]
+tags: [platform]
 ---
 
 # Feature: Interactive quiz components — drag-and-drop, fill-in-blanks, matching

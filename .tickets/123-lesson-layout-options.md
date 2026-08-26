@@ -3,6 +3,7 @@ id: "123"
 title: "Feature: Lesson layout options — cards, collapsible sections, content chunking"
 status: done
 blocked_by: []
+tags: [platform]
 ---
 
 # Feature: Lesson layout options — cards, collapsible sections, content chunking

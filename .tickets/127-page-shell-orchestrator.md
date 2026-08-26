@@ -4,6 +4,7 @@ title: "Refactor: Page shell orchestrator — single entry point replaces self-m
 status: done
 blocked_by: ["126"]
 priority: high
+tags: [platform]
 ---
 
 # Refactor: Page shell orchestrator

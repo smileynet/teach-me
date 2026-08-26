@@ -5,6 +5,7 @@ type: feature
 status: done
 priority: low
 blocked_by: []
+tags: [platform]
 ---
 
 # mise command to check for updated release

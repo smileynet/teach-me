@@ -5,6 +5,7 @@ status: done
 blocked_by: []
 priority: high
 type: feature
+tags: [ink]
 ---
 
 # Skill: ink-validate — compile and lint .ink files

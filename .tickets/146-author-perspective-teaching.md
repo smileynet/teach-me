@@ -4,6 +4,7 @@ title: "Explore: author-as-perspective teaching — view same concept from diffe
 status: open
 blocked_by: ["136"]
 priority: low
+tags: [source-ingest, platform]
 ---
 
 # Explore: author-as-perspective teaching

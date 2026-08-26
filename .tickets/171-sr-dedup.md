@@ -4,6 +4,7 @@ title: "Feature: SR question deduplication via TF-IDF similarity"
 status: done
 blocked_by: []
 priority: low
+tags: [platform]
 ---
 
 # Feature: SR question deduplication via TF-IDF similarity

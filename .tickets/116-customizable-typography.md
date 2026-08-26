@@ -3,6 +3,7 @@ id: "116"
 title: "Feature: Customizable fonts and text size"
 status: done
 blocked_by: []
+tags: [platform]
 ---
 
 # Feature: Customizable fonts and text size

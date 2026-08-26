@@ -6,6 +6,7 @@ status: done
 priority: high
 blocked_by: []
 work_order: 3
+tags: [platform]
 ---
 
 # SR tools: support workspace/ directory for questions and reviews

@@ -4,6 +4,7 @@ title: "Ink Lesson 05: First Godot Integration"
 status: open
 blocked_by: ["210"]
 priority: high
+tags: [ink]
 ---
 
 # Ink Lesson 05: First Godot Integration

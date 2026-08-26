@@ -3,6 +3,7 @@ id: "148"
 title: "Spike: classify document type (tutorial vs reference) from structure signals"
 status: done
 blocked_by: []
+tags: [source-ingest]
 ---
 
 # Spike: document type classification

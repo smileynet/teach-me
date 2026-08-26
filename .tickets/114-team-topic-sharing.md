@@ -3,6 +3,7 @@ id: "114"
 title: "Feature: Team topic sharing and federated lesson forests"
 status: open
 blocked_by: []
+tags: [platform]
 ---
 
 # Feature: Team topic sharing and federated lesson forests

@@ -5,6 +5,7 @@ status: done
 blocked_by: ["200"]
 priority: high
 type: fix
+tags: [ink]
 ---
 
 # Fix loose-end warning in lesson 01 ink story

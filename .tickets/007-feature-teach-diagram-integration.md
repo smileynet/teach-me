@@ -5,6 +5,7 @@ status: done
 priority: medium
 blocked_by: ["001", "006"]
 type: feature
+tags: [platform]
 ---
 
 # Feature: integrate diagrams into teach skill

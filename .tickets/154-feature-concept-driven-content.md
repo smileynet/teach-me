@@ -5,6 +5,7 @@ status: open
 blocked_by: ["152", "153"]
 priority: medium
 type: feature
+tags: [source-ingest, content-quality]
 ---
 
 # Feature: concept-driven content generation

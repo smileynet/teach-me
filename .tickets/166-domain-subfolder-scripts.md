@@ -3,6 +3,7 @@ id: "166"
 title: "Script changes for domain subfolder support"
 status: open
 blocked_by: ["163"]
+tags: [platform]
 ---
 
 # Script changes for domain subfolder support

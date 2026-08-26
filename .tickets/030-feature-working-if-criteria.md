@@ -5,6 +5,7 @@ status: done
 priority: high
 blocked_by: ["028", "029"]
 type: feature
+tags: [platform]
 ---
 
 # Feature: "it's working if" system performance criteria

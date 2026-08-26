@@ -3,6 +3,7 @@ id: "119"
 title: "Feature: Teach me a doc or book — generate lessons from source material"
 status: done
 blocked_by: []
+tags: [platform]
 ---
 
 # Feature: Teach me a doc or book — generate lessons from source material

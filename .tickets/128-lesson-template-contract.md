@@ -4,6 +4,7 @@ title: "Refactor: Lesson template contract — generators produce data, template
 status: done
 blocked_by: ["127"]
 priority: high
+tags: [platform]
 ---
 
 # Refactor: Lesson template contract

@@ -5,6 +5,7 @@ status: open
 blocked_by: []
 priority: high
 type: feature
+tags: [platform]
 ---
 
 # Read-time estimation tooling

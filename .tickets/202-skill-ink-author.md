@@ -5,6 +5,7 @@ status: backlog
 blocked_by: ["200", "201"]
 priority: medium
 type: feature
+tags: [ink]
 ---
 
 # Skill: ink-author — guide writing teaching .ink stories

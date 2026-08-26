@@ -4,6 +4,7 @@ title: "Tool: extract final-state code files from lessons for download"
 status: open
 blocked_by: ["173"]
 parent: "173"
+tags: [content-quality, platform]
 ---
 
 # Tool: extract final-state code files from lessons for download

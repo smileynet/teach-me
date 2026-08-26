@@ -5,6 +5,7 @@ status: backlog
 blocked_by: []
 priority: medium
 type: feature
+tags: [godot-core]
 ---
 
 # Godot fundamentals domain (shared prereqs for all tracks)

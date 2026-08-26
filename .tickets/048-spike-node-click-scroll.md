@@ -5,6 +5,7 @@ status: done
 priority: high
 blocked_by: []
 type: spike
+tags: [platform]
 ---
 
 # Spike: SVG node click → scroll to topic card

@@ -4,6 +4,7 @@ title: "Fix: add inline SVG diagram to workout lesson 0001"
 status: done
 blocked_by: []
 priority: medium
+tags: [platform]
 ---
 
 # Fix: add inline SVG diagram to workout lesson 0001

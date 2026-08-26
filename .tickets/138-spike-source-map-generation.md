@@ -3,6 +3,7 @@ id: "138"
 title: "Spike: auto-generating MAP.md from document structure — heading hierarchy + semantic enrichment"
 status: done
 blocked_by: ["135"]
+tags: [source-ingest]
 ---
 
 # Spike: MAP.md generation from document structure

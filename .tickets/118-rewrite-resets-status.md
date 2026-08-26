@@ -3,6 +3,7 @@ id: "118"
 title: "Feature: Rewriting a lesson auto-resets its complete status"
 status: done
 blocked_by: []
+tags: [platform]
 ---
 
 # Feature: Rewriting a lesson auto-resets its complete status

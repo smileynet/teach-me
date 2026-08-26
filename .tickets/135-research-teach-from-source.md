@@ -4,6 +4,7 @@ title: "Research: chunking strategies, provenance tracking, and multi-source syn
 status: done
 blocked_by: []
 priority: high
+tags: [source-ingest]
 ---
 
 # Research: chunking strategies, provenance tracking, and multi-source synthesis

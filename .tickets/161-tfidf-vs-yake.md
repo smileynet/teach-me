@@ -4,6 +4,7 @@ title: "Spike: TF-IDF vs YAKE keyword Jaccard for cross-source topic matching"
 status: done
 blocked_by: []
 priority: low
+tags: [source-ingest]
 ---
 
 # Spike: TF-IDF vs YAKE keyword Jaccard for cross-source topic matching

@@ -6,6 +6,7 @@ status: done
 priority: medium
 blocked_by: ["095"]
 work_order: 3
+tags: [platform]
 ---
 
 # Convert lesson-actions.js to Preact component

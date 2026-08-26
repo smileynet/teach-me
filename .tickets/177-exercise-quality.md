@@ -4,6 +4,7 @@ title: "Strengthen Check Your Understanding exercises — test core concepts"
 status: done
 blocked_by: []
 priority: high
+tags: [content-quality]
 ---
 
 # Strengthen Check Your Understanding exercises — test core concepts

@@ -5,6 +5,7 @@ status: done
 priority: medium
 blocked_by: ["043"]
 type: feature
+tags: [platform]
 ---
 
 # Feature: orientation lesson from MAP.md

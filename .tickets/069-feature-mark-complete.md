@@ -5,6 +5,7 @@ status: done
 priority: high
 blocked_by: ["068"]
 type: feature
+tags: [platform]
 ---
 
 # Feature: mark topic as complete

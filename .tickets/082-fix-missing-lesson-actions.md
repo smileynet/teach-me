@@ -4,6 +4,7 @@ title: "Fix: add lesson-actions.js to all example lessons"
 status: done
 blocked_by: []
 priority: high
+tags: [platform]
 ---
 
 # Fix: add lesson-actions.js to all example lessons

@@ -6,6 +6,7 @@ status: done
 priority: medium
 blocked_by: ["095", "096"]
 work_order: 9
+tags: [platform]
 ---
 
 # Update teach skill + AGENTS.md for Preact conventions

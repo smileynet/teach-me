@@ -5,6 +5,7 @@ type: feature
 status: done
 priority: high
 blocked_by: []
+tags: [platform]
 ---
 
 # Embed mission context in index page header

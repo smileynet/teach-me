@@ -5,6 +5,7 @@ status: done
 priority: medium
 blocked_by: []
 type: research
+tags: [platform]
 ---
 
 # Research: GDQuest vault pedagogical analysis
