@@ -103,12 +103,47 @@ Start with existing test-scene Poly Haven assets:
 - **Critical gap:** ALL toon texture uniforms are declared but NONE are populated in any scene
 - **Blender bake constraint:** EEVEE cannot bake — must use Cycles with Emit pass for color-only
 
+## Implementation notes (from shader + scene analysis, 2026-08-26)
+
+### Wiring textures into mktoon_test.tscn (prerequisite spike)
+
+The scene needs these edits to show "before" state (raw PBR under toon shader):
+1. Add ext_resources for `Barrel_01_explosive_diff_1k.jpg` (uid://bifq8ujd57bgd) and `_nor_gl_1k.jpg` (uid://hdeqeffdyg2n)
+2. Set `shader_parameter/use_albedo_texture = true` + assign texture
+3. Set `shader_parameter/use_normal_map = true` + assign normal map
+4. Wire outline shader as `next_pass` SubResource (currently loaded but dangling)
+5. Update `load_steps` from 5 to 8
+
+### Critical color space requirement
+
+`albedo_texture` uniform has `source_color` hint — Godot auto-converts sRGB→linear on sample. Without this, colors appear washed out in Forward+ renderer. The `normal_map` uniform does NOT have `hint_normal` — may need adding for correct RGTC compression and blue channel reconstruction.
+
+### Shader safety model
+
+All 9 texture samplers are guarded by `use_*` booleans (all default `false`). Textures are NEVER sampled unless explicitly toggled on. This means:
+- Safe to assign textures without visual change until toggle is flipped
+- Pattern-overlay maps (hatching/sketch/drawn) are multiplicative → white (1.0) = identity
+- Threshold/noise maps are centered at 0.5 → white (1.0) creates non-neutral +0.5 bias if toggled on without proper texture
+
+### Known problems to document (from research)
+
+| Artifact | Cause | Solution in our pipeline |
+|----------|-------|--------------------------|
+| Shadow speckle/chattering | Normal map micro-detail crosses threshold per-pixel | Flatten normals (lesson 0015 will show this) |
+| Visual noise / "busy" look | High-frequency albedo detail overwhelms flat bands | Posterize + palette snap (lessons 0016-0017) |
+| Band edge instability | Mesh topology creates lumpy shadow boundaries | Noise map bias softens edges (lesson 0018 control maps) |
+| AO creating dirty flat regions | AO noise quantized alongside lighting | Use AO as threshold_map AFTER quantization (lesson 0018) |
+
 ## Research references
 
 - `.scratch/research/toon-texture-pipelines.md` — industry approaches (Guilty Gear ILM maps, Genshin, Malt)
 - `.scratch/research/blender-bake-nodes.md` — specific node setups, bake settings, addon list
 - `.scratch/research/mktoon-texture-requirements.md` — what toon shaders expect vs generate procedurally
 - `.scratch/research/existing-test-scene-review.md` — current state of test-scene assets and shader uniforms
+- `.scratch/research/mk-toon-lite-analysis.md` — full shader uniform/usage analysis
+- `.scratch/research/mktoon-scene-analysis.md` — scene structure, material state, wiring needed
+- `.scratch/research/godot-texture-import.md` — color space hints, import flags, Poly Haven gotchas
+- `.scratch/research/toon-texture-problems.md` — 8 specific PBR+toon artifacts with causes/solutions
 
 ## Resolved questions
 
