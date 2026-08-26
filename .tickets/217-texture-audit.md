@@ -135,8 +135,8 @@ This lesson references existing shaders but produces no new files. Code snippets
 ## Acceptance criteria
 
 - [ ] Lesson file: `examples/godot-gamedev/lessons/blender-texture-prep/01-texture-audit.html`
-- [ ] A/B opening visual (flat vs PBR, side by side or sequential)
-- [ ] Progressive channel isolation (4 screenshots: flat → +albedo → +normal → both)
+- [x] A/B opening visual (flat vs PBR, side by side or sequential)
+- [x] Progressive channel isolation (4 screenshots: flat → +albedo → +normal → both)
 - [ ] "Quantization amplifies noise" SVG diagram
 - [ ] Channel triage SVG diagram (ARM fan-out + diffuse/normal decisions)
 - [ ] Decision callout: when to keep vs discard normal map
