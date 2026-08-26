@@ -13,33 +13,137 @@ tags: [mktoon, blender]
 
 ## What to build
 
-A lightweight orientation lesson that teaches learners to analyze PBR texture sets and identify what will fight toon shading — before they start fixing anything.
+A lightweight orientation lesson (~12 min read) that teaches learners to analyze PBR texture sets and identify what fights toon shading. No Blender work yet — this is the "understand the problem before fixing it" lesson.
+
+Structural analog: lesson 0003 (spatial-shader-anatomy) — orientation for a new track, conceptual-first, produces no code files, bridges to hands-on lessons.
+
+### Win statement
+
+> After this lesson, you can look at any PBR texture set and predict which channels will fight toon shading, decide what to keep/discard/repurpose, and explain WHY quantization amplifies texture noise.
 
 ### Lesson arc
 
-1. Show the Barrel_01 PBR textures under mk_toon_lite with default settings → "what looks wrong?"
-2. Identify the three enemies: continuous gradients (noisy band edges), high-frequency detail (overwhelms flat regions), micro-detail normals (chattering shadows)
-3. Explain which PBR channels matter for toon (albedo + normal) vs which to discard (roughness, metallic)
-4. Show the AO channel as a hidden asset (future threshold_map)
-5. Reference industry context: Guilty Gear and Genshin don't convert PBR — they author for toon from scratch. Our approach is the indie middle ground.
+**Opening visual (A/B pair, no preamble):**
+- Left: `mktoon_flat_color.png` — clean 4-band toon, flat orange
+- Right: `mktoon_before_pbr.png` — same shader, raw PBR textures, "broken" look
 
-### Key concept
+Caption: *"Same shader, same settings, same mesh. The only difference is the texture."*
 
-> PBR textures encode continuous physical properties. Toon shaders discretize lighting into bands. When continuous texture detail meets discrete shading, the texture wins — creating noise where the shader wants flat regions.
+---
 
-### Exercise
+**Section 1: Quantization Amplifies Noise** (key concept)
 
-Show two textures side by side (one PBR-noisy, one simplified). Ask: "Which texture channels are creating problems under toon banding? What would you keep, discard, or simplify?"
+The root mechanism in one paragraph. Then a hand-written inline SVG showing:
+- Input: smooth gradient (continuous NdotL)
+- Operation: step function (floor-divide quantization)
+- Output with clean input: crisp bands
+- Output with noisy input: speckle
+
+This is the ONE concept the lesson teaches. Everything else is application.
+
+---
+
+**Section 2: The Three Enemies** (channel isolation approach)
+
+Progressive reveal — toggle one texture channel at a time on the barrel, showing the effect of each:
+
+| Step | What you toggle on | What changes visually |
+|------|-------------------|----------------------|
+| Start | Flat color only | Clean bands (reference) |
+| +albedo | `use_albedo_texture = true` | Bands buried in wood grain, labels, rust. "Busy" look. |
+| +normal | `use_normal_map = true` | Shadow speckle appears at band edges. Chattering. |
+| Both | albedo + normal | "Realistic barrel with broken lighting" — neither style works |
+
+Each step gets a screenshot (captured via Godot MCP) and 2-3 sentence explanation.
+
+**Decision callout** after presenting all three states:
+> **When to keep vs discard the normal map:**
+> - Keep + simplify: if the mesh has broad forms you want the shader to shade (e.g., folds in cloth)
+> - Discard entirely: if the mesh silhouette already communicates the form (e.g., barrel rings)
+> - Default: disable it first, add it back only if the result looks too "flat"
+
+---
+
+**Section 3: Channel Triage** (the actionable decision)
+
+Hand-written inline SVG: fan-out diagram showing ARM texture → 3 channels → decision per channel:
+
+```
+ARM (packed texture)
+├─ R: AO ──────→ REPURPOSE → threshold_map (per-pixel shadow bias)
+├─ G: Roughness → DISCARD   → specular_disabled, no effect
+└─ B: Metallic ─→ DISCARD   → specular_disabled, no effect
+
+Diffuse ────────→ KEEP + SIMPLIFY → posterize, palette snap (lessons 0016-17)
+Normal ─────────→ DECIDE → keep for form, flatten for clean bands
+```
+
+**New concept callout** for "threshold_map": *Brief inline definition — a per-pixel bias on where the shadow boundary falls. Darker = earlier shadow. The AO channel already encodes this spatial relationship.*
+
+---
+
+**Section 4: The Empty Slots** (what you'll author in this track)
+
+Table of mk_toon_lite texture uniforms with status + forward reference to the lesson that fills each. This is motivational — shows the learner what's coming.
+
+Code snippet (fragment, not downloadable): the uniform declarations from mk_toon_lite.gdshader with annotations. Uses `data-mode="fragment"` — illustration only, not extractable.
+
+---
+
+**Section 5: Industry Context** (FYI callout, placed AFTER committing to our approach)
+
+> **Alternative:** AAA toon games (Guilty Gear, Genshin Impact) author all textures for NPR from scratch — hand-painted ILM maps with per-pixel specular/shadow control. This track teaches the indie middle ground: start with free PBR assets, simplify them to work with toon shading while preserving dynamic lighting.
+
+---
+
+**Exercise: Check Your Understanding**
+
+Near-transfer with misconception probing:
+
+> A colleague converted their PBR castle wall asset for a toon shader by assigning the albedo texture and disabling the normal map. "The normal map was causing shadow speckle, so I removed it," they say. But the toon bands still look noisy and the flat areas aren't flat.
+>
+> Why? What is the actual remaining source of visual noise, and what would you recommend they do about it?
+
+**Why this works:** Tests the core concept (quantization amplifies noise from ANY continuous source, not just normals). The misconception is "normal maps are the only problem." The correct answer identifies high-frequency albedo detail as the remaining noise source and recommends simplification.
+
+---
+
+**What's Next:**
+
+"Now you know what's wrong. Next lesson: fix it. You'll build a Blender node group that posterizes any albedo texture into discrete color bands that harmonize with your toon shader's band count."
+
+---
+
+### Diagrams needed (2 hand-written inline SVGs)
+
+1. **Quantization noise diagram** — continuous signal + step function = amplified noise (conceptual, horizontal flow, ~5 elements)
+2. **Channel triage diagram** — fan-out from ARM/Diffuse/Normal → keep/discard/repurpose (flow type, ~8 elements)
+
+Both use `assets/svg-patterns.md` accessibility patterns + CSS color variables.
+
+### Screenshots needed (4, via Godot MCP)
+
+1. Flat color only (already captured: `mktoon_flat_color.png`)
+2. Albedo only (toggle normal off, albedo on) — **needs capture**
+3. Normal only (toggle albedo off, normal on) — **needs capture**
+4. Both (already captured: `mktoon_before_pbr.png`)
+
+### No code files section
+
+This lesson references existing shaders but produces no new files. Code snippets use `data-mode="fragment"` (illustration only, skip extraction). No `reference/code/` directory needed.
 
 ## Acceptance criteria
 
 - [ ] Lesson file: `examples/godot-gamedev/lessons/blender-texture-prep/01-texture-audit.html`
-- [ ] Uses Barrel_01 diff + ARM textures as the primary example
-- [ ] Diagram: PBR texture channels → which feed toon shader vs which are discarded
-- [ ] Before screenshot: Barrel_01 with raw PBR diff under configurable_banding
-- [ ] Identifies 3 specific problems (gradients, micro-detail, unnecessary channels)
-- [ ] References the `mk_toon_lite.gdshader` uniform list (what slots need filling)
-- [ ] SR questions generated (3-5 cards)
+- [ ] A/B opening visual (flat vs PBR, side by side or sequential)
+- [ ] Progressive channel isolation (4 screenshots: flat → +albedo → +normal → both)
+- [ ] "Quantization amplifies noise" SVG diagram
+- [ ] Channel triage SVG diagram (ARM fan-out + diffuse/normal decisions)
+- [ ] Decision callout: when to keep vs discard normal map
+- [ ] Exercise tests the Win (misconception probing: "just disable normals" isn't enough)
+- [ ] SR questions generated (4 cards) in blender-texture-prep.jsonl
+- [ ] No `data-file` code blocks (no downloadable files needed)
+- [ ] Page generated via `page_template.py` with correct structure
 
 ## Research context
 
