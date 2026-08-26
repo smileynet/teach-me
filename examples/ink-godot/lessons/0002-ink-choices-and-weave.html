@@ -86,7 +86,9 @@
 
 <p>By default, choices marked with <code>*</code> are <strong><span class="term" data-term="once-only-choice">once-only</span></strong> — they disappear after being chosen. This is perfect for conversations where repeating the same line would feel wrong. But what happens when all choices vanish?</p>
 
-<pre data-mode="fragment"><code>=== tavern ===
+<pre data-mode="fragment"><code>-> tavern
+
+=== tavern ===
 The barkeep polishes a glass.
 * "Any news?" you ask.
   "Bandits on the north road," she says. -> tavern
@@ -102,7 +104,9 @@ You've exhausted your questions. Time to move on.
 
 <p>For situations where choices should persist — a menu, a browseable location — use <code>+</code> instead of <code>*</code>:</p>
 
-<pre data-mode="fragment"><code>=== market ===
+<pre data-mode="fragment"><code>-> market
+
+=== market ===
 Stalls line the square.
 + [Browse weapons]
   The blacksmith shows you a fine blade. -> market
@@ -121,7 +125,9 @@ Stalls line the square.
 
 <p>In lesson 01, each knot was a self-contained location. But what happens when a knot gets long — say, a market with three stalls? You could make each stall its own knot, but then you need the full address everywhere. Stitches solve this — they're sub-sections within a knot, marked with a single <code>=</code>:</p>
 
-<pre data-mode="fragment"><code>=== market_square ===
+<pre data-mode="fragment"><code>-> market_square
+
+=== market_square ===
 The market bustles with traders.
 + [Weapons stall] -> weapons
 + [Potion stall] -> potions
@@ -174,7 +180,9 @@ Glass bottles line the stall.
 
 <p>A single choice-and-gather pair is a building block. Chain them together for multi-beat conversations where each beat diverges briefly then reconverges before the next:</p>
 
-<pre data-mode="fragment"><code>=== tavern_conversation ===
+<pre data-mode="fragment"><code>-> tavern_conversation
+
+=== tavern_conversation ===
 The barkeep catches your eye.
 
 * [Sit at the bar]
@@ -358,7 +366,9 @@ You pull your cloak tight and walk into the dark.
   <details>
   <summary>Answer</summary>
   <p>Any hub-and-spoke structure works. Here's a minimal example:</p>
-<pre data-mode="fragment"><code>=== garden ===
+<pre data-mode="fragment"><code>-> garden
+
+=== garden ===
 The garden has two paths.
 + [Visit the fountain] -> fountain
 + [Visit the roses] -> roses
