@@ -5,6 +5,7 @@ status: done
 blocked_by: []
 priority: medium
 type: exploration
+tags: [ink]
 ---
 
 # Explore: ink + Godot narrative scripting lesson track

@@ -3,6 +3,7 @@ id: "120"
 title: "Feature: Lesson versioning — preserve and revert across rewrites"
 status: open
 blocked_by: []
+tags: [platform]
 ---
 
 # Feature: Lesson versioning — preserve and revert across rewrites

@@ -5,6 +5,7 @@ status: done
 priority: medium
 blocked_by: []
 type: spike
+tags: [platform]
 ---
 
 # Spike: quiz link per topic on map page

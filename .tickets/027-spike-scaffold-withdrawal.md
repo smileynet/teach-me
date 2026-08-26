@@ -5,6 +5,7 @@ status: done
 priority: high
 blocked_by: ["022"]
 type: spike
+tags: [platform]
 ---
 
 # Spike: scaffold withdrawal

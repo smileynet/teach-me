@@ -5,6 +5,7 @@ status: done
 priority: high
 blocked_by: []
 type: feature
+tags: [platform]
 ---
 
 # Feature: generate workout-fundamentals topics

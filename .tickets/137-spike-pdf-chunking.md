@@ -3,6 +3,7 @@ id: "137"
 title: "Spike: PDF extraction quality — pymupdf vs pdfplumber vs marker for structured chunking"
 status: done
 blocked_by: ["135"]
+tags: [source-ingest]
 ---
 
 # Spike: PDF extraction quality

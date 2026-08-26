@@ -4,6 +4,7 @@ title: "Shader validation tooling for lesson code blocks"
 status: done
 blocked_by: []
 priority: high
+tags: [toon-shaders]
 ---
 
 # Shader validation tooling for lesson code blocks

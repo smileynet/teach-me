@@ -3,6 +3,7 @@ id: "140"
 title: "Feature: provenance-tracked questions — source quote → objective → question chain"
 status: done
 blocked_by: ["139"]
+tags: [source-ingest]
 ---
 
 # Feature: provenance-tracked questions

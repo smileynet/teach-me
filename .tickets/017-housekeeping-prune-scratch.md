@@ -5,6 +5,7 @@ status: done
 priority: low
 blocked_by: ["013", "014", "015", "016"]
 type: feature
+tags: [platform]
 ---
 
 # Housekeeping: prune .scratch/ after integration

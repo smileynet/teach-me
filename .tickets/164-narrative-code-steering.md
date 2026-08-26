@@ -4,6 +4,7 @@ title: "Steering: code block pedagogy and narrative framing convention"
 status: done
 blocked_by: []
 priority: high
+tags: [content-quality]
 ---
 
 # Steering: code block pedagogy and narrative framing convention

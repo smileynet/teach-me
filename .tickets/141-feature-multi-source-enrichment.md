@@ -3,6 +3,7 @@ id: "141"
 title: "Feature: multi-source enrichment — compound new sources into existing topics with conflict surfacing"
 status: done
 blocked_by: ["140"]
+tags: [source-ingest]
 ---
 
 # Feature: multi-source enrichment

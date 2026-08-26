@@ -5,6 +5,7 @@ status: done
 priority: low
 blocked_by: []
 type: feature
+tags: [platform]
 ---
 
 # Feature: graphviz auto-layout backend for complex diagrams

@@ -5,6 +5,7 @@ status: done
 priority: high
 blocked_by: []
 type: spike
+tags: [platform]
 ---
 
 # Spike: collapsible details pattern

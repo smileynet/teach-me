@@ -3,6 +3,7 @@ id: "122"
 title: "Feature: User-configurable quiz question mix and on-demand generation"
 status: open
 blocked_by: []
+tags: [platform]
 ---
 
 # Feature: User-configurable quiz question mix and on-demand generation

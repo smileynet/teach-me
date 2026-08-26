@@ -4,6 +4,7 @@ title: "Feature: skill workflow orchestration — subagent pipeline for lesson g
 status: done
 blocked_by: []
 priority: medium
+tags: [platform]
 ---
 
 # Feature: skill workflow orchestration — subagent pipeline for lesson generation

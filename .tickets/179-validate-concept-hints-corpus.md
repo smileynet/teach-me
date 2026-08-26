@@ -4,6 +4,7 @@ title: "Validate concept hints against real corpora (Rust, code-design)"
 status: done
 blocked_by: ["175"]
 priority: high
+tags: [source-ingest, content-quality]
 ---
 
 # Validate concept hints against real corpora (Rust, code-design)

@@ -5,6 +5,7 @@ status: backlog
 blocked_by: ["193"]
 priority: low
 type: spike
+tags: [ink]
 ---
 
 # Spike: test godot-ink (C#/.NET) as alternative ink runtime

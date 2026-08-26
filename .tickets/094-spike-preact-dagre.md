@@ -5,6 +5,7 @@ type: spike
 status: done
 priority: high
 blocked_by: []
+tags: [platform]
 ---
 
 # Spike: Preact + HTM + Signals + dagre map page prototype

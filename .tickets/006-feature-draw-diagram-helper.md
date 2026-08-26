@@ -5,6 +5,7 @@ status: done
 priority: high
 blocked_by: ["001"]
 type: feature
+tags: [platform]
 ---
 
 # Feature: draw-diagram.py helper script

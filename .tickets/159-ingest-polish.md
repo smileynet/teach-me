@@ -4,6 +4,7 @@ title: "Polish: ingest pipeline deferred items (section IDs, keyword index, form
 status: open
 blocked_by: []
 priority: low
+tags: [source-ingest]
 ---
 
 # Polish: ingest pipeline deferred items

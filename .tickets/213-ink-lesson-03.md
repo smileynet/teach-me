@@ -4,6 +4,7 @@ title: "Ink Lesson 07: State Bridge"
 status: open
 blocked_by: ["212"]
 priority: high
+tags: [ink]
 ---
 
 # Ink Lesson 07: State Bridge

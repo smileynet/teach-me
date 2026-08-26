@@ -4,6 +4,7 @@ title: "Shared lesson library with local-only user state"
 status: open
 blocked_by: []
 priority: high
+tags: [platform]
 ---
 
 # Shared lesson library with local-only user state

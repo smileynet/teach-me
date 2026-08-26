@@ -5,6 +5,7 @@ type: feature
 status: done
 priority: high
 blocked_by: []
+tags: [platform]
 ---
 
 # Move topic detail into graph nodes — inline cards replace sidebar list

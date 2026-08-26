@@ -4,6 +4,7 @@ title: "Fix: add hint <details> to workout lessons 0002 and 0003 exercises"
 status: done
 blocked_by: []
 priority: low
+tags: [platform]
 ---
 
 # Fix: add hint details to workout lessons 0002 and 0003 exercises

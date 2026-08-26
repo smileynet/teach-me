@@ -4,6 +4,7 @@ title: "Mark color-simplification complete: review A/B screenshots, commit test-
 status: done
 blocked_by: []
 priority: medium
+tags: [toon-shaders]
 ---
 
 # Mark color-simplification complete

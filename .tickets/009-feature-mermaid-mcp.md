@@ -5,6 +5,7 @@ status: done
 priority: low
 blocked_by: ["005"]
 type: feature
+tags: [platform]
 ---
 
 # Feature: Mermaid MCP agent configuration

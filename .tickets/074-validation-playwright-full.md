@@ -5,6 +5,7 @@ status: done
 priority: high
 blocked_by: ["073"]
 type: feature
+tags: [platform]
 ---
 
 # Validation: Playwright full navigation + visual analysis

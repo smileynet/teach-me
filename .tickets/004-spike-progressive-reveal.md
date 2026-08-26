@@ -5,6 +5,7 @@ status: done
 priority: medium
 blocked_by: []
 type: spike
+tags: [platform]
 ---
 
 # Spike: progressive reveal for SVG diagrams

@@ -5,6 +5,7 @@ status: done
 priority: low
 blocked_by: []
 type: feature
+tags: [platform]
 ---
 
 # Feature: quiz question bank for spaced repetition

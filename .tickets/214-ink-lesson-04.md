@@ -4,6 +4,7 @@ title: "Ink Lesson 08: Production Patterns"
 status: open
 blocked_by: ["213"]
 priority: high
+tags: [ink]
 ---
 
 # Ink Lesson 08: Production Patterns

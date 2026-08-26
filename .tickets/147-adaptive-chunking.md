@@ -4,6 +4,7 @@ title: "Feature: adaptive chunking — adjust chunk size based on content comple
 status: open
 blocked_by: ["139"]
 priority: low
+tags: [source-ingest]
 ---
 
 # Feature: adaptive chunking

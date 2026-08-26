@@ -3,6 +3,7 @@ id: "149"
 title: "Spike: YAKE + regex for concept extraction and dependency detection from chunks"
 status: done
 blocked_by: []
+tags: [source-ingest]
 ---
 
 # Spike: concept extraction and dependency detection

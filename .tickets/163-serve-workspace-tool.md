@@ -3,6 +3,7 @@ id: "163"
 title: "Workspace-aware serve tool with proper asset mounting"
 status: done
 blocked_by: []
+tags: [platform]
 ---
 
 # Workspace-aware serve tool with proper asset mounting

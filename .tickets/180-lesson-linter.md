@@ -4,6 +4,7 @@ title: "Mechanical lesson linter — enforce conventions via script"
 status: done
 priority: high
 blocked_by: []
+tags: [content-quality, platform]
 ---
 
 # Mechanical lesson linter — enforce conventions via script

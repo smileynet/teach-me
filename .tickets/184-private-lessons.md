@@ -4,6 +4,7 @@ title: "Optional private lessons (uncommitted, linked to shared map)"
 status: open
 blocked_by: ["183"]
 priority: high
+tags: [platform]
 ---
 
 # Optional private lessons (uncommitted, linked to shared map)

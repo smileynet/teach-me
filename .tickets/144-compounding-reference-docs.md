@@ -4,6 +4,7 @@ title: "Feature: compounding reference docs — enrich existing pages from new s
 status: open
 blocked_by: ["141"]
 priority: low
+tags: [source-ingest]
 ---
 
 # Feature: compounding reference docs

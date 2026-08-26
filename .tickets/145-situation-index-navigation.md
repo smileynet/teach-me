@@ -4,6 +4,7 @@ title: "Feature: situation index — symptom-first navigation ('I'm stuck on X' 
 status: open
 blocked_by: []
 priority: low
+tags: [platform]
 ---
 
 # Feature: situation index

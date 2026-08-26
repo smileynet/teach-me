@@ -4,6 +4,7 @@ title: "Fix: concept hints quality — filter noise, calibrate L-levels, dedupli
 status: done
 blocked_by: []
 priority: high
+tags: [source-ingest, content-quality]
 ---
 
 # Fix: concept hints quality — filter noise, calibrate L-levels, deduplicate

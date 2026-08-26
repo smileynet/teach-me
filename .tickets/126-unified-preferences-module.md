@@ -4,6 +4,7 @@ title: "Refactor: Unified preferences module — consolidate theme, typography, 
 status: done
 blocked_by: []
 priority: high
+tags: [platform]
 ---
 
 # Refactor: Unified preferences module

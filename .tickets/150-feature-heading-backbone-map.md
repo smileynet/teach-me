@@ -3,6 +3,7 @@ id: "150"
 title: "Feature: generate MAP.md from heading hierarchy (tutorial-style documents)"
 status: done
 blocked_by: []
+tags: [source-ingest]
 ---
 
 # Feature: heading backbone MAP generation

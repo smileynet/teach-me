@@ -5,6 +5,7 @@ status: done
 priority: medium
 blocked_by: []
 type: feature
+tags: [platform]
 ---
 
 # Integrate: SVG accessibility and responsive scaling

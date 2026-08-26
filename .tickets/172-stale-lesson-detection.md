@@ -4,6 +4,7 @@ title: "Feature: stale lesson detection from enrichment overlays"
 status: open
 blocked_by: []
 priority: low
+tags: [source-ingest, platform]
 ---
 
 # Feature: stale lesson detection from enrichment overlays

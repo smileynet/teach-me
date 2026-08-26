@@ -5,6 +5,7 @@ status: done
 priority: high
 blocked_by: []
 type: research
+tags: [platform]
 ---
 
 # Research: browser generation prerequisites

@@ -4,6 +4,7 @@ title: "Apply provenance chain, conflict synthesis, and cognitive load separatio
 status: done
 blocked_by: ["135"]
 priority: high
+tags: [source-ingest, platform]
 ---
 
 # Apply provenance patterns across teach-me

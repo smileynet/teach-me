@@ -5,6 +5,7 @@ status: open
 priority: low
 blocked_by: []
 type: feature
+tags: [platform]
 ---
 
 # Feature: status tracking + what's next

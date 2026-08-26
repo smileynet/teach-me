@@ -4,6 +4,7 @@ title: "Feature: deepen Socratic dialog — full context for accurate discussion
 status: open
 blocked_by: []
 priority: medium
+tags: [platform]
 ---
 
 # Feature: deepen Socratic dialog — full context for accurate discussion

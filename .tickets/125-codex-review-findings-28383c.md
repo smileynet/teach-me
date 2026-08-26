@@ -4,6 +4,7 @@ title: "Confirm and address Codex review findings through 28383c"
 status: done
 blocked_by: []
 priority: high
+tags: [platform]
 ---
 
 # Confirm and address Codex review findings through 28383c

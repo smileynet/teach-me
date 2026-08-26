@@ -5,6 +5,7 @@ status: done
 priority: medium
 blocked_by: ["058", "059"]
 type: feature
+tags: [platform]
 ---
 
 # Feature: generation progress modal

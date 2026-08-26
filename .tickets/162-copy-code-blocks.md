@@ -4,6 +4,7 @@ title: "Copy button on code blocks"
 status: open
 blocked_by: ["173"]
 parent: "173"
+tags: [platform]
 ---
 
 # Copy button on code blocks

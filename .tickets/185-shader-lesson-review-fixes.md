@@ -10,6 +10,7 @@ validation_criteria:
   - "band-count wording corrected in 0004"
   - "JFA pass-count example arithmetic corrected in 0007"
   - "detection-pass comment matches code in 0007"
+tags: [toon-shaders]
 ---
 
 # Fix verified prose errors in shader lessons (review findings)

@@ -4,6 +4,7 @@ title: "Fix index page links for multi-workspace serving"
 status: open
 blocked_by: []
 priority: high
+tags: [platform]
 ---
 
 # Fix index page links for multi-workspace serving

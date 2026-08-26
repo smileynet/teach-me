@@ -4,6 +4,7 @@ title: "CodeBlockToolbar component: copy + download + filename label"
 status: done
 blocked_by: []
 priority: high
+tags: [platform]
 ---
 
 # CodeBlockToolbar component: copy + download + filename label

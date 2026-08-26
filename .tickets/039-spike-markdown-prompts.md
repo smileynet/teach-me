@@ -5,6 +5,7 @@ status: done
 priority: medium
 blocked_by: ["034"]
 type: spike
+tags: [platform]
 ---
 
 # Spike: markdown prompts — store as markdown, render everywhere

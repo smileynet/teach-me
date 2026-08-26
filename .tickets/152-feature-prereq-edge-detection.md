@@ -3,6 +3,7 @@ id: "152"
 title: "Feature: prerequisite edge detection via forward references and first-mention analysis"
 status: done
 blocked_by: ["149"]
+tags: [source-ingest]
 ---
 
 # Feature: prerequisite edge detection

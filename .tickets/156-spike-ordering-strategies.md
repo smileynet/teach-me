@@ -5,6 +5,7 @@ status: done
 blocked_by: []
 priority: high
 type: spike
+tags: [source-ingest]
 ---
 
 # Spike: cycle-breaking + foundational scoring strategy comparison

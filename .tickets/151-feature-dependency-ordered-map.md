@@ -3,6 +3,7 @@ id: "151"
 title: "Feature: dependency-reordered MAP.md for reference-style documents"
 status: done
 blocked_by: ["148", "149"]
+tags: [source-ingest]
 ---
 
 # Feature: dependency-ordered MAP for reference docs

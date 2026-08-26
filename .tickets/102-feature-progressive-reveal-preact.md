@@ -6,6 +6,7 @@ status: done
 priority: low
 blocked_by: ["095"]
 work_order: 6
+tags: [platform]
 ---
 
 # Convert progressive-reveal.js to Preact component

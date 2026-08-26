@@ -4,6 +4,7 @@ title: "Fix: workout quiz pages — add questions to meet 5+ minimum and 3+ type
 status: done
 blocked_by: []
 priority: medium
+tags: [platform]
 ---
 
 # Fix: workout quiz pages — add questions to meet 5+ minimum and 3+ types

@@ -5,6 +5,7 @@ type: spike
 status: done
 priority: high
 blocked_by: []
+tags: [platform]
 ---
 
 # Spike: dagre + HTML cards DAG layout prototype

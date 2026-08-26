@@ -5,6 +5,7 @@ status: done
 priority: medium
 blocked_by: []
 type: feature
+tags: [platform]
 ---
 
 # Feature: diagram cards with label masking

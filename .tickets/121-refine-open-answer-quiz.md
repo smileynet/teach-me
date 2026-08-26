@@ -3,6 +3,7 @@ id: "121"
 title: "Review: Refine open-answer quiz question strategy and skill"
 status: done
 blocked_by: []
+tags: [platform]
 ---
 
 # Review: Refine open-answer quiz question strategy and skill

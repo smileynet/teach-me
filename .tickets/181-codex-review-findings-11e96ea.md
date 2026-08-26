@@ -4,6 +4,7 @@ title: "Confirm and address Codex review findings through 11e96ea"
 status: open
 blocked_by: []
 priority: high
+tags: [platform]
 ---
 
 # Confirm and address Codex review findings through 11e96ea

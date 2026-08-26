@@ -4,6 +4,7 @@ title: "Ink Lesson 06: Tags as Commands"
 status: open
 blocked_by: ["211"]
 priority: high
+tags: [ink]
 ---
 
 # Ink Lesson 06: Tags as Commands

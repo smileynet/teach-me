@@ -5,6 +5,7 @@ type: feature
 status: done
 priority: high
 blocked_by: ["095"]
+tags: [platform]
 ---
 
 # Convert generate_map_page.py to Preact DAG output

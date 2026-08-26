@@ -4,6 +4,7 @@ title: "Feature: free-form text answer with AI evaluation against criteria"
 status: open
 blocked_by: []
 priority: low
+tags: [platform]
 ---
 
 # Feature: free-form text answer with AI evaluation against criteria

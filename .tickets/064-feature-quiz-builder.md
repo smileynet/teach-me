@@ -5,6 +5,7 @@ status: open
 priority: low
 blocked_by: []
 type: feature
+tags: [platform]
 ---
 
 # Feature: quiz availability page + cross-topic quiz builder

@@ -5,6 +5,7 @@ status: open
 priority: low
 blocked_by: []
 type: feature
+tags: [platform]
 ---
 
 # Feature: error handling and retry for generative operations

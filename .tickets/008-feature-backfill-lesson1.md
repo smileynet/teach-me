@@ -5,6 +5,7 @@ status: done
 priority: medium
 blocked_by: ["001"]
 type: feature
+tags: [platform]
 ---
 
 # Feature: backfill lesson 1 with inline SVG

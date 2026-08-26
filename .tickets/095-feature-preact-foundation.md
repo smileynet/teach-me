@@ -5,6 +5,7 @@ type: feature
 status: done
 priority: high
 blocked_by: []
+tags: [platform]
 ---
 
 # Preact foundation: vendor deps, import map, shared components

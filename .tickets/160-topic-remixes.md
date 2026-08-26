@@ -4,6 +4,7 @@ title: "Feature: topic remixes — re-teach a concept in a different language/fr
 status: backlog
 blocked_by: []
 priority: low
+tags: [platform]
 ---
 
 # Feature: topic remixes — re-teach a concept in a different language/framework, preserving both as complementary alternatives

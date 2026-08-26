@@ -5,6 +5,7 @@ status: backlog
 blocked_by: ["200"]
 priority: low
 type: feature
+tags: [ink]
 ---
 
 # Skill: ink-test-runner — automated path walker for ink stories

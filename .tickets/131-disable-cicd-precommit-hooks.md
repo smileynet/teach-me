@@ -4,6 +4,7 @@ title: "Replace CI/CD with pre-commit hooks until architecture stabilizes"
 status: done
 blocked_by: []
 priority: high
+tags: [platform]
 ---
 
 # Replace CI/CD with pre-commit hooks until architecture stabilizes

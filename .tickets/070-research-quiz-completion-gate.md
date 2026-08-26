@@ -5,6 +5,7 @@ status: open
 priority: low
 blocked_by: []
 type: research
+tags: [platform]
 ---
 
 # Research: quiz as completion validation

@@ -5,6 +5,7 @@ status: done
 priority: low
 blocked_by: []
 type: spike
+tags: [platform]
 ---
 
 # Spike: generation progress checklist

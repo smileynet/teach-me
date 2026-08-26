@@ -6,6 +6,7 @@ status: done
 priority: low
 blocked_by: ["095"]
 work_order: 7
+tags: [platform]
 ---
 
 # Convert quiz.js + glossary.js to Preact components

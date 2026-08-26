@@ -4,6 +4,7 @@ title: "Ink Lesson 03: Variables and Conditionals"
 status: open
 blocked_by: ["208"]
 priority: high
+tags: [ink]
 ---
 
 # Ink Lesson 03: Variables and Conditionals

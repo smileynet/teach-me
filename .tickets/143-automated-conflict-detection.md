@@ -4,6 +4,7 @@ title: "Feature: automated conflict detection between sources on same concept"
 status: done
 blocked_by: ["141"]
 priority: low
+tags: [source-ingest]
 ---
 
 # Feature: automated conflict detection

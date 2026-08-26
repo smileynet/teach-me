@@ -3,6 +3,7 @@ id: "142"
 title: "Feature: quick quiz mode — 'quiz me on chapter 3' without full lesson generation"
 status: done
 blocked_by: ["139"]
+tags: [source-ingest, platform]
 ---
 
 # Feature: quick quiz mode
