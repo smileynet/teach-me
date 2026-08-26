@@ -19,7 +19,7 @@ _.python.venv = { path = ".venv", create = true, python = "3.12" }
 [tasks.setup]
 description = "Install Python dependencies (fast, via uv)"
 run = """
-uv pip install drawsvg playwright graphviz rich genanki fastapi uvicorn pytest pymupdf yake trafilatura networkx inflection beautifulsoup4 lxml scikit-learn
+uv pip install drawsvg playwright graphviz rich genanki fastapi uvicorn pytest pymupdf yake trafilatura networkx inflection beautifulsoup4 lxml scikit-learn bink
 git config core.hooksPath .githooks 2>/dev/null || true
 """
 sources = ["mise.toml"]
@@ -221,3 +221,8 @@ run = "python tools/validate-ink.py --dir ink-test-project/stories"
 description = "Same as ink:validate but treats warnings as errors."
 depends = ["setup"]
 run = "python tools/validate-ink.py --dir ink-test-project/stories --strict"
+
+[tasks."ink:play"]
+description = "Play through all .ink stories to verify they reach an ending (catches runtime dead-ends)."
+depends = ["setup"]
+run = "python tools/play-ink.py --dir ink-test-project/stories"

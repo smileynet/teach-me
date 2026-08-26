@@ -23,6 +23,8 @@ The blacksmith grins. "Looking for steel, traveler?"
   He unsheathes a curved blade, its edge catching the light.
 * "Just looking[."]," you mutter.
   He shrugs and turns to another customer.
++ ->
+  You have nothing more to ask here.
 
 // --- Gather: branches rejoin here ---
 - You step back into the square.
@@ -37,6 +39,8 @@ Glass bottles line the stall, filled with luminous liquids.
   "Heals wounds. Ten coins — worth every copper."
 * ["I'll pass for now."]
   The merchant nods, unbothered.
++ ->
+  The bottles glint, but you've seen enough.
 
 - The colors swirl as you turn away.
 -> market_square
@@ -54,6 +58,8 @@ An old cartographer peers at you over half-moon spectacles.
   -- You thank him for his time.
 * "Any news from the road[?"]?" you ask.
   "Bandits near the bridge," he whispers. "Take the forest path."
++ ->
+  The cartographer returns to his charts.
 
 - You leave the stall with plenty to think about.
 -> market_square
@@ -66,6 +72,7 @@ The tavern is warm and loud. A bard plays in the corner.
   You slide onto a stool, the wood worn smooth by years of use.
 * [Find a quiet corner]
   You duck behind a pillar, away from the noise.
++ ->
 
 - The barkeep catches your eye. "What'll it be?"
 
@@ -75,17 +82,18 @@ The tavern is warm and loud. A bard plays in the corner.
   "Smart traveler," she says, filling a clay cup.
 * "Information[."]," you say quietly.
   She leans in. "That depends on the coin."
++ ->
 
 - You drink in silence, watching the room.
 
 // --- Once-only choices that build a conversation ---
 * "Who's the bard?" you ask the barkeep.
   "Calls herself Wren. Been here a week."
+  -> tavern
 * "Any rooms available?"
   "Last one on the left, upstairs. Two coins a night."
-* -> tavern_end
-
-- -> tavern
+  -> tavern
++ [Stop talking and decide] -> tavern_end
 
 = tavern_end
 The candle on your table gutters low. Time to decide.
