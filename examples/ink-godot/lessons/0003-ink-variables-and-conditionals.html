@@ -106,7 +106,7 @@ What would you like to see?
 * [Enter again] -> street
 * [Move on] -> END</code></pre>
 
-<p>The markers: no marker = <strong>stopping sequence</strong> (default), <code>&amp;</code> = <strong>cycle</strong>, <code>~</code> = <strong>shuffle</strong>, <code>!</code> = <strong>once-only</strong>. All use the same <code>{...|...}</code> syntax — the marker before the first element determines the type.</p>
+<p>The markers: no marker = <strong><span class="term" data-term="sequence">stopping sequence</span></strong> (default), <code>&amp;</code> = <strong><span class="term" data-term="cycle">cycle</span></strong>, <code>~</code> = <strong><span class="term" data-term="shuffle">shuffle</span></strong>, <code>!</code> = <strong>once-only</strong>. All use the same <code>{...|...}</code> syntax — the marker before the first element determines the type.</p>
 
 <p>Alternatives are most useful inside loops (like the <code>-> street</code> loop above). A stopping sequence in a scene you visit once is just... showing text. But in a hub you return to repeatedly, it creates the illusion of a living world — each visit feels different without you writing conditional logic for each case.</p>
 
@@ -141,7 +141,7 @@ Welcome, {player_name}. You have {gold} gold.
 <ol>
   <li><code>VAR gold = 15</code> — declares a global variable with an initial value (the value determines the type: integer, boolean, or string)</li>
   <li><code>{gold}</code> and <code>{player_name}</code> — prints the variable's current value inline</li>
-  <li><code>~ gold = gold - 8</code> — the <code>~</code> marker signals a logic line (assignment or operation). It means "this line changes state, don't print it."</li>
+  <li><code>~ gold = gold - 8</code> — the <code>~</code> marker signals a <span class="term" data-term="logic-line">logic line</span> (assignment or operation). It means "this line changes state, don't print it."</li>
 </ol>
 
 <p>Variables are <strong>global</strong> — accessible and modifiable from any knot. Declare them at the top of your file (before any knots) so they're initialized once.</p>
@@ -215,7 +215,7 @@ You flee into the trees.
      CONDITIONAL CHOICES
      ═══════════════════════════════════════════════════════════════ -->
 
-<h2>Conditional Choices</h2>
+<h2><span class="term" data-term="conditional-choice">Conditional Choices</span></h2>
 
 <p>The final piece: choices that only appear when a condition is met. Put the condition before the choice text:</p>
 
@@ -375,7 +375,7 @@ The road forks here.
 -> tavern
 
 === tavern ===
-{&"What'll it be?"|"You again. The usual?"|The barkeep just nods.}
+{"What'll it be?"|"You again. The usual?"|The barkeep just nods.}
 You have {gold} gold.
 + {gold >= 3} [Buy a drink - 3 gold]
     ~ gold = gold - 3
