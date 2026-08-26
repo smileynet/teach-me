@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4: Functions &amp; Tunnels</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="ink-godot-map.html">Ink + Godot</a> <span class="nav-sep">›</span> <span><span class="term" data-term="function">Function</span>s &amp; <span class="term" data-term="tunnel">Tunnel</span>s</span></nav>
+<h1>Functions &amp; Tunnels</h1>
+
+<div class="lesson-meta">
+  Lesson 4 · Ink + Godot · ~14 min read<br>
+  <strong>Win:</strong> You can write reusable ink logic — <span class="term" data-term="function">function</span>s for inline computation, <span class="term" data-term="tunnel">tunnel</span>s for portable scenes that return to their caller, and <span class="term" data-term="temp-variable">temp variable</span>s for scratch work within a knot.
+</div>
+
+<div class="key-concept">
+  <strong>After this lesson:</strong> You can extract repeated logic into functions (called inline in text), package reusable narrative scenes as tunnels (with full choices and flow), pass data into knots via parameters, and split growing stories across multiple files.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TEMP VARIABLES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Temp Variables: Scratch Paper</h2>
+
+<p>In lesson 03, a note showed <code>~ temp roll = RANDOM(1,6)</code> without fully explaining it. Here's the full picture: a <span class="term" data-term="temp-variable">temp variable</span> is scratch space that exists only within the current knot. When flow leaves that knot, the temp is gone:</p>
+
+<pre data-mode="fragment"><code>-> encounter
+
+=== encounter ===
+~ temp roll = RANDOM(1, 6)
+~ temp success = roll >= 4
+{success: You dodge the blow!|The hit connects.}
+-> END</code></pre>
+
+<p><code>~ temp</code> declares a local variable. Unlike <code>VAR</code> (which persists for the entire story), temps die when flow leaves the knot. Use them for calculations you need right now but never again — dice rolls, intermediate math, comparison results.</p>
+
+<p>Why not just use <code>VAR</code> for everything? Because a story with 200 globally-named variables becomes impossible to reason about. Temps keep the global namespace clean — only state that <em>matters across knots</em> deserves a <code>VAR</code>.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     KNOT PARAMETERS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Knot Parameters</h2>
+
+<p>What if you have one scene that works with different data — an accusation directed at three different suspects, or a shop selling different items? <span class="term" data-term="parameter">Parameters</span> let you pass values into a knot at divert-time:</p>
+
+<pre data-mode="fragment"><code>-> accuse("Hastings")
+
+=== accuse(who) ===
+"I accuse {who}!" Poirot declared.
+"Really?" Japp replied. "{who}?"
+"And why not?" Poirot shot back.
+-> END</code></pre>
+
+<p>The parameter <code>who</code> acts like a temp variable inside the knot — it holds whatever value was passed in. You can pass strings, numbers, or booleans. Multiple parameters use commas: <code>=== trade(item, cost) ===</code>.</p>
+
+<p>Parameters solve the "almost identical knots" problem. Without them, you'd copy-paste a knot for each suspect/item/enemy. With them, one knot serves many callers — the data varies, the structure stays the same.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FUNCTIONS: INLINE COMPUTATION
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Functions: Inline Computation</h2>
+
+<p>Parameters make knots reusable. But what if you need a reusable <em>calculation</em> — something you can call inside a line of text? That's a <span class="term" data-term="function">function</span>:</p>
+
+<pre data-mode="fragment"><code>VAR health = 65
+
+-> status
+
+=== function describe_condition(hp) ===
+{
+- hp > 75:
+    ~ return "strong"
+- hp > 40:
+    ~ return "battered"
+- hp > 10:
+    ~ return "barely standing"
+- else:
+    ~ return "near death"
+}
+
+=== status ===
+You feel {describe_condition(health)}.
+-> END</code></pre>
+
+<p>Two things make functions special: (1) they're declared with <code>=== function name() ===</code>, and (2) they can be called <strong>inline</strong> with <code>{function_name(args)}</code> — the return value is inserted directly into the text. "You feel battered." — the function computed the word.</p>
+
+<p>The trade-off: functions <strong>cannot</strong> contain choices, diverts, or stitches. They're pure computation — data in, value out. If you need choices or flow control in a reusable section, you need a tunnel (next section).</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FUNCTIONS THAT DON'T RETURN
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Functions That Don't Return</h2>
+
+<p>Not every function computes a value. Some just print text conditionally — a reusable prose snippet you can drop into any scene:</p>
+
+<pre data-mode="fragment"><code>VAR gold = 12
+
+-> town
+
+=== function gold_status() ===
+{
+- gold > 15:
+    Your purse is heavy with coin.
+- gold > 5:
+    You have a modest amount of gold.
+- else:
+    Your pockets are nearly empty.
+}
+
+=== town ===
+{gold_status()}
+The market awaits.
+-> END</code></pre>
+
+<p>Calling <code>{gold_status()}</code> runs the function and prints whatever text its conditionals produce — but returns no value. This is useful for status descriptions you want consistent across scenes without copy-pasting the conditional logic.</p>
+
+<div class="note">
+  <strong>New concept — the function contract:</strong> Functions cannot modify global variables, offer choices, or divert flow. They can read globals, accept parameters, use temps internally, and either return a value or print text. This constraint is what makes them safe to call inline — they can't disrupt the story's flow.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TUNNELS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Tunnels: Sub-Scenes That Return</h2>
+
+<p>Functions are limited to computation. But what about a reusable <em>scene</em> — with choices, diverts, and multiple paths — that returns to where it was called? That's a <span class="term" data-term="tunnel">tunnel</span>:</p>
+
+<pre data-mode="fragment"><code>VAR player_health = 80
+
+-> forest
+
+=== camp ===
+The fire crackles. You rest and eat.
+~ player_health = player_health + 20
+{player_health > 100:
+    ~ player_health = 100
+}
+* [Stare into the flames]
+    The embers shift. Tomorrow will be harder.
+* [Sleep immediately]
+    Unconscious before your head hits the bedroll.
+- Dawn breaks.
+->->
+
+=== forest ===
+A quiet clearing.
+* [Make camp]
+    -> camp ->
+    Refreshed, you continue. Health: {player_health}.
+    -> forest
+* [Continue onward]
+    -> END</code></pre>
+
+<p>The key syntax: <code>-> camp -></code> calls the tunnel (note the second <code>-></code> after the knot name). Inside <code>camp</code>, the <code>->-></code> at the end means "return to the caller." Flow resumes right after <code>-> camp -></code> — the line "Refreshed, you continue." prints after camp finishes.</p>
+
+<p>Tunnels have <strong>full story capabilities</strong> — choices, diverts to other knots, variables, conditionals. The only rule: every path through the tunnel must end with <code>->-></code> (or divert to END/DONE). If you forget, the story silently stops — no compiler warning.</p>
+
+<div class="note">
+  <strong>Gotcha — missing <code>->-></code>:</strong> Unlike most ink errors, a tunnel that forgets to return doesn't produce a compile-time warning. The story just ends silently at that point. Always verify tunnels return by playing through every path.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WHEN TO USE WHAT
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>When to Use What</h2>
+
+<p>You now have four reuse mechanisms. Here's when each one fits:</p>
+
+<div class="note">
+  <strong>When to use which:</strong>
+  <ul>
+    <li><strong>Temp variable</strong> — scratch calculation within one knot. Dies when flow leaves.</li>
+    <li><strong>Parameter</strong> — pass data into a knot/function. One knot, many callers with different data.</li>
+    <li><strong>Function</strong> — reusable computation or text snippet. Can call inline in text. Cannot use choices or diverts.</li>
+    <li><strong>Tunnel</strong> — reusable scene with full story features. Runs and returns. Use for encounters, conversations, cutscenes.</li>
+    <li><strong>Knot + divert</strong> — one-way jump. No return. Use when flow permanently moves to a new scene.</li>
+    <li><strong>Stitch</strong> — sub-section within a knot. Use for local organization (hub-and-spoke within one location).</li>
+  </ul>
+  <strong>Rule of thumb:</strong> Can it be computed without choices? → Function. Does it need choices/flow but should return? → Tunnel. Is it a permanent scene change? → Knot + divert.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     INCLUDE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>INCLUDE: Splitting Into Files</h2>
+
+<p>As stories grow, a single file becomes unwieldy. <code>INCLUDE</code> lets you split across files:</p>
+
+<pre data-mode="fragment"><code>// main.ink
+INCLUDE functions.ink
+INCLUDE camp_scene.ink
+INCLUDE forest.ink
+INCLUDE cave.ink
+
+-> forest_path</code></pre>
+
+<p><code>INCLUDE</code> statements go at the top of your main file. They paste the contents of the included file at that position — there's no namespacing, no isolation. A function defined in <code>functions.ink</code> is callable from <code>cave.ink</code> as if they were one file.</p>
+
+<p>Common organization patterns for larger projects:</p>
+<ul>
+  <li><strong>By type:</strong> <code>functions.ink</code>, <code>tunnels.ink</code>, <code>variables.ink</code>, then scene files</li>
+  <li><strong>By location:</strong> <code>forest.ink</code>, <code>cave.ink</code>, <code>town.ink</code> — each containing that area's knots</li>
+  <li><strong>Shared + specific:</strong> <code>shared/combat.ink</code>, <code>shared/camp.ink</code>, then per-area files that call the shared tunnels</li>
+</ul>
+
+<div class="note">
+  <strong>No namespacing:</strong> All INCLUDE'd files share one global namespace. Two functions named <code>roll_dice</code> in different files will conflict. Use prefixes if your project has many contributors: <code>combat_roll_dice</code>, <code>social_roll_dice</code>.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     COMPLETE STORY
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Complete Reference Story</h2>
+
+<p>A forest-and-cave adventure where functions compute damage and describe health, tunnels handle reusable camp and battle scenes with full choices, and parameters let one battle knot serve multiple enemies:</p>
+
+<pre data-file="04_functions_and_tunnels.ink" data-mode="complete"><code>// 04_functions_and_tunnels.ink
+// Reference story for Lesson 04: Functions &amp; Tunnels
+// Demonstrates: temp variables, knot parameters, functions (with/without return),
+//               tunnels (->knot->), ->->, INCLUDE concept, "when to use what"
+
+VAR player_health = 100
+VAR gold = 20
+
+-> forest_path
+
+// --- FUNCTIONS ---
+
+=== function roll_dice(sides) ===
+    ~ return RANDOM(1, sides)
+
+=== function calculate_damage(base, armor) ===
+    ~ temp result = base - armor
+    {
+    - result &lt; 0:
+        ~ return 0
+    - else:
+        ~ return result
+    }
+
+=== function describe_condition(hp) ===
+    {
+    - hp > 75:
+        ~ return "strong"
+    - hp > 40:
+        ~ return "battered"
+    - hp > 10:
+        ~ return "barely standing"
+    - else:
+        ~ return "near death"
+    }
+
+=== function gold_text() ===
+    {
+    - gold > 15:
+        Your purse is heavy with coin.
+    - gold > 5:
+        You have a modest amount of gold.
+    - else:
+        Your pockets are nearly empty.
+    }
+
+// --- TUNNELS ---
+
+=== camp ===
+The fire crackles. You rest your legs and eat dried provisions.
+~ player_health = player_health + 20
+{player_health > 100:
+    ~ player_health = 100
+}
+You feel {describe_condition(player_health)}.
+* [Stare into the flames]
+    The embers shift. Tomorrow will be harder.
+* [Sleep immediately]
+    You're unconscious before your head hits the bedroll.
+- Dawn breaks. Time to move.
+->->
+
+=== battle(enemy, enemy_attack, enemy_armor) ===
+The {enemy} lunges at you!
+
+~ temp enemy_roll = roll_dice(6) + enemy_attack
+~ temp your_roll = roll_dice(6) + 3
+~ temp damage_taken = calculate_damage(enemy_roll, 2)
+~ temp damage_dealt = calculate_damage(your_roll, enemy_armor)
+
+{
+- your_roll > enemy_roll:
+    You strike true! The {enemy} takes {damage_dealt} damage.
+- your_roll == enemy_roll:
+    Blades clash — neither lands a blow.
+- else:
+    The {enemy} hits you for {damage_taken} damage!
+    ~ player_health = player_health - damage_taken
+}
+
+You feel {describe_condition(player_health)}.
+
+{player_health &lt;= 0:
+    You fall. The {enemy} stands over you.
+    -> defeat
+}
+
+* [Press the attack] -> battle(enemy, enemy_attack, enemy_armor)
+* [Disengage and flee]
+    You break away, gasping.
+-
+->->
+
+// --- MAIN STORY ---
+
+=== forest_path ===
+The forest road is quiet. You are {describe_condition(player_health)}.
+{gold_text()}
+
+* [Enter the dark grove]
+    A wolf emerges from the shadows.
+    -> battle("wolf", 2, 1) ->
+    The wolf limps away. You find 5 gold on a nearby corpse.
+    ~ gold = gold + 5
+    -> forest_path
+
+* [Make camp for the night]
+    -> camp ->
+    -> forest_path
+
+* [Continue to the cave]
+    -> cave_entrance
+
+=== cave_entrance ===
+The cave mouth yawns before you. Cold air seeps out.
+{gold_text()}
+
+* [Enter the cave]
+    A goblin shrieks and charges!
+    -> battle("goblin", 3, 2) ->
+    The goblin collapses. A glint of gold catches your eye.
+    ~ gold = gold + 8
+    -> cave_entrance
+
+* [Rest outside the cave]
+    -> camp ->
+    -> cave_entrance
+
+* {gold >= 15} [Pay the troll toll (15 gold)]
+    ~ gold = gold - 15
+    The troll steps aside with a grunt.
+    -> victory
+
+* [Turn back to the forest]
+    -> forest_path
+
+=== victory ===
+Beyond the troll, the pass opens into sunlit meadows.
+You made it through — {describe_condition(player_health)} but alive.
+{gold_text()}
+-> END
+
+=== defeat ===
+Your journey ends here, in the dark.
+-> END</code></pre>
+
+<p>Play through this multiple times — try fighting everything, try resting between battles, try saving gold for the troll toll. Notice how <code>battle</code> and <code>camp</code> are called from different locations but behave identically. That's the tunnel pattern: write once, call from anywhere, return to the caller.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> Write a story with: (1) a <code>function roll_dice(sides)</code> that returns <code>RANDOM(1, sides)</code>, (2) a tunnel <code>=== encounter(enemy) ===</code> that rolls the dice, prints "The {enemy} attacks for {damage}!" and offers "fight or flee" choices (with <code>->-></code> to return), (3) call the tunnel from two different knots with different enemy names. Verify both encounters return to their callers.</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Structure: function at top (<code>=== function roll_dice(sides) ===</code> with <code>~ return RANDOM(1, sides)</code>), then the tunnel (<code>=== encounter(enemy) ===</code> with <code>~ temp damage = roll_dice(6)</code>, text, choices, and <code>->-></code>). Two calling knots that each do <code>-> encounter("troll") -></code> then continue with local text.</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>Any structure with a function, a parameterized tunnel, and two callers works:</p>
+<pre data-mode="fragment"><code>-> village
+
+=== function roll_dice(sides) ===
+~ return RANDOM(1, sides)
+
+=== encounter(enemy) ===
+~ temp damage = roll_dice(6)
+The {enemy} attacks for {damage} damage!
+* [Fight back]
+    You swing wildly. The {enemy} staggers.
+* [Flee]
+    You turn and run.
+-
+->->
+
+=== village ===
+The village is under attack!
+-> encounter("bandit") ->
+You survived the village. Onward to the bridge.
+-> bridge
+
+=== bridge ===
+A troll blocks the path.
+-> encounter("troll") ->
+The troll retreats. The road is clear.
+-> END</code></pre>
+  <p>The key insight: <strong>tunnels are portable scenes</strong> — the encounter doesn't know or care whether it was called from the village or the bridge. It runs its content, offers its choices, then <code>->-></code> returns control to wherever it was called from. This is how shipped games handle hundreds of reusable dialogue segments.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Code Files</h2>
+<p>Download the reference story from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/ink-functions-and-tunnels/04_functions_and_tunnels.ink" download><code>04_functions_and_tunnels.ink</code></a> — forest-and-cave adventure (functions, tunnels, parameters, temp variables)</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next:</strong> <a href="0005-godot-ink-integration.html">First Godot Integration</a> — loading your ink story in Godot, displaying text line-by-line, and handling player choices with the InkPlayer node. The bridge from writing to playing.</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"temp-variable": "A local variable declared with ~ temp that exists only within the current knot. When flow leaves the knot, the temp is discarded. Used for scratch calculations — dice rolls, intermediate math, comparison results.", "parameter": "A value passed into a knot or function at call-time: === greet(name) ===. Parameters act as temp variables inside the target — they hold the passed data and die when flow leaves.", "function": "A special knot declared with === function name() === that can return values and be called inline in text with {name(args)}. Cannot contain choices, diverts, or stitches — pure computation only.", "tunnel": "A knot called with -> name -> that runs a full sub-scene (with choices, flow, variables) then returns to the caller via ->->. Portable scenes that don't need to know who called them.", "tunnel-return": "The ->-> syntax that ends a tunnel, returning flow to wherever the tunnel was called from. Every path through a tunnel must reach ->-> — forgetting it causes the story to silently stop.", "include": "INCLUDE filename.ink at the top of a file pastes that file's contents at that position. No namespacing — all files share one global scope. Used to split large stories into manageable pieces.", "inline-calling": "Calling a function inside text with {function_name(args)} — the return value is inserted directly into the prose. Only functions (not regular knots) support this.", "pass-by-value": "The default parameter behavior: a copy of the value is passed into the function/knot. Modifying the parameter inside doesn't affect the caller's variable.", "reuse-mechanism": "The four ways to avoid repetition in ink: temp (local scratch), parameters (data in), functions (computation out), tunnels (portable scenes with return). Each has different capabilities and constraints."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
