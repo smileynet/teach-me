@@ -88,7 +88,7 @@ Start with existing test-scene Poly Haven assets:
 - [ ] Noise map populates `noise_map` uniform in mk_toon_lite and visibly breaks band edges
 - [ ] Threshold map derived from AO data creates per-pixel shadow variation
 - [x] `mktoon_test.tscn` updated: albedo texture ON, normal map connected, noise_map assigned
-- [ ] Before/after screenshots demonstrate PBR vs toon-prepped under same shader
+- [x] Before/after screenshots demonstrate PBR vs toon-prepped under same shader
 - [ ] glTF export → Godot import round-trip validated
 - [ ] Pipeline documented as lesson-ready (reusable on any PBR asset)
 
