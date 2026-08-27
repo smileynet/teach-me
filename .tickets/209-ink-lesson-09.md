@@ -1,7 +1,7 @@
 ---
 id: "209"
 title: "Ink Lesson 03: Variables and Conditionals"
-status: open
+status: done
 blocked_by: ["208"]
 priority: high
 tags: [ink]
@@ -64,11 +64,15 @@ Opens with retroactive bridge from L02's unexplained `{weapons || potions || map
 
 ## Acceptance criteria
 
-- [ ] Lesson HTML at examples/ink-godot/lessons/0003-ink-variables-and-conditionals.html
-- [ ] Reference .ink story compiled via inklecate (0 errors, 0 warnings)
-- [ ] README.md in reference/code/ink-variables-and-conditionals/ directory
-- [ ] mise run ink:validate passes
-- [ ] Glossary terms annotated (jargon pass)
-- [ ] check-lesson.py passes
-- [ ] Exercise answer compiles clean
-- [ ] Independent subagent review passes
+- [x] Lesson HTML at examples/ink-godot/lessons/0003-ink-variables-and-conditionals.html
+- [x] Reference .ink story compiled via inklecate (0 errors, 0 warnings)
+- [x] README.md in reference/code/ink-variables-and-conditionals/ directory
+- [x] mise run ink:validate passes
+- [x] Glossary terms annotated (jargon pass)
+- [x] check-lesson.py passes
+- [x] Exercise answer compiles clean
+- [x] Independent subagent review passes
+
+## Resolution (2026-08-27)
+
+Lesson 03 complete: HTML + reference story (validates strict + playthrough), README, check-lesson 10/0, glossary annotated, exercise compiles, subagent review PASS. Post-review fixes: read-count self-loop bugs replaced with hub-and-spoke + VAR counter, sticky Enter-again, valid divert targets.
