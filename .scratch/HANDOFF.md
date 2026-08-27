@@ -1,48 +1,48 @@
 ---
-created_at: 2026-08-25T07:01:00-07:00
-base_commit: 8743709
-handoff_key: ink-godot-lessons
+created_at: 2026-08-26T21:15:00-07:00
+base_commit: 9d70c86
+handoff_key: mktoon-texture-prep
 ---
 
 # Handoff
 
+> Supersedes the `ink-godot-lessons` handoff (recoverable at git history; that workstream's tickets #208-214 remain open and untouched).
+
 ## Objective
-Generate 7 remaining ink+Godot lessons (#208-214) after completing infrastructure gates (#201, #205, #206).
+Build the `blender-texture-prep` lesson track (#216 epic, lessons #217-222): teach converting photoreal PBR textures to toon-friendly assets for the mk_toon_lite shader. Next concrete step: author lesson #217 (texture-audit).
 
 ## Constraints
-- inkgd (godot4 branch, v0.6.0) is the runtime — no .NET required. Standard Godot 4.7.1 works.
-- inklecate at `D:\tools\inklecate\inklecate.exe` (downloaded from GitHub releases).
-- `mise run ink:validate` validates all .ink stories (tool built this session, #200 done).
-- serve.py serves one workspace at a time (`--workspace examples/ink-godot` for ink content). #198 tracks the multi-workspace fix.
-- `examples/*/lessons/` is gitignored — use `git add -f` for lesson HTML.
-- WritingWithInk.md (124KB) at `.references/ink/Documentation/` is the authoritative reference.
+- **Godot MCP `save_scene` is DESTRUCTIVE** — strips inline SubResources/material_override from hand-authored .tscn. NEVER call it on mktoon_test.tscn. Edit .tscn on disk instead. (Full rules: `.kiro/skills/godot-validation/SKILL.md` → MCP Reliability.)
+- **game_eval mutations are ephemeral** — use for READ-only (capture + pixel sample), not persisting param/light changes.
+- **Agent visual self-reports are unreliable** — validate every capture with independent image read (`kiro-cli chat --no-interactive --trust-tools=read "<question> <path>"`) or your own read.
+- test-scene project at `D:\code\teach-me\test-scene`; screenshots land in Godot `user://` then copy to `test-scene/.scratch/screenshots/` (gitignored).
 
 ## Prior Decisions
-- ADR 0009: MKToon as sibling MAP (fork from toon-banding). ADR 0010: always build reference projects.
-- ink track uses GDScript (not C#). C# remix deferred to #194 (tests remix feature #160).
-- Separate MAP domain (`ink-godot.MAP.md`), not child of godot-gamedev.
-- Stitches placement: recommended for lesson 02 (#206 — decision ticket open, recommendation is "add to lesson 02").
+- #216 is an EPIC/tracking ticket — child lessons own concrete deliverables (node group→#218, ramp/noise/threshold→#220). Don't rebuild in #216.
+- Strategy A+B (research-backed): keep dynamic lighting, simplify albedo (posterize+palette) + author control maps. Do NOT bake lighting.
+- Lesson #217 = orientation (channel-isolation teaching, misconception-probe exercise, 2 SVGs, no code files). Full spec in ticket body.
 
 ## Current State
-- MKToon track COMPLETE (6 lessons, 0009-0014, all shaders validated).
-- Ink track: lesson 01 done + validated (godot_editor + ink:validate + check-lesson + jargon pass).
-- Ink-test-project spike working (inkgd loads stories, choices work, variables update).
-- 4 high-pri gates before lesson generation: #201 (index docs), #205 (fix warning), #206 (stitches), #207 (lesson 01 rewrite).
-- Tickets #208-214 created for lessons 02-08 with correct dependency chain.
+Work status lives in tickets (no PLAN.md). What's not in tickets:
+- mktoon_test.tscn is wired (albedo+normal on, outline next_pass) with a VALIDATED raking light `Transform3D(0.259..., ..., 0, 3, 0)` (rotation -15,75,0) that puts a terminator across the barrel face.
+- 4 progressive screenshots captured (flat/albedo-only/normal-only/both) + validated via independent image analysis. In `test-scene/.scratch/screenshots/` (mktoon_*.png).
+- Research promoted to `.memory/research/mktoon-texture-prep/` (12 files; #216/#217 reference them).
 
 ## Next Steps
-1. **#201** — Index `WritingWithInk.md` + `RunningYourInk.md` in knowledge base (unblocks all lesson generation)
-2. **#206** — Decide stitches placement (quick decision: add to lesson 02 title, update MAP)
-3. **#205/#207** — Fix lesson 01 warning + fallthrough framing (may be same fix)
-4. **#208** — Generate lesson 02 (Choices, Stitches & Weave) — first in the chain
-5. Continue #209-214 sequentially
+1. **Resolve band-strength decision** (see #217 validation findings): bands are production-subtle. Either tune stronger (light_bands_scale~0.85, wrapped~0.15, gooch=0 — via DISK edit, then capture+validate) OR reframe lesson around "subtle intent destroyed by noise". Needs the user's earlier call ("A" = tune) finished.
+2. **Author lesson #217** — spec is complete in ticket. Needs: strong-band flat reference recaptured after step 1.
+3. **#227** (medium, ready) — add `hint_normal` to mk_toon_lite normal_map uniform (1-line shader fix; keep both shader copies in sync).
 
 ## Fog
-- #207 ("Lesson 01 falsely teaches knot fallthrough") appeared on the ready list but wasn't created this session — investigate its content and whether it conflicts with #205.
-- Whether inkgd's godot4 branch will receive future maintenance is unknown — pin to current commit in the reference project if stability is needed.
+- Band-strength: blind param tuning FAILED (3 no-op iterations due to game_eval ephemerality — now understood). Correct path is disk-edit + capture + independent-validate loop. Not yet dialed to a crisp-band reference.
+- Whether to keep the barrel as the hero asset or switch to a sphere (cleaner banding at any angle) if disk-edit tuning still can't get crisp bands across the cylinder face.
 
 ## Evidence
-- ink:validate passes: `mise run ink:validate` → 2 files, 0 errors, 0 warnings
-- Godot editor validation: spike story plays through (confirmed via godot_editor agent)
-- Visual QA: browser agent confirmed map page (8 cards, correct badges, DAG arrows) and lesson page (code blocks, exercise, glossary tooltips, dark theme)
-- tkt validate: pass (after cleanup)
+- Screenshots: `test-scene/.scratch/screenshots/mktoon_{flat_color,albedo_only,normal_only,before_pbr}.png` (visually confirmed + independent image analysis).
+- Scene renders clean: headless `--check-only` import passed after light edit (commit fce58a2).
+- tkt validate: pass (11 pre-existing warnings, none in mktoon track). Frontier: #216, #217, #227 ready.
+
+## Recommended Updates
+- [x] skill(godot-validation): MCP failure modes captured this session (commit 644edc7)
+- [x] .tickets/227: hint_normal fix created this session
+- [ ] Consider promoting the "disk-edit + capture + independent-validate" loop to a named procedure in godot-validation if #218-222 reuse it heavily
