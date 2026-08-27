@@ -1,50 +1,64 @@
 """
 play-ink.py — Automated playthrough validator for ink stories.
 
-Compiles each .ink story, then plays it with bink using three choice
+Compiles each .ink story, then plays it with bink using several choice
 strategies to verify it reaches an ending (rather than hanging in a loop
-or crashing). Matches the Monte Carlo pattern used by wildwinter/Ink-Tester.
+or crashing). Matches the Monte Carlo pattern used by wildwinter/Ink-Tester,
+with state-hash cycle detection layered on top of a hard turn-cap backstop.
 
 Strategies (a story PASSES if ANY strategy reaches END):
   - LAST:   always pick the last choice (usually "leave"/"flee"/exit)
-  - FIRST:  always pick choice[0], turn-capped (detects infinite loops)
-  - RANDOM: random choices, 3 runs, turn-capped
+  - FIRST:  always pick choice[0] (detects loops on the first branch)
+  - RANDOM: independent seeded runs, each a fresh walk
 
-Classification:
-  - PASS: at least one strategy reached END (no content, no choices)
-  - WARN: no strategy reached END but no error (likely an intentional
-          loop with no auto-reachable exit under these strategies)
-  - FAIL: an exception occurred during play, or compilation failed
+Per-strategy outcomes are reported explicitly so a strategy-dependent
+hang is never silently swallowed.
+
+Outcome per strategy:
+  - END:   reached a terminal state (no content, no choices)
+  - LOOP:  detected a repeated state, or hit the turn-cap backstop
+  - ERROR: the ink runtime raised (e.g., "ran out of content" dead end)
+
+Story classification:
+  - PASS:  at least one strategy reached END and none errored
+  - FAIL:  any strategy hit an ink runtime ERROR (a real dead-end bug)
+  - WARN:  no strategy errored, but none reached END (all loop)
 
 Usage:
     python tools/play-ink.py [--dir DIR] [--inklecate PATH] [--turn-cap N]
 
 Requires: bink (installed via the mise setup task).
-
 Exit codes: 0=all pass, 1=one or more fail, 2=setup error.
 """
 
+import hashlib
 import os
 import random
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 DEFAULT_INK_DIR = "ink-test-project/stories"
 DEFAULT_INKLECATE = os.environ.get("INKLECATE", "D:/tools/inklecate/inklecate.exe")
 DEFAULT_TURN_CAP = 200
 RANDOM_RUNS = 3
+RANDOM_SEED = 42
 
 try:
-    from bink.story import story_from_file
+    from bink.story import Story
 except ImportError:
     print("ERROR: bink is not installed. Run: mise run setup", file=sys.stderr)
     sys.exit(2)
 
 
-def compile_ink(ink_path: Path, inklecate: str) -> Path | None:
-    """Compile an .ink file to .ink.json. Returns the json path, or None on failure."""
-    json_path = ink_path.with_suffix(".ink.json")
+class InkRuntimeError(Exception):
+    """A story-level ink runtime error (dead end, ran out of content, etc.)."""
+
+
+def compile_ink(ink_path: Path, inklecate: str, out_dir: Path) -> Path | None:
+    """Compile an .ink file to .ink.json in out_dir. Returns json path or None."""
+    json_path = out_dir / (ink_path.stem + ".ink.json")
     cmd = [inklecate, "-o", str(json_path), str(ink_path)]
     result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
@@ -54,74 +68,93 @@ def compile_ink(ink_path: Path, inklecate: str) -> Path | None:
     return json_path
 
 
-def is_ended(story) -> bool:
-    """A story has ended when it can't continue and offers no choices."""
-    return not story.can_continue() and len(list(story.choices)) == 0
+def load_story(json_path: Path) -> Story:
+    return Story(json_path.read_text(encoding="utf-8"))
+
+
+def state_hash(story: Story) -> str:
+    """Hash the story's saved state for cycle detection.
+
+    Note: ink visit counts increment on every pass, so an identical hash
+    only fires for genuinely stateless cycles. It never produces a false
+    positive (distinct states never collide), so it's a safe early-exit;
+    the turn-cap is the guaranteed backstop for stateful loops.
+    """
+    return hashlib.sha1(story.save_state().encode("utf-8")).hexdigest()
 
 
 def play_once(json_path: Path, pick, turn_cap: int) -> tuple[str, int]:
     """
-    Play a story to completion using the `pick` function to select choices.
-    `pick(num_choices)` returns the index to choose.
-    Returns (outcome, turns) where outcome is "END", "LOOP", or "ERROR".
+    Play a story using `pick(num_choices) -> index`.
+    Returns (outcome, turns): outcome in {"END", "LOOP", "ERROR"}.
+    Only ink runtime errors are caught here; tool bugs propagate.
     """
-    story = story_from_file(str(json_path))
+    story = load_story(json_path)
+    seen_states: set[str] = set()
     turns = 0
     while turns < turn_cap:
-        # Exhaust available content
-        story.continue_maximally()
+        try:
+            story.continue_maximally()
+        except Exception as e:  # bink raises a RuntimeError for ink errors
+            if "ran out of content" in str(e) or "RUNTIME ERROR" in str(e):
+                raise InkRuntimeError(str(e)) from e
+            raise  # tool bug — let it propagate
         choices = list(story.choices)
         if not choices:
-            # No choices and can't continue → ended
             if not story.can_continue():
                 return ("END", turns)
-            # Can continue but produced no choices — loop guard
             turns += 1
             continue
+        # State-hash cycle detection (best-effort; backstopped by turn_cap)
+        h = state_hash(story)
+        if h in seen_states:
+            return ("LOOP", turns)
+        seen_states.add(h)
         idx = pick(len(choices))
         story.choose_choice_index(idx)
         turns += 1
     return ("LOOP", turns)
 
 
-def validate_story(ink_path: Path, inklecate: str, turn_cap: int) -> dict:
-    """Compile and play a story through all strategies. Returns a result dict."""
-    json_path = compile_ink(ink_path, inklecate)
+def run_strategy(json_path: Path, pick, turn_cap: int) -> tuple[str, int]:
+    """Run one strategy, converting ink errors into an ERROR outcome."""
+    try:
+        return play_once(json_path, pick, turn_cap)
+    except InkRuntimeError:
+        return ("ERROR", 0)
+
+
+def validate_story(ink_path: Path, inklecate: str, turn_cap: int, out_dir: Path) -> dict:
+    json_path = compile_ink(ink_path, inklecate, out_dir)
     if json_path is None:
         return {"name": ink_path.name, "status": "FAIL", "detail": "compilation failed"}
 
-    strategies = {
-        "last": lambda n: n - 1,
-        "first": lambda n: 0,
-    }
+    results: dict[str, tuple[str, int]] = {}
+    results["last"] = run_strategy(json_path, lambda n: n - 1, turn_cap)
+    results["first"] = run_strategy(json_path, lambda n: 0, turn_cap)
 
-    results = {}
-    try:
-        for label, pick in strategies.items():
-            outcome, turns = play_once(json_path, pick, turn_cap)
-            results[label] = (outcome, turns)
+    # Random: independent seeded runs (fresh RNG per run for reproducibility)
+    random_outcome = ("LOOP", turn_cap)
+    for run_i in range(RANDOM_RUNS):
+        rng = random.Random(RANDOM_SEED + run_i)
+        outcome = run_strategy(json_path, lambda n: rng.randrange(n), turn_cap)
+        if outcome[0] == "END":
+            random_outcome = outcome
+            break
+        if outcome[0] == "ERROR":
+            random_outcome = outcome
+            break
+    results["random"] = random_outcome
 
-        # Random: multiple runs, record best outcome
-        rng = random.Random(42)
-        random_best = ("LOOP", turn_cap)
-        for _ in range(RANDOM_RUNS):
-            outcome, turns = play_once(json_path, lambda n: rng.randrange(n), turn_cap)
-            if outcome == "END":
-                random_best = (outcome, turns)
-                break
-        results["random"] = random_best
-    except Exception as e:
-        return {"name": ink_path.name, "status": "FAIL", "detail": f"runtime error: {e}"}
+    detail = ", ".join(f"{k}:{o}({t}t)" for k, (o, t) in results.items())
+    outcomes = [o for o, _ in results.values()]
 
-    reached_end = [label for label, (o, _) in results.items() if o == "END"]
-    if reached_end:
+    if "ERROR" in outcomes:
+        status = "FAIL"
+    elif "END" in outcomes:
         status = "PASS"
-        detail = ", ".join(f"{label}:{results[label][0]}({results[label][1]}t)" for label in results)
     else:
         status = "WARN"
-        detail = "no strategy reached END: " + ", ".join(
-            f"{label}:{results[label][0]}" for label in results
-        )
 
     return {"name": ink_path.name, "status": status, "detail": detail}
 
@@ -134,14 +167,21 @@ def main():
     args = sys.argv[1:]
     i = 0
     while i < len(args):
-        if args[i] == "--dir":
-            ink_dir = args[i + 1]; i += 2
-        elif args[i] == "--inklecate":
-            inklecate = args[i + 1]; i += 2
-        elif args[i] == "--turn-cap":
-            turn_cap = int(args[i + 1]); i += 2
+        flag = args[i]
+        if flag in ("--dir", "--inklecate", "--turn-cap"):
+            if i + 1 >= len(args):
+                print(f"ERROR: {flag} requires a value", file=sys.stderr)
+                sys.exit(2)
+            value = args[i + 1]
+            if flag == "--dir":
+                ink_dir = value
+            elif flag == "--inklecate":
+                inklecate = value
+            else:
+                turn_cap = int(value)
+            i += 2
         else:
-            print(f"Unknown arg: {args[i]}", file=sys.stderr)
+            print(f"Unknown arg: {flag}", file=sys.stderr)
             sys.exit(2)
 
     if not Path(inklecate).exists():
@@ -163,15 +203,18 @@ def main():
 
     fail_count = 0
     warn_count = 0
-    for ink_path in ink_files:
-        result = validate_story(ink_path, inklecate, turn_cap)
-        marker = {"PASS": "[ok]", "WARN": "[??]", "FAIL": "[XX]"}[result["status"]]
-        print(f"  {marker} {result['name']}")
-        print(f"       {result['detail']}")
-        if result["status"] == "FAIL":
-            fail_count += 1
-        elif result["status"] == "WARN":
-            warn_count += 1
+    # Compile artifacts to a temp dir so we don't litter the stories directory.
+    with tempfile.TemporaryDirectory(prefix="play-ink-") as tmp:
+        out_dir = Path(tmp)
+        for ink_path in ink_files:
+            result = validate_story(ink_path, inklecate, turn_cap, out_dir)
+            marker = {"PASS": "[ok]", "WARN": "[??]", "FAIL": "[XX]"}[result["status"]]
+            print(f"  {marker} {result['name']}")
+            print(f"       {result['detail']}")
+            if result["status"] == "FAIL":
+                fail_count += 1
+            elif result["status"] == "WARN":
+                warn_count += 1
 
     total = len(ink_files)
     passed = total - fail_count - warn_count
