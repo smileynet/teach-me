@@ -25,6 +25,8 @@ Structural validation (compile, playthrough-reaches-END) CANNOT catch #2 and #3 
 ### Part A — Fragment-compile check (catches bug class #1)
 Extract every `<pre data-file/data-mode><code>` block from each lesson, decode HTML entities, compile with inklecate. FAIL on any fragment that has a `-> ` entry divert + knot declaration but doesn't compile. SKIP intentional single-line illustrations (no entry divert). Add to check-lesson.py or a new tool; wire into `mise run verify`.
 
+Also add the **Q15 glossary-coverage check** (deferred from #223): warn if a glossary-data JSON key has no matching `data-term` span in the body. Verified manually via a .scratch coverage script this session; this makes it automated.
+
 ### Part B — Golden-transcript validation (catches bug classes #2, #3)
 For each reference story: drive through a FIXED choice sequence, capture the output transcript, commit as a `.transcript` fixture. On `mise run verify`, replay and diff. Any output change (intended or regression) surfaces for review. This is the only mechanism that catches wrong-text bugs like the self-loop read count.
 - Use bink (already a dep) for deterministic replay
