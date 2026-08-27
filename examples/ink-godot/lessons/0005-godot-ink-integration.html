@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5: First Godot Integration</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="ink-godot-map.html">Ink + Godot</a> <span class="nav-sep">›</span> <span>First Godot Integration</span></nav>
+<h1>First Godot Integration</h1>
+
+<div class="lesson-meta">
+  Lesson 5 · Ink + Godot · ~15 min read<br>
+  <strong>Win:</strong> You can load a compiled ink story in Godot, display its text on screen, and handle player choices through the <span class="term" data-term="inkplayer">InkPlayer</span> runtime loop.
+</div>
+
+<div class="key-concept">
+  <strong>After this lesson:</strong> You can wire a compiled <code>.ink.json</code> into a Godot scene, drive it with <span class="term" data-term="continue-maximally">continue-and-read</span>, render <span class="term" data-term="current-choices">choices</span> as buttons, and read ink variables back into GDScript — the bridge from writing narrative to playing it.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FROM WRITING TO PLAYING
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>From Writing to Playing</h2>
+
+<p>Lessons 01–04 taught you to <em>write</em> ink — knots, choices, variables, functions. You proved each story was correct without an engine: <code>mise run ink:validate</code> compiled it, and a golden transcript pinned its output. That validation-first habit pays off now. You are about to run the story inside Godot, and when something looks wrong you will already know the story itself is sound — the bug is in the wiring.</p>
+
+<p>This lesson uses <span class="term" data-term="inkgd">inkgd</span>, the pure-GDScript ink runtime. It needs no .NET, so it runs anywhere Godot runs — the right fit for learning and for the <code>ink-test-project</code> in this track.</p>
+
+<div class="note">
+  <strong>When to use which:</strong>
+  <ul>
+    <li><span class="term" data-term="inkgd">inkgd</span> (GDScript) — no .NET dependency, works on every export target. What this track uses.</li>
+    <li>godot-ink (C#) — wraps the official ink runtime, ~50× faster, the studio default.</li>
+  </ul>
+  <strong>Rule of thumb:</strong> use godot-ink if you can ship a .NET build and need the speed for a large game; otherwise inkgd keeps setup simple. The runtime loop you learn here is nearly identical in both.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE RUNTIME LOOP
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Runtime Loop</h2>
+
+<p>Playing an ink story is a loop with two phases: a one-time <strong>setup</strong> that builds the story, then a repeating <strong>advance</strong> cycle that pulls text and feeds back the player's choice.</p>
+
+<p>The diagram below shows both. Notice the split: setup ends at a signal, and only <em>after</em> that signal do you touch the story.</p>
+
+<svg viewBox="0 0 640 300" role="img" aria-labelledby="diagram-runtime-loop"
+     style="display:block;margin:1.5rem auto;max-width:100%;height:auto">
+  <title id="diagram-runtime-loop">The inkgd runtime loop: a one-time setup phase (create player, assign compiled story, connect the loaded signal, build the story) that ends at the loaded signal, followed by a repeating advance cycle (continue the story, read the text, and either render choices that feed a chosen index back into continue, or end).</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--svg-line)"/>
+    </marker>
+  </defs>
+
+  <!-- Setup phase label -->
+  <text x="20" y="24" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="var(--svg-neutral-text)">SETUP (once)</text>
+
+  <!-- Setup boxes -->
+  <rect x="20" y="34" width="130" height="46" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="85" y="54" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="var(--svg-primary-text)">create player</text>
+  <text x="85" y="70" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-primary-text)">+ add to tree</text>
+
+  <rect x="180" y="34" width="130" height="46" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="245" y="54" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="var(--svg-primary-text)">assign ink_file</text>
+  <text x="245" y="70" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-primary-text)">(.ink.json)</text>
+
+  <rect x="340" y="34" width="130" height="46" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="405" y="54" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="var(--svg-primary-text)">connect loaded</text>
+  <text x="405" y="70" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-primary-text)">then create_story</text>
+
+  <line x1="150" y1="57" x2="180" y2="57" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="310" y1="57" x2="340" y2="57" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Gate: loaded signal -->
+  <rect x="500" y="34" width="120" height="46" rx="6" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="2"/>
+  <text x="560" y="54" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="var(--svg-warning-text)">loaded(true)</text>
+  <text x="560" y="70" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-warning-text)">the gate</text>
+  <line x1="470" y1="57" x2="500" y2="57" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Gate drops into advance phase -->
+  <line x1="560" y1="80" x2="560" y2="120" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Advance phase label -->
+  <text x="20" y="140" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="var(--svg-neutral-text)">ADVANCE (repeats)</text>
+
+  <!-- Advance boxes -->
+  <rect x="430" y="150" width="130" height="46" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="495" y="170" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="var(--svg-primary-text)">continue story</text>
+  <text x="495" y="186" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-primary-text)">maximally</text>
+  <line x1="560" y1="150" x2="560" y2="150" stroke="var(--svg-line)" stroke-width="1.5"/>
+  <line x1="560" y1="120" x2="495" y2="120" stroke="var(--svg-line)" stroke-width="1.5"/>
+  <line x1="495" y1="120" x2="495" y2="150" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="250" y="150" width="130" height="46" rx="6" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5"/>
+  <text x="315" y="170" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="var(--svg-neutral-text)">read current_text</text>
+  <text x="315" y="186" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral-text)">→ show on screen</text>
+  <line x1="430" y1="173" x2="380" y2="173" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Branch: choices vs end -->
+  <rect x="20" y="150" width="150" height="46" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="95" y="170" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="var(--svg-primary-text)">has_choices?</text>
+  <text x="95" y="186" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-primary-text)">render buttons</text>
+  <line x1="250" y1="173" x2="170" y2="173" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Choice loops back to continue -->
+  <line x1="95" y1="196" x2="95" y2="240" stroke="var(--svg-line)" stroke-width="1.5"/>
+  <line x1="95" y1="240" x2="495" y2="240" stroke="var(--svg-line)" stroke-width="1.5"/>
+  <line x1="495" y1="240" x2="495" y2="196" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="295" y="256" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-text)">choose_choice_index(i) → continue again</text>
+
+  <!-- End branch -->
+  <rect x="20" y="264" width="150" height="30" rx="6" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="1.5"/>
+  <text x="95" y="284" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-success-text)">not can_continue → end</text>
+  <line x1="95" y1="196" x2="95" y2="264" stroke="var(--svg-line)" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#arrow)"/>
+</svg>
+
+<div class="key-concept">
+  <strong>The one rule that trips everyone up:</strong> never read the story's text or advance it before the <span class="term" data-term="loaded-signal">loaded</span> signal fires with <code>true</code>. Building the story is asynchronous — the result arrives through a signal, not on the next line. Touch the story only inside the signal handler.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SETUP: BUILD THE STORY
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Setup: Build the Story</h2>
+
+<p>The setup phase has a fixed order. Each step depends on the one before it, and the last step hands off to a signal:</p>
+
+<pre data-mode="fragment"><code>func _ready():
+    _ink_player = InkPlayerFactory.create()   # 1. make the player
+    _ink_player.loads_in_background = false    # 2. load synchronously (small story)
+    add_child(_ink_player)                     # 3. InkPlayer is a Node — add it to the tree
+
+    _ink_player.ink_file = load("res://stories/05_first_godot_integration.ink.json")  # 4. the COMPILED story
+    _ink_player.connect("loaded", Callable(self, "_on_story_loaded"))                  # 5. wait for the signal
+
+    call_deferred("_create_story")             # 6. build it — next frame</code></pre>
+
+<p>Step 4 assigns the <strong>compiled</strong> <code>.ink.json</code>, not the raw <code>.ink</code> source — Godot imports your story to JSON, and that is what the runtime plays. Step 5 connects the <span class="term" data-term="loaded-signal">loaded</span> signal <em>before</em> building, because building reports its result through that signal.</p>
+
+<div class="note">
+  <strong>Gotcha — why <code>create_story()</code> is deferred:</strong> inkgd installs a runtime autoload (<code>__InkRuntime</code>) when you enable the plugin. In <code>_ready()</code> that autoload may not be in the tree yet, so calling <code>create_story()</code> immediately can fail with nothing on screen. <code>call_deferred</code> waits one frame so the runtime is ready. This is the most common inkgd setup error.
+</div>
+
+<pre data-mode="fragment"><code>func _create_story():
+    _ink_player.create_story()   # builds the story, then emits `loaded`</code></pre>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PRINT BEFORE YOU PAINT
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Print Before You Paint</h2>
+
+<p>Before wiring any UI, prove the wiring works by printing one line to the Output console. This is the smallest possible confirmation that the story loaded and text is flowing:</p>
+
+<pre data-mode="fragment"><code>func _on_story_loaded(successfully: bool):
+    if not successfully:
+        push_error("Story failed to load")
+        return
+    print(_ink_player.continue_story_maximally())   # one passage → Output panel</code></pre>
+
+<p>Run the scene. If the cave-entrance text appears in the Output panel, the story is connected. Now — and only now — is it worth putting text on screen. Debugging a blank <code>Label</code> is harder than reading a printed line.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE FULL PLAYER
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Full Player</h2>
+
+<p>Now replace the print with real rendering. The handler reads the accumulated text into a <code>RichTextLabel</code>, then branches: if the story is waiting on <span class="term" data-term="current-choices">choices</span>, render a button per choice; otherwise the story has ended, so read a variable back to prove GDScript and ink share state.</p>
+
+<p>Here is the complete script. Attach it to a <code>Control</code> with two direct children: <code>TextLabel</code> (a <code>RichTextLabel</code>, with <em>BBCode enabled</em> so the coloured messages render) and <code>ChoicesContainer</code> (a <code>VBoxContainer</code>).</p>
+
+<pre data-file="story_player.gd" data-mode="complete"><code># story_player.gd
+# First Godot integration for an ink story using the inkgd GDScript runtime.
+# Loads a compiled .ink.json, displays text, renders choices as buttons, and
+# reads a story variable when the story ends.
+#
+# Node setup (attach this to a Control):
+#   Control (this script)
+#   +- TextLabel        : RichTextLabel   -- story text (BBCode enabled)
+#   +- ChoicesContainer : VBoxContainer   -- choice buttons appear here
+extends Control
+
+var InkPlayerFactory := preload("res://addons/inkgd/ink_player_factory.gd") as GDScript
+
+var _ink_player = null
+
+@onready var _text_label: RichTextLabel = $TextLabel
+@onready var _choices_container: VBoxContainer = $ChoicesContainer
+
+
+func _ready():
+    # 1. Create the player and put it in the tree (InkPlayer is a Node).
+    _ink_player = InkPlayerFactory.create()
+    _ink_player.loads_in_background = false
+    add_child(_ink_player)
+
+    # 2. Assign the COMPILED story (.ink.json, not the raw .ink source).
+    _ink_player.ink_file = load("res://stories/05_first_godot_integration.ink.json")
+
+    # 3. Wait for the story to finish building before touching it.
+    _ink_player.connect("loaded", Callable(self, "_on_story_loaded"))
+
+    # 4. Defer create_story() so the __InkRuntime autoload is ready this frame.
+    call_deferred("_create_story")
+
+
+func _create_story():
+    _ink_player.create_story()
+
+
+# Only interact with the story once it has loaded successfully.
+func _on_story_loaded(successfully: bool):
+    if not successfully:
+        _text_label.text = "[color=red]ERROR: Story failed to load.[/color]"
+        return
+    _advance_story()
+
+
+# Run the story to the next choice point (or the end), then show the result.
+func _advance_story():
+    _ink_player.continue_story_maximally()
+
+    var text = _ink_player.current_text
+    if text != "":
+        _text_label.text += text + "\n"
+
+    if _ink_player.has_choices:
+        _show_choices()
+    elif not _ink_player.can_continue:
+        _on_ended()
+
+
+# Render one button per available choice.
+func _show_choices():
+    for child in _choices_container.get_children():
+        child.queue_free()
+
+    var choices = _ink_player.current_choices
+    for i in range(choices.size()):
+        var btn = Button.new()
+        btn.text = choices[i].text          # each choice is an object; use .text
+        btn.connect("pressed", Callable(self, "_on_choice_selected").bind(i))
+        _choices_container.add_child(btn)
+
+
+func _on_choice_selected(index: int):
+    for child in _choices_container.get_children():
+        child.queue_free()
+
+    _ink_player.choose_choice_index(index)  # tell the runtime which choice
+    _advance_story()                         # then continue
+
+
+# The story ended -- read a variable to prove GDScript shares ink's state.
+func _on_ended():
+    var torch_lit = _ink_player.get_variable("torch_lit")
+    _text_label.text += "\n[color=gray]torch_lit = %s[/color]" % str(torch_lit)</code></pre>
+
+<p>Walk the advance cycle: <span class="term" data-term="continue-maximally">continue_story_maximally()</span> runs the story to the next choice point and fills <code>current_text</code>. If <code>has_choices</code> is true, each entry in <code>current_choices</code> is an object — read its <code>.text</code> for the button label. Pressing a button calls <span class="term" data-term="choose-choice-index">choose_choice_index(i)</span>, which tells the runtime which branch to take, then advances again. When a continue produces no choices and <code>can_continue</code> is false, the story is over, and <span class="term" data-term="get-variable">get_variable</span> reads the ink global <code>torch_lit</code> — proof the two languages share one state.</p>
+
+<div class="note">
+  <strong>New concept — <code>continue_story_maximally()</code> vs <code>continue_story()</code>:</strong> maximally runs a whole passage at once (simplest mental model, used here). <code>continue_story()</code> returns one line at a time — reach for it later when you want a click-to-reveal reader. Both update <code>current_text</code> and hand off to choices or the end the same way.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A teammate wires up their first ink story like this, expecting the opening line to print — but the console shows an empty string:</p>
+<pre data-mode="fragment"><code>func _ready():
+    _ink_player = InkPlayerFactory.create()
+    add_child(_ink_player)
+    _ink_player.ink_file = load("res://stories/intro.ink.json")
+    _ink_player.create_story()
+    print(_ink_player.current_text)   # prints "" — why?</code></pre>
+  <p>Why is <code>current_text</code> empty here, and what should they do instead?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Look at the <em>order</em> things happen in. Does <code>create_story()</code> finish building the story before the very next line runs? How does the runtime tell you it's done?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>Building the story is <strong>asynchronous</strong>. <code>create_story()</code> starts the build and returns immediately — it does <em>not</em> hand back a ready story on the next line. The result arrives later, through the <span class="term" data-term="loaded-signal">loaded</span> signal. So <code>print(_ink_player.current_text)</code> runs before the story exists, and every read-only property returns its empty default (<code>""</code>) rather than crashing — which is exactly why the bug looks like "nothing happened" instead of an error.</p>
+  <p>The fix is to connect <code>loaded</code> first and read the story only inside the handler:</p>
+<pre data-mode="fragment"><code>    _ink_player.connect("loaded", Callable(self, "_on_loaded"))
+    _ink_player.create_story()
+
+func _on_loaded(successfully: bool):
+    if not successfully:
+        return
+    print(_ink_player.continue_story_maximally())   # now the story exists</code></pre>
+  <p><strong>Key insight:</strong> at the engine–script boundary, "call then read the next line" is a sequential mental model that breaks. The signal is the return channel — act when it fires, not before.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Code Files</h2>
+<p>Download the final-state files from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/godot-ink-integration/story_player.gd" download><code>story_player.gd</code></a> — the full InkPlayer runtime loop</li>
+  <li><a href="../reference/code/godot-ink-integration/05_first_godot_integration.ink" download><code>05_first_godot_integration.ink</code></a> — the cave-entrance reference story (compile to <code>.ink.json</code> before loading)</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next:</strong> <a href="0006-tags-as-commands.html">Tags as Commands</a> — your story drives text and choices now, but real games need it to drive audio, portraits, and camera too. You'll design a tag protocol that commands game systems from ink without coupling the two.</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"inkplayer": "The inkgd node that runs a compiled ink story in Godot. Created with InkPlayerFactory.create(), added to the scene tree, and driven with continue/choose calls. Holds the story state and exposes current_text, has_choices, and current_choices.", "inkgd": "A pure-GDScript port of the ink runtime (by ephread). Needs no .NET, so it runs on any Godot export target. This track uses its godot4 branch. The alternative, godot-ink, is a faster C# wrapper around the official ink runtime.", "loaded-signal": "The InkPlayer signal emitted after create_story() finishes building the story. It carries a bool: true on success, false on failure. Because building is asynchronous, this signal is the gate — you must not read or advance the story until loaded(true) fires.", "continue-maximally": "continue_story_maximally() runs the story forward until the next choice point or the end, returning (and accumulating into current_text) all the text produced. Contrast with continue_story(), which returns one line at a time for click-to-reveal pacing.", "current-choices": "The InkPlayer property holding the choices the story is currently offering. Each element is a choice object exposing .text (the label to show). Empty unless the story is waiting for the player to choose; has_choices is the convenient boolean check.", "choose-choice-index": "choose_choice_index(i) tells the runtime the player picked the choice at index i. It's a no-op if the story isn't awaiting a choice or i is out of range. After choosing, call a continue method again to advance the story.", "get-variable": "get_variable(name) reads the value of a named ink global variable from GDScript, or null if it doesn't exist. It's how the engine inspects story state — proof that ink and GDScript share one set of variables. Companion setter: set_variable(name, value)."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
