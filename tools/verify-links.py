@@ -31,6 +31,24 @@ LINK_PATTERN = re.compile(r'<link[^>]+href="([^"]+)"', re.IGNORECASE)
 SCRIPT_PATTERN = re.compile(r'<script[^>]+src="([^"]+)"', re.IGNORECASE)
 
 
+def _resolve_via_assets_mount(href: str) -> Path | None:
+    """Map a link that points into an `assets/` segment onto the real mount.
+
+    `examples/*/assets` is a git symlink checked out as a plain TEXT STUB on
+    Windows (a small file containing e.g. "../../assets"), so the per-workspace
+    path is a file, not a dir, and disk resolution of `../assets/style.css`
+    spuriously misses. serve.py mounts /assets from PROJECT_ROOT/assets
+    (serve.py:458); resolve against that to match runtime behavior.
+
+    Returns None if the href does not traverse an `assets/` segment.
+    """
+    parts = href.replace("\\", "/").split("/")
+    if "assets" not in parts:
+        return None
+    tail = parts[parts.index("assets") + 1:]  # path AFTER the assets segment
+    return (PROJECT_ROOT / "assets" / Path(*tail)) if tail else (PROJECT_ROOT / "assets")
+
+
 def find_html_files(target: str | None = None) -> list[Path]:
     """Find HTML files to check."""
     if target:
@@ -62,7 +80,13 @@ def check_file(html_path: Path) -> list[tuple[str, str]]:
             # Resolve relative path
             target = (parent / href).resolve()
             if not target.exists():
-                failures.append((href, f"file not found: {target}"))
+                # `examples/*/assets` is a git symlink checked out as a text stub
+                # on Windows, so assets links resolve under a non-directory and
+                # spuriously miss. serve.py mounts /assets from PROJECT_ROOT; try
+                # that mount before reporting a failure.
+                asset_target = _resolve_via_assets_mount(href)
+                if asset_target is None or not asset_target.exists():
+                    failures.append((href, f"file not found: {target}"))
 
     return failures
 

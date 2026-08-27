@@ -50,7 +50,7 @@ def find_questions(lesson_id: str, questions_dir: Path | None = None) -> list[di
     return questions
 
 
-def generate_page(questions: list[dict], title: str, lesson_file: str, map_page: str, domain: str = "", domain_slug: str = "") -> str:
+def generate_page(questions: list[dict], title: str, lesson_file: str, map_page: str, domain: str = "", domain_slug: str = "", depth: int = 2) -> str:
     """Generate the Preact quiz page."""
     sys.path.insert(0, str(PROJECT_ROOT / "tools"))
     from lib.page_template import render_quiz_page
@@ -58,13 +58,27 @@ def generate_page(questions: list[dict], title: str, lesson_file: str, map_page:
     return render_quiz_page(
         title=title,
         questions=questions,
-        lesson_id=lesson_file.replace(".html", ""),
+        lesson_id=lesson_file.rsplit("/", 1)[-1].replace(".html", ""),
         lesson_file=lesson_file,
         map_page=map_page,
         domain=domain,
         domain_slug=domain_slug,
-        depth=2,
+        depth=depth,
     )
+
+
+def _infer_depth(output_path: Path, workspace_root: Path) -> int:
+    """Depth = number of directory levels from the workspace root to the quiz file.
+
+    lessons/quiz/q.html            -> depth 2
+    lessons/{domain}/quiz/q.html   -> depth 3
+    Falls back to 2 if the path is not under the workspace root.
+    """
+    try:
+        rel = output_path.resolve().relative_to(workspace_root.resolve())
+    except ValueError:
+        return 2
+    return len(rel.parts) - 1  # parts minus the filename itself
 
 
 def main():
@@ -77,6 +91,7 @@ def main():
     parser.add_argument("--domain-slug", default="", help="Domain slug (for breadcrumb links)")
     parser.add_argument("--output", help="Output path (default: lessons/quiz/{lesson-id}-quiz.html)")
     parser.add_argument("--workspace", help="Workspace root directory (overrides default project root for finding questions)")
+    parser.add_argument("--depth", type=int, default=None, help="Directory depth of the quiz from the workspace root (inferred from --output if omitted)")
     args = parser.parse_args()
 
     # Determine questions directory
@@ -87,6 +102,7 @@ def main():
         questions_dir = workspace / "learning-records" / "questions"
         default_output_dir = workspace / "lessons" / "quiz"
     else:
+        workspace = PROJECT_ROOT
         questions_dir = QUESTIONS_DIR
         default_output_dir = OUTPUT_DIR
 
@@ -100,9 +116,11 @@ def main():
         output_path = PROJECT_ROOT / output_path
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    page_html = generate_page(questions, args.title, args.lesson_file, args.map_page, args.domain, args.domain_slug)
+    depth = args.depth if args.depth is not None else _infer_depth(output_path, workspace)
+
+    page_html = generate_page(questions, args.title, args.lesson_file, args.map_page, args.domain, args.domain_slug, depth)
     output_path.write_text(page_html, encoding="utf-8")
-    print(f"Generated: {output_path} ({len(questions)} questions)")
+    print(f"Generated: {output_path} ({len(questions)} questions, depth {depth})")
 
 
 if __name__ == "__main__":

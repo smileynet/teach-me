@@ -254,13 +254,19 @@ def render_quiz_page(
     depth: int = 2,
 ) -> str:
     """Render a complete quiz page."""
-    lesson_url = f"../{lesson_id}.html" if depth == 2 else f"{lesson_id}.html"
+    # The quiz always sits one directory below its lesson (lessons/quiz/ or
+    # lessons/{domain}/quiz/), so the lesson is always one level up.
+    lesson_url = f"../{lesson_id}.html"
+    # index.html and the domain map live at the lessons/ root. The quiz is
+    # `depth - 1` levels below lessons/ (depth 2 → 1 level, depth 3 → 2 levels).
+    up_to_lessons = "../" * (depth - 1)
+    # assets/ lives at the workspace root, i.e. `depth` levels up from the quiz.
+    assets_prefix = "../" * depth
 
     crumbs_list: list[tuple[str, str | None]] = []
     if domain:
-        # Quiz is in lessons/quiz/ — index and map are in lessons/ (one dir up)
-        index_url = "../index.html"
-        map_url = f"../{domain_slug}-map.html"
+        index_url = f"{up_to_lessons}index.html"
+        map_url = f"{up_to_lessons}{domain_slug}-map.html"
         crumbs_list = [
             ("All Lessons", index_url),
             (domain, map_url),
@@ -280,16 +286,16 @@ def render_quiz_page(
         "mapPage": map_page,
     }
 
-    module = """\
-    import { h, render } from 'preact';
+    module = f"""\
+    import {{ h, render }} from 'preact';
     import htm from 'htm';
-    import { QuizView } from '../../assets/components/QuizView.js';
+    import {{ QuizView }} from '{assets_prefix}assets/components/QuizView.js';
 
     const html = htm.bind(h);
     const data = JSON.parse(document.getElementById('page-data').textContent);
 
     render(
-      html`<${QuizView} questions=${data.questions} title=${data.title} />`,
+      html`<${{QuizView}} questions=${{data.questions}} title=${{data.title}} />`,
       document.getElementById('app')
     );"""
 
