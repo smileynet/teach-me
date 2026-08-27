@@ -1,0 +1,25 @@
+# choices: 0,0,3,1,2,2,1
+# story: 02_choices_and_weave.ink
+
+The market square bustles with traders and travelers. Three stalls catch your eye.
+>>> Browse the weapon stall
+The blacksmith grins. "Looking for steel, traveler?"
+>>> "Show me your swords."
+"Show me your swords," you say.
+He unsheathes a curved blade, its edge catching the light.
+You step back into the square.
+The market square bustles with traders and travelers. Three stalls catch your eye.
+>>> Leave the market
+The tavern is warm and loud. A bard plays in the corner.
+>>> Find a quiet corner
+You duck behind a pillar, away from the noise.
+The barkeep catches your eye. "What'll it be?"
+>>> "Information."
+"Information," you say quietly.
+She leans in. "That depends on the coin."
+You drink in silence, watching the room.
+>>> Stop talking and decide
+The candle on your table gutters low. Time to decide.
+>>> Slip out into the night
+The cobblestones are slick with evening rain. The forest path the cartographer mentioned — it begins just past the bridge.
+You pull your cloak tight and walk into the dark.
