@@ -1,7 +1,7 @@
 ---
 id: "210"
 title: "Ink Lesson 04: Functions and Tunnels"
-status: open
+status: done
 blocked_by: ["209"]
 priority: high
 tags: [ink]
@@ -60,11 +60,15 @@ Temp variables, knot parameters, pure functions (inline computation), tunnels (s
 
 ## Acceptance criteria
 
-- [ ] Lesson HTML at examples/ink-godot/lessons/0004-ink-functions-and-tunnels.html
-- [ ] Reference .ink story compiled via inklecate (0 errors, 0 warnings)
-- [ ] README.md in reference/code/ink-functions-and-tunnels/ directory
-- [ ] mise run ink:validate passes
-- [ ] Glossary terms annotated (jargon pass)
-- [ ] check-lesson.py passes
-- [ ] Exercise answer compiles clean
-- [ ] Independent subagent review passes
+- [x] Lesson HTML at examples/ink-godot/lessons/0004-ink-functions-and-tunnels.html
+- [x] Reference .ink story compiled via inklecate (0 errors, 0 warnings)
+- [x] README.md in reference/code/ink-functions-and-tunnels/ directory
+- [x] mise run ink:validate passes
+- [x] Glossary terms annotated (jargon pass)
+- [x] check-lesson.py passes
+- [x] Exercise answer compiles clean
+- [x] Independent subagent review passes
+
+## Resolution (2026-08-27)
+
+Lesson 04 complete: HTML + reference story (validates strict + playthrough), README, check-lesson 9/0, glossary annotated, exercise compiles (entry divert before function decl), subagent review PASS. Playthrough validator (#224) caught + fixed once-only dead-ends in battle/camp/hubs via sticky choices.
