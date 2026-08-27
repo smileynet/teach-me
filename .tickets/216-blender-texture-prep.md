@@ -136,14 +136,14 @@ All 9 texture samplers are guarded by `use_*` booleans (all default `false`). Te
 
 ## Research references
 
-- `.scratch/research/toon-texture-pipelines.md` — industry approaches (Guilty Gear ILM maps, Genshin, Malt)
-- `.scratch/research/blender-bake-nodes.md` — specific node setups, bake settings, addon list
-- `.scratch/research/mktoon-texture-requirements.md` — what toon shaders expect vs generate procedurally
-- `.scratch/research/existing-test-scene-review.md` — current state of test-scene assets and shader uniforms
-- `.scratch/research/mk-toon-lite-analysis.md` — full shader uniform/usage analysis
-- `.scratch/research/mktoon-scene-analysis.md` — scene structure, material state, wiring needed
-- `.scratch/research/godot-texture-import.md` — color space hints, import flags, Poly Haven gotchas
-- `.scratch/research/toon-texture-problems.md` — 8 specific PBR+toon artifacts with causes/solutions
+- `.memory/research/mktoon-texture-prep/toon-texture-pipelines.md` — industry approaches (Guilty Gear ILM maps, Genshin, Malt)
+- `.memory/research/mktoon-texture-prep/blender-bake-nodes.md` — specific node setups, bake settings, addon list
+- `.memory/research/mktoon-texture-prep/mktoon-texture-requirements.md` — what toon shaders expect vs generate procedurally
+- `.memory/research/mktoon-texture-prep/existing-test-scene-review.md` — current state of test-scene assets and shader uniforms
+- `.memory/research/mktoon-texture-prep/mk-toon-lite-analysis.md` — full shader uniform/usage analysis
+- `.memory/research/mktoon-texture-prep/mktoon-scene-analysis.md` — scene structure, material state, wiring needed
+- `.memory/research/mktoon-texture-prep/godot-texture-import.md` — color space hints, import flags, Poly Haven gotchas
+- `.memory/research/mktoon-texture-prep/toon-texture-problems.md` — 8 specific PBR+toon artifacts with causes/solutions
 
 ## Resolved questions
 
