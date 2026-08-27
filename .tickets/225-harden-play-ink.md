@@ -49,3 +49,10 @@ Rewrote play-ink.py (230 lines):
 Verified: all 5 stories PASS. A deliberately-broken dead-end story (once-only choice looping with no fallback) correctly reported FAIL with `last:ERROR, first:ERROR, random:ERROR` — and did NOT abort the other 5 stories' validation.
 
 Note: pre-existing hygiene issue (out of scope) — 01_flow_and_knots.ink.json and hello.ink.json are tracked compiled artifacts that ideally shouldn't be committed.
+
+## Post-hardening validation (2026-08-27)
+
+- **State-hash probe:** confirmed empirically that a stateless loop story produces a UNIQUE hash every turn (ink save_state includes incrementing visit counts). State-hash detection can never fire → removed as dead code, documented honestly. Turn-cap is the sole loop mechanism.
+- **Broken corpus test (3 shapes):** deadend-once-only → FAIL(ERROR) ✓; tunnel-no-return → FAIL(ERROR) ✓; linear-clean → PASS ✓. Error detection works across distinct failure modes, not just "ran out of content."
+- **Independent re-audit:** PASS on all 5 should-fix items (error scoping, state-hash removal, reporting, cleanup, correctness). One cosmetic docstring nit fixed.
+- **Final regression:** 5/5 stories PASS.

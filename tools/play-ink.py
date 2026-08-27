@@ -4,7 +4,7 @@ play-ink.py — Automated playthrough validator for ink stories.
 Compiles each .ink story, then plays it with bink using several choice
 strategies to verify it reaches an ending (rather than hanging in a loop
 or crashing). Matches the Monte Carlo pattern used by wildwinter/Ink-Tester,
-with state-hash cycle detection layered on top of a hard turn-cap backstop.
+with a hard turn-cap to bound non-terminating loops.
 
 Strategies (a story PASSES if ANY strategy reaches END):
   - LAST:   always pick the last choice (usually "leave"/"flee"/exit)
@@ -16,7 +16,7 @@ hang is never silently swallowed.
 
 Outcome per strategy:
   - END:   reached a terminal state (no content, no choices)
-  - LOOP:  detected a repeated state, or hit the turn-cap backstop
+  - LOOP:  hit the turn-cap without reaching an ending
   - ERROR: the ink runtime raised (e.g., "ran out of content" dead end)
 
 Story classification:
@@ -31,7 +31,6 @@ Requires: bink (installed via the mise setup task).
 Exit codes: 0=all pass, 1=one or more fail, 2=setup error.
 """
 
-import hashlib
 import os
 import random
 import subprocess
@@ -72,25 +71,18 @@ def load_story(json_path: Path) -> Story:
     return Story(json_path.read_text(encoding="utf-8"))
 
 
-def state_hash(story: Story) -> str:
-    """Hash the story's saved state for cycle detection.
-
-    Note: ink visit counts increment on every pass, so an identical hash
-    only fires for genuinely stateless cycles. It never produces a false
-    positive (distinct states never collide), so it's a safe early-exit;
-    the turn-cap is the guaranteed backstop for stateful loops.
-    """
-    return hashlib.sha1(story.save_state().encode("utf-8")).hexdigest()
-
-
 def play_once(json_path: Path, pick, turn_cap: int) -> tuple[str, int]:
     """
     Play a story using `pick(num_choices) -> index`.
     Returns (outcome, turns): outcome in {"END", "LOOP", "ERROR"}.
     Only ink runtime errors are caught here; tool bugs propagate.
+
+    Loop detection is by turn-cap. State-hash detection was evaluated and
+    rejected: ink's save_state() always includes incrementing visit counts,
+    so a repeated logical state never produces a repeated hash — it can
+    never fire. The turn-cap is the honest, guaranteed mechanism.
     """
     story = load_story(json_path)
-    seen_states: set[str] = set()
     turns = 0
     while turns < turn_cap:
         try:
@@ -105,11 +97,6 @@ def play_once(json_path: Path, pick, turn_cap: int) -> tuple[str, int]:
                 return ("END", turns)
             turns += 1
             continue
-        # State-hash cycle detection (best-effort; backstopped by turn_cap)
-        h = state_hash(story)
-        if h in seen_states:
-            return ("LOOP", turns)
-        seen_states.add(h)
         idx = pick(len(choices))
         story.choose_choice_index(idx)
         turns += 1
