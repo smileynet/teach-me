@@ -1,0 +1,14 @@
+# choices: 0,1
+# story: 05_first_godot_integration.ink
+
+You stand at the mouth of a cave. Cold air drifts out of the dark.
+A torch bracket juts from the wall beside you.
+The passage ahead is pitch black.
+>>> Light the torch
+You strike a spark. The torch catches and flares to life.
+Your torch throws light across the walls.
+>>> Step inside anyway
+
+The torchlight reveals a carved stairway leading down.
+You descend with steady footing.
+The passage opens into a wide chamber. Your adventure begins here.

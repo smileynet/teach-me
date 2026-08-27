@@ -19,3 +19,34 @@ Loading ink stories via inkgd InkPlayer, displaying text, handling choices via s
 - [ ] mise run ink:validate passes
 - [ ] Glossary terms annotated (jargon pass)
 - [ ] check-lesson.py passes
+
+## Findings-adjusted plan (2026-08-27, 4 subagents: 2 research + 2 review)
+
+Raw: `.scratch/research/{inkgd-api,inkgd-pitfalls,integration-pedagogy,ink-godot-tutorials-prior-art}.md`,
+`.scratch/review/{lesson05-conventions,gdscript-reference-review}.md`.
+
+### Groundwork done
+- Reference `.ink` story (deterministic) compiles 0/0, golden transcript committed, replays 3/3.
+- Reference code dir + README + downloadable `story_player.gd` (GDScript review: API-correct, no drift).
+- **Filename fixed:** lesson 04's What's Next links `0005-godot-ink-integration.html` → lesson file is
+  `0005-godot-ink-integration.html`, slug `godot-ink-integration`. Reference dir renamed from
+  `ink-first-godot-integration/` → `godot-ink-integration/` (old name would have 404'd downloads).
+
+### Authoring changes from findings
+1. **"Print before you paint" arc** (universal across all prior-art tutorials): stage the GDScript build
+   console-print → Label text → choice buttons → advance+cleanup, with narrative framing between blocks.
+2. **Exercise = the confirmed #1 misconception**: sequential-vs-event-driven — reading `current_text`
+   before the `loaded` signal fires. Teaching device: log in the handler + at the call site, predict order.
+3. **Validation-first bridge**: open by connecting back to lessons 01-04 (`ink:validate` + golden transcript)
+   — a differentiator no existing tutorial has.
+4. **Lean callouts**: brief addon-decision (inkgd/GDScript vs godot-ink/C#, one-line criterion), gotcha on
+   `__InkRuntime`/`_ready()` timing → deferred `create_story()`, key-concept "never touch story before loaded(true)".
+   Defer signal-vs-while-loop to a note.
+5. **State 3 runtime prereqs** (from GDScript review): scene tree (TextLabel/ChoicesContainer direct children),
+   `.ink.json` declares `torch_lit`, `bbcode_enabled=true` for [color] messages.
+
+### Shell (confirmed from conventions review)
+Head order (typography-prefs.js → style.css → glossary.css → 5-import importmap); breadcrumb
+All Lessons › Ink + Godot › {current}; lesson-meta `Lesson 5 · Ink + Godot · ~M min read` + Win;
+key-concept; box-drawing `═` section comments; glossary-data = flat `{"slug":"definition"}` strings;
+`../assets/page-shell.js` module as last line; runtime-loop SVG follows visual-teaching (role/title/viewBox/var(--svg-*)).
