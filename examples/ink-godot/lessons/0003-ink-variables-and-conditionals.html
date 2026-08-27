@@ -76,15 +76,20 @@ The village square is quiet.
 
 <p>Read counts let you detect visits. <span class="term" data-term="conditional-text">Conditional text</span> lets you <em>react</em> to them — showing different prose based on whether a condition is true:</p>
 
-<pre data-mode="fragment"><code>-> shop
+<pre data-mode="fragment"><code>-> square
+
+=== square ===
++ [Enter the shop] -> shop
+* [Leave town] -> END
 
 === shop ===
 {shop > 1: "Welcome back," the merchant says.|"A new face!" the merchant exclaims.}
-What would you like to see?
-* [Browse] -> browse
-* [Leave] -> END</code></pre>
+You browse the shelves, then step back outside.
+-> square</code></pre>
 
 <p>The syntax: <code>{condition: text if true | text if false}</code>. The <code>|</code> separates the two cases. If you don't need an else branch, omit it: <code>{shop > 1: "Welcome back."}</code> — this prints nothing when the condition is false.</p>
+
+<p>Note the hub shape again: <code>square</code> is the hub, and you divert <em>into</em> <code>shop</code> to make its read count advance. On your second entry, <code>shop > 1</code> is true and the merchant welcomes you back.</p>
 
 <p>Conditional text is inline — it lives inside a line of prose. For longer branching (multiple lines, multiple conditions), you'll use if/else blocks later in this lesson.</p>
 
