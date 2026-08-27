@@ -45,16 +45,24 @@
 
 <p>This choice only appeared after visiting at least one stall. The <code>{weapons || potions || maps}</code> is a <strong>condition</strong> — it checks whether any of those stitches have been visited. Ink tracks this automatically: every knot and stitch has a <span class="term" data-term="read-count">read count</span> — the number of times flow has passed through it.</p>
 
-<pre data-mode="fragment"><code>-> greet
+<pre data-mode="fragment"><code>-> village
 
-=== greet ===
-{greet == 1: Hello, stranger!}
-{greet == 2: Oh, it's you again.}
-{greet > 2: You're becoming a regular.}
-* [Say hello again] -> greet
-* [Leave] -> END</code></pre>
+=== village ===
+The village square is quiet.
++ [Visit the well] -> well
+* [Leave the village] -> END
 
-<p>The read count <code>{greet}</code> is truthy (non-zero) after the first visit. You can test it as a boolean (<code>{greet: text}</code> = "if visited") or compare it to a number (<code>{greet > 2: text}</code>). This is state tracking with <strong>zero setup</strong> — no declarations, no initialization. Every knot and stitch is already a counter.</p>
+=== well ===
+{well == 1: You approach the old well for the first time.}
+{well == 2: The well again. Its water looks cold.}
+{well > 2: You've lost count of how often you've come here.}
+-> village</code></pre>
+
+<p>Each time you divert into <code>well</code>, its read count increments, and the conditionals — evaluated as flow enters — pick the matching line. The read count <code>{well}</code> is also truthy (non-zero) once visited, so you can test it as a boolean (<code>{well: text}</code> = "if visited") or compare it to a number (<code>{well > 2: text}</code>). This is state tracking with <strong>zero setup</strong> — no declarations, no initialization. Every knot and stitch is already a counter.</p>
+
+<div class="note">
+  <strong>Gotcha — test a knot's count from outside it:</strong> Read counts work when you enter a knot via a divert (like <code>village</code> → <code>well</code> above). A knot that loops to <em>itself</em> and tests its own count in the same breath won't see the value advance — the count reflects the entry, not each internal pass. Use a hub-and-spoke shape (a location you return <em>to</em>, diverting <em>out</em> to counted knots), or an explicit variable (next section) when you need a self-incrementing counter.
+</div>
 
 <div class="note">
   <strong>New concept — logical operators:</strong> <code>||</code> means OR (true if either side is true), <code>&amp;&amp;</code> means AND (true if both sides are true), <code>not</code> negates. These work everywhere conditions are tested.
@@ -256,16 +264,18 @@ You find a rusty key under the mat.
 VAR gold = 15
 VAR has_compass = false
 VAR has_map = false
+VAR shop_visits = 0
 
 -> shop
 
 === shop ===
+~ shop_visits = shop_visits + 1
 
-// --- Read count: greeting changes on repeat visits ---
+// --- Conditional greeting: changes on repeat visits (via a counter) ---
 {
-- shop == 1:
+- shop_visits == 1:
     The old merchant looks up as you enter. "A new face! Welcome to my humble shop."
-- shop == 2:
+- shop_visits == 2:
     "Back again?" The merchant smiles. "I knew you'd return."
 - else:
     The merchant nods without looking up. "The usual browse?"

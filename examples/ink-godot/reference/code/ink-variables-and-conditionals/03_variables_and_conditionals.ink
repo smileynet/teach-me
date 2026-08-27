@@ -6,16 +6,18 @@
 VAR gold = 15
 VAR has_compass = false
 VAR has_map = false
+VAR shop_visits = 0
 
 -> shop
 
 === shop ===
+~ shop_visits = shop_visits + 1
 
-// --- Read count: greeting changes on repeat visits ---
+// --- Conditional greeting: changes on repeat visits (via a counter) ---
 {
-- shop == 1:
+- shop_visits == 1:
     The old merchant looks up as you enter. "A new face! Welcome to my humble shop."
-- shop == 2:
+- shop_visits == 2:
     "Back again?" The merchant smiles. "I knew you'd return."
 - else:
     The merchant nods without looking up. "The usual browse?"
