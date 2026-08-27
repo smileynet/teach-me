@@ -1,7 +1,7 @@
 ---
 id: "211"
 title: "Ink Lesson 05: First Godot Integration"
-status: in_progress
+status: done
 blocked_by: ["210"]
 priority: high
 tags: [ink]
@@ -13,12 +13,12 @@ Loading ink stories via inkgd InkPlayer, displaying text, handling choices via s
 
 ## Acceptance criteria
 
-- [ ] Lesson HTML at examples/ink-godot/lessons/
-- [ ] Reference .ink story compiled via inklecate (0 errors, 0 warnings)
-- [ ] README.md in reference/code/ directory
-- [ ] mise run ink:validate passes
-- [ ] Glossary terms annotated (jargon pass)
-- [ ] check-lesson.py passes
+- [x] Lesson HTML at examples/ink-godot/lessons/
+- [x] Reference .ink story compiled via inklecate (0 errors, 0 warnings)
+- [x] README.md in reference/code/ directory
+- [x] mise run ink:validate passes
+- [x] Glossary terms annotated (jargon pass)
+- [x] check-lesson.py passes
 
 ## Findings-adjusted plan (2026-08-27, 4 subagents: 2 research + 2 review)
 
@@ -50,3 +50,7 @@ Head order (typography-prefs.js → style.css → glossary.css → 5-import impo
 All Lessons › Ink + Godot › {current}; lesson-meta `Lesson 5 · Ink + Godot · ~M min read` + Win;
 key-concept; box-drawing `═` section comments; glossary-data = flat `{"slug":"definition"}` strings;
 `../assets/page-shell.js` module as last line; runtime-loop SVG follows visual-teaching (role/title/viewBox/var(--svg-*)).
+
+## Resolution (2026-08-27)
+
+Lesson 0005-godot-ink-integration.html authored (inkgd runtime loop, print-before-paint, SVG diagram, 7-term glossary, misconception exercise); deterministic reference .ink story + golden transcript; downloadable story_player.gd validated against spike; 5 SR questions; map+index regenerated
