@@ -80,17 +80,19 @@ Start with existing test-scene Poly Haven assets:
 - Before/after screenshots under mk_toon_lite shader
 
 ## Acceptance criteria
+This is the EPIC/tracking ticket for the blender-texture-prep track. Concrete lesson deliverables (node groups, ramp/noise/threshold textures) are owned by the child lesson tickets #217-222 — do NOT rebuild them here. This ticket owns the shared track infrastructure (MAP, test-scene wiring) and tracks overall completion.
 
 - [x] MAP.md created for `blender-texture-prep` domain under godot-gamedev
-- [ ] Blender "Toon Prep" node group works on any PBR albedo (posterize + palette snap + emit bake)
-- [ ] Simplified albedo for Barrel_01 renders with configurable_banding shader
-- [ ] At least one ramp texture exists and works with `toon_ramp.gdshader`
-- [ ] Noise map populates `noise_map` uniform in mk_toon_lite and visibly breaks band edges
-- [ ] Threshold map derived from AO data creates per-pixel shadow variation
-- [x] `mktoon_test.tscn` updated: albedo texture ON, normal map connected, noise_map assigned
-- [x] Before/after screenshots demonstrate PBR vs toon-prepped under same shader
-- [ ] glTF export → Godot import round-trip validated
-- [ ] Pipeline documented as lesson-ready (reusable on any PBR asset)
+- [x] `mktoon_test.tscn` wired: albedo texture ON, normal map connected (shared fixture for all lessons)
+- [x] Before/after + progressive-isolation screenshots captured (shared lesson assets)
+- [x] Validated raking light angle for visible toon bands (shared fixture)
+- [ ] #217 texture-audit lesson complete
+- [ ] #218 albedo-posterize lesson complete (owns "Toon Prep" node group)
+- [ ] #219 palette-snap lesson complete
+- [ ] #220 toon-control-maps lesson complete (owns ramp/noise/threshold textures)
+- [ ] #221 bake-and-export lesson complete (owns glTF round-trip)
+- [ ] #222 wiring-the-shader lesson complete (owns final mktoon_test population)
+- [ ] Track validated end-to-end: a PBR asset flows through the full pipeline to a toon-prepped Godot render
 
 ## Context
 
