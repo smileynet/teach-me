@@ -60,9 +60,21 @@ cam.global_position = target + offset
 cam.look_at(target)
 ```
 
+## MCP Reliability (hard rules — validated 2026-08-26)
+
+The godot-ai MCP has three failure modes that cause silent wrong results:
+
+1. **`game_eval` mutations are for READING, not persisting.** Setting `rotation_degrees` or `set_shader_parameter` on a running instance is unreliable — changes may not affect the render or reset on the next `project_run`. Symptom: two different "edits" produce pixel-identical captures. Fix: edit the `.tscn` on disk (persistent, git-tracked), then `project_run` picks up saved state. Use `game_eval` only to capture the viewport and sample pixels.
+
+2. **NEVER call MCP `save_scene` on a hand-authored `.tscn`.** It strips inline SubResources (ShaderMaterial), ext_resources, and `material_override` — reverting meshes to their default glTF material. Recover with `git restore`. Edit scene params via disk `strReplace` instead.
+
+3. **The agent's visual self-report is UNRELIABLE.** It has claimed "crisp cel bands clearly visible" on an image that was actually flat uniform color. NEVER trust the capturing agent's description. Validate every capture with an independent read (fresh `kiro-cli chat --no-interactive` image analysis, or read the image yourself) AND sample pixels via `game_eval` for objective confirmation.
+
+**Reliable capture loop:** edit `.tscn` on disk → `project_run` → `game_eval` (read-only viewport capture + pixel sample) → independent image validation → never `save_scene`.
+
 ## Shader Toggle for A/B
 
-Toggle via PostProcessRect visibility:
+For post-process shaders, toggle `PostProcessRect.visible` in `game_eval` (this DOES work — it's a node visibility flag, not a persisted param):
 
 ```gdscript
 var pr = get_tree().root.get_node('ColorTestScene/PostProcess/PostProcessRect')
@@ -72,6 +84,8 @@ await get_tree().process_frame
 # capture here
 pr.visible = true   # shader ON
 ```
+
+For material_override shader PARAMETERS (per-object toon settings), edit the `.tscn` on disk between captures — runtime `set_shader_parameter` is unreliable (see MCP Reliability #1).
 
 ## GDScript Gotchas in game_eval
 
