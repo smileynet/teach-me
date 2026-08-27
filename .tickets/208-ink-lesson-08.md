@@ -57,9 +57,9 @@ Once-only vs sticky choices, text suppression brackets, stitches as sub-sections
 
 ## Acceptance criteria
 
-- [ ] Lesson HTML at examples/ink-godot/lessons/0002-ink-choices-and-weave.html
-- [ ] Reference .ink story compiled via inklecate (0 errors, 0 warnings)
-- [ ] README.md in reference/code/ink-choices-and-weave/ directory
-- [ ] mise run ink:validate passes
-- [ ] Glossary terms annotated (jargon pass)
-- [ ] check-lesson.py passes
+- [x] Lesson HTML at examples/ink-godot/lessons/0002-ink-choices-and-weave.html
+- [x] Reference .ink story compiled via inklecate (0 errors, 0 warnings)
+- [x] README.md in reference/code/ink-choices-and-weave/ directory
+- [x] mise run ink:validate passes
+- [x] Glossary terms annotated (jargon pass)
+- [x] check-lesson.py passes

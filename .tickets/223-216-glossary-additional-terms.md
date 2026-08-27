@@ -45,6 +45,6 @@ Orphaned terms:
 
 ## Acceptance criteria
 
-- [ ] `pass-by-value` concept explained in L04 (one sentence)
-- [ ] All 4 orphaned terms have `<span class="term">` in their respective lessons
-- [ ] check-lesson.py Q15 glossary coverage check added (warning level)
+- [x] `pass-by-value` concept explained in L04 (one sentence)
+- [x] All 4 orphaned terms have `<span class="term">` in their respective lessons
+- [~] check-lesson.py Q15 glossary coverage check added (warning level) — DEFERRED to #228 (verified manually via .scratch coverage script this session; automated check belongs with #228's check-lesson.py additions)
