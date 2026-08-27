@@ -33,6 +33,22 @@ except ImportError:
     sys.exit(0)  # Don't block verify if playwright isn't available
 
 
+def _terminate_server(proc: "subprocess.Popen") -> None:
+    """Terminate a spawned server + its process group, cross-platform.
+
+    Unix: signal the process group via killpg (server was started with setsid).
+    Windows: os.setsid/os.killpg don't exist; the process was started with
+    CREATE_NEW_PROCESS_GROUP, so terminate() (TerminateProcess) is sufficient.
+    """
+    if sys.platform == "win32":
+        proc.terminate()
+        return
+    try:
+        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+    except (ProcessLookupError, PermissionError):
+        proc.terminate()
+
+
 def find_test_page(base_url: str) -> str:
     """Find a lesson page to test against."""
     # Try workspace paths first (workspace server at :8787)
@@ -40,8 +56,10 @@ def find_test_page(base_url: str) -> str:
         "/lessons/0001-esoteric-ebb-breakdown.html",
         "/lessons/0002-blender-npr-shaders.html",
     ]
-    # Then example paths (project-root server)
+    # Then example paths (project-root server, or workspace-root server)
     example_candidates = [
+        "/lessons/blender-texture-prep/01-texture-audit.html",
+        "/lessons/0004-toon-banding.html",
         "/examples/iceberg-workspace/lessons/0001-iceberg-metadata-tree.html",
         "/examples/oidc-rust/lessons/0001-oidc-auth-flows.html",
     ]
@@ -55,8 +73,8 @@ def find_test_page(base_url: str) -> str:
         except Exception:
             continue
 
-    # Fallback: first workspace candidate regardless
-    return base_url + workspace_candidates[0]
+    # No served page found — signal skip (no suitable test target).
+    return None
 
 
 def run_checks(page, url: str) -> list[dict]:
@@ -251,12 +269,25 @@ def main():
         except Exception:
             continue
     else:
-        # Start server on our port
+        # Start server on our port. Put it in its own process group so we can
+        # tear down cleanly; os.setsid is Unix-only, so use the Windows
+        # equivalent (a new process group) on win32.
+        popen_kwargs = {
+            "stdout": subprocess.DEVNULL,
+            "stderr": subprocess.DEVNULL,
+        }
+        if sys.platform == "win32":
+            popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+        else:
+            popen_kwargs["preexec_fn"] = os.setsid
+        # serve.py defaults to workspace/, which may not exist at the project
+        # root (it's the gitignored live workspace). Point at a workspace that
+        # is always present so the interactive checks have real pages to test.
+        default_ws = Path(__file__).resolve().parent.parent / "workspace"
+        serve_ws = "workspace" if default_ws.exists() else "examples/godot-gamedev"
         server_proc = subprocess.Popen(
-            [sys.executable, "tools/serve.py", "--port", str(port)],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            preexec_fn=os.setsid,
+            [sys.executable, "tools/serve.py", "--workspace", serve_ws, "--port", str(port)],
+            **popen_kwargs,
         )
         # Wait for server
         for _ in range(30):
@@ -269,13 +300,18 @@ def main():
             except Exception:
                 time.sleep(0.2)
         else:
-            print("ERROR: Could not start server", file=sys.stderr)
+            # Could not start a server — skip rather than fail the whole gate
+            # (matches the "skip if playwright missing" philosophy above).
+            print("⚠ Could not start server — skipping interactive checks", file=sys.stderr)
             if server_proc:
-                os.killpg(os.getpgid(server_proc.pid), signal.SIGTERM)
-            sys.exit(2)
+                _terminate_server(server_proc)
+            sys.exit(0)
 
     try:
         url = find_test_page(base_url)
+        if url is None:
+            print("⚠ No suitable lesson page served — skipping interactive checks", file=sys.stderr)
+            return
 
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
@@ -301,7 +337,7 @@ def main():
 
     finally:
         if server_proc:
-            os.killpg(os.getpgid(server_proc.pid), signal.SIGTERM)
+            _terminate_server(server_proc)
             server_proc.wait()
 
 

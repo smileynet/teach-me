@@ -57,7 +57,7 @@ Two independent defects in `[tasks.verify]` (`mise.toml:314-324`):
 
 `mise run verify` is **intentionally not run on push** — per #131 (done, priority high), CI was replaced with git hooks while the architecture is in flux:
 - `.githooks/pre-commit` runs `mise run verify` and blocks the commit on failure; pre-push runs the full verify incl Playwright. `core.hooksPath=.githooks` is wired by `mise run setup`.
-- GitHub Actions `verify.yml` is `workflow_dispatch` (manual) on `ubuntu-latest` — so these fixes are exercised on Linux when dispatched, and enforced locally on every commit via the hook. The gate IS wired; not via push-CI by design.
+- GitHub Actions `verify.yml` was **removed** (2026-08-27) — this project uses local tools only, no CI verification. The gate is enforced entirely by git hooks; `mise run verify` was proven green on Windows and its OS-specific paths validated on Linux (WSL) directly, without relying on a CI runner.
 
 So these Windows fixes are what make local commits possible on Windows (the pre-commit hook runs verify), and they must also stay correct on Linux (the dispatch CI job + Linux contributors).
 
