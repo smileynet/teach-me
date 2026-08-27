@@ -329,6 +329,44 @@ def check_q14_decision_callouts(html: str) -> list[dict]:
     return [result("Q14", PASS, f"All {len(matches)} Alternative callout(s) include decision guidance")]
 
 
+def check_q15_glossary_coverage(html: str) -> list[dict]:
+    """
+    Q15: Every glossary-data key is actually annotated in the body via a
+    matching <span ... data-term="key"> (jargon skill output). A key with
+    no in-body span is a dangling definition — the tooltip never appears.
+    (Deferred from #223; automated per #228 Part A.)
+    """
+    if 'id="glossary-data"' not in html:
+        return [result("Q15", SKIP, "No glossary-data (Q12 covers this)")]
+
+    match = re.search(r'<script[^>]*id="glossary-data"[^>]*>(.*?)</script>', html, re.DOTALL)
+    if not match:
+        return [result("Q15", SKIP, "glossary-data not extractable (Q12 covers this)")]
+
+    import json as json_mod
+    try:
+        data = json_mod.loads(match.group(1))
+    except (json_mod.JSONDecodeError, ValueError):
+        return [result("Q15", SKIP, "glossary-data invalid JSON (Q12 covers this)")]
+
+    if not data:
+        return [result("Q15", SKIP, "glossary-data empty (Q12 covers this)")]
+
+    # Body = html minus the glossary-data island (so a key appearing only in
+    # its own JSON definition doesn't count as "covered").
+    body = html[: match.start()] + html[match.end() :]
+    annotated = set(re.findall(r'data-term="([^"]+)"', body))
+
+    missing = [key for key in data if key not in annotated]
+    if missing:
+        return [result(
+            "Q15", WARN,
+            f"{len(missing)} glossary term(s) defined but never annotated in body "
+            f"(no data-term span): {', '.join(sorted(missing))}",
+        )]
+    return [result("Q15", PASS, f"All {len(data)} glossary term(s) annotated in body")]
+
+
 def lint_lesson(lesson_path: Path, workspace: Path) -> list[dict]:
     """Run all checks on a single lesson."""
     html = lesson_path.read_text(encoding="utf-8")
@@ -349,6 +387,7 @@ def lint_lesson(lesson_path: Path, workspace: Path) -> list[dict]:
     all_results.extend(check_q12_glossary(html))
     all_results.extend(check_q13_exercise(html))
     all_results.extend(check_q14_decision_callouts(html))
+    all_results.extend(check_q15_glossary_coverage(html))
     all_results.extend(check_cf_code_files_section(html))
 
     return all_results

@@ -11,23 +11,14 @@ Wraps inklecate to provide:
 - Integration with mise run ink:validate
 """
 
-import os
-import re
-import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.ink_compile import DEFAULT_INKLECATE, compile_file
+
 # Defaults
 DEFAULT_INK_DIR = "ink-test-project/stories"
-DEFAULT_INKLECATE = os.environ.get("INKLECATE", "D:/tools/inklecate/inklecate.exe")
-
-# Parse inklecate output: "ERROR: 'file.ink' line 7: message"
-# Also handles: "WARNING: 'file.ink' line 7: message"
-# And simpler: "ERROR: message" (no file/line)
-ISSUE_PATTERN = re.compile(
-    r"^(ERROR|WARNING|AUTHOR):\s*(?:'([^']+)'\s+line\s+(\d+):\s*)?(.+)$",
-    re.MULTILINE
-)
 
 
 def find_ink_files(directory):
@@ -41,37 +32,7 @@ def find_ink_files(directory):
 
 def compile_ink(ink_file, inklecate_path, count_visits=True):
     """Compile a single .ink file, return (success, issues)."""
-    output_json = ink_file.with_suffix(".ink.json")
-    cmd = [inklecate_path]
-    if count_visits:
-        cmd.append("-c")
-    cmd.extend(["-o", str(output_json), str(ink_file)])
-
-    result = subprocess.run(
-        cmd,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-
-    issues = []
-    # Parse both stdout and stderr (inklecate uses both)
-    combined_output = (result.stdout or "") + (result.stderr or "")
-
-    for match in ISSUE_PATTERN.finditer(combined_output):
-        severity = match.group(1)
-        file_ref = match.group(2) or str(ink_file.name)
-        line_num = int(match.group(3)) if match.group(3) else 0
-        message = match.group(4).strip()
-        issues.append({
-            "severity": severity,
-            "file": file_ref,
-            "line": line_num,
-            "message": message,
-        })
-
-    success = result.returncode == 0
+    success, issues, _ = compile_file(ink_file, inklecate_path, count_visits=count_visits)
     return success, issues
 
 
