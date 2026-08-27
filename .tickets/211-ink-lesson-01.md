@@ -1,7 +1,7 @@
 ---
 id: "211"
 title: "Ink Lesson 05: First Godot Integration"
-status: open
+status: in_progress
 blocked_by: ["210"]
 priority: high
 tags: [ink]
