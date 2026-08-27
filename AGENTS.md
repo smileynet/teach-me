@@ -145,16 +145,7 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 
 ## Skill Format (kiro-cli)
 
-Skills live in `.kiro/skills/<name>/SKILL.md`. Frontmatter:
-```yaml
-name: skill-name
-description: "What it does. Trigger: trigger phrases."
-metadata:
-  type: process|protocol|reference
-  invocation: user-only|both
-  practice: null
-```
-Skills auto-loaded via `skill://.kiro/skills/**/SKILL.md`.
+Skills live in `.kiro/skills/<name>/SKILL.md`, auto-loaded via `skill://.kiro/skills/**/SKILL.md`. For frontmatter and authoring conventions, see the global `skill-authoring` skill.
 
 ## Design Posture (ADR 0001)
 
@@ -170,5 +161,3 @@ The teach skill's posture is **knowledgeable colleague at a whiteboard** — not
 ## Test Fixture
 
 The root-level teaching workspace (MISSION.md, RESOURCES.md, lessons/, reference/, learning-records/) is the **Iceberg on AWS** example — a real teaching session used as a test fixture. See `examples/README.md` for what to test feature changes against.
-
-The live `workspace/` directory is gitignored and user-local. It holds all active learning topics for this machine.
