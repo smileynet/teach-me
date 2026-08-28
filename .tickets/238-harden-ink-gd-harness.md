@@ -2,7 +2,7 @@
 id: "238"
 title: "Harden ink GDScript harness: deeper assertions, clean fail-test, exit-code + copy-drift fixes"
 type: bug
-status: open
+status: done
 priority: high
 blocked_by: ["244"]
 tags: ["ink", "validation"]
@@ -46,11 +46,11 @@ hash-check that fails loudly on drift.)
 
 ## Acceptance criteria
 
-- [ ] A1: L06 asserts exact speaker value + sound dispatch + hidden-line side-effect-ran
-- [ ] A2: a compiles-but-wrong-logic broken variant makes the harness exit 1 (demonstrated, then removed)
-- [ ] A3: wrapper exits 2 on import failure; exit code mirrors the harness
-- [ ] A4: harness validates the SHIPPED reference files (fresh copy or drift-check), not stale copies
-- [ ] `mise run ink:validate-gd` still green on correct code (after #236 fixes L05) / red on the known L05 bug before then
+- [x] A1: L06 asserts exact speaker value + sound dispatch + hidden-line side-effect-ran
+- [x] A2: a compiles-but-wrong-logic broken variant makes the harness exit 1 (demonstrated, then removed)
+- [x] A3: wrapper exits 2 on import failure; exit code mirrors the harness
+- [x] A4: harness validates the SHIPPED reference files (fresh copy or drift-check), not stale copies
+- [x] `mise run ink:validate-gd` still green on correct code (after #236 fixes L05) / red on the known L05 bug before then
 
 
 ## Sequencing update (2026-08-28) — blocked by #244; progress so far
@@ -71,3 +71,7 @@ already done vs deferred:
 
 So after #244, #238's remaining scope is just confirming A3 in the new script + the
 final green/red re-run. Consider closing #238 into #244 if fully absorbed.
+
+## Resolution (2026-08-28)
+
+All 4 ACs satisfied: A1/A2 landed here (f577090), A3/A4 absorbed by #244 (6da1ab5) + #249 (0e6ed6c). Harness asserts deep L06 behavior, catches logic bugs, guards parse errors story-text-safely, and validates the shipped reference (no drift).
