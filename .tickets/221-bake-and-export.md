@@ -2,7 +2,7 @@
 id: "221"
 title: "Lesson: Emit Bake and glTF Export — Blender to Godot (0019)"
 type: feature
-status: in_progress
+status: done
 priority: high
 blocked_by: ["219", "220"]
 parent: "216"
@@ -78,14 +78,14 @@ A substantial lesson teaching the actual bake-and-export pipeline: capturing sim
 
 ## Acceptance criteria
 
-- [ ] Lesson file: `examples/godot-gamedev/lessons/blender-texture-prep/05-bake-and-export.html`
-- [ ] Complete bake settings reference (table format)
-- [ ] Barrel_01 baked: albedo (posterized+snapped), noise, threshold
-- [ ] Multi-material workflow shown (Camera_01 or explanation)
-- [ ] glTF export → Godot import verified (textures load, color spaces correct)
-- [ ] Before/after screenshot under configurable_banding shader
-- [ ] Common pitfalls documented (wrong color space, lighting in bake, margin artifacts)
-- [ ] SR questions generated (3-5 cards)
+- [x] Lesson file: `examples/godot-gamedev/lessons/blender-texture-prep/05-bake-and-export.html`
+- [x] Complete bake settings reference (table format)
+- [x] Barrel_01 baked: albedo (posterized+snapped) via Emit; noise+threshold were baked in #220 and stay SEPARATE (glTF is albedo-only — the corrected scope; lesson teaches why)
+- [x] Multi-material workflow shown (Camera_01 3-material note incl. glass-lens edge case)
+- [x] glTF export → Godot import verified (headless import clean; glb binary parsed: 1 material w/ baseColorTexture → sRGB, 0 cameras, no lights, albedo-only)
+- [x] Before/after screenshot under configurable_banding shader (raw PBR vs baked toon albedo — clean textbook A/B)
+- [x] Common pitfalls documented (Emit-not-Combined double-shadow; glTF slot-driven color space / control-maps-corruption; PNG-not-JPEG)
+- [x] SR questions generated (3-5 cards) — btp-401..405
 
 ## Research context
 
@@ -134,3 +134,7 @@ Limitations documented:
 - Blender's glTF exporter handles PBR maps natively
 - For toon: we only export albedo (simplified) + normal (if keeping). ARM textures excluded.
 - Set texture export to PNG (not JPEG — lossy compression adds noise back)
+
+## Resolution (2026-08-28)
+
+Lesson 0019 bake-and-export: consolidated bake_export.py chains Posterize->PaletteSnap->Emit bake albedo->glTF export (albedo-only; control maps stay separate Non-Color PNGs — the sRGB-slot gotcha). 4-tier validation: Tier-1 sidecar oracle (in verify), Tier-2 verify:blender --check, Tier-3a Godot headless import + glb-binary inspection, Tier-3b visual A/B under configurable_banding. Quiz + 5 SR cards, MAP regenerated. Completes the blender-texture-prep spine through export.
