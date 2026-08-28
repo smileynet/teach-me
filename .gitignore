@@ -14,10 +14,9 @@ __pycache__/
 # Playwright MCP session data
 .playwright-mcp/
 *.apkg
-workspace/
+/workspace/
 test-results/
 *.png
-lessons/
 
 # mise machine-local config (paths, tool overrides — never committed)
 mise.local.toml
