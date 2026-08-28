@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz: Emit Bake &amp; glTF Export</title>
+  <script src="../../../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../../../assets/style.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../../../assets/vendor/preact.module.js",
+        "preact/hooks": "../../../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../../../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../../../assets/vendor/signals-core.module.js",
+        "htm": "../../../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="../../index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../../blender-texture-prep-map.html">Blender to Godot Texture Prep</a> <span class="nav-sep">›</span> <a href="../05-bake-and-export.html">Emit Bake &amp; glTF Export</a> <span class="nav-sep">›</span> <span>Quiz</span></nav>
+  <div id="app"></div>
+
+<script type="application/json" id="page-data">{"questions": [{"id": "btp-401", "prompt": "Why must you use an Emit bake (not Combined or Diffuse) for a texture lit by a dynamic toon shader in Godot?", "expected_answer": "Should mention: (1) Combined/Diffuse bake SCENE LIGHTING into the texture, (2) Godot's toon shader computes its OWN lighting on top -> double shadows fighting, (3) Emit captures raw color with ZERO lighting -> shader is the only light source. Key: baked albedo must be UNLIT.", "question_type": "explain", "difficulty_tier": "understand", "lesson_id": "05-bake-and-export", "section_heading": "Why Emit, not Combined", "generated_by": "teach-skill", "generated_at": "2026-08-28T11:15:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["emit-bake", "double-shadow"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"id": "btp-402", "prompt": "glTF has no per-image color-space flag. How does Godot know the baked albedo is sRGB and a normal map is linear?", "expected_answer": "Should mention: (1) color space is SLOT-driven — inferred from which material slot references the texture, (2) baseColorTexture/emissive -> sRGB; normalTexture/metallicRoughness/occlusion -> linear, (3) baked albedo in baseColorTexture imports sRGB automatically. Key: slot implies color space.", "question_type": "explain", "difficulty_tier": "understand", "lesson_id": "05-bake-and-export", "section_heading": "Exporting the glTF", "generated_by": "teach-skill", "generated_at": "2026-08-28T11:15:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["gltf", "color-space"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"id": "btp-403", "prompt": "Why do the control maps (noise, threshold) stay OUT of the glTF, shipping as separate Non-Color PNGs?", "expected_answer": "Should mention: (1) a control map is DATA with no correct glTF slot — baseColorTexture would sRGB-decode and corrupt it, (2) a .glb-embedded texture has no separate .import to fix color space, (3) so they ship as standalone Non-Color PNGs; glTF carries albedo only. Key: the sRGB-slot trap for data.", "question_type": "apply", "difficulty_tier": "apply", "lesson_id": "05-bake-and-export", "section_heading": "Exporting the glTF", "generated_by": "teach-skill", "generated_at": "2026-08-28T11:15:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["gltf", "control-map", "gotcha"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"id": "btp-405", "prompt": "Why does the prep chain use plain Math/Vector nodes instead of Shader to RGB, and what does that have to do with baking?", "expected_answer": "Should mention: (1) EEVEE can't bake; Cycles is required, (2) Shader to RGB is EEVEE-only — doesn't work in a Cycles bake, (3) the chain was built from Cycles-bakeable Math/Vector nodes so it survives the Emit bake. Key: bake-compatibility drove the node choice.", "question_type": "apply", "difficulty_tier": "apply", "lesson_id": "05-bake-and-export", "section_heading": "Why Emit, not Combined", "generated_by": "teach-skill", "generated_at": "2026-08-28T11:15:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["cycles", "eevee", "bakeable"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"type": "sequence", "topic": "05-bake-and-export", "prompt": "Order the bake-and-export pipeline:", "items": ["Posterize RGB (reduce color count)", "Palette Snap (map to palette)", "Emission shader + Cycles EMIT bake", "baked albedo PNG (sRGB)", "glTF export (albedo only, no lights/cameras)", "Godot import"], "correct_order": [0, 1, 2, 3, 4, 5]}, {"type": "match", "topic": "05-bake-and-export", "prompt": "Match each choice to its reason:", "pairs": [["Emit bake (not Combined)", "No baked lighting -> no double shadows"], ["glTF excludes lights/cameras", "Godot lights the scene dynamically"], ["Control maps NOT in the glTF", "No correct color-space slot -> would be corrupted"], ["PNG not JPEG textures", "Lossless -> no noise added back to flat color"]]}, {"type": "fill", "topic": "05-bake-and-export", "prompt": "Complete the bake-and-export summary:", "template": "Use an ___ bake so no lighting is frozen into the texture (Combined would cause ___ shadows under the toon shader). Requires the ___ render engine (EEVEE can't bake). The glTF carries the ___ only; control maps stay separate because glTF color space is ___-driven and a data map in the base-color slot gets corrupted.", "answers": ["Emit", "double", "Cycles", "albedo", "slot"]}], "title": "Emit Bake & glTF Export", "lessonFile": "blender-texture-prep/05-bake-and-export.html", "mapPage": "blender-texture-prep-map.html"}</script>
+<script type="module" src="../../../assets/page-shell.js"></script>
+<script type="module">
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { QuizView } from '../../../assets/components/QuizView.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    render(
+      html`<${QuizView} questions=${data.questions} title=${data.title} />`,
+      document.getElementById('app')
+    );
+</script>
+
+</body>
+</html>
