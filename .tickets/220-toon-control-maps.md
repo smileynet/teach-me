@@ -57,6 +57,38 @@ with a half-offset edge-match test (the sidecar's edge_max_diff ≈ 0).
 **Threshold from AO:** Barrel_01 ARM R channel, read Non-Color; darker AO = earlier/deeper
 shade. Canonical prior art: MToon shadingShiftTexture, UTS2 Shading Grade Map.
 
+## Task 8 (Godot A/B) plan — CORRECTION from research (2026-08-28)
+
+`--headless` CANNOT render 3D to PNG (dummy DisplayServer → blank framebuffer). Headless
+is fine for IMPORT only. The Tier-3 visual A/B needs a real GPU/windowed run. Environment
+supports it (Godot 4.7.1 on PATH, test-scene imported, prior barrel_with/without_shader.png
+A/B pair proves it works). Plan (from .scratch/subagent-raw/220-godot-capture-review.md):
+1. Copy baked PNGs to test-scene/assets/masks/, import (--headless --import ok), valid=true.
+2. Crisp-band lighting CONSTANT (skill): light_bands=3, scale=0.9, wrapped=0.3, gooch=0.5,
+   ¾ raking DirectionalLight3D — REQUIRED or the toggle rides on invisible band boundaries.
+3. Capture BEFORE (maps off).
+4. DISK-EDIT mktoon_test.tscn (barrel node MKToonTestScene/Barrel/Barrel_01, material
+   SubResource ShaderMaterial_mktoon): add 2 Texture2D ext_resources + use_noise_map=true,
+   noise_map=ExtResource, noise_strength=0.25, noise_scale=4.0, use_threshold_map=true,
+   threshold_map=ExtResource, threshold_map_scale=1.0. NEVER runtime set_shader_parameter,
+   NEVER MCP save_scene (both skill hard-rules — save_scene strips inline SubResources).
+5. Capture AFTER.
+6. Capture mechanism: dispatch the godot_editor SUBAGENT (default agent can't call the
+   Godot MCP). It runs project_run → game_eval save_png → copy from app_userdata/screenshots.
+7. INDEPENDENT validation (skill hard-rule #3, agent self-report unreliable): fresh image
+   read against the research rubric — ON = band edges wobble organically (interior stays
+   flat) + shadow deeper/earlier in creases (terminator still crisp); OFF = clean stripes.
+8. git restore .tscn (or keep maps-on as demo); copy validated PNGs to lesson figure.
+
+FALLBACK (windowed capture blocked AND MCP subagent unavailable): compile-only
+(--headless --import confirms shader+PNG-referenced .tscn load, no errors) + LOG the visual
+A/B as a deferred known gap (code-validation-teaching: compiles ≠ correct). Not silent.
+
+Visual-correctness rubric (from 220-research-visual-effect.md): noise CORRECT = one coherent
+wavy seam between still-flat bands (BROKEN = grain bleeding into band / speckle); threshold
+CORRECT = shadow grows localized in creases, terminator crisp, convex faces ~unchanged
+(BROKEN = uniform global darkening / light leak / wrong sign).
+
 ---
 
 ## What to build (ORIGINAL — see RESCOPE above; ramp content moved to #246)
