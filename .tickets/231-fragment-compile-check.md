@@ -2,7 +2,7 @@
 id: "231"
 title: "Fragment-compile validation for lesson code blocks (#228 Part A)"
 type: feature
-status: in_progress
+status: done
 priority: high
 blocked_by: []
 tags: ["ink", "validation"]
