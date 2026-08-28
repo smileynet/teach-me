@@ -7,6 +7,7 @@ min_version = "2024.9.5"
 python = "3.12"
 node = "22"
 uv = "latest"
+"github:inkle/ink" = "1.2.1"   # inklecate compiler (self-contained; exposes `inklecate`)
 
 [settings]
 lockfile = true
@@ -15,6 +16,11 @@ lockfile = true
 PYTHONDONTWRITEBYTECODE = "1"
 # Venv pinned to mise's Python — recreate with: rm -rf .venv && mise run setup
 _.python.venv = { path = ".venv", create = true, python = "3.12" }
+# inklecate is installed via [tools] (github:inkle/ink) → on PATH as `inklecate`.
+INKLECATE = { default = "inklecate" }
+# Godot is NOT a [tools] dep (heavy ~100MB+, only the ink:validate-gd gate needs it).
+# Resolves via PATH; override in gitignored mise.local.toml if your godot isn't on PATH.
+GODOT = { default = "godot" }
 
 [tasks.setup]
 description = "Install Python dependencies (fast, via uv)"
@@ -64,7 +70,7 @@ run = "lsof -ti :8787 | xargs kill -9 2>/dev/null; sleep 1; python tools/serve.p
 
 [tasks.init-workspace]
 description = "Create a fresh learning workspace (workspace/)"
-run = "bash tools/init-workspace.sh"
+run = "python tools/init_workspace.py"
 
 [tasks.rehydrate]
 description = "Clone reference repos from REFERENCES.md"
@@ -237,4 +243,8 @@ run = "python tools/play-ink.py --dir ink-test-project/stories --replay-transcri
 [tasks."ink:validate-gd"]
 description = "Headless Godot: run the shipped lesson story_player.gd in the real inkgd runtime and assert observable outcomes (the gate bink can't cover). Skips if Godot is absent."
 depends = ["setup"]
-run = "python tools/validate-ink-gd.py"
+run = [
+  "python tools/ink-gd-sync.py",
+  "python tools/validate-ink.py --dir ink-test-project/stories",
+  "python tools/ink-gd-run.py",
+]

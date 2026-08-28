@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.ink_compile import DEFAULT_INKLECATE, compile_file
+from lib.ink_compile import DEFAULT_INKLECATE, compile_file, inklecate_available
 
 # Defaults
 DEFAULT_INK_DIR = "ink-test-project/stories"
@@ -58,8 +58,8 @@ def main():
             print(f"Unknown arg: {args[i]}")
             sys.exit(2)
 
-    # Verify inklecate exists
-    if not Path(inklecate).exists():
+    # Verify inklecate is resolvable (file path or on PATH via mise)
+    if not inklecate_available(inklecate):
         print(f"ERROR: inklecate not found at: {inklecate}")
         print("Set INKLECATE env var or use --inklecate PATH")
         sys.exit(2)

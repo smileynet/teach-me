@@ -1,5 +1,5 @@
 [env]
-INKLECATE = "D:/tools/inklecate/inklecate.exe"
+INKLECATE = { default = "inklecate" }
 
 [tasks.compile-ink]
 run = "$INKLECATE -o stories/hello.ink.json stories/hello.ink"
