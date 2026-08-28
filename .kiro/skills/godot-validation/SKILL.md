@@ -72,6 +72,16 @@ The godot-ai MCP has three failure modes that cause silent wrong results:
 
 **Reliable capture loop:** edit `.tscn` on disk → `project_run` → `game_eval` (read-only viewport capture + pixel sample) → independent image validation → never `save_scene`.
 
+## Headless GDScript validation (hard rules — validated 2026-08-28, #249/#236)
+
+For running/validating GDScript headlessly (e.g. `mise run ink:validate-gd`):
+
+1. **`godot --headless --editor --import --quit` returns exit 0 even on GDScript parse errors.** Do NOT trust its exit code. A broken script that's only `load()`ed by a scene (not an autoload/`class_name`/`@tool`) doesn't even error at import — it errors at scene-instantiation during the run. Validate by running the scene and matching `line.startswith(("SCRIPT ERROR", "ERROR: Failed to load script"))` on stderr → treat as a setup failure. **Anchor on the line prefix, not a free `"Parse Error"` substring** — interpolated content (story text, labels) can contain those words and false-trip a substring match.
+
+2. **Cold `.godot/` cache emits benign parse-error noise on first import** (`SCRIPT ERROR: Parse Error: Could not preload ... icon.svg` from icon-bearing plugins like inkgd). **Double-import** (run `--import` twice) to warm the cache so the guarded run is clean.
+
+3. **When a harness runs COPIES of shipped files, edit the SHIPPED reference, not the copy.** `tools/ink-gd-sync.py` regenerates `ink-test-project/scenes/lesson0*_player.gd` from `examples/ink-godot/reference/code/*/story_player.gd` on each run — hand-edits to the copies are overwritten.
+
 ## Shader Toggle for A/B
 
 For post-process shaders, toggle `PostProcessRect.visible` in `game_eval` (this DOES work — it's a node visibility flag, not a persisted param):
