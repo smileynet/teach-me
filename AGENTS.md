@@ -138,7 +138,7 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 - Python tools with Unicode stdout (✓, ✗) fail on Windows cp1252. Use `set PYTHONIOENCODING=utf-8` or avoid non-ASCII in print() output.
 - Mise shim recursion: `mise run` may fail with "recursive shim invocation detected". Workaround: invoke `.venv\Scripts\python.exe` directly instead of `python` or `mise run`.
 - serve.py serves ONE workspace at a time. To view a different domain, restart: `mise run serve -- --workspace examples/{domain}`. Cross-workspace index page links are broken until #198 is resolved.
-- examples/*/lessons/ is gitignored. Use `git add -f` when committing generated lesson HTML files.
+- examples/*/lessons/ are tracked (committed test fixtures). Only the live top-level `workspace/` is gitignored (anchored `/workspace/`) — no `git add -f` needed for example lessons.
 - tkt new creates `{id}-{slug}.md`. Write ticket content to THAT file — don't create a separate file or you get duplicates requiring manual cleanup.
 - inkgd (godot4 branch): first headless import shows SVG icon error ("plugin could not be initialized") — harmless, resolves on editor relaunch or second import. `ink:validate-gd` double-imports to warm the cache so this benign cold-cache noise (`SCRIPT ERROR: Parse Error: Could not preload ... icon.svg`) never trips its error guard.
 - inklecate is a mise `[tools]` dep (`github:inkle/ink`, pinned in `mise.lock`) — on PATH after `mise install`, no hardcoded path. Godot is NOT a `[tools]` dep (heavy; only `ink:validate-gd` needs it): it resolves via PATH from `[env] GODOT = { default = "godot" }`. If your Godot isn't on PATH, point at it in gitignored `mise.local.toml`: `[env]\nGODOT = "C:/path/to/godot.exe"`.
