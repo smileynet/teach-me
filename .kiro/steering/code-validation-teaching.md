@@ -74,7 +74,8 @@ it cannot catch a player that reads the wrong property, mishandles the async
 `loaded` signal, or drops per-line tags.
 
 `mise run ink:validate-gd` closes that gap. It runs the shipped players in real
-Godot 4 headless (`tools/validate-ink-gd.py` → `ink-test-project/scenes/validate_runtime.tscn`):
+Godot 4 headless (`tools/ink-gd-sync.py` copies the shipped reference in, then
+`tools/ink-gd-run.py` drives `ink-test-project/scenes/validate_runtime.tscn`):
 instantiate each lesson's player scene, `await` the `loaded` signal, drive the
 choice sequence, and assert observable node state (text shown, speaker label set,
 `# hidden` line suppressed, ending reached). Exit 0 = pass, 1 = a real runtime
