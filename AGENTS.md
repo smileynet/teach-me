@@ -144,6 +144,7 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 - inklecate is a mise `[tools]` dep (`github:inkle/ink`, pinned in `mise.lock`) — on PATH after `mise install`, no hardcoded path. Godot is NOT a `[tools]` dep (heavy; only `ink:validate-gd` needs it): it resolves via PATH from `[env] GODOT = { default = "godot" }`. If your Godot isn't on PATH, point at it in gitignored `mise.local.toml`: `[env]\nGODOT = "C:/path/to/godot.exe"`.
 - maps:regenerate mise task uses bash for-loop syntax (fails on Windows). Use manual Python calls per-MAP: `.venv\Scripts\python.exe tools/generate_map_page.py {MAP} --workspace {ws} --output {out}`
 - Background servers on Windows: use `Start-Process -WindowStyle Hidden` (never `-NoNewWindow` with redirects — it blocks). Verify with `Get-NetTCPConnection -LocalPort PORT -State Listen`. Never read stdout synchronously from a server process.
+- Mutate-then-restore tests (break a file → run a check → restore it) must put the RESTORE in its OWN shell call, never chained behind the run. A blocked/cancelled Godot/build/test run leaves the file broken and strands it (observed twice this session: a parse error left in `validate_runtime.gd` after a cancelled `--import` chain). Pattern: (1) back up + break, (2) run, (3) restore — three separate calls.
 
 ## Skill Format (kiro-cli)
 
