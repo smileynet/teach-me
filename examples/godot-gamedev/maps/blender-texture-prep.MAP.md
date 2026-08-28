@@ -26,8 +26,8 @@ The reference implementation is `mk_toon_lite.gdshader` — which declares unifo
 - **why:** Before changing anything, you need to identify what in a PBR texture set fights toon shading — continuous gradients that create noisy band edges, micro-detail normals that chatter, and roughness maps the shader ignores entirely
 - **scope:** lightweight
 - **prereqs:** [toon-banding]
-- **lesson_file:** 0015-texture-audit.html
-- **status:** not-started
+- **lesson_file:** blender-texture-prep/01-texture-audit.html
+- **status:** in-progress
 
 ### albedo-posterize
 - **title:** Albedo Posterization — Floor-Divide Quantization in Blender Nodes
