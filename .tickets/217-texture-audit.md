@@ -2,7 +2,7 @@
 id: "217"
 title: "Lesson: What Makes a Texture Toon-Unfriendly? (0015)"
 type: feature
-status: open
+status: done
 priority: high
 blocked_by: []
 parent: "216"
@@ -306,8 +306,8 @@ No standalone CLI — `page_template.render_lesson_page(...)` is a library; run 
 - [x] Decision callout: when to keep vs discard normal map
 - [x] Exercise tests the Win (misconception probing: "just disable normals" isn't enough)
 - [x] SR questions generated (4–8 open-answer + 2–3 interactive, ≥3 archetypes, full criteria/eli5/source/level metadata) in blender-texture-prep.jsonl
-- [ ] Jargon annotation pass: body first-use of glossary terms (quantization, threshold-map, ARM) wrapped in `data-term` spans via `jargon-annotate.py` (explicit file path — subfolder; dry-run first for ARM substring safety)
-- [ ] `check-lesson.py` passes (expect PASS G2/Q6/Q9/Q10/Q12, SKIP G3/CF/Q14)
+- [x] Jargon annotation pass: body first-use of glossary terms (quantization, threshold-map, ARM) wrapped in `data-term` spans via `jargon-annotate.py` (explicit file path — subfolder; dry-run first for ARM substring safety)
+- [x] `check-lesson.py` passes (expect PASS G2/Q6/Q9/Q10/Q12, SKIP G3/CF/Q14)
 - [x] No `data-file` code blocks (no downloadable files needed)
 - [x] Page generated via `page_template.py` with correct structure
 - [x] Layer 1: 4 screenshots validated via image analysis (correct state each)
@@ -353,3 +353,7 @@ Key quote (Hyper3D docs): "Noisy normals shatter clean tone bands into speckle. 
 - mk_toon_lite already has `source_color` on albedo_texture ✓
 - Normal map uniform lacks `hint_normal` — document this as potential issue
 - Poly Haven `_nor_gl_` normals are OpenGL-format (Y+) — no inversion needed in Godot
+
+## Resolution (2026-08-28)
+
+Authored blender-texture-prep track-opener: quantization-amplifies-noise concept, progressive channel-isolation A/B, misconception-probe exercise, depth-3 quiz. Crisp-band capture resolved (gooch=band ramp + raking light). All 4 validation layers pass.
