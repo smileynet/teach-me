@@ -4,7 +4,7 @@ title: "Harden ink GDScript harness: deeper assertions, clean fail-test, exit-co
 type: bug
 status: in_progress
 priority: high
-blocked_by: []
+blocked_by: ["244"]
 tags: ["ink", "validation"]
 ---
 
