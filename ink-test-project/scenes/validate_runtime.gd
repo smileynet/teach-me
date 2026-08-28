@@ -72,6 +72,15 @@ func _validate_lesson05():
 	else:
 		_ok("L05", "text displayed after load")
 
+	# Bug-signature guard (#236/#251): the maximal-continue bug dropped the OPENING
+	# narration and showed only the last line. A non-empty check alone would still
+	# pass in that case. Assert the exact opening line the bug dropped so a
+	# regression of THIS bug fails, not just any missing-ending.
+	if "You stand at the mouth" in text_label.text:
+		_ok("L05", "opening narration present (#236 bug-signature guard)")
+	else:
+		_fail("L05", "opening narration missing — #236 maximal-continue regression; got: %s" % text_label.text)
+
 	# choices 0,1 -> light torch, step inside -> END
 	await _press_choice(p, 0)   # Light the torch
 	await _press_choice(p, 1)   # Step inside anyway

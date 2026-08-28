@@ -57,7 +57,7 @@ func _advance_story():
 		var show_line = _process_tags(_ink_player.current_tags)
 
 		if show_line and text.strip_edges() != "":
-			_text_label.text += text + "\n"
+			_text_label.text += text
 
 	if _ink_player.has_choices:
 		_show_choices()
