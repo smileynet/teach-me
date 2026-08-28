@@ -25,7 +25,7 @@ GODOT = { default = "godot" }
 [tasks.setup]
 description = "Install Python dependencies (fast, via uv)"
 run = """
-uv pip install drawsvg playwright graphviz rich genanki fastapi uvicorn pytest pymupdf yake trafilatura networkx inflection beautifulsoup4 lxml scikit-learn bink
+uv pip install drawsvg playwright graphviz rich genanki fastapi uvicorn pytest pymupdf yake trafilatura networkx inflection beautifulsoup4 lxml scikit-learn bink pillow
 git config core.hooksPath .githooks 2>/dev/null || true
 """
 sources = ["mise.toml"]
@@ -101,6 +101,7 @@ echo ""
 echo "=== Venv ==="
 [ -d .venv ] && echo "✓ .venv exists" || echo "✗ .venv missing (run: mise install)"
 python -c "import drawsvg" 2>/dev/null && echo "✓ drawsvg installed" || echo "✗ drawsvg missing (run: mise run setup)"
+python -c "import PIL" 2>/dev/null && echo "✓ pillow installed" || echo "✗ pillow missing (run: mise run setup)"
 echo ""
 echo "=== Optional tools ==="
 if command -v d2 >/dev/null 2>&1; then echo "✓ d2"; else echo "○ d2 not installed (optional)"; fi
