@@ -1,7 +1,7 @@
 ---
 id: "252"
 title: "Opt-in verify:blender gate — run bpy --check artifacts (skip if Blender absent)"
-status: in_progress
+status: done
 blocked_by: []
 priority: high
 tags: ["mktoon", "blender"]
@@ -78,9 +78,13 @@ calls (back-up → break → run → restore) so a cancelled run doesn't strand 
 
 ## Acceptance criteria
 
-- [ ] `mise run verify:blender` runs all three bpy `--check`s when Blender is present, fails on any broken node group
-- [ ] Skips cleanly (exit 0 + message) when Blender is absent — does not block a Blender-less machine
-- [ ] Blender path resolves via env var with mise.local.toml override (not hardcoded)
-- [ ] Core `mise run verify` is unchanged (still Blender-free, still fast)
-- [ ] AGENTS.md Commands table documents `verify:blender` + notes Godot A/B is manual
-- [ ] Verified: break a node group on purpose → verify:blender fails; restore → passes
+- [x] `mise run verify:blender` runs all three bpy `--check`s when Blender is present, fails on any broken node group
+- [x] Skips cleanly (exit 0 + message) when Blender is absent — does not block a Blender-less machine
+- [x] Blender path resolves via env var with mise.local.toml override (not hardcoded)
+- [x] Core `mise run verify` is unchanged (still Blender-free, still fast)
+- [x] AGENTS.md Commands table documents `verify:blender` + notes Godot A/B is manual
+- [x] Verified: break a node group on purpose → verify:blender fails; restore → passes
+
+## Resolution (2026-08-28)
+
+tools/verify-blender.py: resolves BLENDER env var (skip if absent), runs 3 bpy --check artifacts with --python-exit-code 1 + success-sentinel dual gate (never trusts exit code alone — Blender T82494 swallows exceptions). [env] BLENDER added, [tasks.verify:blender] wired, NOT in core verify. AGENTS.md Commands + Constraints updated.
