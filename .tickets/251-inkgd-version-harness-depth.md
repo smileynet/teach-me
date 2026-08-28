@@ -2,7 +2,7 @@
 id: "251"
 title: "inkgd version provenance + deepen harness (pin bug signature, verify render, review prose)"
 type: bug
-status: open
+status: in_progress
 priority: high
 blocked_by: []
 tags: ["ink", "validation", "tooling"]
