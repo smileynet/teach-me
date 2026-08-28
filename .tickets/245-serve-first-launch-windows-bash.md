@@ -2,7 +2,7 @@
 id: "245"
 title: "serve.py first-launch crashes on Windows: bash subprocess resolves to WSL"
 type: bug
-status: in_progress
+status: done
 priority: high
 blocked_by: []
 tags: ["serve", "windows", "first-launch"]
@@ -113,21 +113,25 @@ Full evidence: `.scratch/research/245-{bash-subprocess,portable-init,code-review
 
 ## Acceptance criteria
 
-- [ ] On a Windows machine with no `workspace/`, `python tools/serve.py --lan`
+- [x] On a Windows machine with no `workspace/`, `python tools/serve.py --lan`
       starts successfully and serves `http://192.168.x.x:8787` with a fully
       scaffolded workspace (dirs + MISSION/RESOURCES + `lessons/index.html`),
       no bash/`python3`/WSL dependency
-- [ ] No bare `bash`/`python3` subprocess in the first-launch path (C: init
+- [x] No bare `bash`/`python3` subprocess in the first-launch path (C: init
       called in-process; `.sh` retained only as a thin passthrough or retired)
-- [ ] `check=True` crash path eliminated: init failure produces a clear
+- [x] `check=True` crash path eliminated: init failure produces a clear
       warning, not a traceback
-- [ ] "Already initialized" guard standardized on `workspace/lessons` so a
+- [x] "Already initialized" guard standardized on `workspace/lessons` so a
       half-built workspace self-heals on next serve (serve.py + script agree)
-- [ ] Assets symlink: created on POSIX, skipped/junctioned on Windows without
+- [x] Assets symlink: created on POSIX, skipped/junctioned on Windows without
       hard failure (serve.py mounts `/assets` from PROJECT_ROOT regardless)
-- [ ] Port output is ASCII-safe (or sets `PYTHONIOENCODING=utf-8`) — no cp1252
+- [x] Port output is ASCII-safe (or sets `PYTHONIOENCODING=utf-8`) — no cp1252
       crash on `✓`/`✗`
-- [ ] Linux/macOS first-launch still works (no regression) — validate on WSL
-- [ ] ADR 0011 recorded (option C changes the init architecture)
-- [ ] Follow-up tickets filed for out-of-scope items IF confirmed blocking:
+- [x] Linux/macOS first-launch still works (no regression) — validate on WSL
+- [x] ADR 0011 recorded (option C changes the init architecture)
+- [x] Follow-up tickets filed for out-of-scope items IF confirmed blocking:
       serve/serve:lan bare-`python`, serve:restart `lsof`/`kill`
+
+## Resolution (2026-08-28)
+
+Option C: ported scaffold to tools/init_workspace.py (pure Python, importable); serve.py calls init_workspace(default=True) in-process (no bash/python3/symlink dep); guard standardized on workspace/lessons; check=True crash replaced with graceful warning+exit; assets symlink POSIX-only (Windows skip); ASCII-safe output; init-workspace.sh now a thin passthrough; mise task + AGENTS.md updated; ADR 0011 recorded. Out-of-scope follow-ups filed as #247 (serve bare-python) and #248 (serve:restart lsof/kill).
