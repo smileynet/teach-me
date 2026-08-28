@@ -72,6 +72,8 @@ The godot-ai MCP has three failure modes that cause silent wrong results:
 
 **Reliable capture loop:** edit `.tscn` on disk → `project_run` → `game_eval` (read-only viewport capture + pixel sample) → independent image validation → never `save_scene`.
 
+4. **Verify file existence with a direct filesystem check, not `res://` resolution.** A capture agent (#220, 2026-08-28) reported source PNGs "missing on disk" because a `res://` path failed to resolve — the files were actually present (Godot was loading them fine from the `.ctex` cache). A `res://` lookup failure ≠ file absent. Before reporting a file missing, stat the real OS path. The parent must not act on a subagent's "missing file" claim without a direct check.
+
 ## Headless GDScript validation (hard rules — validated 2026-08-28, #249/#236)
 
 For running/validating GDScript headlessly (e.g. `mise run ink:validate-gd`):
