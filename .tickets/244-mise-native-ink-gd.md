@@ -2,7 +2,7 @@
 id: "244"
 title: "Slim validate-ink-gd.py via declarative mise env/tasks (native execution)"
 type: chore
-status: in_progress
+status: done
 priority: high
 blocked_by: []
 tags: ["ink", "validation", "tooling"]
@@ -54,12 +54,12 @@ Run `mise registry godot` / `mise registry inklecate` first.
   `[tools]` github backend for inklecate only.
 
 ## Acceptance criteria
-- [ ] `mise.local.toml` added to `.gitignore` (step 0)
-- [ ] `[env] GODOT` + `INKLECATE` declared with `{default=}`; machine paths in mise.local.toml (not committed)
-- [ ] `ink:validate-gd` task uses a `run=[...]` array (sync → compile → run)
-- [ ] `validate-ink-gd.py` replaced by `ink-gd-sync.py` (~10 lines) + `ink-gd-run.py` (~25 lines); no committed absolute paths
-- [ ] `mise run ink:validate-gd` reproduces #235 behavior: L06 green, L05 red (until #236), skip-if-Godot-absent exit 0, import-failure exit 2
-- [ ] `mise registry` checked before any `[tools]` entry (documented decision either way)
+- [x] `mise.local.toml` added to `.gitignore` (step 0)
+- [x] `[env] GODOT` + `INKLECATE` declared with `{default=}`; machine paths in mise.local.toml (not committed)
+- [x] `ink:validate-gd` task uses a `run=[...]` array (sync → compile → run)
+- [x] `validate-ink-gd.py` replaced by `ink-gd-sync.py` (~10 lines) + `ink-gd-run.py` (~25 lines); no committed absolute paths
+- [x] `mise run ink:validate-gd` reproduces #235 behavior: L06 green, L05 red (until #236), skip-if-Godot-absent exit 0, import-failure exit 2
+- [x] `mise registry` checked before any `[tools]` entry (documented decision either way)
 
 ## Note
 This is a refactor of WORKING infra (the wrapper caught the L05 bug), not new
@@ -117,3 +117,7 @@ Caveat: it sys.exit(2)s if inklecate missing (fine once inklecate is a [tools] d
 
 Absorbs #238 A3+A4. Also update ink-test-project/mise.toml [tasks.compile-ink] which
 uses $INKLECATE.
+
+## Resolution (2026-08-28)
+
+inklecate via mise [tools] github:inkle/ink@1.2.1 (swept 2 committed D:/tools paths to {default=inklecate}); [env] GODOT/INKLECATE={default=}, Godot env-only (heavy/optional); split 130-line wrapper into ink-gd-sync.py + ink-gd-run.py, ink:validate-gd run=[] array; deleted validate-ink-gd.py; made inklecate_available PATH-aware. Absorbs #238 A3/A4.
