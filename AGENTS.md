@@ -50,6 +50,7 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 | Generate complex diagram | `mise run draw -- --type graph --backend graphviz --data '{...}'` | Auto-layout via Graphviz |
 | Render .mmd/.d2 | `mise run render-diagrams` | Batch render to assets/generated/ |
 | Check topic complete | `python3 tools/check-topic-completeness.py --workspace X --all` | Reports missing artifacts per topic (lesson, ref, quiz, jargon, SR) |
+| Compile lesson code blocks | `python tools/check-lesson-code.py` | Compiles downloadable `data-file` blocks (skips `fragment`): `.ink`→inklecate, `.py`→py_compile (both in `verify`); `.gd`/`.gdshader`→SKIP (Godot compile-check is opt-in, needs a project). Diff blocks reconstructed to post-diff state; blocks grouped by `data-file` + assembled before compile |
 | Annotate jargon | `python3 tools/jargon-annotate.py --workspace X` | Mechanical term annotation from glossary-data JSON (idempotent) |
 | Migrate SVG colors | `python3 tools/check-svg-vars.py --workspace X` | Flags hardcoded hex in lesson SVGs |
 | Init workspace | `python tools/init_workspace.py [--default] [--path DIR]` | Scaffold workspace; --default for generic first-launch content (pure Python — no bash) |
