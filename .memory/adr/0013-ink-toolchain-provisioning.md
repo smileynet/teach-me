@@ -59,3 +59,34 @@ Decision 3 executed. Findings:
 - **Upgrade decision: STAY on `fea9098`.** There is nothing to upgrade to (snapshot == HEAD). Re-evaluate
   only when `git ls-remote … refs/heads/godot4` shows a newer SHA (drift check documented in VENDOR.md),
   and then only with a full harness + golden-transcript re-validation.
+
+
+## Update (2026-08-28, #226 — bink reachability confirmed against inklecate)
+
+`play-ink.py` uses **bink** (blade-ink-rs Python binding) to decide whether a story reaches END.
+bink is NOT in the public ink-proof conformance harness (which tests inklecate/inkjs/godot-ink/inkcpp);
+it self-verifies with in-repo tests only. This spike provides our LOCAL conformance evidence.
+
+**Method:** drove `02_choices_and_weave.ink` (deterministic, branching) through BOTH runtimes with the
+identical committed choice sequence `0,0,3,1,2,2,1` — bink via `play_capture()` (0-based), inklecate via
+`inklecate -p` + `Popen.communicate()` with the +1 offset (1-based, no `-k`). Cross-check script:
+`.scratch/226-crosscheck.py` (throwaway spike).
+
+**Verdict: MATCH.** Both reach END (exit 0, terminal text present). A negative probe (truncated sequence
+`0,0`) confirms the check discriminates — bink raises `ValueError: choice sequence exhausted with 4
+choice(s) still pending`, correctly reporting non-termination. So bink's reachability verdict is
+empirically sound for our use.
+
+**Scope of the claim (honest):** this confirms bink agrees with inklecate on *reachability* for a
+deterministic branching story — NOT full spec conformance. Reachability (terminates y/n) is the right
+question because RANDOM/shuffle PRNG differs across C#/JS/Rust runtimes, so exact text can't match
+cross-runtime anyway (which is why nondeterministic stories are excluded from golden transcripts).
+
+**Windows note:** the #224 "inklecate -p doesn't accept piped stdin on Windows" concern did NOT
+reproduce with inklecate 1.2.1 using the write-all-then-read `communicate()` pattern (all choices fed up
+front, read to EOF). A per-prompt interactive read/write loop might still deadlock; `communicate()`
+sidesteps it.
+
+**Follow-up (backlog, not blocking):** broader confidence would come from a `rinklecate`-based ink-proof
+driver for blade-ink-rs (bink ships `rinklecate`, mirroring the inklecate CLI, so a driver is feasible
+but unpublished). File if bink conformance ever becomes load-bearing beyond reachability.
