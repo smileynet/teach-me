@@ -41,23 +41,20 @@ def main() -> int:
         print(f"ERROR: {PROJECT} not found", file=sys.stderr)
         return 2
 
-    # Import so synced scripts + scenes register. Godot's `--import` is unreliable
-    # about exit codes — it can return 0 even when a GDScript fails to parse. So
-    # gate on the log content, not the return code: any "SCRIPT ERROR"/"Parse Error"
-    # is a setup failure. (The harmless inkgd first-import SVG-icon warning uses a
-    # different message — "plugin could not be initialized" — and is not matched.)
-    imp = subprocess.run(
-        [godot, "--headless", "--editor", "--import", "--quit", "--path", "."],
-        cwd=PROJECT, capture_output=True, text=True, encoding="utf-8", errors="replace",
-    )
-    imp_out = (imp.stdout or "") + (imp.stderr or "")
-    parse_errors = [l for l in imp_out.splitlines()
-                    if "SCRIPT ERROR" in l or "Parse Error" in l]
-    if parse_errors:
-        print("ERROR: Godot import failed with script/parse errors:", file=sys.stderr)
-        for line in parse_errors:
-            print("  " + line, file=sys.stderr)
-        return 2
+    # Import so synced scripts + scenes register. Run it TWICE: on a cold
+    # .godot/ cache (fresh checkout) the first editor import emits benign
+    # load-order noise — "SCRIPT ERROR: Parse Error: Could not preload ... icon.svg"
+    # and "ERROR: Failed loading resource ...ctex" (Godot #68615/#89879, inkgd's
+    # icon-bearing plugins). These clear once the cache is warm, so the SECOND
+    # pass (and the harness run below) are clean. There is no guard on the import
+    # output: a broken LESSON player is only load()ed at scene-instantiation, so
+    # its parse error never appears here — it surfaces in the harness run, where
+    # the anchored guard below catches it.
+    for _ in range(2):
+        subprocess.run(
+            [godot, "--headless", "--editor", "--import", "--quit", "--path", "."],
+            cwd=PROJECT, capture_output=True, text=True, encoding="utf-8", errors="replace",
+        )
 
     result = subprocess.run(
         [godot, "--headless", HARNESS_SCENE, "--path", "."],
@@ -71,10 +68,13 @@ def main() -> int:
             print(line)
 
     # A GDScript parse error in a lesson player surfaces at scene-instantiation
-    # time during the harness run (Godot's --import can return 0 despite it), as
-    # "SCRIPT ERROR"/"Failed to load script". Treat that as a setup failure even
-    # if the harness's own exit code didn't capture it.
-    if "SCRIPT ERROR" in out or "Failed to load script" in out or "Parse Error" in out:
+    # during the harness run (Godot's exit code doesn't reflect it). Anchor on
+    # Godot's line-LEADING error prefix — not a free substring — so arbitrary
+    # story text interpolated into the harness's own "[Lxx] ERROR: ... got: ..."
+    # messages can never misclassify a normal check-failure (exit 1) as a
+    # setup/parse failure (exit 2).
+    if any(line.startswith(("SCRIPT ERROR", "ERROR: Failed to load script"))
+           for line in out.splitlines()):
         print("ERROR: a lesson player failed to load (parse/script error).", file=sys.stderr)
         return 2
 

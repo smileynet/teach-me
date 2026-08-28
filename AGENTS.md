@@ -58,6 +58,7 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 | Validate shaders (headless) | `godot --headless --editor --import --quit --path test-scene` | Catches compilation errors only (no visual check) |
 | Validate ink stories | `mise run ink:validate` | Compile all .ink files via inklecate, report errors/warnings |
 | Validate ink (strict) | `mise run ink:validate:strict` | Same but warnings = errors (for release gates) |
+| Validate ink GDScript | `mise run ink:validate-gd` | Headless Godot: run shipped lesson story_player.gd in the real inkgd runtime (needs Godot; skips if absent). `ink:validate` does NOT need Godot. |
 | tkt (direct) | `D:\code\tkt\target\release\tkt.exe` | Bypass mise shim recursion for ticket management |
 | Serve on LAN | `mise run serve:lan -- [--workspace PATH]` | Same but on 0.0.0.0:8787 for network access |
 | Serve restart | `mise run serve:restart` | Kill existing server and restart |
@@ -139,7 +140,8 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 - serve.py serves ONE workspace at a time. To view a different domain, restart: `mise run serve -- --workspace examples/{domain}`. Cross-workspace index page links are broken until #198 is resolved.
 - examples/*/lessons/ is gitignored. Use `git add -f` when committing generated lesson HTML files.
 - tkt new creates `{id}-{slug}.md`. Write ticket content to THAT file — don't create a separate file or you get duplicates requiring manual cleanup.
-- inkgd (godot4 branch): first headless import shows SVG icon error ("plugin could not be initialized") — harmless, resolves on editor relaunch or second import.
+- inkgd (godot4 branch): first headless import shows SVG icon error ("plugin could not be initialized") — harmless, resolves on editor relaunch or second import. `ink:validate-gd` double-imports to warm the cache so this benign cold-cache noise (`SCRIPT ERROR: Parse Error: Could not preload ... icon.svg`) never trips its error guard.
+- inklecate is a mise `[tools]` dep (`github:inkle/ink`, pinned in `mise.lock`) — on PATH after `mise install`, no hardcoded path. Godot is NOT a `[tools]` dep (heavy; only `ink:validate-gd` needs it): it resolves via PATH from `[env] GODOT = { default = "godot" }`. If your Godot isn't on PATH, point at it in gitignored `mise.local.toml`: `[env]\nGODOT = "C:/path/to/godot.exe"`.
 - maps:regenerate mise task uses bash for-loop syntax (fails on Windows). Use manual Python calls per-MAP: `.venv\Scripts\python.exe tools/generate_map_page.py {MAP} --workspace {ws} --output {out}`
 - Background servers on Windows: use `Start-Process -WindowStyle Hidden` (never `-NoNewWindow` with redirects — it blocks). Verify with `Get-NetTCPConnection -LocalPort PORT -State Listen`. Never read stdout synchronously from a server process.
 
