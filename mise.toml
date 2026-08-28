@@ -232,3 +232,8 @@ run = "python tools/play-ink.py --dir ink-test-project/stories"
 description = "Replay committed golden .transcript fixtures and diff (catches wrong-output bugs). Capture: mise run ink:transcripts -- --story NN_name.ink --choices 0,1,2"
 depends = ["setup"]
 run = "python tools/play-ink.py --dir ink-test-project/stories --replay-transcripts"
+
+[tasks."ink:validate-gd"]
+description = "Headless Godot: run the shipped lesson story_player.gd in the real inkgd runtime and assert observable outcomes (the gate bink can't cover). Skips if Godot is absent."
+depends = ["setup"]
+run = "python tools/validate-ink-gd.py"

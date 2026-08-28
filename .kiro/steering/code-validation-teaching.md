@@ -65,6 +65,28 @@ A test project exists at `D:\code\gdhelper-pipeline\test-scene`. Validation mean
 
 This catches what no linter can: wrong coordinate spaces, missing render modes, semantic mismatches between fragment() and light(), and architectural issues with the shader pipeline.
 
+### For ink lesson GDScript specifically
+
+Ink lessons ship a `story_player.gd` that drives the inkgd runtime. Compiling the
+story (`ink:validate`) and replaying it in bink (`ink:play`, `ink:transcripts`)
+covers the **story logic** — but NOT the Godot integration code. bink is not Godot;
+it cannot catch a player that reads the wrong property, mishandles the async
+`loaded` signal, or drops per-line tags.
+
+`mise run ink:validate-gd` closes that gap. It runs the shipped players in real
+Godot 4 headless (`tools/validate-ink-gd.py` → `ink-test-project/scenes/validate_runtime.tscn`):
+instantiate each lesson's player scene, `await` the `loaded` signal, drive the
+choice sequence, and assert observable node state (text shown, speaker label set,
+`# hidden` line suppressed, ending reached). Exit 0 = pass, 1 = a real runtime
+defect. Skips gracefully if Godot is absent.
+
+This is the inkgd analogue of the shader visual gate — the "runs correctly in the
+target runtime" tier. It found a real bug the golden transcript missed: a player
+reading `current_text` after `continue_story_maximally()` gets only the LAST line
+(bink's transcript captures the continue *return value*, which is the full text —
+so the story looked correct while the Godot player silently dropped lines). Add a
+per-lesson check to `validate_runtime.gd` when a lesson ships a new player.
+
 ## When Adopting a New Teaching Domain
 
 Before generating the first lesson:
