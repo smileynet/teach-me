@@ -116,7 +116,7 @@ echo "=== References ==="
 """
 
 [tasks.verify]
-description = "Smoke-test the diagram tool + verify HTML asset links + lint structure + SVG theme check + map page tests + interactive component checks + ink transcript replay"
+description = "Smoke-test the diagram tool + verify HTML asset links + lint structure + lesson code-block compile + SVG theme check + map page tests + interactive component checks + ink transcript replay"
 depends = ["setup"]
 run = [
   "uv run python tools/smoke-draw-diagram.py",
@@ -127,6 +127,7 @@ run = [
   "uv run python tools/bake-export-oracle.py",
   "uv run python tools/verify-links.py",
   "uv run python tools/lint-html.py",
+  "uv run python tools/check-lesson-code.py",
   "uv run python tools/check-svg-vars.py --workspace examples/oidc-rust --workspace examples/workout-fundamentals --workspace examples/godot-gamedev",
   "uv run python -m pytest tools/test_map_page.py tools/test_map_parser.py -q",
   "uv run python tools/verify-interactive.py",
