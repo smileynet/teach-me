@@ -27,31 +27,50 @@ class. It blocks a green verify gate — we can't confidently validate any new w
 (including the blender-texture-prep lessons) against a pipeline that exits 1 on a
 print, not a real failure.
 
-## Scope
+## Scope (revised after subagent audit — see .scratch/subagent-raw/237-code-review.md)
 
-`tools/verify-links.py` — lines ~228 and ~237 (the `✓ All links verified` and
-`✗ N broken link(s)` summary prints).
+verify-links.py is NOT isolated. Fixing only it moves the crash one line down into
+the next glyph-printing tool. A full audit of the 8 verify-pipeline tools found
+**4 tools** whose non-ASCII prints (`✓ ✗ ⚠ → —`) fire on paths the verify pipeline
+actually executes, and **no tool in tools/ guards stdout encoding at all**:
 
-Sweep for the same pattern in sibling verify-pipeline tools if trivially adjacent
-(e.g. any other tool `mise run verify` invokes that prints non-ASCII), but the
-crashing tool is verify-links.py.
+1. `tools/verify-links.py` — known crash; `✓` success summary (L236) + `✗`/`→`/`⚠`/`—` failure lines
+2. `tools/lint-html.py` — `✗` on missing-file (L141) and per-error (L158)
+3. `tools/check-svg-vars.py` — `✓` success summary (L122, ALWAYS prints), `⚠`/`—`/`✗`
+4. `tools/verify-interactive.py` — report icons every run (L~330/333/336), `⚠` skip on common "playwright missing" path
+
+Latent (not verify blockers, direct-run-only): `play-ink.py` (capture/replay of
+non-ASCII story body), `test_map_parser.py` (`__main__` self-runner). Fix if cheap.
+No change needed: smoke-draw-diagram.py, posterize-oracle.py, test_map_page.py.
 
 ## What to do
 
-Make stdout UTF-8 safe on Windows. Pick the least-invasive fix that matches
-existing project convention (AGENTS.md suggests `set PYTHONIOENCODING=utf-8` or
-avoiding non-ASCII in `print()`):
+Add a stdout+stderr UTF-8 reconfigure block at module top of each of the 4 tools
+(reconfigure chosen over glyph-swap: one line = total coverage, preserves the
+project-wide `✓/✗/⚠/→` visual vocabulary, and reuses the `errors="replace"` policy
+the repo already standardises on for subprocess capture — lib/ink_compile.py:94,
+validate-ink-gd.py:102/117):
 
-- Preferred: reconfigure stdout to UTF-8 at startup
-  (`sys.stdout.reconfigure(encoding="utf-8")`, guarded for older interpreters), OR
-- Replace the `✓`/`✗` glyphs with ASCII markers (`[OK]` / `[FAIL]`) consistent
-  with other project tool output.
+```python
+import sys
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+```
 
-Do NOT change link-checking logic — the check itself passes; only the print fails.
+The `hasattr` guard covers Py≤3.6 and non-reconfigurable test-capture streams
+(reconfigure added in 3.7 per PEP 528/540 research). Do NOT invent a shared helper
+module for a 4-line guard (single-use abstraction) — inline it per tool. Do NOT
+change any checking/lint/link logic — only the stdout encoding fails.
+
+Optional belt-and-suspenders: add `env = { PYTHONIOENCODING = "utf-8" }` to
+`[tasks.verify]` in mise.toml (covers all tools for mise-launched runs; does NOT
+protect direct `python tools/x.py` invocation — hence per-module reconfigure is primary).
 
 ## Acceptance criteria
 
-- [ ] `mise run verify` exits 0 on Windows (full pipeline green, not just links)
-- [ ] verify-links.py prints its success/failure summary without UnicodeEncodeError
-- [ ] Link-checking behaviour unchanged (same files checked, same failures reported on a real broken link)
-- [ ] No regression to other verify-pipeline tools
+- [ ] `mise run verify` exits 0 on Windows (full pipeline green — verified by running it)
+- [ ] verify-links.py, lint-html.py, check-svg-vars.py, verify-interactive.py each reconfigure stdout+stderr to UTF-8 at module top
+- [ ] Checking/lint/link behaviour unchanged (same files checked, same failures reported on a real broken link/lint error — glyphs still render, now UTF-8)
+- [ ] No regression to the other 4 verify-pipeline tools
