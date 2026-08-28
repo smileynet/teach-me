@@ -59,6 +59,7 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 | Validate ink stories | `mise run ink:validate` | Compile all .ink files via inklecate, report errors/warnings |
 | Validate ink (strict) | `mise run ink:validate:strict` | Same but warnings = errors (for release gates) |
 | Validate ink GDScript | `mise run ink:validate-gd` | Headless Godot: run shipped lesson story_player.gd in the real inkgd runtime (needs Godot; skips if absent). `ink:validate` does NOT need Godot. |
+| Validate Blender artifacts | `mise run verify:blender` | Real Blender: run the bpy artifacts' `--check` node-group validators (Tier-2 for the Blender lesson track). Skips if Blender absent. NOT in core `verify` — run before closing Blender-track tickets. |
 | tkt (direct) | `D:\code\tkt\target\release\tkt.exe` | Bypass mise shim recursion for ticket management |
 | Serve on LAN | `mise run serve:lan -- [--workspace PATH]` | Same but on 0.0.0.0:8787 for network access |
 | Serve restart | `mise run serve:restart` | Kill existing server and restart |
@@ -137,6 +138,7 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 - Git symlinks on Windows are text files (contain target path as text). For local serving, use `python tools/serve.py --workspace examples/godot-gamedev` — it mounts `/assets` from project root automatically (no junctions needed). Only use junctions for `python -m http.server` debugging.
 - Python tools with Unicode stdout (✓, ✗) fail on Windows cp1252. Use `set PYTHONIOENCODING=utf-8` or avoid non-ASCII in print() output.
 - Mise shim recursion: `mise run` may fail with "recursive shim invocation detected". Workaround: invoke `.venv\Scripts\python.exe` directly instead of `python` or `mise run`.
+- Blender is NOT a `[tools]` dep and its mise `blender` shim is broken on Windows. `mise run verify:blender` resolves Blender via `[env] BLENDER` (default `"blender"`) — point it at the full exe in gitignored `mise.local.toml`, e.g. `BLENDER = "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe"`. Blender's `-b --python` swallows exceptions and exits 0, so `verify-blender.py` passes `--python-exit-code 1` AND checks each artifact's success sentinel (never trusts the exit code alone). The Godot A/B visual capture for the mktoon lessons is MANUAL (needs a GPU/window — headless can't render 3D); it is not part of any automated gate.
 - serve.py serves ONE workspace at a time. To view a different domain, restart: `mise run serve -- --workspace examples/{domain}`. Cross-workspace index page links are broken until #198 is resolved.
 - examples/*/lessons/ are tracked (committed test fixtures). Only the live top-level `workspace/` is gitignored (anchored `/workspace/`) — no `git add -f` needed for example lessons.
 - tkt new creates `{id}-{slug}.md`. Write ticket content to THAT file — don't create a separate file or you get duplicates requiring manual cleanup.
