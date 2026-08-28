@@ -301,10 +301,16 @@ def main():
             popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
         else:
             popen_kwargs["preexec_fn"] = os.setsid
-        # serve.py defaults to workspace/, which may not exist (it's the gitignored
-        # live workspace). Point at a workspace that always has real lesson pages.
-        default_ws = Path(__file__).resolve().parent.parent / "workspace"
-        serve_ws = "workspace" if default_ws.exists() else "examples/godot-gamedev"
+        # serve.py defaults to workspace/, which may not exist OR may be a freshly
+        # scaffolded workspace with only an index.html and no lesson pages. Serve
+        # workspace/ ONLY if it actually contains a lesson page one of our candidates
+        # can hit; otherwise fall back to examples/godot-gamedev (always has lessons).
+        project_root = Path(__file__).resolve().parent.parent
+        ws_lessons = project_root / "workspace" / "lessons"
+        ws_has_lesson = ws_lessons.exists() and any(
+            p.name != "index.html" for p in ws_lessons.rglob("*.html")
+        )
+        serve_ws = "workspace" if ws_has_lesson else "examples/godot-gamedev"
         server_proc = subprocess.Popen(
             [sys.executable, "tools/serve.py", "--workspace", serve_ws, "--port", str(port)],
             **popen_kwargs,
