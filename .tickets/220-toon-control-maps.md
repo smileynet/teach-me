@@ -11,7 +11,42 @@ tags: [mktoon, blender]
 
 # Lesson: Authoring Toon Control Maps — Ramp, Noise, Threshold (0018)
 
-## What to build
+## RESCOPE (2026-08-28, after #220 code audit + spikes)
+
+**Ramp SPLIT OUT to its own topic (#246).** The code audit found mk_toon_lite has NO
+`diffuse_ramp` slot — the ramp is a different mechanism in `toon_ramp.gdshader`
+(alternative banding, sibling of toon-banding), not a mk_toon_lite control map. This
+lesson is now **noise + threshold only** — the two maps mk_toon_lite actually samples.
+MAP updated: toon-control-maps retitled "Noise & Threshold", ramp-band-textures added
+as a sibling node with prereq [toon-banding].
+
+**Corrections to the arc below (ticket paraphrase was wrong — teach the shader AS IT IS):**
+- Ignore all "ramp" / `diffuse_ramp` content in the arc below — that's #246 now.
+- Noise + threshold are sampled in `light()`, NOT `fragment()`.
+- Noise uniform is `noise_strength` (default 0.04, hint_range 0.0–0.25), NOT `noise_intensity=0.3`. Rewrite the exercise around the real range.
+- Threshold has NO strength uniform — bias is fixed `texture(...).r - 0.5` (±0.5). The map's contrast IS the only control.
+- `noise_scale`/`threshold_map_scale` are bare floats (no hint_range).
+- Verbatim sampling code + wiring: see .scratch/subagent-raw/220-code-review.md §1.
+
+**Oracle decision (spiked both, see 220-spike-pillow.md / 220-spike-sidecar.md):**
+Use the **JSON-sidecar** approach — the bake script measures each map's properties
+inside Blender (img.pixels) and writes a sidecar JSON; a stdlib-only oracle reads it and
+asserts contracts (dims, Non-Color, tileability edge-match, threshold↔AO correlation).
+Keeps Tier-1 pure-stdlib like posterize/palette-snap oracles, zero new deps. Staleness
+covered by Tier-2 (blender --check) + Tier-3 (Godot A/B). Add size+mtime to the sidecar
+for drift detection. (Pillow works too via `uv run --with pillow` but adds a dep pattern
+the other oracles don't use — rejected for consistency.)
+
+**Tileable noise:** use the 4D-noise trick (map UV onto two orthogonal circles via
+sin/cos into Blender's Noise Texture set to 4D) — edges match by construction. Verify
+with a half-offset edge-match test (the sidecar's edge_max_diff ≈ 0).
+
+**Threshold from AO:** Barrel_01 ARM R channel, read Non-Color; darker AO = earlier/deeper
+shade. Canonical prior art: MToon shadingShiftTexture, UTS2 Shading Grade Map.
+
+---
+
+## What to build (ORIGINAL — see RESCOPE above; ramp content moved to #246)
 
 A substantial lesson teaching how to create the toon-specific control textures that `mk_toon_lite.gdshader` expects but nobody provides. These maps don't replace albedo — they tell the shader HOW to shade.
 
