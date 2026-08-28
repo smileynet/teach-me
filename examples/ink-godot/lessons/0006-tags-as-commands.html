@@ -110,9 +110,9 @@ The needle always points home, he claims. # hidden</code></pre>
 
 <h2>One Line at a Time</h2>
 
-<p>There is a catch. Lesson 05 advanced the story with <code>continue_story_maximally()</code>, which runs through several lines in one call. That collapses their tags — <span class="term" data-term="current-tags">current_tags</span> ends up holding only the <em>last</em> line's tags, and every command in between is lost.</p>
+<p>There is a catch — and it's why lesson 05 already stepped one line at a time. If you advance with <code>continue_story_maximally()</code> (one call for several lines), the tags collapse: <span class="term" data-term="current-tags">current_tags</span> ends up holding only the <em>last</em> line's tags, and every command in between is lost. (It's the same reason maximal-continue drops all but the last line of text — lesson 05's gotcha, now biting the tags too.)</p>
 
-<p>To dispatch per-line tags, you must step <strong>one line at a time</strong> with <span class="term" data-term="continue-story">continue_story()</span>. This is exactly the line-by-line mode lesson 05 set aside for "later" — later is now:</p>
+<p>So you keep the same <span class="term" data-term="continue-story">continue_story()</span> loop from lesson 05 — you just read each line's tags inside it, right where you already read the line's text:</p>
 
 <pre data-mode="fragment"><code>func _advance_story():
     while _ink_player.can_continue:

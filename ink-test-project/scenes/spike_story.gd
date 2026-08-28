@@ -12,19 +12,20 @@ var _ink_player = null
 
 func _ready():
 	_ink_player = InkPlayerFactory.create()
+	_ink_player.loads_in_background = false
 	add_child(_ink_player)
 
 	_ink_player.ink_file = load("res://stories/hello.ink.json")
 
-	# Connect signals
 	_ink_player.connect("loaded", Callable(self, "_on_story_loaded"))
-	_ink_player.connect("continued", Callable(self, "_on_continued"))
-	_ink_player.connect("prompt_choices", Callable(self, "_on_choices"))
-	_ink_player.connect("ended", Callable(self, "_on_ended"))
 
 	_continue_button.connect("pressed", Callable(self, "_on_continue_pressed"))
 	_continue_button.hide()
 
+	# Defer to next frame so the autoload __InkRuntime is fully ready
+	call_deferred("_create_story")
+
+func _create_story():
 	_ink_player.create_story()
 
 func _on_story_loaded(successfully: bool):
@@ -32,16 +33,29 @@ func _on_story_loaded(successfully: bool):
 		_text_label.text = "[color=red]ERROR: Story failed to load.[/color]"
 		return
 	print("[SPIKE] Story loaded successfully!")
-	_ink_player.continue_story()
+	_advance_story()
 
-func _on_continued(text: String, _tags: Array):
-	_text_label.text += text + "\n"
-	# Auto-continue if more text available
-	if _ink_player.can_continue:
-		_ink_player.continue_story()
+func _advance_story():
+	# Step one line at a time, accumulating text. InkPlayer.continue_story_maximally()
+	# returns only the LAST line, so loop with continue_story() to show a whole passage.
+	while _ink_player.can_continue:
+		var text = _ink_player.continue_story()
+		if text != "":
+			_text_label.text += text + "\n"
 
-func _on_choices(choices: Array):
-	_continue_button.hide()
+	# Check for choices
+	if _ink_player.has_choices:
+		_show_choices()
+	elif not _ink_player.can_continue:
+		_on_ended()
+
+func _show_choices():
+	# Clear any existing choice buttons
+	for child in _choices_container.get_children():
+		child.queue_free()
+
+	var choices = _ink_player.current_choices
+	print("[SPIKE] Showing %d choices" % choices.size())
 	for i in range(choices.size()):
 		var btn = Button.new()
 		btn.text = choices[i].text
@@ -49,12 +63,13 @@ func _on_choices(choices: Array):
 		_choices_container.add_child(btn)
 
 func _on_choice_selected(index: int):
+	print("[SPIKE] Choice selected: %d" % index)
 	# Clear choice buttons
 	for child in _choices_container.get_children():
 		child.queue_free()
 
 	_ink_player.choose_choice_index(index)
-	_ink_player.continue_story()
+	_advance_story()
 
 func _on_ended():
 	var player_name = _ink_player.get_variable("player_name")
@@ -64,4 +79,4 @@ func _on_ended():
 	print("[SPIKE] SUCCESS: inkgd works in Godot 4.7.1!")
 
 func _on_continue_pressed():
-	_ink_player.continue_story()
+	_advance_story()
