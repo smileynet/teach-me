@@ -21,6 +21,10 @@ INKLECATE = { default = "inklecate" }
 # Godot is NOT a [tools] dep (heavy ~100MB+, only the ink:validate-gd gate needs it).
 # Resolves via PATH; override in gitignored mise.local.toml if your godot isn't on PATH.
 GODOT = { default = "godot" }
+# Blender is NOT a [tools] dep either (heavy; only verify:blender needs it). The mise
+# `blender` shim is broken on Windows — point BLENDER at the full exe in mise.local.toml,
+# e.g. BLENDER = "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe".
+BLENDER = { default = "blender" }
 
 [tasks.setup]
 description = "Install Python dependencies (fast, via uv)"
@@ -251,3 +255,8 @@ run = [
   "python tools/validate-ink.py --dir ink-test-project/stories",
   "python tools/ink-gd-run.py",
 ]
+
+[tasks."verify:blender"]
+description = "Real Blender: run the bpy artifacts' --check node-group validators (Tier-2 for the Blender lesson track). Skips if Blender is absent. NOT in core verify (keeps it fast + Blender-free) — run before closing Blender-track tickets."
+depends = ["setup"]
+run = ["python tools/verify-blender.py"]
