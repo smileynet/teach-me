@@ -51,7 +51,7 @@ The reference implementation is `mk_toon_lite.gdshader` — which declares unifo
 - **scope:** substantial
 - **prereqs:** [texture-audit]
 - **lesson_file:** blender-texture-prep/04-toon-control-maps.html
-- **status:** not-started
+- **status:** in-progress
 
 ### ramp-band-textures
 - **title:** Ramp Band Textures — 1D Lighting Ramps for toon_ramp.gdshader
