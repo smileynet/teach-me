@@ -2,7 +2,7 @@
 id: "235"
 title: "Headless Godot validation harness for lesson GDScript"
 type: feature
-status: in_progress
+status: done
 priority: high
 blocked_by: []
 tags: ["ink", "validation"]
@@ -57,12 +57,12 @@ reuse it.
 
 ## Acceptance criteria
 
-- [ ] Layer 1: headless import parses lesson GDScript, fails loudly on a syntax error (prove with a deliberately-broken copy, then revert)
-- [ ] Layer 2: headless playthrough drives a player scene to END and asserts at least one observable side effect
-- [ ] `call_deferred`/`loaded` timing under headless resolved OR documented as a coverage boundary
-- [ ] `ink:validate-gd` mise task added and runs green
-- [ ] Mechanism documented in `.kiro/steering/code-validation-teaching.md` (or ink-authoring.md)
-- [ ] Harness scenes/scripts live in `ink-test-project` (gitignored artifacts excluded per #233 policy)
+- [x] Layer 1: headless import parses lesson GDScript, fails loudly on a syntax error (prove with a deliberately-broken copy, then revert)
+- [x] Layer 2: headless playthrough drives a player scene to END and asserts at least one observable side effect
+- [x] `call_deferred`/`loaded` timing under headless resolved OR documented as a coverage boundary
+- [x] `ink:validate-gd` mise task added and runs green
+- [x] Mechanism documented in `.kiro/steering/code-validation-teaching.md` (or ink-authoring.md)
+- [x] Harness scenes/scripts live in `ink-test-project` (gitignored artifacts excluded per #233 policy)
 
 ## Notes
 
@@ -117,3 +117,7 @@ Raw: `.scratch/research/{headless-gdscript-test,gdscript-string-api}.md`,
 - Reuse validate_claims.gd tagged-stdout `[id] Confirmed/ERROR` + spike InkPlayer usage.
 - Hygiene: harness source named clearly; keep .godot/.uid byproducts out of commits (#233);
   don't touch spike_story.tscn or main_scene; inkgd first-import SVG-icon error is harmless.
+
+## Resolution (2026-08-28)
+
+Built validate_runtime.{gd,tscn} + validate-ink-gd.py wrapper + ink:validate-gd mise task (Godot skip-guard); inkgd-runtime gate documented in code-validation-teaching.md. Instantiates shipped players, awaits loaded, drives choices, asserts node state, exits 0/1. Layer 1 (parse via import) + Layer 2 (headless playthrough) working. #236 unblocked.
