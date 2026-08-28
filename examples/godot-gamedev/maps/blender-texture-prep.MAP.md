@@ -42,8 +42,8 @@ The reference implementation is `mk_toon_lite.gdshader` — which declares unifo
 - **why:** Posterization reduces color count but doesn't guarantee aesthetic harmony — palette snapping maps every pixel to the nearest color in an artist-chosen palette, giving unified art direction across all assets
 - **scope:** substantial
 - **prereqs:** [albedo-posterize]
-- **lesson_file:** 0017-palette-snap.html
-- **status:** not-started
+- **lesson_file:** blender-texture-prep/03-palette-snap.html
+- **status:** in-progress
 
 ### toon-control-maps
 - **title:** Authoring Toon Control Maps — Ramp, Noise, Threshold
