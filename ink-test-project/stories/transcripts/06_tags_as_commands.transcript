@@ -1,0 +1,14 @@
+# choices: 0,0
+# story: 06_tags_as_commands.ink
+
+The old well sits in the village square.
+Alfoz the tinker leans against its stones.
+"Fancy a look at my wares, traveler?"
+>>> Show me
+Alfoz spreads a cloth of trinkets.
+A brass compass catches the light.
+The needle always points home, he claims.
+"Five coins and it's yours."
+>>> Buy the compass
+Coins change hands.
+"Safe travels," Alfoz says.

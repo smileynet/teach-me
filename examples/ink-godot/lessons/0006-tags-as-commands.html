@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 6: Tags as Commands</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="ink-godot-map.html">Ink + Godot</a> <span class="nav-sep">›</span> <span>Tags as Commands</span></nav>
+<h1>Tags as Commands</h1>
+
+<div class="lesson-meta">
+  Lesson 6 · Ink + Godot · ~16 min read<br>
+  <strong>Win:</strong> You can design a <span class="term" data-term="tag-protocol">tag protocol</span> that drives game systems from ink — parsing <code># key: value</code> tags into engine actions — without coupling your story to engine code.
+</div>
+
+<div class="key-concept">
+  <strong>After this lesson:</strong> Your ink lines can command a speaker label, a sound effect, or a hidden side effect through <span class="term" data-term="ink-tag">tags</span>. The story says <em>what</em> should happen; a small GDScript <span class="term" data-term="dispatcher">dispatcher</span> decides <em>how</em> — and you add new commands without touching the story.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE PAIN OF HARDCODING
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Pain of Hardcoding</h2>
+
+<p>In lesson 05 your story drove text and choices. Real dialogue needs more: who is speaking, a sound when a coin drops, a portrait swap. The tempting first move is to hardcode it in GDScript by looking at the text:</p>
+
+<pre data-mode="fragment"><code>func _advance_story():
+    var text = _ink_player.continue_story()
+    # Guess the speaker from the words on screen...
+    if text.begins_with("\"Fancy a look"):
+        _speaker_label.text = "Alfoz"
+        _play_sound("cart_creak")
+    _text_label.text += text</code></pre>
+
+<p>This works — until the writer fixes a typo, rephrases the line, or you translate the game. The moment the text changes, the <code>begins_with</code> match silently fails: no error, just a missing speaker and a dead sound cue. Every new line of dialogue adds another brittle branch. You have coupled your engine logic to the exact words the player sees — the one thing writers change most.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE PROTOCOL: TAGS CARRY INTENT
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Protocol: Tags Carry Intent</h2>
+
+<p>ink lets you attach <span class="term" data-term="ink-tag">tags</span> to any line with <code>#</code>. A tag is stripped from the visible text and delivered separately — so it is a perfect place to carry a <em>command</em> for the engine. By convention we write <code># key: value</code>:</p>
+
+<pre data-mode="fragment"><code>"Fancy a look at my wares, traveler?" # speaker: Alfoz # sound: cart_creak
+The needle always points home, he claims. # hidden</code></pre>
+
+<p>The colon is not ink syntax — it is plain text your code will split. The story now declares <em>intent</em> (<code>speaker: Alfoz</code>) instead of leaving the engine to guess it from the words. This is the <span class="term" data-term="tag-protocol">tag protocol</span>: a contract between the writer and the game. Change the line's wording all you like — the tag stays put.</p>
+
+<p>The engine reads each line's tags and routes them to the right subsystem. The story never mentions Godot; the GDScript never reads the story's prose. That is the decoupling:</p>
+
+<svg viewBox="0 0 560 250" role="img" aria-labelledby="diagram-tag-dispatch"
+     style="display:block;margin:1.5rem auto;max-width:100%;height:auto">
+  <title id="diagram-tag-dispatch">A line of ink produces visible text plus a list of tags. A dispatcher splits each tag into a key and value and routes it: speaker to the name label, sound to the audio system, and hidden to a suppress flag that hides the line's text while side effects still run.</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--svg-line)"/>
+    </marker>
+  </defs>
+
+  <!-- ink line -->
+  <rect x="10" y="95" width="140" height="60" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="80" y="120" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="var(--svg-primary-text)">ink line</text>
+  <text x="80" y="138" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-primary-text)">text + tags[]</text>
+
+  <!-- dispatcher -->
+  <rect x="200" y="95" width="140" height="60" rx="6" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="2"/>
+  <text x="270" y="120" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="var(--svg-warning-text)">dispatcher</text>
+  <text x="270" y="138" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-warning-text)">split key: value</text>
+  <line x1="150" y1="125" x2="200" y2="125" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- routes -->
+  <rect x="400" y="20" width="150" height="42" rx="6" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5"/>
+  <text x="475" y="40" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral-text)">speaker → name label</text>
+  <text x="475" y="55" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-neutral-text)"># speaker: Alfoz</text>
+  <line x1="340" y1="115" x2="400" y2="45" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="400" y="104" width="150" height="42" rx="6" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5"/>
+  <text x="475" y="124" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral-text)">sound → audio system</text>
+  <text x="475" y="139" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-neutral-text)"># sound: coin_drop</text>
+  <line x1="340" y1="125" x2="400" y2="125" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="400" y="188" width="150" height="42" rx="6" fill="var(--svg-error-fill)" stroke="var(--svg-error)" stroke-width="1.5"/>
+  <text x="475" y="208" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-error-text)">hidden → suppress text</text>
+  <text x="475" y="223" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-error-text)"># hidden</text>
+  <line x1="340" y1="135" x2="400" y2="205" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+</svg>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ONE LINE AT A TIME
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>One Line at a Time</h2>
+
+<p>There is a catch. Lesson 05 advanced the story with <code>continue_story_maximally()</code>, which runs through several lines in one call. That collapses their tags — <span class="term" data-term="current-tags">current_tags</span> ends up holding only the <em>last</em> line's tags, and every command in between is lost.</p>
+
+<p>To dispatch per-line tags, you must step <strong>one line at a time</strong> with <span class="term" data-term="continue-story">continue_story()</span>. This is exactly the line-by-line mode lesson 05 set aside for "later" — later is now:</p>
+
+<pre data-mode="fragment"><code>func _advance_story():
+    while _ink_player.can_continue:
+        var text = _ink_player.continue_story()          # ONE line
+        var show_line = _process_tags(_ink_player.current_tags)
+        if show_line and text.strip_edges() != "":
+            _text_label.text += text + "\n"
+    if _ink_player.has_choices:
+        _show_choices()</code></pre>
+
+<p>Each pass reads one line's text and that same line's tags, so nothing is lost. <code>_process_tags</code> returns whether the line's text should be shown — which brings us to the dispatcher itself.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE DISPATCHER
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Dispatcher</h2>
+
+<p>The dispatcher splits each tag on its colon and routes the key with a <code>match</code>. Two keys carry a value (<code>speaker</code>, <code>sound</code>); one is a bare flag (<code>hidden</code>) that suppresses the line's text. Crucially, side effects run either way — only the <em>text</em> is gated:</p>
+
+<pre data-file="story_player.gd" data-mode="complete"><code># story_player.gd
+# Tags-as-commands integration for an ink story using the inkgd runtime.
+# Extends Lesson 05: instead of one maximal continue, it steps line-by-line so
+# each line's tags are available, then dispatches those tags to game systems.
+#
+# Tag protocol (a contract between the writer and this parser):
+#   # speaker: NAME  -> set the name label
+#   # sound: NAME    -> play a sound effect
+#   # hidden         -> run side effects but do NOT show this line's text
+#
+# Node setup (attach this to a Control):
+#   Control (this script)
+#   +- SpeakerLabel     : Label          -- who is speaking
+#   +- TextLabel        : RichTextLabel   -- story text (BBCode enabled)
+#   +- ChoicesContainer : VBoxContainer   -- choice buttons appear here
+extends Control
+
+var InkPlayerFactory := preload("res://addons/inkgd/ink_player_factory.gd") as GDScript
+
+var _ink_player = null
+
+@onready var _speaker_label: Label = $SpeakerLabel
+@onready var _text_label: RichTextLabel = $TextLabel
+@onready var _choices_container: VBoxContainer = $ChoicesContainer
+
+
+func _ready():
+	_ink_player = InkPlayerFactory.create()
+	_ink_player.loads_in_background = false
+	add_child(_ink_player)
+
+	_ink_player.ink_file = load("res://stories/06_tags_as_commands.ink.json")
+	_ink_player.connect("loaded", Callable(self, "_on_story_loaded"))
+	call_deferred("_create_story")
+
+
+func _create_story():
+	_ink_player.create_story()
+
+
+func _on_story_loaded(successfully: bool):
+	if not successfully:
+		_text_label.text = "[color=red]ERROR: Story failed to load.[/color]"
+		return
+	_advance_story()
+
+
+# Step ONE line at a time. continue_story_maximally() would collapse several
+# lines into one and leave current_tags reflecting only the last line -- we would
+# lose the per-line tags. A single-step loop keeps each line's tags intact.
+func _advance_story():
+	while _ink_player.can_continue:
+		var text = _ink_player.continue_story()
+
+		# Read THIS line's tags and dispatch them. The return value decides
+		# whether the line's text is shown; side effects run either way.
+		var show_line = _process_tags(_ink_player.current_tags)
+
+		if show_line and text.strip_edges() != "":
+			_text_label.text += text + "\n"
+
+	if _ink_player.has_choices:
+		_show_choices()
+
+
+# Parse "key: value" tags and route each to a game system.
+# Returns false if a tag says this line's text should be hidden.
+func _process_tags(tags: Array) -&gt; bool:
+	var show_line := true
+
+	for tag in tags:
+		var parts = (tag as String).split(":", false, 1)
+		var key = parts[0].strip_edges()
+		var value = parts[1].strip_edges() if parts.size() &gt; 1 else ""
+
+		match key:
+			"speaker":
+				_speaker_label.text = value
+			"sound":
+				_play_sound(value)      # your audio system
+			"hidden":
+				show_line = false
+			_:
+				push_warning("Unhandled tag: %s" % tag)   # no handler -- a no-op
+
+	return show_line
+
+
+func _play_sound(sound_name: String):
+	# Stub: a real project would look up and play an AudioStream here.
+	print("[sound] %s" % sound_name)
+
+
+func _show_choices():
+	for child in _choices_container.get_children():
+		child.queue_free()
+
+	var choices = _ink_player.current_choices
+	for i in range(choices.size()):
+		var btn = Button.new()
+		btn.text = choices[i].text
+		btn.connect("pressed", Callable(self, "_on_choice_selected").bind(i))
+		_choices_container.add_child(btn)
+
+
+func _on_choice_selected(index: int):
+	for child in _choices_container.get_children():
+		child.queue_free()
+
+	_ink_player.choose_choice_index(index)
+	_advance_story()</code></pre>
+
+<div class="key-concept">
+  <strong>The protocol is a contract:</strong> to add a new command — a portrait, a camera move — you teach the <span class="term" data-term="dispatcher">dispatcher</span> one new <code>key</code> in the <code>match</code>. You never edit the story. The writer keeps writing tags; the engine grows one handler at a time.
+</div>
+
+<div class="note">
+  <strong>Gotcha — a tag with no handler:</strong> if the writer types <code># speakr: Alfoz</code>, the <code>match</code> falls through to <code>_</code> and <code>push_warning</code> fires — a no-op, not a crash. ink itself never validates tags, so misspellings fail quietly. The warning is your safety net; keep it.
+</div>
+
+<div class="note">
+  <strong>New concept — <span class="term" data-term="global-tag">global tags</span>:</strong> tags at the very top of the file (above the first knot) describe the whole story, not one line. Read them once with <code>get_global_tags()</code> — handy for a title, author, or default theme. Per-line tags use <code>current_tags</code>, as above.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE SUPPRESS CONTRACT
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Suppress Contract</h2>
+
+<p>Notice that <code>_process_tags</code> returns a bool, and only <code># hidden</code> flips it false. Every other tag runs its side effect and leaves the flag alone. This separation — the <span class="term" data-term="suppress-contract">suppress contract</span>, where <em>side effects always fire but text is gated</em> — is what lets a production story do this:</p>
+
+<pre data-mode="fragment"><code>You spot the hidden lever. # check: passed
+You see nothing unusual. # hidden</code></pre>
+
+<p>Both lines' tags run; the dispatcher shows one line's text and hides the other's, based on game state. In Esoteric Ebb this same drain-and-dispatch loop scales to about thirty command families — skill checks, variable writes, camera, combat — but they all extend the exact pattern you just wrote.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A teammate skips tags and sets the speaker by reading the text instead:</p>
+<pre data-mode="fragment"><code>func _process_line(text: String):
+    if text.begins_with("\"Fancy a look"):
+        _speaker_label.text = "Alfoz"
+    _text_label.text += text</code></pre>
+  <p>It works in their test. Two weeks later the writer rephrases the line to <em>"Care to see my wares?"</em> and also ships a French translation. The speaker label goes blank on that line, with no error in the console. Why does this approach break, and what does the tag protocol give them instead?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>What is the code matching on — something the writer controls and changes often, or something stable? What channel is the speaker information travelling in?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>The code keys off the <strong>displayed text</strong> — the exact words the player sees. But display text is a moving target: rephrasing, typo fixes, and translation all change it, and none of them raise an error. The <code>begins_with</code> match just silently stops matching, so the speaker label goes blank. Worse, in French the line is entirely different words, so the match can never succeed.</p>
+  <p>A <span class="term" data-term="tag-protocol">tag protocol</span> fixes this by putting the speaker in a <strong>separate, stable channel</strong>: <code># speaker: Alfoz</code>. The writer can rephrase or translate the visible line freely — the tag is untouched, so the dispatcher still sets the label. The engine keys off the protocol key, never the prose.</p>
+  <p><strong>Key insight:</strong> display text is for humans; the protocol key is for the machine. Never make one channel do both jobs — the moment the words change, code that reads the words breaks.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Code Files</h2>
+<p>Download the final-state files from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/tags-as-commands/story_player.gd" download><code>story_player.gd</code></a> — single-step loop + tag dispatcher</li>
+  <li><a href="../reference/code/tags-as-commands/06_tags_as_commands.ink" download><code>06_tags_as_commands.ink</code></a> — the tagged village-well story (compile to <code>.ink.json</code>)</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next:</strong> <a href="0007-state-bridge.html">State Bridge</a> — tags command the engine one-way. Next you'll open a two-way channel: external functions let ink call your game code, and variable observers let your game react to ink state as it changes.</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"tag-protocol": "A convention where ink lines carry # key: value tags that the engine parses into commands. It's a contract between the writer (who emits intent) and the game (which interprets it), letting either side change independently. Add a command by teaching the parser a new key, never by editing the story.", "ink-tag": "Text attached to an ink line with #, running to the end of the line or the next #. Tags are stripped from the visible text and delivered separately, so they carry metadata or commands rather than prose. A line can have several tags.", "dispatcher": "The GDScript function that reads a line's tags, splits each into a key and value, and routes it to the right game system with a match. Growing the game means adding one match branch per new command — the story is untouched.", "continue-story": "continue_story() advances the ink story by exactly one line and returns that line's text. Unlike continue_story_maximally() (which runs several lines at once), it keeps each line's tags available in current_tags — required for per-line tag dispatch.", "current-tags": "The InkPlayer property (an Array) holding the tags on the line just produced by continue_story(). Because maximal continue overwrites it with only the last line's tags, single-step continue is needed to read every line's tags.", "global-tag": "A tag placed at the top of the ink file, above the first knot, describing the whole story rather than one line. Read once via get_global_tags() — useful for a title, author, or default theme.", "suppress-contract": "The rule that _process_tags returns a bool deciding whether a line's TEXT is shown, while the tags' side effects (speaker, sound) run regardless. It lets a story fire effects on every line but display only the lines that pass a condition."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
