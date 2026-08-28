@@ -1,7 +1,7 @@
 ---
 id: "237"
 title: "Fix verify-links.py Unicode print crash on Windows cp1252"
-status: in_progress
+status: done
 blocked_by: []
 priority: high
 tags: ["platform"]
@@ -70,7 +70,25 @@ protect direct `python tools/x.py` invocation — hence per-module reconfigure i
 
 ## Acceptance criteria
 
-- [ ] `mise run verify` exits 0 on Windows (full pipeline green — verified by running it)
-- [ ] verify-links.py, lint-html.py, check-svg-vars.py, verify-interactive.py each reconfigure stdout+stderr to UTF-8 at module top
-- [ ] Checking/lint/link behaviour unchanged (same files checked, same failures reported on a real broken link/lint error — glyphs still render, now UTF-8)
-- [ ] No regression to the other 4 verify-pipeline tools
+- [x] `mise run verify` exits 0 on Windows (full pipeline green — verified by running it)
+- [x] verify-links.py, lint-html.py, check-svg-vars.py, verify-interactive.py each reconfigure stdout+stderr to UTF-8 at module top
+- [x] Checking/lint/link behaviour unchanged (same files checked, same failures reported on a real broken link/lint error — glyphs still render, now UTF-8)
+- [x] No regression to the other 4 verify-pipeline tools
+
+## Resolution (2026-08-28)
+
+Fixed by adding a `sys.stdout/stderr.reconfigure(encoding="utf-8", errors="replace")`
+block (hasattr-guarded) at module top of **5** tools. The audit named 4; a 5th surfaced
+during the verify run: `tools/generate_map_page.py` prints `✓` (L420/L454) and is invoked
+as a **subprocess** by the pytest stage (`test_map_page.py`), whose tests assert the child
+returncode == 0. Its crash showed up as 21 pytest failures, not a direct pipeline crash —
+the audit missed it because it examined only the 8 directly-listed tools, not their spawned
+subprocesses. Files changed: verify-links.py, lint-html.py, check-svg-vars.py,
+verify-interactive.py, generate_map_page.py.
+
+Latent direct-run-only bugs (play-ink.py capture mode, test_map_parser.py `__main__`) left
+for a follow-up if ever needed — not verify blockers.
+
+Evidence: `mise run verify` EXIT 0 — verify-links `✓ All links verified (72 files)`,
+lint-html 7 files/0 errors, check-svg-vars `✓ 15 files`, pytest 37 passed (was 21 failed),
+verify-interactive skips gracefully with clean `⚠` glyph, play-ink 4/4 transcripts match.
