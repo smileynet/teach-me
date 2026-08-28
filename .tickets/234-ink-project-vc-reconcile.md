@@ -38,3 +38,14 @@ Split from #233 — the ink-test-project portion of the uncommitted-worktree rec
 ## Note
 
 `__pycache__/` was added to root `.gitignore` under #233 (cross-cutting). `.uid` files are committed per Godot 4.4 guidance — do NOT gitignore them.
+
+## Update (2026-08-28)
+- **Item 5 is DONE** — #212's commit already landed `06_tags_as_commands.ink`, its transcript,
+  `reference/code/tags-as-commands/`, and the MAP. Remaining scope is items 1–4 (addon vendoring,
+  .godot gitignore, stale .ink.json untrack, .import policy).
+- **Provenance overlap with #251:** item 1's "pin the inkgd godot4-branch commit hash" is the same
+  work as #251 item 1 (record inkgd snapshot provenance). Whichever runs first does it; the other
+  references it. #251 also diffs our snapshot vs branch HEAD (out of scope here).
+- New untracked compiled ink since this ticket was filed: `stories/{02,03,04,05,06}_*.ink.json`
+  (harness/validate byproducts) — same untrack+gitignore treatment as item 3.
+- `mise.lock` (new, committed by #244) pins inklecate; not a reconciliation concern.
