@@ -2,7 +2,7 @@
 id: "221"
 title: "Lesson: Emit Bake and glTF Export — Blender to Godot (0019)"
 type: feature
-status: open
+status: in_progress
 priority: high
 blocked_by: ["219", "220"]
 parent: "216"
@@ -11,7 +11,43 @@ tags: [mktoon, blender]
 
 # Lesson: Emit Bake and glTF Export — Blender to Godot (0019)
 
-## What to build
+## Corrected decisions (2026-08-28, research + code audit)
+
+**CORE INSIGHT (changes the scope): glTF exports ALBEDO ONLY; control maps stay separate.**
+glTF color space is SLOT-driven, not a per-image flag (glTF spec, Godot conforms):
+baseColorTexture→sRGB, normalTexture→linear. A control/data map (our noise/threshold)
+routed through an sRGB slot gets sRGB-DECODED and corrupted — and `.glb`-embedded textures
+have NO independent `.import` file to fix. So:
+- Albedo (posterized+snapped) → Emit bake → glTF baseColorTexture → Godot auto-imports sRGB. ✓
+- Control maps (noise/threshold from #220) → stay as standalone Non-Color PNGs referenced
+  SEPARATELY in Godot, NOT embedded in the glTF. Teach WHY (the sRGB-slot trap) — this is
+  the lesson's central gotcha. #221 reuses #220's control maps; it only bakes/exports albedo.
+
+**Other findings:**
+- Consolidated single `bake_export.py` feasible, but factory-reset + rebuild-groups per pass
+  is mandatory (reset wipes node_groups). Reuse the .scratch bake recipe (absolute
+  filepath_raw + file_format=PNG; the img.save relative-path gotcha).
+- glTF export automation: `bpy.ops.export_scene.gltf(export_format='GLB',
+  export_image_format='AUTO', export_materials='EXPORT', export_cameras=False,
+  export_lights=False, use_selection=True)`. Blender 4.2+ uses `export_vertex_color` (enum),
+  NOT `export_colors` (bool).
+- Camera_01 IS a genuine 3-material asset → multi-material is a LIVE bake, not explain-only
+  (lens = glass/transmission, no albedo texture — a real edge case).
+- configurable_banding.gdshader is DIFFERENT from mk_toon_lite; has albedo_texture/
+  use_albedo_texture uniforms; NO pre-wired barrel scene (Tier-3 needs scene setup).
+- Export a NEW baked .glb (Barrel_01_toon.glb); don't overwrite the existing Poly Haven .gltf.
+
+**Validation (4-tier):**
+- Tier-1 sidecar oracle (bake-export-oracle.py, stdlib, in verify): baked albedo is sRGB 1K;
+  glTF manifest has NO lights/cameras + expected material/texture; control maps NOT embedded.
+- Tier-2: `bake_export.py --check` added to `verify:blender` (#252 gate — the payoff).
+- Tier-3a (CI-able): `godot --headless --editor --import --quit` on the .glb → imports clean;
+  inspect material texture flags (EditorScript) → albedo sRGB. Headless import proves LOAD,
+  not color correctness (research: wrong-colorspace map imports "fine", looks wrong on screen).
+- Tier-3b (manual/subagent): visual before/after under configurable_banding (raw PBR vs
+  toon-prepped). Needs scene setup + godot_editor subagent. Fallback: Tier-3a + logged gap.
+
+## What to build (ORIGINAL — see corrected decisions above)
 
 A substantial lesson teaching the actual bake-and-export pipeline: capturing simplified textures via Cycles Emit pass and exporting a toon-ready glTF that Godot imports cleanly.
 
