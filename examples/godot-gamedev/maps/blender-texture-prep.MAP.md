@@ -17,7 +17,7 @@ Toon shaders handle lighting procedurally — banding, specular, rim are all com
 
 This track teaches the **texture prep layer** between "I downloaded PBR assets" and "my scene looks stylized." You won't rebake lighting (that kills dynamic shadows) — you'll simplify the albedo, discard irrelevant PBR channels, and author the toon-specific control maps that production shaders expect but nobody provides.
 
-The reference implementation is `mk_toon_lite.gdshader` — which declares uniforms for noise_map, threshold_map, hatching_dark_map, sketch_map, and diffuse_ramp, all currently unpopulated in the test-scene.
+The reference implementation is `mk_toon_lite.gdshader` — which declares uniforms for noise_map, threshold_map, hatching_dark_map, and sketch_map, all currently unpopulated in the test-scene. (The 1D lighting ramp is a separate mechanism in `toon_ramp.gdshader`, covered by its own topic — mk_toon_lite colors its bands via gooch, not a ramp.)
 
 ## Topics
 
@@ -46,11 +46,19 @@ The reference implementation is `mk_toon_lite.gdshader` — which declares unifo
 - **status:** in-progress
 
 ### toon-control-maps
-- **title:** Authoring Toon Control Maps — Ramp, Noise, Threshold
-- **why:** The mktoon shader has empty texture slots begging for authored content: a 1D ramp defines band colors, a noise map breaks up edges organically, and a threshold map (seeded from AO) shifts shadow boundaries per-pixel
+- **title:** Authoring Toon Control Maps — Noise & Threshold
+- **why:** mk_toon_lite samples two authored control maps that ship empty: a noise map that biases NdotL before banding to break up straight band edges, and a threshold map (seeded from the ARM texture's AO channel) that shifts the shadow boundary per-pixel
 - **scope:** substantial
 - **prereqs:** [texture-audit]
-- **lesson_file:** 0018-toon-control-maps.html
+- **lesson_file:** blender-texture-prep/04-toon-control-maps.html
+- **status:** not-started
+
+### ramp-band-textures
+- **title:** Ramp Band Textures — 1D Lighting Ramps for toon_ramp.gdshader
+- **why:** A ramp texture REPLACES floor-divide banding with a 1D lighting-curve lookup — the texture IS the light response, giving per-step color and width control. This is an alternative banding mechanism (toon_ramp.gdshader), a sibling of toon-banding, not a mk_toon_lite control slot
+- **scope:** substantial
+- **prereqs:** [toon-banding]
+- **lesson_file:** blender-texture-prep/ramp-band-textures.html
 - **status:** not-started
 
 ### bake-and-export
