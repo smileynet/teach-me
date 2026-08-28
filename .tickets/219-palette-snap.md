@@ -2,7 +2,7 @@
 id: "219"
 title: "Lesson: Palette Snapping — Color Ramp and 1D Lookup (0017)"
 type: feature
-status: open
+status: in_progress
 priority: high
 blocked_by: ["218"]
 parent: "216"
@@ -81,3 +81,43 @@ Method D — Nearest-Color Node Group:
 - "Palette snapping at bake time freezes the result — can't change palette later"
 - For runtime palette swaps: keep palette texture separate, do lookup in Godot shader
 - DCP addon demonstrates this pattern with Godot export
+
+## Researched decisions (2026-08-28, subagent research + code audit)
+
+**Canonical palette source:** hand-authored fixed art-directed 6-color warm-toon
+palette (Barrel_01 wood tones). Extraction-from-image is a one-line "Alternative"
+pointer, not the taught path (keeps the lesson single-axis; the point is INTENTIONAL
+color choice).
+
+**Verified Blender 5.x API** (de-risks the artifact):
+- Method A: `ShaderNodeValToRGB` (Color Ramp), `interpolation='CONSTANT'`, driven by
+  `ShaderNodeRGBToBW`. Blender 4.3+ uses unified `ShaderNodeSeparateColor` (not
+  Separate RGB/HSV) if hue-keying.
+- Method B: `ShaderNodeTexImage`, `interpolation='Closest'` (required), N×1 palette
+  strip indexed by `Combine XYZ(X=luminance, Y=0.5, Z=0)`. GOTCHAS to pin in lesson:
+  set palette strip Color Space = **Non-Color** (avoid sRGB shifting swatches);
+  X-mapping `(index+0.5)/N` vs `index/N` off-by-one — resolve empirically in Tier-3.
+
+**Prior art to reuse (not duplicate):** `reference/code/color-simplification/palette_snap.gdshader`
+is the existing GODOT runtime nearest-color shader (Oklab argmin). #219 builds the
+BLENDER-node counterpart; reuse the concept + Oklab distance as the oracle's
+perceptual-distance reference.
+
+**Exercise answer (grounded):** band count and palette count are INDEPENDENT axes.
+Shader sets bands; palette sets which colors bands sample. Palette>bands → extra
+swatches never sampled; palette<bands → bands collapse/muddy; equal → cleanest.
+Adding palette colors does NOT add bands.
+
+**Palette-design principles to teach:** HSB not RGB; value-first; hue-shift ~15–20°/step
+(highlights warmer, shadows cooler); saturation peaks midtone; temperature contrast
+creates volume.
+
+**Discrepancies fixed:** MAP `lesson_file` is stale `0017-palette-snap.html` → correct to
+`blender-texture-prep/03-palette-snap.html` (matches AC + per-domain NN-slug convention).
+Display title "Lesson 17", file `03-` (mirrors how 0016 does it). In-page `data-file`
+block is simplified; full artifact on disk is richer — mirror 0016.
+
+**Validation (3-tier, reuse #218 infra):** Tier-1 `tools/palette-snap-oracle.py`
+(Blender-free, wired into verify); Tier-2 `blender -b --python palette_snap.py -- --check`;
+Tier-3 emit-bake on Barrel_01 → assert output pixels ∈ palette set (also resolves the
+X-mapping + Non-Color open items).
