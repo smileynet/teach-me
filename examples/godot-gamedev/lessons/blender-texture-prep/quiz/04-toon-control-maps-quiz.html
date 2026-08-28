@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz: Authoring Toon Control Maps — Noise &amp; Threshold</title>
+  <script src="../../../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../../../assets/style.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../../../assets/vendor/preact.module.js",
+        "preact/hooks": "../../../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../../../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../../../assets/vendor/signals-core.module.js",
+        "htm": "../../../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="../../index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../../blender-texture-prep-map.html">Blender to Godot Texture Prep</a> <span class="nav-sep">›</span> <a href="../04-toon-control-maps.html">Authoring Toon Control Maps</a> <span class="nav-sep">›</span> <span>Quiz</span></nav>
+  <div id="app"></div>
+
+<script type="application/json" id="page-data">{"questions": [{"id": "btp-301", "prompt": "A control map like noise_map or threshold_map does not define color. What does it define, and where in mk_toon_lite does it act?", "expected_answer": "Should mention: (1) an artist instruction telling the shader WHERE/HOW to shade, not what color, (2) both are read in light() (not fragment()), (3) each reads the red channel, recenters to [-0.5,0.5], and biases `centered` — the value floor() quantizes into bands. Key: they perturb the band BOUNDARY per-pixel.", "question_type": "explain", "difficulty_tier": "understand", "lesson_id": "04-toon-control-maps", "section_heading": "Both maps perturb the band boundary", "generated_by": "teach-skill", "generated_at": "2026-08-28T09:30:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["control-map", "core-concept"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"id": "btp-302", "prompt": "Why is noise_strength capped at 0.25 instead of 1.0, given how the noise is used?", "expected_answer": "Should mention: (1) the bias is added to `centered` right before floor() into ~3 bands, (2) each band spans ~1/N, so a bias near 1.0 exceeds a whole band width, (3) pixels would jump multiple bands -> speckle everywhere, destroying flat regions. Key: capped so it only nudges the SEAM, an edge-breakup control not add-grain.", "question_type": "apply", "difficulty_tier": "apply", "lesson_id": "04-toon-control-maps", "section_heading": "The noise map", "generated_by": "teach-skill", "generated_at": "2026-08-28T09:30:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["noise-strength", "banding"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"id": "btp-303", "prompt": "Why must the noise map be tileable, and how does the 4D-noise trick achieve it?", "expected_answer": "Should mention: (1) sampled at UV*noise_scale with scale>1 tiling it; non-seamless -> visible grid of hard seams, (2) the 4D trick maps UV axes onto two orthogonal circles (sin/cos 2*pi*u, sin/cos 2*pi*v) into a 4D Noise Texture, (3) sin/cos periodicity makes u=0 and u=1 the same point -> edges match by construction. Key: seamless by construction, not a toggle.", "question_type": "explain", "difficulty_tier": "understand", "lesson_id": "04-toon-control-maps", "section_heading": "The noise map", "generated_by": "teach-skill", "generated_at": "2026-08-28T09:30:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["tileable-noise", "4d-noise"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"id": "btp-304", "prompt": "Why is the AO channel a good source for a threshold map, and which way does darker AO shift the shadow?", "expected_answer": "Should mention: (1) AO is baked darkness in creases/contact points — where shadow should fall first, (2) darker AO -> negative bias -> shadow reached EARLIER/deeper there, (3) convex faces unchanged, terminator stays crisp but geometry-aware. Bonus: free from the ARM red channel, no hand-painting.", "question_type": "explain", "difficulty_tier": "understand", "lesson_id": "04-toon-control-maps", "section_heading": "The threshold map", "generated_by": "teach-skill", "generated_at": "2026-08-28T09:30:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["threshold-map", "ao"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"id": "btp-305", "prompt": "There is no threshold_strength uniform (fixed +-0.5). How do you control how strongly the threshold map shifts shadows, and what must you avoid?", "expected_answer": "Should mention: (1) the MAP'S OWN CONTRAST is the control — flatter AO shifts gently, high-contrast shifts hard, (2) tune it at bake time (levels/contrast), not a shader uniform, (3) avoid double-darkening (don't also multiply AO over albedo -> creases go to mud); read ARM as Non-Color.", "question_type": "apply", "difficulty_tier": "apply", "lesson_id": "04-toon-control-maps", "section_heading": "The threshold map", "generated_by": "teach-skill", "generated_at": "2026-08-28T09:30:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["threshold-map", "double-darkening"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"type": "sequence", "topic": "04-toon-control-maps", "prompt": "Order how the noise map reaches a visible band edge in mk_toon_lite:", "items": ["texture(noise_map, UV*noise_scale).r", "subtract 0.5 (recenter to [-0.5,0.5])", "multiply by noise_strength", "add into `centered`", "floor(centered * bands) — band boundary shifts"], "correct_order": [0, 1, 2, 3, 4]}, {"type": "match", "topic": "04-toon-control-maps", "prompt": "Match each control-map fact to its consequence:", "pairs": [["noise not tileable", "Visible grid of hard seams where tiles wrap"], ["noise_strength near 1.0", "Speckle everywhere — flat bands shatter"], ["darker AO in threshold map", "Shadow falls earlier/deeper in that crease"], ["ARM read as sRGB not Non-Color", "AO values gamma-shifted, bands land wrong"]]}, {"type": "fill", "topic": "04-toon-control-maps", "prompt": "Complete the control-map summary:", "template": "Both maps are read in ___() and perturb the value floor() quantizes into bands. The noise map (red channel) is scaled by ___ (max 0.25) to wobble band ___ ; it must be ___ so it repeats without seams. The threshold map comes from the ARM ___ channel: darker means shadow falls ___.", "answers": ["light", "noise_strength", "edges", "tileable", "red", "earlier"]}], "title": "Authoring Toon Control Maps — Noise & Threshold", "lessonFile": "blender-texture-prep/04-toon-control-maps.html", "mapPage": "blender-texture-prep-map.html"}</script>
+<script type="module" src="../../../assets/page-shell.js"></script>
+<script type="module">
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { QuizView } from '../../../assets/components/QuizView.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    render(
+      html`<${QuizView} questions=${data.questions} title=${data.title} />`,
+      document.getElementById('app')
+    );
+</script>
+
+</body>
+</html>
