@@ -38,6 +38,8 @@ Some domain-specific languages lack CLI tooling entirely. Strategy:
 1. **Use the runtime itself** — if the language has a headless/batch mode (Godot, Unity), that's your validator. It catches everything a learner will hit.
 2. **Clone all prior art** — search GitHub for `{language} linter`, `{language} LSP`, `tree-sitter-{language}`. Understand the landscape.
 3. **Don't build a custom type checker** — regex-based linters give false confidence. They catch errors the runtime already catches instantly, while missing every semantic bug that actually breaks the learner's experience (wrong coordinate space, missing render mode, logic errors).
+
+   **BUT do build property-assertion oracles** — this is a DIFFERENT thing. A regex *syntax linter* re-checks what the compiler already checks (waste). A *property oracle* asserts the MATH or measured CONTRACTS the lesson teaches (value). Examples this project ships, in `mise run verify`: `posterize-oracle.py` (floor-divide levels), `palette-snap-oracle.py` (luminance→swatch, off-by-one), `control-maps-oracle.py` (tileability, AO correlation), `bake-export-oracle.py` (albedo sRGB, glTF excludes lights/cameras). These are stdlib, validate the taught claim (not parse syntax), and catch the exact pitfall the lesson warns about. Pair a Blender-free oracle (Tier-1) with a runtime `--check` (Tier-2) and visual confirmation (Tier-3).
 4. **Visual confirmation is non-negotiable** — for shaders and visual code, "compiles" ≠ "correct". You must look at the output on a real mesh.
 
 ## Integration Pattern
@@ -98,6 +100,22 @@ Before generating the first lesson:
 4. **Run validation on the first lesson** before publishing
 
 This is a hard gate — don't publish code-based lessons without validation tooling in place. A broken first impression is worse than a delayed lesson.
+
+## Complementary validation (not competing)
+
+When two checks cover different properties of the same artifact, they're complementary —
+keep both as first-class, not one optional:
+
+- A **sidecar oracle** (stdlib) carries intent metadata measured at bake time (color-space
+  intent, correlation to source, N-level counts) — things only knowable inside the
+  authoring tool (Blender). A PNG on disk carries no such metadata.
+- A **drift-check** (e.g. Pillow) re-reads the committed bytes and asserts measurable
+  properties (dimensions, edge-match) against the sidecar — catching a hand-edited or
+  re-exported file that a stale sidecar can't detect.
+
+Neither substitutes for the other. Don't choose one and make the other optional — they
+defend against different failure modes. (Established #220, validated by tamper-testing
+both with a mutated sidecar + a drifted PNG.)
 
 ## Anti-patterns
 

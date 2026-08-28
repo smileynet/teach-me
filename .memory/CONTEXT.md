@@ -2,6 +2,10 @@
 
 Domain terms and naming decisions for teach-me.
 
+**glTF slot-driven color space**:
+glTF has NO per-image color-space flag — Godot infers it from which material SLOT references a texture: `baseColorTexture`/emissive → sRGB; `normalTexture`/`metallicRoughness`/occlusion → linear. Consequence: a control/data map (noise, threshold) has no correct slot, so it must NOT be embedded in a glTF (an sRGB slot corrupts it, and a `.glb`-embedded texture has no `.import` to fix) — ship data maps as separate Non-Color PNGs.
+_Avoid_: assuming a texture carries its own color-space intent into glTF
+
 **teach-me**:
 A test bed for learning-oriented agent skills, refined here before deploying globally via crew-research.
 _Avoid_: the product, the platform

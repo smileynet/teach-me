@@ -74,6 +74,8 @@ The godot-ai MCP has three failure modes that cause silent wrong results:
 
 4. **Verify file existence with a direct filesystem check, not `res://` resolution.** A capture agent (#220, 2026-08-28) reported source PNGs "missing on disk" because a `res://` path failed to resolve — the files were actually present (Godot was loading them fine from the `.ctex` cache). A `res://` lookup failure ≠ file absent. Before reporting a file missing, stat the real OS path. The parent must not act on a subagent's "missing file" claim without a direct check.
 
+5. **`--headless` CANNOT render 3D to PNG.** Under `--headless` the DisplayServer is a dummy driver with no framebuffer — `get_viewport().get_texture().get_image()` returns blank/black (Blender/Godot parallel; validated #221, 2026-08-28). Headless is only for import/compile validation. A visual A/B capture needs a REAL windowed `project_run` (GPU). Reserve `--headless --editor --import --quit` for "does it load without errors" (Tier-3a); use the windowed `godot_editor` MCP path for pixels (Tier-3b).
+
 ## Headless GDScript validation (hard rules — validated 2026-08-28, #249/#236)
 
 For running/validating GDScript headlessly (e.g. `mise run ink:validate-gd`):
@@ -85,6 +87,8 @@ For running/validating GDScript headlessly (e.g. `mise run ink:validate-gd`):
 3. **When a harness runs COPIES of shipped files, edit the SHIPPED reference, not the copy.** `tools/ink-gd-sync.py` regenerates `ink-test-project/scenes/lesson0*_player.gd` from `examples/ink-godot/reference/code/*/story_player.gd` on each run — hand-edits to the copies are overwritten.
 
 ## Shader Toggle for A/B
+
+> For a full before/after capture via subagent, copy [references/ab-capture-template.md](./references/ab-capture-template.md) into `.scratch/subagent-input/` and dispatch `godot_editor` (validated first-try on #220 + #221).
 
 For post-process shaders, toggle `PostProcessRect.visible` in `game_eval` (this DOES work — it's a node visibility flag, not a persisted param):
 

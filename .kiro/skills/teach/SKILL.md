@@ -67,6 +67,13 @@ This is the first-contact flow. The user opened this project in their AI assista
 
 6. **Begin**: Dispatch research subagents → generate MAP.md → offer first topic.
 
+> **The MAP is a DAG, not a line.** Topics connect by `prereqs` edges — a topic whose
+> mechanism differs from its neighbor (different shader, different concept) is a SEPARATE
+> node hanging off its true conceptual prereq, NOT a linear child of the previous lesson.
+> (E.g. the ramp lesson branches off `toon-banding`, not off `toon-control-maps`, because
+> a ramp is an alternative banding mechanism — established #246, 2026-08-28.) Don't force a
+> linear spine; let prereq edges express the real graph.
+
 ## Session Start (returning learner)
 
 1. Run `python tools/sr-status.py` — check if cards are due
