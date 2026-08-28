@@ -2,7 +2,7 @@
 id: "219"
 title: "Lesson: Palette Snapping — Color Ramp and 1D Lookup (0017)"
 type: feature
-status: in_progress
+status: done
 priority: high
 blocked_by: ["218"]
 parent: "216"
@@ -41,13 +41,13 @@ A substantial lesson teaching palette snapping — mapping every pixel to the ne
 
 ## Acceptance criteria
 
-- [ ] Lesson file: `examples/godot-gamedev/lessons/blender-texture-prep/03-palette-snap.html`
-- [ ] Two methods taught (Color Ramp + 1D texture lookup) with when-to-use guidance
-- [ ] Palette design principles explained (not just technique)
-- [ ] Node group created: "Palette Snap" (reusable)
-- [ ] Combined "Toon Prep" group demonstrated (Posterize + Palette Snap)
-- [ ] Before/after: raw albedo → posterized → palette-snapped (3-way comparison)
-- [ ] SR questions generated (3-5 cards)
+- [x] Lesson file: `examples/godot-gamedev/lessons/blender-texture-prep/03-palette-snap.html`
+- [x] Two methods taught (Color Ramp + 1D texture lookup) with when-to-use guidance
+- [x] Palette design principles explained (not just technique)
+- [x] Node group created: "Palette Snap" (reusable)
+- [x] Combined "Toon Prep" group demonstrated (Posterize + Palette Snap)
+- [x] Before/after: raw albedo → posterized → palette-snapped (3-way comparison)
+- [x] SR questions generated (3-5 cards)
 
 ## Research context
 
@@ -121,3 +121,7 @@ block is simplified; full artifact on disk is richer — mirror 0016.
 (Blender-free, wired into verify); Tier-2 `blender -b --python palette_snap.py -- --check`;
 Tier-3 emit-bake on Barrel_01 → assert output pixels ∈ palette set (also resolves the
 X-mapping + Non-Color open items).
+
+## Resolution (2026-08-28)
+
+Lesson 0017 palette-snap: 3-tier validated (Tier-1 oracle wired into verify, Tier-2 node --check, Tier-3 emit-bake). Two methods (Color Ramp CONSTANT + 1D LUT Closest) with when-to-use; palette design principles; combined Toon Prep chain; 3-way real-bake figure; exercise on independent band-count vs palette-count; palette_snap.py artifact + README; quiz + 5 SR cards; MAP fixed + regenerated
