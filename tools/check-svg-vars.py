@@ -15,6 +15,12 @@ import re
 import sys
 from pathlib import Path
 
+# Windows consoles default to cp1252; force UTF-8 so ✓/✗/⚠/— glyphs don't crash.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 # Hex colors that are acceptable (not in SVG context, or intentionally static)
 # Currently none — all SVG colors should use variables.
 # Add entries here if a specific hex is deliberately static (e.g., a brand logo).
