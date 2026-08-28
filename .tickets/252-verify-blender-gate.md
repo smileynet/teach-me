@@ -1,7 +1,7 @@
 ---
 id: "252"
 title: "Opt-in verify:blender gate — run bpy --check artifacts (skip if Blender absent)"
-status: open
+status: in_progress
 blocked_by: []
 priority: high
 tags: ["mktoon", "blender"]
@@ -38,6 +38,43 @@ A `mise run verify:blender` task that:
 
 Document the Godot A/B visual capture as explicitly manual (not CI-able — needs GPU/window),
 with the re-capture recipe in the reference README, so the visual tier isn't mistaken for gated.
+
+## Implementation plan (corrected by research + code audit, 2026-08-28)
+
+CRITICAL findings that change the naive plan:
+- **`blender -b --python X.py` swallows Python exceptions and exits 0 by default**
+  (Blender tracker T82494). A `--check` that raises — or even one whose `sys.exit(1)`
+  is dropped — would silently PASS. Fix: run `blender -b --python-exit-code 1 --python X.py
+  -- --check` (flag BEFORE `--`) AND dual-gate on exit==0 AND the artifact's success
+  sentinel line present in stdout. Never trust the exit code alone.
+- **`control_maps.py --check` needs cwd=examples/godot-gamedev** (it opens the ARM texture
+  by a relative path) or it FAILs spuriously.
+- **Artifact paths:** examples/godot-gamedev/reference/code/{albedo-posterize/posterize_rgb.py,
+  palette-snap/palette_snap.py, toon-control-maps/control_maps.py}. All use `blender -b
+  --python X -- --check`; `-- --check` required (args parsed after `--`). Success = one-line
+  "OK" to stdout + exit 0; FAIL = "FAIL:" stderr + exit 1; not-in-Blender = exit 2.
+- **Skip pattern to mirror (tools/ink-gd-run.py):** resolve via env var
+  `os.environ.get("BLENDER","blender")`, accept absolute path (Path.exists()) or
+  shutil.which(); None → `print("SKIP: ...")` stdout + exit 0. Convention 0=pass/skip,
+  1=check failed, 2=setup error. verify-blender AGGREGATES 3 subprocesses (any non-zero → 1).
+- **AGENTS.md does NOT document the Blender path / broken shim** (it's only in #218 ticket)
+  — this ticket must ADD that note, not just reference it.
+
+Build:
+1. `tools/verify-blender.py` — resolve_blender() skip-if-absent; run the 3 `--check`s with
+   `--python-exit-code 1`, cwd=examples/godot-gamedev, dual gate (exit 0 + sentinel);
+   aggregate; exit 0/1/2. Mirror ink-gd-run.py.
+2. mise.toml: `[env] BLENDER = { default = "blender" }`; `[tasks."verify:blender"]` →
+   `run=["python tools/verify-blender.py"]`, depends=["setup"]. NOT in [tasks.verify], NOT
+   in pre-commit hook (hook runs only `mise run verify`; keep core Blender-free + fast).
+3. AGENTS.md: Commands-table row for verify:blender + Constraints note (broken blender shim →
+   set BLENDER to full path in mise.local.toml; Godot A/B capture is manual/not-CI-able).
+
+Validation (prove teeth): (a) present → 3 pass exit 0; (b) tamper logical FAIL → exit 1
+naming artifact; (c) tamper Python EXCEPTION into a --check → still caught via
+--python-exit-code + missing sentinel (validates the exit-0 trap fix); (d) BLENDER=bogus
+path → SKIP + exit 0; (e) core verify byte-unchanged. Mutate-then-restore in SEPARATE shell
+calls (back-up → break → run → restore) so a cancelled run doesn't strand a broken artifact.
 
 ## Acceptance criteria
 
