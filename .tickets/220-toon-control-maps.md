@@ -2,7 +2,7 @@
 id: "220"
 title: "Lesson: Authoring Toon Control Maps — Ramp, Noise, Threshold (0018)"
 type: feature
-status: open
+status: in_progress
 priority: high
 blocked_by: ["217"]
 parent: "216"
@@ -28,14 +28,27 @@ as a sibling node with prereq [toon-banding].
 - `noise_scale`/`threshold_map_scale` are bare floats (no hint_range).
 - Verbatim sampling code + wiring: see .scratch/subagent-raw/220-code-review.md §1.
 
-**Oracle decision (spiked both, see 220-spike-pillow.md / 220-spike-sidecar.md):**
-Use the **JSON-sidecar** approach — the bake script measures each map's properties
-inside Blender (img.pixels) and writes a sidecar JSON; a stdlib-only oracle reads it and
-asserts contracts (dims, Non-Color, tileability edge-match, threshold↔AO correlation).
-Keeps Tier-1 pure-stdlib like posterize/palette-snap oracles, zero new deps. Staleness
-covered by Tier-2 (blender --check) + Tier-3 (Godot A/B). Add size+mtime to the sidecar
-for drift detection. (Pillow works too via `uv run --with pillow` but adds a dep pattern
-the other oracles don't use — rejected for consistency.)
+**Oracle decision (spiked both; complementary, both first-class — see 220-spike-*.md,
+pillow-mise-research.md, pillow-integration-code.md):**
+TWO complementary checks, neither optional, neither able to do the other's job:
+- **Sidecar oracle** (stdlib, in verify): bake script measures each map inside Blender
+  (img.pixels) and writes a JSON sidecar; stdlib oracle asserts contracts including the
+  things ONLY knowable at bake time — Non-Color intent, AO↔threshold correlation, level
+  counts. (Pillow CANNOT read Non-Color intent from a PNG — no such flag exists.)
+- **Pillow drift-check** (in verify, ImportError-guarded): reads the COMMITTED PNGs and
+  asserts dims, channel mode, and tileability edge-diff match the sidecar's recorded
+  values — catches a hand-edited/re-exported PNG that the sidecar (trusts last bake)
+  would miss. Uses `with Image.open`, convert("RGBA") before compare (palette-mode P
+  drops data), NumPy [y,x] axis order, edge slices a[0,:]/a[-1,:].
+
+**Pillow incorporation (first-class, NOT `uv run --with`):** add `pillow` to the existing
+`[tasks.setup]` inline `uv pip install ...` line (unpinned, house style — matches all 15
+current deps). We have NO pyproject/uv.lock, so `uv add` is out of scope — migrating the
+whole dep model to pyproject is a separate infra ticket. Add a `python -c "import PIL"`
+canary to `[tasks.doctor]` Venv block. cp312 Windows wheel is prebuilt (no compiler).
+
+**Verify wiring:** ... palette-snap-oracle.py, control-maps-oracle.py (sidecar, stdlib),
+control-maps-drift.py (Pillow, guarded), verify-links.py, ...
 
 **Tileable noise:** use the 4D-noise trick (map UV onto two orthogonal circles via
 sin/cos into Blender's Noise Texture set to 4D) — edges match by construction. Verify
