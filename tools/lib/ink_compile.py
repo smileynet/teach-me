@@ -31,7 +31,7 @@ NONDETERMINISM_PATTERNS = [
 
 # inklecate is an external, machine-specific binary (not installed by
 # `mise run setup`). Overridable via the INKLECATE env var.
-DEFAULT_INKLECATE = os.environ.get("INKLECATE", "D:/tools/inklecate/inklecate.exe")
+DEFAULT_INKLECATE = os.environ.get("INKLECATE", "inklecate")
 
 # Parse inklecate output lines:
 #   "ERROR: 'file.ink' line 7: message"
@@ -44,8 +44,12 @@ ISSUE_PATTERN = re.compile(
 
 
 def inklecate_available(inklecate_path: str = DEFAULT_INKLECATE) -> bool:
-    """True if the inklecate binary exists at the given path."""
-    return Path(inklecate_path).exists()
+    """
+    True if inklecate is resolvable — either an existing file path OR a command
+    name found on PATH (e.g. installed via mise `[tools]` github:inkle/ink).
+    """
+    import shutil
+    return Path(inklecate_path).exists() or shutil.which(inklecate_path) is not None
 
 
 def parse_issues(output: str, fallback_name: str) -> list[dict]:

@@ -18,3 +18,7 @@ workspace/
 test-results/
 *.png
 lessons/
+
+# mise machine-local config (paths, tool overrides — never committed)
+mise.local.toml
+**/mise.local.toml
