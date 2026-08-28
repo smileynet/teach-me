@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "generated_by": "control_maps.py",
+  "maps": {
+    "noise": {
+      "w": 256,
+      "h": 256,
+      "colorspace": "Non-Color",
+      "r_min": 0.21176,
+      "r_max": 0.78039,
+      "edge_max_diff": 0.09412,
+      "role": "noise",
+      "tileable_expected": true
+    },
+    "threshold": {
+      "w": 1024,
+      "h": 1024,
+      "colorspace": "Non-Color",
+      "r_min": 0.0,
+      "r_max": 1.0,
+      "edge_max_diff": 0.20784,
+      "role": "threshold",
+      "ao_corr": 1.0,
+      "source": "ARM.r (AO)"
+    }
+  }
+}
