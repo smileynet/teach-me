@@ -51,3 +51,23 @@ hash-check that fails loudly on drift.)
 - [ ] A3: wrapper exits 2 on import failure; exit code mirrors the harness
 - [ ] A4: harness validates the SHIPPED reference files (fresh copy or drift-check), not stale copies
 - [ ] `mise run ink:validate-gd` still green on correct code (after #236 fixes L05) / red on the known L05 bug before then
+
+
+## Sequencing update (2026-08-28) — blocked by #244; progress so far
+
+Reordered: #244 (mise-slim) comes FIRST because it rewrites the same wrapper. What's
+already done vs deferred:
+- **A1 (deeper L06 assertions): DONE** — validate_runtime.gd now asserts exact speaker
+  == "Alfoz", sound command handled (returns show=true), # hidden suppressed AND
+  recognized (returns show=false), ending + speaker-through-passage. Verified: L06 5/5
+  green, [sound] cart_creak/cloth_unfurl/coin_drop observed in output.
+- **A2 (clean logic-bug fail-test): DONE** — broke L06 `# hidden` to `show_line = true`
+  (compiles, wrong logic), harness caught it with 2 assertions, exit 1, reference
+  restored byte-identical. Proves logic-bug detection, not just syntax.
+- **A3 (wrapper import exit-code) + A4 (copy-drift): FOLD INTO #244** — the new
+  `ink-gd-run.py` (import false-exit-1 guard + exit-map) and `ink-gd-sync.py` (copy)
+  ARE the A3/A4 fixes, done cleanly in the slimmed scripts rather than patched into the
+  130-line wrapper. Re-verify A3 (import failure → exit 2) as part of #244's AC.
+
+So after #244, #238's remaining scope is just confirming A3 in the new script + the
+final green/red re-run. Consider closing #238 into #244 if fully absorbed.

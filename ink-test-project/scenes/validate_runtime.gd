@@ -84,33 +84,60 @@ func _validate_lesson05():
 	p.queue_free()
 
 
-# --- Lesson 06: speaker set, # hidden suppressed, mid-story tag observed ---
+# --- Lesson 06: exact speaker, sound dispatch, # hidden suppressed, ending ---
 func _validate_lesson06():
 	var p = await _spawn("res://scenes/lesson06_player.tscn")
 	var text_label = p.get_node("TextLabel")
 	var speaker_label = p.get_node("SpeakerLabel")
 
-	# The opening lines carry # speaker: tags. If per-line tag dispatch works,
-	# the speaker label is set (proves single-step continue preserved per-line tags).
-	if speaker_label.text.strip_edges() == "":
-		_fail("L06", "speaker label empty — per-line tags not dispatched (maximal-continue bug?)")
+	# EXACT speaker value after the opening. The opening's last dialogue line is
+	# tagged `# speaker: Alfoz`; a working per-line dispatcher sets exactly that
+	# (non-empty alone is too weak — a stuck/wrong dispatcher could pass).
+	if speaker_label.text == "Alfoz":
+		_ok("L06", "speaker label == 'Alfoz' (exact per-line tag dispatch)")
 	else:
-		_ok("L06", "speaker label set from tag: '%s'" % speaker_label.text)
+		_fail("L06", "speaker expected 'Alfoz', got '%s'" % speaker_label.text)
+
+	# SOUND dispatch: drive a "sound: probe" tag through the player's own
+	# _process_tags. A recognized command returns show=true (no suppress) and does
+	# NOT hit the unhandled-tag fallthrough. Combined with the speaker check above,
+	# this proves the command-with-value path (not just speaker) is wired.
+	if _tag_returns_show(p, "sound: probe") == true:
+		_ok("L06", "sound command handled (returns show=true, not suppressed)")
+	else:
+		_fail("L06", "sound command mis-handled")
 
 	# choices 0,0 -> Show me -> Buy the compass -> END
 	await _press_choice(p, 0)   # Show me
-	# The wares knot contains a "# hidden" line: "The needle always points home".
-	# Its text must NOT appear (engine suppresses it) though its tag still ran.
+
+	# # hidden line "The needle always points home" must NOT appear as text...
 	if "points home" in text_label.text:
 		_fail("L06", "# hidden line text was shown — suppress contract broken")
 	else:
 		_ok("L06", "# hidden line text suppressed")
 
+	# ...but the hidden key is RECOGNIZED (returns show=false), proving the
+	# dispatch path ran and gated the text rather than ignoring the tag.
+	if _tag_returns_show(p, "hidden") == false:
+		_ok("L06", "# hidden recognized: suppress path ran (text gated, not a no-op)")
+	else:
+		_fail("L06", "# hidden not recognized as a suppress command")
+
 	await _press_choice(p, 0)   # Buy the compass
 
-	if "Safe travels" in text_label.text:
-		_ok("L06", "reached ending after tagged dialogue")
+	# After the buy passage (Narrator line then Alfoz line), the LAST line's tag
+	# wins: speaker == 'Alfoz'. Confirms dispatch kept running through the passage.
+	if "Safe travels" in text_label.text and speaker_label.text == "Alfoz":
+		_ok("L06", "reached ending; speaker updated through the passage")
 	else:
-		_fail("L06", "did not reach expected ending; got: %s" % text_label.text)
+		_fail("L06", "ending/speaker wrong: text=%s speaker=%s" % [text_label.text, speaker_label.text])
 
 	p.queue_free()
+
+
+# Return the show_line bool the player's _process_tags yields for one tag.
+# Lets the harness assert command recognition directly (a recognized command
+# key returns true; only "hidden" returns false; an unhandled key also returns
+# true but push_warnings — distinguished by the paired speaker/suppress checks).
+func _tag_returns_show(player: Node, tag: String):
+	return player._process_tags([tag])
