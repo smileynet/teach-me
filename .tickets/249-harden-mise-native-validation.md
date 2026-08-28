@@ -2,7 +2,7 @@
 id: "249"
 title: "Harden #244: prune dead import guard, verify fresh-import + reinstall, document mise.local.toml"
 type: bug
-status: in_progress
+status: done
 priority: high
 blocked_by: []
 tags: ["ink", "validation", "tooling"]
@@ -49,11 +49,11 @@ a local install, (b) `ink:validate-gd` needs Godot while `ink:validate` doesn't,
 code-validation-teaching.md steering.
 
 ## Acceptance criteria
-- [ ] ink-gd-run.py import-guard pruned to only what fires; break-test still → exit 2 (harness guard)
-- [ ] Fresh import (deleted .godot/) → no false exit 2 from the benign inkgd warning
-- [ ] `mise uninstall && mise install` reinstalls inklecate from lockfile; ink:validate passes
-- [ ] mise.local.toml + ink:validate-gd Godot requirement documented (AGENTS.md or steering)
-- [ ] `mise run ink:validate-gd` still: L06 green / L05 red (until #236)
+- [x] ink-gd-run.py import-guard pruned to only what fires; break-test still → exit 2 (harness guard)
+- [x] Fresh import (deleted .godot/) → no false exit 2 from the benign inkgd warning
+- [x] `mise uninstall && mise install` reinstalls inklecate from lockfile; ink:validate passes
+- [x] mise.local.toml + ink:validate-gd Godot requirement documented (AGENTS.md or steering)
+- [x] `mise run ink:validate-gd` still: L06 green / L05 red (until #236)
 
 
 ## Findings-adjusted plan (2026-08-28, 4 subagents: 2 research + 2 review)
@@ -106,3 +106,7 @@ test-scene lags it (exit-code-only, no parse detection). Keep the 0/1/2 contract
 ### Already closed (evidence this session)
 - mise.lock cross-platform inklecate entries verified (win/linux/mac + sha256).
 - mise.local.toml GODOT override tested working via `mise env`.
+
+## Resolution (2026-08-28)
+
+Pruned dead import guard (parse errors surface at scene-instantiation not --import); double-import warms cold .godot cache so benign inkgd icon noise never trips the guard; anchored harness guard on line.startswith(SCRIPT ERROR / ERROR: Failed to load script) — immune to interpolated story text; documented mise.local.toml + Godot requirement in AGENTS.md
