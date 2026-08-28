@@ -8,3 +8,5 @@
 assets/masks/
 
 assets/toon-export/
+
+scenes/configurable_ab_test.tscn
