@@ -55,31 +55,52 @@ def _terminate_server(proc: "subprocess.Popen") -> None:
         proc.terminate()
 
 
-def find_test_page(base_url: str) -> str:
-    """Find a lesson page to test against."""
-    # Try workspace paths first (workspace server at :8787)
-    workspace_candidates = [
-        "/lessons/0001-esoteric-ebb-breakdown.html",
-        "/lessons/0002-blender-npr-shaders.html",
-    ]
-    # Then example paths (project-root server, or workspace-root server)
-    example_candidates = [
-        "/lessons/blender-texture-prep/01-texture-audit.html",
-        "/lessons/0004-toon-banding.html",
-        "/examples/iceberg-workspace/lessons/0001-iceberg-metadata-tree.html",
-        "/examples/oidc-rust/lessons/0001-oidc-auth-flows.html",
-    ]
+# Lesson pages we probe to (a) validate a server serves this project's content and
+# (b) pick a test target. Workspace-root paths first, then example-workspace paths.
+_CANDIDATE_PAGES = [
+    "/lessons/0001-esoteric-ebb-breakdown.html",
+    "/lessons/0002-blender-npr-shaders.html",
+    "/lessons/blender-texture-prep/01-texture-audit.html",
+    "/lessons/0004-toon-banding.html",
+    "/examples/iceberg-workspace/lessons/0001-iceberg-metadata-tree.html",
+    "/examples/oidc-rust/lessons/0001-oidc-auth-flows.html",
+]
 
-    for path in workspace_candidates + example_candidates:
+
+def _free_port() -> int:
+    """Ask the OS for a free ephemeral port (bind :0, read it back, release)."""
+    import socket
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+def _serves_lessons(base_url: str) -> bool:
+    """True only if base_url serves one of THIS project's lesson pages (HTTP 200).
+
+    A foreign server (or serve.py on an empty workspace) answers the port but 404s
+    every candidate — so mere connectivity is NOT proof it's our server.
+    """
+    for path in _CANDIDATE_PAGES:
         try:
-            urllib.request.urlopen(base_url + path, timeout=1)
-            return base_url + path
-        except urllib.error.HTTPError:
-            continue
+            with urllib.request.urlopen(base_url + path, timeout=2) as r:
+                if getattr(r, "status", r.getcode()) == 200:
+                    return True
         except Exception:
             continue
+    return False
 
-    # No served page found — signal skip (no suitable test target).
+
+def find_test_page(base_url: str) -> str:
+    """Return the first candidate lesson page that returns HTTP 200, else None."""
+    for path in _CANDIDATE_PAGES:
+        try:
+            with urllib.request.urlopen(base_url + path, timeout=2) as r:
+                if getattr(r, "status", r.getcode()) == 200:
+                    return base_url + path
+        except Exception:
+            continue
     return None
 
 
@@ -258,26 +279,20 @@ def run_checks(page, url: str) -> list[dict]:
 
 
 def main():
-    port = 9123  # Non-standard port to avoid conflicts with serve/serve:lan
-    base_url = f"http://localhost:{port}"
+    base_url = None
     server_proc = None
 
-    # Check if any server is already running (try common ports)
-    for try_url in [f"http://localhost:{port}", "http://localhost:8787", "http://localhost:8080"]:
-        try:
-            resp = urllib.request.urlopen(try_url, timeout=1)
-            base_url = try_url
-            break
-        except urllib.error.HTTPError:
-            # Server is running but returned an error (e.g., 404) — still usable
-            base_url = try_url
-            break
-        except Exception:
-            continue
+    # Optional convenience: reuse a running dev server on 8787 — but ONLY if it
+    # actually serves this project's lesson pages. A foreign server (or serve.py
+    # on an empty workspace) answers the port yet 404s every candidate, so we must
+    # validate content, not just connectivity. (mirrors Playwright reuseExistingServer)
+    if _serves_lessons("http://localhost:8787"):
+        base_url = "http://localhost:8787"
     else:
-        # Start server on our port. Put it in its own process group so we can
-        # tear down cleanly; os.setsid is Unix-only, so use the Windows
-        # equivalent (a new process group) on win32.
+        # Own an ephemeral port so the gate is hermetic — never adopt a server we
+        # don't control. Pre-bind :0 to get a free port, then hand it to serve.py.
+        port = _free_port()
+        base_url = f"http://localhost:{port}"
         popen_kwargs = {
             "stdout": subprocess.DEVNULL,
             "stderr": subprocess.DEVNULL,
@@ -286,38 +301,42 @@ def main():
             popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
         else:
             popen_kwargs["preexec_fn"] = os.setsid
-        # serve.py defaults to workspace/, which may not exist at the project
-        # root (it's the gitignored live workspace). Point at a workspace that
-        # is always present so the interactive checks have real pages to test.
+        # serve.py defaults to workspace/, which may not exist (it's the gitignored
+        # live workspace). Point at a workspace that always has real lesson pages.
         default_ws = Path(__file__).resolve().parent.parent / "workspace"
         serve_ws = "workspace" if default_ws.exists() else "examples/godot-gamedev"
         server_proc = subprocess.Popen(
             [sys.executable, "tools/serve.py", "--workspace", serve_ws, "--port", str(port)],
             **popen_kwargs,
         )
-        # Wait for server
+        # Wait for our server to bind (404 at / is fine — the workspace has no root index).
         for _ in range(30):
             try:
                 urllib.request.urlopen(base_url, timeout=0.5)
                 break
             except urllib.error.HTTPError:
-                # Server is running (returned 404 or similar) — that's fine
                 break
             except Exception:
                 time.sleep(0.2)
         else:
-            # Could not start a server — skip rather than fail the whole gate
-            # (matches the "skip if playwright missing" philosophy above).
-            print("⚠ Could not start server — skipping interactive checks", file=sys.stderr)
+            # We control serve.py and its deps are present (it's in the verify venv),
+            # so a server that won't start is a misconfig/regression — FAIL loudly,
+            # don't silently skip and let the gate go green on an untested build.
+            print("✗ Could not start serve.py — interactive gate cannot run", file=sys.stderr)
             if server_proc:
                 _terminate_server(server_proc)
-            sys.exit(0)
+                server_proc.wait()
+            sys.exit(2)
 
     try:
         url = find_test_page(base_url)
         if url is None:
-            print("⚠ No suitable lesson page served — skipping interactive checks", file=sys.stderr)
-            return
+            # The server is up and it's OUR known-good workspace, so a missing
+            # lesson page is a real regression (broken mount / renamed page), NOT
+            # an environment gap. Fail — a silent skip here hides the very defect
+            # a smoke test exists to catch.
+            print(f"✗ No lesson page served at {base_url} — interactive gate cannot run", file=sys.stderr)
+            sys.exit(1)
 
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
