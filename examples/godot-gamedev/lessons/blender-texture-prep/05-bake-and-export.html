@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 19: Emit Bake &amp; glTF Export — Blender to Godot</title>
+  <script src="../../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../../assets/vendor/preact.module.js",
+        "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
+        "htm": "../../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="blender-texture-prep-map.html">Blender to Godot Texture Prep</a> <span class="nav-sep">›</span> <span><span class="term" data-term="emit-bake">Emit Bake</span> &amp; glTF Export</span></nav>
+<h1>Emit Bake &amp; glTF Export — Blender to Godot</h1>
+
+<div class="lesson-meta">
+  Lesson 19 · Blender to Godot Texture Prep · ~15 min read<br>
+  <strong>Win:</strong> You can bake your posterized + palette-snapped albedo with a Cycles Emit pass, export a toon-ready glTF, and explain why Emit (not Combined) and why the control maps stay <em>out</em> of the glTF.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> The Emit bake captures material color <em>before</em> lighting touches it — the only bake type safe for dynamic toon shading. Everything else freezes shadows into the texture and fights the shader.
+</div>
+
+<h2>The Problem</h2>
+
+<p>You've built the whole prep chain: posterize the albedo (lesson 16), snap it to a palette (17), author control maps (18). It all lives in Blender's node editor. Now you need it <em>in Godot</em> — as texture files and a mesh the engine imports. This lesson is the round-trip: bake the node graph down to flat textures, export a glTF, and import it cleanly with correct color spaces.</p>
+
+<p>Two decisions make or break it: <strong>which bake type</strong>, and <strong>what goes in the glTF</strong>. Both have a wrong answer that looks fine in Blender and breaks in Godot.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WHY EMIT
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Why Emit, not Combined</h2>
+
+<p>A bake captures a material's output to a texture. But <em>which</em> output? A <strong>Combined</strong> or <strong>Diffuse</strong> bake includes scene lighting — the shadows and highlights from your Blender lights get painted into the texture. That's fine for a statically-lit asset. It's a disaster for toon shading.</p>
+
+<p>Godot's toon shader computes lighting <em>dynamically</em> — it bands the light in real time. If your albedo already has baked shadows, you get <strong>double shadows</strong>: the baked-in ones plus the live-computed ones, fighting each other. The texture looks great in Blender's viewport and terrible in Godot.</p>
+
+<div class="key-concept">
+  <strong>Emit</strong> bakes what the material <em>emits</em> — its raw color output, with <strong>zero lighting influence</strong>. To use it, wire your prep chain into an <strong>Emission</strong> shader instead of the Principled BSDF, then bake <code>type = "EMIT"</code>. The result is pure prepped color, ready for the shader to light however it wants.</p></div>
+
+<h3>Bake settings reference</h3>
+
+<table>
+<caption>Cycles Emit bake settings for toon-prepped textures.</caption>
+<thead><tr><th scope="col">Setting</th><th scope="col">Value</th><th scope="col">Why</th></tr></thead>
+<tbody>
+<tr><th scope="row">Render Engine</th><td>Cycles</td><td>EEVEE cannot bake</td></tr>
+<tr><th scope="row">Bake Type</th><td>Emit</td><td>Color only, no lighting</td></tr>
+<tr><th scope="row">Samples</th><td>1–4</td><td>Flat color needs almost none</td></tr>
+<tr><th scope="row">Margin</th><td>4–16 px</td><td>Prevents UV-seam bleed</td></tr>
+<tr><th scope="row">Image Size</th><td>1024</td><td>Match the source albedo</td></tr>
+<tr><th scope="row">Color Space</th><td>sRGB (albedo)</td><td>Albedo is color data</td></tr>
+</tbody></table>
+
+<div class="note">
+<strong>Why Cycles and not EEVEE?</strong> EEVEE can't bake at all (as of Blender 4.x/5.x). More subtly: EEVEE's <code>Shader to RGB</code> node — a common toon trick — doesn't work in a Cycles bake. That's exactly why lessons 16–17 built posterize/palette-snap from plain Math and Vector nodes: they're Cycles-bakeable, so the whole chain survives the Emit bake.</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE BAKE
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Baking the barrel</h2>
+
+<p>The script chains lesson 16's Posterize RGB group and lesson 17's Palette Snap group into an Emission shader, then Emit-bakes the result to a 1K sRGB image. It reuses those groups directly — importing them, not re-implementing:</p>
+
+<pre data-file="bake_export.py" data-mode="fragment"><code>import bpy, importlib.util
+from pathlib import Path
+
+def _load(path, name):
+    spec = importlib.util.spec_from_file_location(name, str(path))
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+posterize = _load(POSTERIZE_PY, "posterize_rgb")
+palette   = _load(PALETTE_PY, "palette_snap")
+
+def build_bake_material(src_image):
+    posterize.build_group(); palette.build_all()   # rebuild AFTER any factory reset
+    mat = bpy.data.materials.new("ToonPrepBake"); mat.use_nodes = True
+    nt = mat.node_tree; nt.nodes.clear()
+    tex = nt.nodes.new("ShaderNodeTexImage"); tex.image = src_image
+    p = nt.nodes.new("ShaderNodeGroup"); p.node_tree = bpy.data.node_groups["Posterize RGB"]
+    s = nt.nodes.new("ShaderNodeGroup"); s.node_tree = bpy.data.node_groups[palette.GROUP_B]
+    emit = nt.nodes.new("ShaderNodeEmission")            # <-- Emission, NOT Principled
+    out  = nt.nodes.new("ShaderNodeOutputMaterial")
+    nt.links.new(tex.outputs["Color"], p.inputs["Color"])
+    nt.links.new(p.outputs["Color"], s.inputs["Color"])
+    nt.links.new(s.outputs["Color"], emit.inputs["Color"])
+    nt.links.new(emit.outputs["Emission"], out.inputs["Surface"])
+    return mat
+# ... add a plane, smart_project UVs, select an unconnected target image, then:
+# scene.render.engine = "CYCLES"; bpy.ops.object.bake(type="EMIT")
+</code></pre>
+
+<p>The baked result is the same toon-prepped albedo you saw snapped in lesson 17 — now frozen into a flat texture with no lighting in it.</p>
+
+<div class="note">
+<strong>Multi-material assets (e.g. Camera_01).</strong> An asset with several materials (the camera has a strap, a lens body, and a glass lens) bakes each material separately — one Emit bake per material slot, to its own texture or an atlas. Watch for materials with <em>no albedo texture</em>: the camera's lens is a glass/transmission material with only a base-color factor, so there's nothing to posterize — you handle it as a solid color, not a bake.</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     glTF EXPORT — the gotcha
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Exporting the glTF — and what stays out of it</h2>
+
+<p>Export the mesh + baked albedo as a <code>.glb</code>. The export settings exclude what Godot doesn't need — lights and cameras (Godot lights the scene itself), and use PNG textures (not JPEG — lossy compression adds the noise back you just removed):</p>
+
+<pre data-mode="fragment"><code>bpy.ops.export_scene.gltf(
+    filepath="Barrel_01_toon.glb",
+    export_format="GLB",
+    export_materials="EXPORT",
+    export_cameras=False,      # Godot's toon shader lights dynamically —
+    export_lights=False,       # a baked light would double-shadow
+    use_selection=True,        # just the barrel, no stray objects
+)</code></pre>
+
+<p>Now the critical decision: <strong>the control maps do NOT go in the glTF.</strong> Here's why.</p>
+
+<div class="note">
+<strong>Gotcha — glTF color space is slot-driven.</strong> glTF has no per-image "this is sRGB / this is data" flag. Instead, Godot infers color space from <em>which material slot</em> a texture sits in: a texture in <code>baseColorTexture</code> is read as <strong>sRGB</strong>; one in <code>normalTexture</code> as <strong>linear</strong>. That's why the baked albedo imports correctly with zero fuss — it's color data in the base-color slot.
+<br><br>
+But a <span class="term" data-term="control-map">control map</span> (noise, threshold) is <em>data</em>, not color, and it has no correct glTF slot. Put it in <code>baseColorTexture</code> and Godot sRGB-decodes it, corrupting the control values. Worse: a texture embedded in a <code>.glb</code> has <strong>no separate <code>.import</code> file</strong>, so you can't fix its color space after import. The fix is to keep the control maps <em>out</em> of the glTF entirely — ship them as standalone <span class="term" data-term="non-color">Non-Color</span> PNGs and wire them into the Godot material by hand. The glTF carries only the albedo.</div>
+
+<h3>Importing into Godot</h3>
+
+<p>Drop the <code>.glb</code> into your Godot project. On import, Godot flags the albedo texture sRGB automatically (it's in the base-color slot). The control-map PNGs, imported as separate files, get their own import settings — set those to <strong>Non-Color</strong> so their data isn't gamma-shifted. Then assign all three to the toon material's texture slots.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     BEFORE / AFTER
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>The payoff</h2>
+
+<p>Here's the same barrel under the same <code>configurable_banding</code> toon shader — same lighting, same band count. The <em>only</em> difference is the albedo texture: raw Poly Haven PBR on the left, your baked toon-prepped albedo on the right.</p>
+
+<figure>
+  <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+    <div style="flex:1 1 260px;"><img src="../../assets/img/bake-export-before.png" alt="Barrel with raw PBR albedo under the toon shader: busy photoreal rust, grime, and scratches read as visual noise through the bands." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Before — raw PBR albedo</p></div>
+    <div style="flex:1 1 260px;"><img src="../../assets/img/bake-export-after.png" alt="Same barrel, same shader, with the baked toon-prepped albedo: flat cohesive warm-toon palette, the noise gone, reads as intentionally designed." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">After — baked toon albedo</p></div>
+  </div>
+  <figcaption style="color:var(--text-muted);font-size:0.9rem;margin-top:0.5rem;">The shader didn't change — the texture did. Raw PBR fights the toon look with photoreal noise; the prepped albedo (posterize → palette-snap → Emit bake → glTF) gives the shader a clean, cohesive surface to band. That's the entire pipeline, proven end to end.</figcaption>
+</figure>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A colleague bakes their prepped albedo with the <strong>Combined</strong> pass (Direct lighting enabled). It looks perfect in Blender's viewport. In Godot, under the toon shader, the barrel looks muddy and the shadows are weirdly dark and doubled. They ask you what went wrong and which bake type to use instead. What do you tell them?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>What does a Combined bake capture that an Emit bake doesn't? And what does Godot's toon shader do to lighting that Blender's baked texture already did?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p><strong>What went wrong:</strong> the Combined pass baked Blender's <em>scene lighting</em> — shadows and highlights — into the albedo texture. Godot's toon shader then computes its <em>own</em> dynamic lighting on top of that already-lit texture. So every shadow is applied twice: once frozen in the texture, once live from the shader. That's the "doubled, weirdly dark" look. It's fine in Blender because Blender isn't re-lighting the baked result; Godot is.</p>
+  <p><strong>The fix:</strong> use an <strong>Emit</strong> bake (wire the prep chain into an Emission shader, bake <code>type="EMIT"</code>). Emit captures the material's color output with <em>no</em> lighting influence, so Godot's shader is the only thing lighting the surface — no double shadows. (Equivalently: a Diffuse bake with both Direct and Indirect contributions unchecked.) The rule: for dynamic toon shading, the baked albedo must be <em>unlit</em>.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES + NEXT
+     ═══════════════════════════════════════════════════════════════ -->
+<h2 id="code-files">Code Files</h2>
+<p>Download the bake+export script and its outputs:</p>
+<ul>
+  <li><a href="../../reference/code/bake-and-export/bake_export.py" download><code>bake_export.py</code></a> — chains Posterize RGB → Palette Snap → Emit bake → glTF export (run headless via <code>blender -b --python bake_export.py -- --bake OUTDIR</code>).</li>
+  <li><a href="../../reference/code/bake-and-export/Barrel_01_toon_albedo.png" download><code>Barrel_01_toon_albedo.png</code></a> — the baked toon-prepped albedo (1K, sRGB).</li>
+  <li><a href="../../reference/code/bake-and-export/Barrel_01_toon.glb" download><code>Barrel_01_toon.glb</code></a> — the exported mesh + material (albedo only; no lights, cameras, or control maps).</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p>The assets are in Godot. The final step: <strong>wiring it all up</strong> — populate every slot of the <code>mk_toon_lite</code> shader with the baked albedo and the separate control maps, and prove the whole pipeline renders correctly with a before/after in the live scene.</p>
+</div>
+
+
+<script type="application/json" id="glossary-data">{"emit-bake": "A Cycles bake (type=EMIT) that captures a material's raw color output with zero lighting influence — the only bake type safe for dynamic toon shading, because it doesn't freeze shadows into the texture.", "control-map": "A small data texture that tells the shader WHERE/HOW to apply an effect (noise, threshold) — not a color. Kept out of the glTF because it has no correct color-space slot there.", "non-color": "A texture color-space setting for data (control maps, normals) that stores raw values without sRGB gamma encoding. The opposite of sRGB, which is for color imagery like albedo."}</script>
+<script type="module" src="../../assets/page-shell.js"></script>
+
+</body>
+</html>
