@@ -23,6 +23,12 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
+# Windows consoles default to cp1252; force UTF-8 so ✓/✗/→/— glyphs don't crash.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 QUESTIONS_DIR = PROJECT_ROOT / "learning-records" / "questions"
 
