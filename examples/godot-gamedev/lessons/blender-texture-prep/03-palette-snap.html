@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 17: Palette Snapping — Color Ramp and 1D Lookup</title>
+  <script src="../../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../../assets/vendor/preact.module.js",
+        "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
+        "htm": "../../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="blender-texture-prep-map.html">Blender to Godot Texture Prep</a> <span class="nav-sep">›</span> <span><span class="term" data-term="palette-snapping">Palette Snapping</span> — Color Ramp and 1D Lookup</span></nav>
+<h1>Palette Snapping — Color Ramp and 1D Lookup</h1>
+
+<div class="lesson-meta">
+  Lesson 17 · Blender to Godot Texture Prep · ~15 min read<br>
+  <strong>Win:</strong> You can map any albedo to an art-directed palette two ways — an editable <span class="term" data-term="constant-interpolation">Constant</span> Color Ramp and a scalable 1D <span class="term" data-term="clut">lookup texture</span> — explain when to reach for each, and reason about why palette color count and shader band count are independent.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> Posterization asks <em>how many</em> colors; palette snapping asks <em>which</em> colors. Snapping every pixel to a shared, deliberately-designed palette is what makes a whole scene of independently-prepped assets look like one art direction.
+</div>
+
+<h2>The Problem</h2>
+
+<p>In the <a href="02-albedo-posterize.html">previous lesson</a> you built a node group that posterizes an albedo to N flat bands. That controls <em>how many</em> colors survive — but not <em>which</em> ones. Posterizing the barrel gives you four tones, but they're whatever the photo happened to average to: muddy mid-browns nobody chose. Posterize a crate beside it and you get a <em>different</em> four browns. The scene fragments into assets that were each simplified correctly but don't share a color story.</p>
+
+<p>The fix is <strong>palette snapping</strong>: map every pixel to the nearest color in a fixed, art-directed palette. Now the barrel, the crate, and the character all draw from the same six colors — instant scene cohesion, and a palette you can redesign in one place. This lesson builds it two ways in Blender nodes.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION — the concept
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Snapping is a lookup keyed on brightness</h2>
+
+<p>Both methods share one idea: collapse a pixel's color to a single <strong>luminance</strong> value (how bright it is), then use that number to pick a palette swatch. A dark pixel picks the shadow color, a bright pixel picks the highlight color, and the mid-tones fill in between. The luminance-to-slot map is the same floor quantization posterization used, but instead of producing a grey <em>level</em> it produces a palette <em>index</em>:</p>
+
+<pre data-mode="fragment"><code>lum = luminance(color)              // 0..1, via RGB to BW
+idx = floor(lum * N)                // which of N palette slots, 0..N-1
+snapped = palette[idx]              // the chosen swatch</code></pre>
+
+<p>The two methods differ only in <em>how</em> they store <code>palette[]</code> and do the lookup — a Color Ramp, or a tiny image sampled as a table. We'll build both as node groups so they chain onto lesson 16's Posterize RGB group.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     METHOD A
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Method A — Color Ramp with Constant interpolation</h2>
+
+<p>The quickest, most visual approach uses a single <strong>Color Ramp</strong> node. Convert the color to luminance with <strong>RGB to BW</strong>, feed that into the ramp's <em>Fac</em>, and place one color stop per palette entry.</p>
+
+<pre data-mode="fragment"><code>Image Texture (Color) ─▶ RGB to BW ─▶ Color Ramp [CONSTANT] ─▶ Base Color</code></pre>
+
+<p>The critical setting is the ramp's <strong>interpolation mode: Constant</strong>. By default a Color Ramp blends smoothly between stops (Linear) — which would give you a gradient, the opposite of what you want. Constant makes each stop hold its exact color until the next stop, producing hard, flat bands. Place your six swatches at positions <code>0, 1/6, 2/6, …</code> and every luminance snaps to the swatch on its left.</p>
+
+<div class="note">
+<strong>New concept — Constant interpolation:</strong> A Color Ramp mode where each color stop holds until the next, with no blending. This is what turns a ramp from a gradient generator into a discrete lookup table. It's the node-editor equivalent of the shader's <code>floor</code>.</div>
+
+<p>Method A is ideal when you're <em>designing</em> the palette by eye: drag a stop, watch the band recolor live in the viewport. Its limit is that it keys on a single 0→1 axis (luminance), so it can't express a palette that varies by hue independent of brightness.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     METHOD B
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Method B — 1D palette texture (a lookup table)</h2>
+
+<p>The scalable approach stores the palette as a tiny <strong>N×1-pixel image</strong> — one pixel per swatch — and samples it as a <span class="term" data-term="clut">color lookup table</span>. Instead of ramp stops living inside one material, the palette is a shareable asset: point ten materials at the same strip and they snap to one palette; edit the strip and the whole scene updates.</p>
+
+<p>Luminance becomes the <em>horizontal coordinate</em> into the strip. A <strong>Combine XYZ</strong> node builds a lookup position with the luminance on X (and a fixed Y=0.5 to sample the middle of the one-pixel-tall image):</p>
+
+<pre data-mode="fragment"><code>Image Texture ─▶ RGB to BW ─▶ Combine XYZ (X=lum, Y=0.5) ─▶ Palette Strip [Closest]</code></pre>
+
+<p>Two settings make or break this method. First, the palette Image Texture's interpolation must be <strong>Closest</strong>, not Linear — Linear would blend adjacent swatches and defeat the whole point. Second, the palette strip's color space must be <strong>Non-Color</strong>, so Blender stores your authored swatches verbatim instead of applying an sRGB view transform that would shift every color.</p>
+
+<p>Rather than hand-place pixels, this script builds the strip and the sampling group in one run. Open it in Blender's Scripting workspace and press Run, then add <strong>Group → Palette Snap B (LUT)</strong> to any material.</p>
+
+<pre data-file="palette_snap.py" data-mode="complete"><code>import bpy
+
+# 6-color warm-toon palette (sRGB), darkest -> lightest.
+PALETTE = [
+    (0.101, 0.078, 0.145), (0.239, 0.157, 0.216), (0.451, 0.247, 0.235),
+    (0.647, 0.400, 0.271), (0.831, 0.596, 0.361), (0.965, 0.831, 0.569),
+]
+N = len(PALETTE)
+
+def build_palette_image():
+    img = bpy.data.images.new("toon_palette_6", width=N, height=1, alpha=False)
+    img.colorspace_settings.name = "Non-Color"   # don't view-transform the swatches
+    px = []
+    for (r, g, b) in PALETTE:
+        px += [r, g, b, 1.0]
+    img.pixels = px
+    return img
+
+def build_lut_group():
+    ng = bpy.data.node_groups.new("Palette Snap B (LUT)", "ShaderNodeTree")
+    ng.interface.new_socket("Color", in_out="INPUT", socket_type="NodeSocketColor")
+    ng.interface.new_socket("Color", in_out="OUTPUT", socket_type="NodeSocketColor")
+    nodes, links = ng.nodes, ng.links
+    gin, gout = nodes.new("NodeGroupInput"), nodes.new("NodeGroupOutput")
+
+    bw = nodes.new("ShaderNodeRGBToBW")
+    combine = nodes.new("ShaderNodeCombineXYZ")
+    combine.inputs["Y"].default_value = 0.5       # middle of the 1px-tall strip
+    tex = nodes.new("ShaderNodeTexImage")
+    tex.interpolation = "Closest"                 # REQUIRED — no blending
+    tex.extension = "EXTEND"
+    tex.image = build_palette_image()
+
+    links.new(gin.outputs["Color"], bw.inputs[0])
+    links.new(bw.outputs[0], combine.inputs["X"]) # luminance drives the lookup
+    links.new(combine.outputs["Vector"], tex.inputs["Vector"])
+    links.new(tex.outputs["Color"], gout.inputs["Color"])
+    return ng
+
+if __name__ == "__main__":
+    build_lut_group()
+</code></pre>
+
+<div class="note">
+<strong>Gotcha — sample the texel center, not its edge.</strong> Luminance maps to a lookup coordinate, and you want it to land in the <em>middle</em> of a swatch's pixel: <code>(idx + 0.5) / N</code>. If a value lands exactly on a texel border (<code>idx / N</code>), floating-point jitter can tip Closest into the neighbouring swatch — an off-by-one that shows up as a wrong color at band edges. Sampling from a quantized luminance keeps you at centers. (The lesson's oracle sweeps this: center-sampling has zero off-by-one; edge-sampling misses all five interior borders.)</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DECISION
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Which method?</h2>
+
+<div class="note">
+<strong>When to use which:</strong>
+<ul>
+  <li><strong>Method A — Color Ramp (Constant):</strong> use when you're hand-designing the palette and want to drag stops and see bands recolor live. Fastest to iterate; best with a handful of colors on a single material.</li>
+  <li><strong>Method B — 1D lookup texture (Closest):</strong> use when many assets must share one palette, or you want the palette <strong>swappable at runtime</strong> — sample the same strip in a Godot shader instead of baking it in (see the runtime <code>palette_snap.gdshader</code> in the color-simplification lesson for the nearest-color counterpart).</li>
+</ul>
+<strong>Default:</strong> design with Method A, ship with Method B. The ramp is your studio; the lookup texture is the reusable, swappable production asset.</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PALETTE DESIGN
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Designing a palette that reads</h2>
+
+<p>A snap is only as good as its palette. A few principles make six colors read as a coherent, lit surface rather than six random paints:</p>
+
+<ul>
+  <li><strong>Value first.</strong> The swatches are brightness steps — order them darkest to lightest and make them readable in greyscale. If the values are right, the hues can be almost anything.</li>
+  <li><strong>Hue-shift across the ramp.</strong> Don't just darken one color. Shift shadows cooler (toward blue/violet) and highlights warmer (toward yellow/orange), ~15–20° of hue per step. This temperature contrast is what makes a flat band read as a lit volume.</li>
+  <li><strong>Saturation peaks in the midtones.</strong> Pull saturation down at both the darkest and lightest ends; never pair maximum saturation with maximum brightness (it "burns").</li>
+</ul>
+
+<p>The palette in the script above follows this: a cool violet-black shadow, warming through plum and brown to a warm tan and cream highlight — six steps of rising value with a cool-to-warm hue drift.</p>
+
+<figure>
+  <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+    <div style="flex:1 1 180px;"><img src="../../assets/img/palette-snap-original.png" alt="Original barrel albedo: full photoreal detail with many browns and rust tones." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Original</p></div>
+    <div style="flex:1 1 180px;"><img src="../../assets/img/palette-snap-posterized.png" alt="Posterized barrel: reduced to a few flat but arbitrary browns chosen by the source photo." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Posterized (arbitrary colors)</p></div>
+    <div style="flex:1 1 180px;"><img src="../../assets/img/palette-snap-snapped.png" alt="Palette-snapped barrel: same forms, now recolored to the six art-directed warm-toon swatches." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Snapped to palette</p></div>
+  </div>
+  <figcaption style="color:var(--text-muted);font-size:0.9rem;margin-top:0.5rem;">Posterize reduces the color count; snapping replaces those arbitrary colors with the chosen palette. Same three-stage Toon Prep chain: albedo → Posterize RGB → Palette Snap.</figcaption>
+</figure>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     COMBINED
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>The combined Toon Prep chain</h2>
+
+<p>Palette snapping composes with lesson 16's group. Chain them into one reusable flow and bake the result through an Emission node (light-independent flat output):</p>
+
+<pre data-mode="fragment"><code>Image Texture ─▶ Posterize RGB ─▶ Palette Snap ─▶ Emission ─▶ (bake) Base Color</code></pre>
+
+<p>Posterize first flattens the color count; snap then maps those flattened tones onto your palette. Baking freezes the result into a new texture — cheap at runtime, but the palette is now fixed. If you want to recolor later, skip the bake and keep Method B's strip as a live, swappable texture in your Godot material.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A teammate has a 4-band toon shader and a beautiful 8-color palette. They snap their character's albedo to all 8 colors expecting richer shading, but on the lit model they only ever see 4 flat colors — half the palette seems to do nothing. They ask you why the extra colors "aren't showing up," and whether adding <em>more</em> palette colors would fix it. What do you tell them?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>What decides how many distinct tones appear on the lit model — the palette, or the shader? Which stage samples which?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p><strong>Band count and palette count are independent axes.</strong> The <em>shader</em> decides how many lighting bands exist (here, 4); the <em>palette</em> only decides which color each band shows. With 4 bands sampling an 8-color palette, only ~4 swatches are ever hit — the other 4 are never selected, which is exactly why half the palette "does nothing." Adding <em>more</em> palette colors makes this worse, not better: you can't create more visible tones by adding swatches, because nothing samples them.</p>
+  <p>To get more distinct tones on the lit model, they must add <strong>lighting bands in the shader</strong> (and supply a deliberately hue-shifted swatch per band). If instead they want the 8 colors to appear in the <em>albedo texture itself</em> (independent of lighting), that's the bake path from this lesson — snapping the albedo to 8 shows all 8 in the base color, before the shader's 4-band lighting is applied on top. The fix depends on which they actually want: richer <em>lighting</em> → more bands; richer <em>base color</em> → the albedo snap already does it.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES + NEXT
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Code Files</h2>
+<p>Download the reusable node groups from this lesson:</p>
+<ul>
+  <li><a href="../../reference/code/palette-snap/palette_snap.py" download><code>palette_snap.py</code></a> — builds both "Palette Snap A (Ramp)" and "Palette Snap B (LUT)" node groups (run in Blender's Scripting workspace; also runs headless via <code>blender -b --python palette_snap.py -- --check</code>).</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p>You can now control both how many colors an asset uses and which ones. But a toon look isn't only base color — it needs control over where highlights, outlines, and shading transitions fall. Next lesson: <strong>toon control maps</strong> — baking the extra masks (curvature, cavity, ID) that drive stylized shading beyond the albedo.</p>
+</div>
+
+
+<script type="application/json" id="glossary-data">{"palette-snapping": "Mapping every pixel of a texture to the nearest color in a fixed, art-directed palette, so independently-prepped assets share one coherent color story.", "constant-interpolation": "A Color Ramp mode where each color stop holds its exact color until the next stop, with no blending — turning the ramp into a discrete lookup instead of a gradient.", "clut": "Color lookup table: a small image (here N\u00d71 pixels, one per swatch) sampled to map an input value to an output color, replacing per-pixel computation with a table read."}</script>
+<script type="module" src="../../assets/page-shell.js"></script>
+
+</body>
+</html>
