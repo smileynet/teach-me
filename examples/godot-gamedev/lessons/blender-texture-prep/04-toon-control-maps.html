@@ -132,7 +132,7 @@ def build_noise_group():
     <div style="flex:1 1 240px;"><img src="../../assets/img/control-maps-off.png" alt="Barrel with mk_toon_lite, no control maps: clean straight band edges, shadow falls uniformly by surface angle only." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Maps off — clean straight bands</p></div>
     <div style="flex:1 1 240px;"><img src="../../assets/img/control-maps-on.png" alt="Same barrel with noise + threshold maps on: band edges wobble organically, and shadow deepens in the barrel's rim and gear creases while flat faces are unchanged." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Maps on — jittered edges + crease shadow</p></div>
   </div>
-  <figcaption style="color:var(--text-muted);font-size:0.9rem;margin-top:0.5rem;">Same lighting, same albedo. With the maps on, the noise gives band seams an organic wobble (interiors stay flat) and the AO threshold pushes shadow earlier into the barrel's creases — the terminator stays crisp, it just follows the geometry.</figcaption>
+  <figcaption style="color:var(--text-muted);font-size:0.9rem;margin-top:0.5rem;">Same lighting, same albedo, real <code>mk_toon_lite</code> captures. With the maps on, the shaded regions break up more organically along the barrel's ridges (noise perturbing the band boundary) and the creases around the rim and label sit deeper in shadow (the AO threshold). The effect is intentionally subtle at these strengths — control maps refine an existing look, they don't repaint it.</figcaption>
 </figure>
 
 <!-- ═══════════════════════════════════════════════════════════════
