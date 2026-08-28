@@ -1,7 +1,7 @@
 ---
 id: "240"
 title: "verify-interactive.py silently skips when an unrelated server occupies 8787/8080"
-status: in_progress
+status: done
 blocked_by: []
 priority: high
 tags: ["platform"]
@@ -71,11 +71,30 @@ timeout) are optional.
 
 ## Acceptance criteria
 
-- [ ] verify-interactive.py starts its OWN server on an ephemeral (:0) port and does NOT adopt a foreign server on 8787/8080
-- [ ] With an unrelated server running on 8787, the tool still runs the 8 checks against its own server (prints "✓ Interactive checks pass"), does NOT skip
-- [ ] With no servers running, the tool starts its own, finds godot-gamedev pages, runs the checks
-- [ ] "Our own server up but a known lesson page 404s" now EXITS NON-ZERO (loud), not silent skip
-- [ ] Genuine skip paths preserved: playwright-not-installed still exits 0 with a skip message
-- [ ] `mise run verify` EXIT 0 with the interactive stage RUNNING (not skipping) — verified by reading the "Interactive checks pass" line, negative-tested with a stray 8787 server present
-- [ ] No change to the 8 component check assertions
-- [ ] visual-qa.py hardcoded-8080 sibling bug: fixed here OR filed as a follow-up ticket
+- [x] verify-interactive.py starts its OWN server on an ephemeral (:0) port and does NOT adopt a foreign server on 8787/8080
+- [x] With an unrelated server running on 8787, the tool still runs the 8 checks against its own server (prints "✓ Interactive checks pass"), does NOT skip
+- [x] With no servers running, the tool starts its own, finds godot-gamedev pages, runs the checks
+- [x] "Our own server up but a known lesson page 404s" now EXITS NON-ZERO (loud), not silent skip
+- [x] Genuine skip paths preserved: playwright-not-installed still exits 0 with a skip message
+- [x] `mise run verify` EXIT 0 with the interactive stage RUNNING (not skipping) — verified by reading the "Interactive checks pass" line, negative-tested with a stray 8787 server present
+- [x] No change to the 8 component check assertions
+- [x] visual-qa.py hardcoded-8080 sibling bug: fixed here OR filed as a follow-up ticket
+
+## Resolution (2026-08-28)
+
+Fixed verify-interactive.py: (1) hoisted candidate pages to `_CANDIDATE_PAGES`;
+(2) added `_free_port()` (bind :0) and `_serves_lessons()` (200-validated content check);
+(3) main() now reuses a 8787 dev server ONLY if `_serves_lessons` passes, else self-starts
+serve.py on an OS-assigned ephemeral port — never adopts a foreign server; (4) reclassified
+skip→fail: serve.py-won't-start → exit 2, our-server-up-but-page-404s → exit 1; playwright
+-missing skip (exit 0) preserved. sibling visual-qa.py bug filed as #241 (backlog).
+
+Evidence (all live-tested):
+- Stray content-less server on 8787 (the original bug repro): tool did NOT adopt it,
+  self-started ephemeral, ran all 8 checks → "✓ Interactive checks pass (8 checks)".
+- VALID godot-gamedev server on 8787: tool reused it, 8 checks pass.
+- No server: tool self-started, 8 checks pass.
+- Fail-loud branch (find_test_page→None via monkeypatch harness): SystemExit code=1 with
+  "✗ No lesson page served ... interactive gate cannot run" — no silent skip.
+- `mise run verify` EXIT 0 with interactive stage RUNNING (8 checks, ~25s vs ~12s when it
+  used to skip) — #237 caveat closed.
