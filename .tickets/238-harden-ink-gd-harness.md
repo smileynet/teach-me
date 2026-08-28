@@ -2,7 +2,7 @@
 id: "238"
 title: "Harden ink GDScript harness: deeper assertions, clean fail-test, exit-code + copy-drift fixes"
 type: bug
-status: in_progress
+status: open
 priority: high
 blocked_by: ["244"]
 tags: ["ink", "validation"]
