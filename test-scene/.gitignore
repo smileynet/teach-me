@@ -4,3 +4,5 @@
 # Exported builds
 *.pck
 *.exe
+
+assets/masks/
