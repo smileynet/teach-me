@@ -52,7 +52,7 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 | Check topic complete | `python3 tools/check-topic-completeness.py --workspace X --all` | Reports missing artifacts per topic (lesson, ref, quiz, jargon, SR) |
 | Annotate jargon | `python3 tools/jargon-annotate.py --workspace X` | Mechanical term annotation from glossary-data JSON (idempotent) |
 | Migrate SVG colors | `python3 tools/check-svg-vars.py --workspace X` | Flags hardcoded hex in lesson SVGs |
-| Init workspace | `tools/init-workspace.sh [--default]` | Scaffold workspace; --default for generic first-launch content |
+| Init workspace | `python tools/init_workspace.py [--default] [--path DIR]` | Scaffold workspace; --default for generic first-launch content (pure Python — no bash) |
 | Serve workspace | `mise run serve -- [--workspace PATH]` | Start server (default: workspace/). Auto-creates workspace on first run |
 | Validate shaders | `godot --path test-scene --editor` | Open test-scene in Godot; apply shaders to meshes, visually confirm |
 | Validate shaders (headless) | `godot --headless --editor --import --quit --path test-scene` | Catches compilation errors only (no visual check) |

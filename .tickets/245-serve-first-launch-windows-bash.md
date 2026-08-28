@@ -135,3 +135,17 @@ Full evidence: `.scratch/research/245-{bash-subprocess,portable-init,code-review
 ## Resolution (2026-08-28)
 
 Option C: ported scaffold to tools/init_workspace.py (pure Python, importable); serve.py calls init_workspace(default=True) in-process (no bash/python3/symlink dep); guard standardized on workspace/lessons; check=True crash replaced with graceful warning+exit; assets symlink POSIX-only (Windows skip); ASCII-safe output; init-workspace.sh now a thin passthrough; mise task + AGENTS.md updated; ADR 0011 recorded. Out-of-scope follow-ups filed as #247 (serve bare-python) and #248 (serve:restart lsof/kill).
+
+### Cross-platform verification
+
+- **Windows**: py_compile OK; temp-path create+rerun idempotent; in-process
+  init on real path (before False → after True, index.html present, no
+  traceback); serve.py full import resolves WORKSPACE via workspace/lessons
+  guard + mounts routes; symlink correctly skipped with warning.
+- **Linux (WSL2, kernel 6.6, python3 3.13)**: py_compile OK; standalone +
+  in-process init both `status: created` with **`warnings: []`** (POSIX symlink
+  branch ran, not skipped); `assets -> ../../assets` symlink created and
+  resolves (`assets/style.css` reachable); dir tree + index.html correct;
+  rerun idempotent. Confirms AC #7 (no Linux/macOS regression) directly, not
+  by inference — the assets symlink AC is verified on the platform that
+  actually creates it.

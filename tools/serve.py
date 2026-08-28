@@ -132,18 +132,20 @@ def _parse_args() -> tuple[str, int, Path]:
             print(f"✗ Workspace not found: {workspace}")
             sys.exit(1)
         ws = resolved
-    elif (PROJECT_ROOT / "workspace").exists():
+    elif (PROJECT_ROOT / "workspace" / "lessons").is_dir():
         ws = PROJECT_ROOT / "workspace"
     else:
-        # Auto-create default workspace on first launch
-        import subprocess as _sp
+        # Auto-create default workspace on first launch (in-process — no bash).
+        from init_workspace import init_workspace
 
-        print("First launch — creating default workspace...")
-        _sp.run(
-            ["bash", str(PROJECT_ROOT / "tools" / "init-workspace.sh"), "--default"],
-            check=True,
-        )
+        print("First launch - creating default workspace...")
+        result = init_workspace(default=True)
+        for w in result.get("warnings", []):
+            print(f"  note: {w}")
         ws = PROJECT_ROOT / "workspace"
+        if not (ws / "lessons").is_dir():
+            print(f"! Workspace init did not complete: {result}")
+            sys.exit(1)
 
     return host, port, ws
 
