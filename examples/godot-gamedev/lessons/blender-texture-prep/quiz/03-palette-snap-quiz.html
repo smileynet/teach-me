@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz: Palette Snapping — Color Ramp and 1D Lookup</title>
+  <script src="../../../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../../../assets/style.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../../../assets/vendor/preact.module.js",
+        "preact/hooks": "../../../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../../../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../../../assets/vendor/signals-core.module.js",
+        "htm": "../../../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="../../index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../../blender-texture-prep-map.html">Blender to Godot Texture Prep</a> <span class="nav-sep">›</span> <a href="../03-palette-snap.html">Palette Snapping — Color Ramp and 1D Lookup</a> <span class="nav-sep">›</span> <span>Quiz</span></nav>
+  <div id="app"></div>
+
+<script type="application/json" id="page-data">{"questions": [{"id": "btp-201", "prompt": "Posterization and palette snapping both simplify color. What distinct question does each answer?", "expected_answer": "Should mention: (1) posterization answers HOW MANY colors survive but not which ones \u2014 it keeps whatever colors the source averaged to, (2) palette snapping answers WHICH colors \u2014 it maps every pixel to the nearest entry in a fixed art-directed palette, (3) together they turn any albedo into an intentionally-designed texture. Key: count vs identity.", "question_type": "explain", "difficulty_tier": "understand", "lesson_id": "03-palette-snap", "section_heading": "The Problem", "generated_by": "teach-skill", "generated_at": "2026-08-28T06:15:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["palette-snapping", "posterization", "core-concept"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"id": "btp-202", "prompt": "In Method A (Color Ramp), why must the interpolation be set to Constant, and what happens if you leave it Linear?", "expected_answer": "Should mention: (1) Constant makes each color stop hold its exact color until the next \u2014 hard flat bands, (2) the default Linear blends between stops, producing a gradient (opposite of snapping), (3) Constant is the node-editor equivalent of the shader's floor. Key: Linear defeats the point.", "question_type": "explain", "difficulty_tier": "understand", "lesson_id": "03-palette-snap", "section_heading": "Method A", "generated_by": "teach-skill", "generated_at": "2026-08-28T06:15:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["method-a", "constant-interpolation"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"id": "btp-203", "prompt": "Name the two settings that make or break Method B (1D lookup texture) and why each matters.", "expected_answer": "Should mention: (1) Image Texture interpolation must be Closest, not Linear \u2014 Linear blends swatches and defeats snapping, (2) the palette strip must be Non-Color \u2014 otherwise an sRGB view transform shifts every authored swatch. Key: Closest + Non-Color.", "question_type": "apply", "difficulty_tier": "apply", "lesson_id": "03-palette-snap", "section_heading": "Method B", "generated_by": "teach-skill", "generated_at": "2026-08-28T06:15:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["method-b", "clut", "closest", "non-color"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"id": "btp-204", "prompt": "Why does Method B sample the palette strip at (idx+0.5)/N instead of idx/N?", "expected_answer": "Should mention: (1) (idx+0.5)/N lands in the middle of the texel with margin to both borders, (2) idx/N sits on the border where float jitter can tip Closest into the neighbouring swatch \u2014 an off-by-one at band edges, (3) center-sampling has zero off-by-one. Key: sample the center.", "question_type": "explain", "difficulty_tier": "understand", "lesson_id": "03-palette-snap", "section_heading": "Method B", "generated_by": "teach-skill", "generated_at": "2026-08-28T06:15:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["off-by-one", "texel-center"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"id": "btp-205", "prompt": "A 4-band toon shader samples an 8-color snapped palette but only 4 colors appear on the lit model. Why, and does adding more palette colors help?", "expected_answer": "Should mention: (1) band count and palette count are independent \u2014 the shader sets how many bands, the palette sets which color each shows, (2) with 4 bands only ~4 swatches are sampled; the rest are never selected, (3) adding more palette colors makes it worse; add lighting bands in the shader for more tones. Key: shader sets bands, palette sets colors.", "question_type": "apply", "difficulty_tier": "apply", "lesson_id": "03-palette-snap", "section_heading": "Check Your Understanding", "generated_by": "teach-skill", "generated_at": "2026-08-28T06:15:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["band-count", "palette-count", "misconception"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"type": "sequence", "topic": "03-palette-snap", "prompt": "Order the Method B (1D lookup) node chain:", "items": ["Image Texture (Color)", "RGB to BW (luminance)", "Combine XYZ (X=lum, Y=0.5)", "Palette Strip [Closest]", "Base Color"], "correct_order": [0, 1, 2, 3, 4]}, {"type": "match", "topic": "03-palette-snap", "prompt": "Match each choice to its reason:", "pairs": [["Color Ramp interpolation = Constant", "Hard flat bands instead of a gradient"], ["Image Texture interpolation = Closest", "No blending between palette swatches"], ["Palette strip color space = Non-Color", "Authored swatches aren't sRGB-shifted"], ["Sample at (idx+0.5)/N", "Avoids the border off-by-one"]]}, {"type": "fill", "topic": "03-palette-snap", "prompt": "Complete the palette-snap summary:", "template": "Posterization sets how ___ colors survive; palette snapping sets ___ colors they become. Method A uses a Color Ramp with ___ interpolation; Method B samples an N\u00d71 strip with ___ interpolation, stored as ___ so the swatches aren't shifted.", "answers": ["many", "which", "Constant", "Closest", "Non-Color"]}], "title": "Palette Snapping — Color Ramp and 1D Lookup", "lessonFile": "blender-texture-prep/03-palette-snap.html", "mapPage": "blender-texture-prep-map.html"}</script>
+<script type="module" src="../../../assets/page-shell.js"></script>
+<script type="module">
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { QuizView } from '../../../assets/components/QuizView.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    render(
+      html`<${QuizView} questions=${data.questions} title=${data.title} />`,
+      document.getElementById('app')
+    );
+</script>
+
+</body>
+</html>
