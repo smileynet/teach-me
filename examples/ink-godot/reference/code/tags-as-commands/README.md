@@ -38,7 +38,7 @@ while _ink_player.can_continue:
     var text = _ink_player.continue_story()   # one line
     var show = _process_tags(_ink_player.current_tags)
     if show and text.strip_edges() != "":
-        _text_label.text += text + "\n"
+        _text_label.text += text
 ```
 
 ## The suppress contract

@@ -41,7 +41,7 @@ func _advance_story():
 	while _ink_player.can_continue:
 		var text = _ink_player.continue_story()
 		if text != "":
-			_text_label.text += text + "\n"
+			_text_label.text += text
 
 	# Check for choices
 	if _ink_player.has_choices:

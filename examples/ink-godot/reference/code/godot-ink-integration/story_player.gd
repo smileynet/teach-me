@@ -48,12 +48,13 @@ func _on_story_loaded(successfully: bool):
 # Step ONE line at a time, accumulating each line's text. Through inkgd's
 # InkPlayer, continue_story_maximally() returns only the LAST line (it discards
 # the story's concatenated text), so a single-step loop is how you show a whole
-# passage — read each line's return value and append it.
+# passage — read each line's return value and append it. Ink's line text already
+# ends in a newline, so append it as-is (adding "\n" here double-spaces output).
 func _advance_story():
 	while _ink_player.can_continue:
 		var text = _ink_player.continue_story()
 		if text != "":
-			_text_label.text += text + "\n"
+			_text_label.text += text
 
 	if _ink_player.has_choices:
 		_show_choices()

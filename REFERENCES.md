@@ -17,3 +17,9 @@ Cloned repos in `.references/` for the Preact migration. Rehydrate with `mise ru
 |------|--------------|
 | `es-module-shims` | Polyfill for import maps in older browsers (Firefox support) |
 | `dagre-fork` | HassanMojab's dagre fork with `layer` property for rank constraints |
+
+## Ink toolchain
+
+| Repo | What it shows |
+|------|--------------|
+| `inkgd` | ephread's GDScript ink runtime. **Vendored** into `ink-test-project/addons/inkgd/` from branch `godot4` @ `fea9098` (2024-01-28) — no official Godot-4 release exists. Provenance + drift-check in `ink-test-project/addons/inkgd/VENDOR.md`; policy in ADR 0013. |

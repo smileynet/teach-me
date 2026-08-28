@@ -44,3 +44,18 @@ files — non-portable and invisible to contributors.
   and lock-pinned; the hardcoded path was the problem this ADR removes.
 
 Supersedes the hardcoded-path approach (#244). Provenance/upgrade tracking: ticket #251.
+
+## Update (2026-08-28, #251 — provenance recorded, diff resolved)
+
+Decision 3 executed. Findings:
+
+- **Snapshot commit pinned:** vendored inkgd == `godot4` HEAD `fea9098ee18d6cdbe9a5e25f8f0296bcdf0fd96a`
+  (2024-01-28). Verified byte-identical (`ink_player.gd` SHA-256 matches the branch; `git diff --stat`
+  empty). Provenance recorded in `ink-test-project/addons/inkgd/VENDOR.md` + REFERENCES.md.
+- **Diff verdict (the InkPlayer last-line behavior):** NO DELTA. Our snapshot already equals branch
+  HEAD, so upstream has NOT fixed the maximal-continue last-line drop. The bug lives in the InkPlayer
+  wrapper (`ink_player.gd:424`), not the underlying `Story` method — upstream-inherited, not ours.
+  The L05 "maximal-last-line gotcha" framing therefore stands (no revision needed).
+- **Upgrade decision: STAY on `fea9098`.** There is nothing to upgrade to (snapshot == HEAD). Re-evaluate
+  only when `git ls-remote … refs/heads/godot4` shows a newer SHA (drift check documented in VENDOR.md),
+  and then only with a full harness + golden-transcript re-validation.
