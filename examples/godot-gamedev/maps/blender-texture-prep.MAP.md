@@ -66,8 +66,8 @@ The reference implementation is `mk_toon_lite.gdshader` — which declares unifo
 - **why:** Blender's Cycles Emit pass captures simplified color without lighting influence — the one bake type that produces textures safe for dynamic toon shading. The glTF export validates the full pipeline end-to-end.
 - **scope:** substantial
 - **prereqs:** [palette-snap, toon-control-maps]
-- **lesson_file:** 0019-bake-and-export.html
-- **status:** not-started
+- **lesson_file:** blender-texture-prep/05-bake-and-export.html
+- **status:** in-progress
 
 ### wiring-the-shader
 - **title:** Wiring It All Up — Populate mk_toon_lite in Godot
