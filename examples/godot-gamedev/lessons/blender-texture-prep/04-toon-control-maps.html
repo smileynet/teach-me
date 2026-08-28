@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 18: Authoring Toon Control Maps — Noise & Threshold</title>
+  <script src="../../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../../assets/vendor/preact.module.js",
+        "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
+        "htm": "../../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="blender-texture-prep-map.html">Blender to Godot Texture Prep</a> <span class="nav-sep">›</span> <span>Authoring <span class="term" data-term="control-map">Control Maps</span> — Noise &amp; Threshold</span></nav>
+<h1>Authoring Toon Control Maps — Noise &amp; Threshold</h1>
+
+<div class="lesson-meta">
+  Lesson 18 · Blender to Godot Texture Prep · ~15 min read<br>
+  <strong>Win:</strong> You can bake the two control maps <code>mk_toon_lite</code> samples — a tileable noise map that breaks up band edges and a <span class="term" data-term="threshold-map">threshold map</span> seeded from AO that shifts shadows per-pixel — and explain exactly how each perturbs the shader's banding.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> Control maps don't define color — they're artist instructions that tell the shader <em>where</em> and <em>how</em> to shade. Two small textures (one noise, one threshold) turn a generic toon shader into a distinctive, hand-authored look.
+</div>
+
+<h2>The Problem</h2>
+
+<p>Lessons 16 and 17 controlled the albedo — how many colors and which ones. But a toon shader's <em>lighting</em> is still generic: every band edge is a mathematically perfect line, and shadows fall exactly where <code>N·L</code> crosses a threshold, identically across every surface. Real stylized rendering wants per-pixel authority: band edges that wobble like an inked line, shadows that deepen naturally in creases.</p>
+
+<p><code>mk_toon_lite.gdshader</code> already declares uniforms for this — <code>noise_map</code> and <code>threshold_map</code> — but they ship empty. This lesson bakes both. (The shader colors its bands with gooch, not a ramp; the 1D lighting ramp is a separate mechanism, <code>toon_ramp.gdshader</code>, covered in its own lesson.)</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION — how the maps feed the shader
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Both maps perturb the band boundary</h2>
+
+<p>Here's the surprise: neither map defines color, and both plug into the <em>same</em> place — the value that gets quantized into bands. In <code>mk_toon_lite</code>'s <code>light()</code> function (not <code>fragment()</code> — this is lighting math), the two biases are added to the lighting term just before <code>floor()</code>:</p>
+
+<pre data-mode="fragment"><code>// mk_toon_lite.gdshader — light()
+if (use_noise_map)     noise_bias     = (texture(noise_map, UV * noise_scale).r - 0.5) * noise_strength;
+if (use_threshold_map) threshold_bias =  texture(threshold_map, UV * threshold_map_scale).r - 0.5;
+float centered = clamp(wrapped - light_threshold - diffuse_threshold_offset + 0.5 + noise_bias + threshold_bias, 0.0, 1.0);
+float bands    = max(light_bands, 1.0);
+float hard_band = floor(centered * bands) / max(bands - 1.0, 1.0);</code></pre>
+
+<p>Both read the texture's <strong>red channel</strong> and recenter it to <code>[-0.5, 0.5]</code> so a mid-gray (0.5) means "no change." Push <code>centered</code> up and a pixel crosses into a brighter band earlier; push it down and it stays in shadow. That's the whole mechanism — the maps just decide, per-pixel, which way to nudge.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     NOISE
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>The noise map: organic band edges</h2>
+
+<p>A clean toon band edge is a smooth, machine-perfect line. Feed a little noise into <code>centered</code> and that edge <strong>wobbles organically along its length</strong> — irregular, hand-drawn, like an inked contour with variable pen pressure. The band <em>interior</em> stays flat; only the seam between bands gets ragged.</p>
+
+<p>The strength is deliberately small. <code>noise_strength</code> defaults to <strong>0.04</strong> and is capped at <strong>0.25</strong> — because it perturbs a value that's about to be floored into a few bands, even 0.25 is a strong wobble. There is no "0 to 1" knob; the effective range is 0.0–0.25.</p>
+
+<div class="note">
+<strong>Why the noise must be tileable.</strong> The map repeats across the surface (<code>UV * noise_scale</code>, and <code>noise_scale &gt; 1</code> tiles it several times). If the noise isn't <span class="term" data-term="tileable-noise">seamless</span>, you get a visible grid of hard seams wherever the tile wraps. Blender's plain 2D noise is <em>not</em> seamless — you have to build it so opposite edges match.</p></div>
+
+<p>The trick is to sample the noise on a <strong>4D</strong> torus. Map the two UV axes onto two orthogonal circles — <code>u → (sin 2πu, cos 2πu)</code>, <code>v → (sin 2πv, cos 2πv)</code> — and feed those four numbers into a 4D Noise Texture. Because sine and cosine are 2π-periodic, <code>u=0</code> and <code>u=1</code> land on the <em>same</em> point, so the left and right edges (and top and bottom) match by construction. This script builds that node group and bakes the map:</p>
+
+<pre data-file="control_maps.py" data-mode="fragment"><code>import bpy, math
+
+def build_noise_group():
+    ng = bpy.data.node_groups.new("Tileable Noise 4D", "ShaderNodeTree")
+    ng.interface.new_socket("Fac", in_out="OUTPUT", socket_type="NodeSocketFloat")
+    nodes, links = ng.nodes, ng.links
+    gout = nodes.new("NodeGroupOutput")
+
+    texco = nodes.new("ShaderNodeTexCoord")
+    sep   = nodes.new("ShaderNodeSeparateXYZ")
+    links.new(texco.outputs["UV"], sep.inputs["Vector"])
+
+    def circle(axis_out):                       # axis -> (sin 2*pi*axis, cos 2*pi*axis)
+        mul = nodes.new("ShaderNodeMath"); mul.operation = "MULTIPLY"
+        mul.inputs[1].default_value = 2.0 * math.pi
+        links.new(axis_out, mul.inputs[0])
+        s = nodes.new("ShaderNodeMath"); s.operation = "SINE"
+        c = nodes.new("ShaderNodeMath"); c.operation = "COSINE"
+        links.new(mul.outputs[0], s.inputs[0]); links.new(mul.outputs[0], c.inputs[0])
+        return s, c
+
+    su, cu = circle(sep.outputs["X"])
+    sv, cv = circle(sep.outputs["Y"])
+    combine = nodes.new("ShaderNodeCombineXYZ")
+    links.new(su.outputs[0], combine.inputs["X"])
+    links.new(cu.outputs[0], combine.inputs["Y"])
+    links.new(sv.outputs[0], combine.inputs["Z"])
+
+    noise = nodes.new("ShaderNodeTexNoise")
+    noise.noise_dimensions = "4D"               # exposes the W input
+    links.new(combine.outputs["Vector"], noise.inputs["Vector"])
+    links.new(cv.outputs[0], noise.inputs["W"]) # 4th axis = cos(2*pi*v)
+    links.new(noise.outputs["Fac"], gout.inputs["Fac"])
+    return ng
+</code></pre>
+
+<p>Bake it to a 256×256 image set to <strong>Non-Color</strong> (it's data, not a picture — an sRGB decode would distort the control values). The full downloadable script adds the Emit bake and writes the file.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THRESHOLD
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>The threshold map: shadows from AO</h2>
+
+<p>The threshold map shifts <em>where</em> the shadow boundary falls, per-pixel. Where the map is dark, the bias is negative, so the pixel reaches shadow earlier — shadow arrives <strong>deeper and sooner into concave geometry</strong>. Convex, exposed faces stay unchanged. The terminator itself stays a crisp toon line; it just sits in a new, geometry-aware position.</p>
+
+<p>You don't hand-paint this — you already have it. The Barrel_01 <span class="term" data-term="arm-texture">ARM texture</span>'s <strong>red channel is ambient occlusion</strong>: baked-in darkness in creases, gaps, and contact points. AO is exactly "how occluded is this pixel," which is exactly where you want shadow to fall first. Read the ARM red, broadcast it to a grayscale map, and you have a threshold map for free:</p>
+
+<pre data-mode="fragment"><code>ARM texture (Non-Color) ─▶ Separate Color ─▶ (Red) ─▶ Combine Color (R=G=B) ─▶ threshold_map</code></pre>
+
+<div class="note">
+<strong>Gotcha — AO is not shadow, and there's no strength knob.</strong> Two things to keep straight. First, read the ARM as <strong>Non-Color</strong> so the AO values aren't gamma-shifted. Second, <code>mk_toon_lite</code> applies the threshold at a <em>fixed</em> ±0.5 — there is no <code>threshold_strength</code> uniform. The map's own contrast <em>is</em> the control: a flatter AO map shifts shadows gently, a high-contrast one shifts them hard. Don't also multiply AO over the albedo (double-darkening turns creases to mud) — pick one role per channel.</p></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     BEFORE / AFTER
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>What each map does, on the barrel</h2>
+
+<p>These are real captures of <code>mk_toon_lite</code> on the barrel with a raking light and three light bands — the setup that makes band boundaries visible enough to see the maps working.</p>
+
+<figure>
+  <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+    <div style="flex:1 1 240px;"><img src="../../assets/img/control-maps-off.png" alt="Barrel with mk_toon_lite, no control maps: clean straight band edges, shadow falls uniformly by surface angle only." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Maps off — clean straight bands</p></div>
+    <div style="flex:1 1 240px;"><img src="../../assets/img/control-maps-on.png" alt="Same barrel with noise + threshold maps on: band edges wobble organically, and shadow deepens in the barrel's rim and gear creases while flat faces are unchanged." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Maps on — jittered edges + crease shadow</p></div>
+  </div>
+  <figcaption style="color:var(--text-muted);font-size:0.9rem;margin-top:0.5rem;">Same lighting, same albedo. With the maps on, the noise gives band seams an organic wobble (interiors stay flat) and the AO threshold pushes shadow earlier into the barrel's creases — the terminator stays crisp, it just follows the geometry.</figcaption>
+</figure>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> You assign the same tileable noise map and set <code>noise_strength</code> to <code>0.0</code>, then to <code>0.25</code> (its maximum), leaving everything else fixed. Predict the visible difference on the barrel's band edges, and explain why the shader caps the range at 0.25 rather than 1.0 — what would a value near 1.0 do to a 3-band toon look?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>The noise is added to <code>centered</code> right before it's floored into bands. How far can you nudge a value that's about to be quantized into 3 steps before pixels start jumping the <em>wrong</em> band entirely?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p><strong>0.0 vs 0.25:</strong> at 0.0 the noise contributes nothing — <code>noise_bias</code> is multiplied to zero — so band edges are perfectly clean straight lines. At 0.25 the red channel (recentered to ±0.5) contributes up to ±0.125 to <code>centered</code>, enough to visibly jitter the band seam: edges wobble organically along their length while the band interiors stay flat. That's the hand-drawn, inked-contour look.</p>
+  <p><strong>Why cap at 0.25:</strong> <code>centered</code> is quantized into only a few bands (here 3), so each band occupies a range of about <code>1/3</code>. A bias approaching 1.0 would be larger than a whole band's width — pixels would leap across two or three band boundaries at once, so instead of a wobbly <em>edge</em> you'd get speckled noise scattered across the whole surface, destroying the flat toon regions entirely. The 0.25 cap keeps the perturbation smaller than a band, so it only ever nudges the <em>seam</em>, never shatters the bands. It's an edge-breakup control, not a "add grain everywhere" control.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES + NEXT
+     ═══════════════════════════════════════════════════════════════ -->
+<h2 id="code-files">Code Files</h2>
+<p>Download the bake script and the baked maps from this lesson:</p>
+<ul>
+  <li><a href="../../reference/code/toon-control-maps/control_maps.py" download><code>control_maps.py</code></a> — bakes the tileable noise map (4D-noise trick) and the AO-derived threshold map, and writes the validation sidecar (run headless via <code>blender -b --python control_maps.py -- --bake OUTDIR</code>).</li>
+  <li><a href="../../reference/code/toon-control-maps/toon_noise.png" download><code>toon_noise.png</code></a> — the baked 256×256 Non-Color tileable noise map.</li>
+  <li><a href="../../reference/code/toon-control-maps/toon_threshold.png" download><code>toon_threshold.png</code></a> — the baked threshold map (from ARM red = AO).</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p>You've now authored every input the toon pipeline needs — simplified albedo, a chosen palette, and the control maps. Next: <strong>bake &amp; export</strong> — capturing the simplified color through Blender's Emit pass and taking the whole set through a glTF round-trip into Godot.</p>
+</div>
+
+
+<script type="application/json" id="glossary-data">{"control-map": "A small, cheap texture that tells a shader WHERE and HOW to apply an effect — not what color to be. Read per-pixel to give the artist authority over shader behavior (e.g. noise, threshold, ramp).", "threshold-map": "A control map whose value shifts the lit/shadow boundary per-pixel before banding. Seeded from ambient occlusion so shadows deepen in creases: darker = shade earlier.", "tileable-noise": "A noise texture whose opposite edges match, so it repeats seamlessly across a surface with no visible grid. Built by sampling 4D noise on a torus (UV mapped onto two circles via sin/cos).", "arm-texture": "A packed PBR texture with Ambient occlusion in Red, Roughness in Green, Metallic in Blue. The red (AO) channel is the source for the threshold map."}</script>
+<script type="module" src="../../assets/page-shell.js"></script>
+
+</body>
+</html>
