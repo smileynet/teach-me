@@ -109,6 +109,7 @@ description = "Smoke-test the diagram tool + verify HTML asset links + lint stru
 depends = ["setup"]
 run = [
   "uv run python tools/smoke-draw-diagram.py",
+  "uv run python tools/posterize-oracle.py",
   "uv run python tools/verify-links.py",
   "uv run python tools/lint-html.py",
   "uv run python tools/check-svg-vars.py --workspace examples/oidc-rust --workspace examples/workout-fundamentals --workspace examples/godot-gamedev",

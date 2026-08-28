@@ -34,8 +34,8 @@ The reference implementation is `mk_toon_lite.gdshader` — which declares unifo
 - **why:** The same floor(x*N)/N math that quantizes lighting in the shader can quantize texture colors in Blender — reducing a photorealistic albedo to N color bands that harmonize with N-band toon shading
 - **scope:** substantial
 - **prereqs:** [texture-audit]
-- **lesson_file:** 0016-albedo-posterize.html
-- **status:** not-started
+- **lesson_file:** blender-texture-prep/02-albedo-posterize.html
+- **status:** in-progress
 
 ### palette-snap
 - **title:** Palette Snapping — Color Ramp & 1D Lookup Tables

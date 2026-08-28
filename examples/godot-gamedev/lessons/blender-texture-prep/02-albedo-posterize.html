@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 16: Albedo Posterization in Blender Nodes</title>
+  <script src="../../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../../assets/vendor/preact.module.js",
+        "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
+        "htm": "../../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="blender-texture-prep-map.html">Blender to Godot Texture Prep</a> <span class="nav-sep">›</span> <span>Albedo <span class="term" data-term="posterization">Posterization</span> in Blender Nodes</span></nav>
+<h1>Albedo Posterization in Blender Nodes</h1>
+
+<div class="lesson-meta">
+  Lesson 16 · Blender to Godot Texture Prep · ~14 min read<br>
+  <strong>Win:</strong> You can build a reusable Blender node group that posterizes any albedo to N color bands, explain why it's the same <span class="term" data-term="floor-divide">floor-divide</span> math your toon shader uses for lighting, and choose N (and truncate vs. round) for a given look.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> Posterizing albedo and banding lighting are the same floor(x*N)/N operation at two different stages. Matching their band counts is what makes a prepped texture and a toon shader look like they belong together.
+</div>
+<h2>The Problem</h2>
+
+<p>In the <a href="01-texture-audit.html">previous lesson</a> you diagnosed why a photoreal albedo fights toon shading: its continuous, high-frequency color detail gets amplified into noise when the shader quantizes lighting. The fix isn't to delete the albedo — you need base color — it's to <strong>simplify</strong> it: reduce its thousands of colors to a handful of flat bands that harmonize with your toon shader's band count.</p>
+
+<p>The tool for that is <em>posterization</em>, and the surprise is that it's the exact same math your toon shader already runs. This lesson builds a reusable Blender node group that posterizes any texture, using the same floor-divide operation the shader uses on lighting.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION — the shared operation
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Posterization is the shader's banding, applied to color</h2>
+
+<p>Your toon shader turns smooth lighting into discrete bands with a floor-divide. In <code>posterize_albedo.gdshader</code> the light banding is literally:</p>
+
+<pre data-mode="fragment"><code>float bands = floor(NdotL * shadow_bands) / shadow_bands;</code></pre>
+
+<p>Take that same expression and feed it a <em>color channel</em> instead of a lighting value, and you get color posterization. The same shader does exactly this to its albedo:</p>
+
+<pre data-mode="fragment"><code>// posterize_albedo.gdshader — albedo posterize
+float n = float(color_levels);      // 2..16
+ALBEDO = floor(tex_color * n) / n;  // quantize each channel to N levels</code></pre>
+
+<p><code>floor(x * N) / N</code> multiplies a 0–1 channel up to the range 0–N, floors away the fractional part (collapsing everything between two integers into one value), then divides back down. The result: any input color snaps to one of N flat levels per channel. We're going to build that in Blender's node editor so you can bake it into a texture — reducing color complexity <em>before</em> it ever reaches the shader.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     STEPS — build the node chain
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Build the Posterize RGB node group</h2>
+
+<p>Blender's shader editor has no built-in posterize node (that only exists in the compositor), so we build one from Vector Math nodes. Vector Math operates on all three RGB channels at once, so a single chain quantizes the whole color — no need to split channels.</p>
+
+<h3>Step 1 — scale the color up by N</h3>
+<p>Feed the texture color into a <strong>Vector Math → Multiply</strong>, multiplying by <code>(N, N, N)</code>. A channel value of 0.42 at N=4 becomes 1.68. This spreads the 0–1 range across 0–N so the floor has integers to snap to.</p>
+<pre data-mode="fragment"><code>Image Texture (Color) ─▶ Vector Math: Multiply  ×(N, N, N)</code></pre>
+
+<h3>Step 2 — floor away the fraction</h3>
+<p>Pass the scaled color into a <strong>Vector Math → Floor</strong>. 1.68 becomes 1.0; everything from 1.0 to 1.999 collapses to 1.0. This is the quantization step — the moment a continuous range becomes a single discrete value.</p>
+<pre data-mode="fragment"><code>Vector Math: Multiply ─▶ Vector Math: Floor</code></pre>
+
+<h3>Step 3 — scale back down</h3>
+<p>Divide by <code>(N, N, N)</code> to return to the 0–1 range. 1.0 becomes 0.25. Now every pixel sits on one of N flat levels: 0, 1/N, 2/N, … Wire the result to Base Color (or an Emission node if you're going to bake it).</p>
+<pre data-mode="fragment"><code>Vector Math: Floor ─▶ Vector Math: Divide  ÷(N, N, N) ─▶ Base Color</code></pre>
+
+<p>To make N a single adjustable knob, drive all three components of the multiply/divide vectors from one <strong>Combine XYZ</strong> node fed by a group input called <em>Levels</em>. Wrapping the whole chain in a node group ("Posterize RGB") makes it a one-click, reusable tool with a Color input, a Levels input, and a Color output.</p>
+
+<h2>The complete node group</h2>
+
+<p>Rather than click the graph together by hand every time, this script builds the whole group in one run. Open it in Blender's Scripting workspace and press Run, then add <strong>Group → Posterize RGB</strong> to any material.</p>
+
+<pre data-file="posterize_rgb.py" data-mode="complete"><code>import bpy
+
+GROUP_NAME = "Posterize RGB"
+
+def build_group(levels_default: int = 4):
+    if GROUP_NAME in bpy.data.node_groups:
+        bpy.data.node_groups.remove(bpy.data.node_groups[GROUP_NAME])
+    ng = bpy.data.node_groups.new(GROUP_NAME, "ShaderNodeTree")
+
+    ng.interface.new_socket("Color", in_out="INPUT", socket_type="NodeSocketColor")
+    lv = ng.interface.new_socket("Levels", in_out="INPUT", socket_type="NodeSocketFloat")
+    lv.default_value, lv.min_value, lv.max_value = float(levels_default), 2.0, 16.0
+    ng.interface.new_socket("Color", in_out="OUTPUT", socket_type="NodeSocketColor")
+
+    nodes, links = ng.nodes, ng.links
+    gin = nodes.new("NodeGroupInput")
+    gout = nodes.new("NodeGroupOutput")
+
+    # Broadcast scalar Levels to a vector so Vector Math can scale RGB by it
+    combine = nodes.new("ShaderNodeCombineXYZ")
+    for axis in ("X", "Y", "Z"):
+        links.new(gin.outputs["Levels"], combine.inputs[axis])
+
+    mul = nodes.new("ShaderNodeVectorMath"); mul.operation = "MULTIPLY"
+    flr = nodes.new("ShaderNodeVectorMath"); flr.operation = "FLOOR"
+    div = nodes.new("ShaderNodeVectorMath"); div.operation = "DIVIDE"
+
+    links.new(gin.outputs["Color"], mul.inputs[0])
+    links.new(combine.outputs["Vector"], mul.inputs[1])   # color * N
+    links.new(mul.outputs["Vector"], flr.inputs[0])       # floor(color * N)
+    links.new(flr.outputs["Vector"], div.inputs[0])
+    links.new(combine.outputs["Vector"], div.inputs[1])   # / N
+    links.new(div.outputs["Vector"], gout.inputs["Color"])
+    return ng
+
+if __name__ == "__main__":
+    build_group()
+</code></pre>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     VISUAL — N comparison
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Choosing N: too few kills form, too many keeps noise</h2>
+
+<p>Here's the barrel's albedo baked through the group at three band counts, next to the original. These are real Blender Emit bakes of the node group — the actual tool output, not a mock-up.</p>
+
+<figure>
+  <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+    <div style="flex:1 1 180px;"><img src="../../assets/img/posterize-original.png" alt="Original barrel albedo: full photoreal detail, thousands of colors, continuous rust and scratch gradients." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Original</p></div>
+    <div style="flex:1 1 180px;"><img src="../../assets/img/posterize-n16.png" alt="Posterized to 16 levels: still detailed, fine rust variation largely preserved, only subtle flattening." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">N=16</p></div>
+    <div style="flex:1 1 180px;"><img src="../../assets/img/posterize-n8.png" alt="Posterized to 8 levels: clearly banded, rust reduced to a few tones, forms reading as flat regions." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">N=8</p></div>
+    <div style="flex:1 1 180px;"><img src="../../assets/img/posterize-n4.png" alt="Posterized to 4 levels: very flat, the red body collapses to a couple of tones, most surface detail gone." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">N=4</p></div>
+  </div>
+  <figcaption style="color:var(--text-muted);font-size:0.9rem;margin-top:0.5rem;">Same node group, Levels = 16 / 8 / 4. Fewer levels = flatter, more stylized, but form detail is lost.</figcaption>
+</figure>
+
+<p>At <strong>N=4</strong> the barrel reads as a few flat color zones — strongly stylized, but the rust and wear that give it character are gone. At <strong>N=16</strong> most of that detail survives, but so does much of the noise the toon shader will amplify. The sweet spot is usually a small multiple of your shader's light-band count: enough color steps to keep recognizable form, few enough to stay flat. Match, don't fight, the shader.</p>
+
+<div class="note">
+<strong>Why not just use N = your shader's band count?</strong> A 4-band toon shader does not require a 4-level albedo — lighting bands and color bands are independent axes. Posterizing albedo to 4 usually looks lifeless (that's the exercise below). Start around 8–12 for albedo and tune by eye.</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MATH — truncate vs canonical
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Truncate vs. round: preserving white</h2>
+
+<p>The group above uses <code>floor(x·N)/N</code> — faithfully mirroring the shader. But notice its output levels for N=4 are <code>0, 0.25, 0.50, 0.75</code>: the brightest a channel can get is <code>(N-1)/N = 0.75</code>. <strong>Pure white never survives</strong> — every highlight is dimmed. That truncation also biases the whole image slightly dark.</p>
+
+<p>The textbook fix is to round to the nearest level and spread the levels across the full 0–1 range, using <code>N-1</code> as the divisor:</p>
+
+<pre data-mode="fragment"><code>// canonical: exactly N levels, anchored at BOTH 0.0 and 1.0
+result = floor(x * (N - 1) + 0.5) / (N - 1);   // N=4 → 0, 0.333, 0.667, 1.0</code></pre>
+
+<p>The <code>+ 0.5</code> turns the floor into round-to-nearest (unbiased), and dividing by <code>N-1</code> makes black stay black <em>and</em> white stay white. In the node group, that's a <strong>Round</strong> node instead of Floor, with the multiply/divide using <code>N-1</code>.</p>
+
+<div class="note">
+<strong>When to use which:</strong>
+<ul>
+  <li><strong><code>floor(x·N)/N</code> (truncate)</strong> — use when you want to match a shader that bands this way, or deliberately want a darker, punchier palette with no pure white.</li>
+  <li><strong><code>floor(x·(N-1)+0.5)/(N-1)</code> (canonical)</strong> — use when highlights matter and you want black and white preserved as clean anchors. This is what image editors call "posterize."</li>
+</ul>
+<strong>Default:</strong> the canonical form for albedo prep — you almost always want white to stay white. Reach for truncate only to match specific shader behavior.</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     GOTCHA — color space
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="note">
+<strong>Gotcha — pin the input Color Space.</strong> Blender decodes an sRGB ("Color") texture to linear <em>before</em> it reaches these math nodes, so equal-width bands in linear space bunch up in the shadows. A "Non-Color" texture is quantized on its stored values, giving perceptually even bands. Neither is "correct" — it's a style choice — but Blender auto-guesses the space (sRGB for PNG/JPG), so <strong>set it explicitly on the Image Texture node</strong> or your bake won't be reproducible. The bakes above used Non-Color.</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TRY IT
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Try it</h2>
+
+<p>Load the barrel albedo, drop in the Posterize RGB group, and sweep Levels:</p>
+
+<table>
+<caption>Effect of the Levels input on the prepped albedo.</caption>
+<thead><tr><th scope="col">Levels</th><th scope="col">Look</th><th scope="col">Use when</th></tr></thead>
+<tbody>
+<tr><th scope="row">4</th><td>Flat poster art; form detail collapses</td><td>Bold, graphic style; simple props</td></tr>
+<tr><th scope="row">8</th><td>Clearly banded but form still reads</td><td>Most toon assets — good default</td></tr>
+<tr><th scope="row">16</th><td>Subtle; most detail retained</td><td>When you want stylization without flattening</td></tr>
+</tbody></table>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A teammate's toon shader uses 4 lighting bands. Reasoning that "everything should match," they posterize their character's albedo to 4 levels with the truncate form <code>floor(x·4)/4</code>. The result looks flat, muddy, and the character's white gloves have gone gray. They ask you to explain both problems and fix them. What do you tell them?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Two separate issues. One is about matching band <em>counts</em> across two independent axes. The other is about what <code>floor(x·N)/N</code> does to a value of 1.0.</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p><strong>Muddy/flat:</strong> lighting bands and albedo levels are independent — a 4-band shader does not need a 4-level albedo. Four <span class="term" data-term="color-levels">color levels</span> is far too few to preserve a character's form; the albedo should be posterized to something like 8–12 and tuned by eye. Matching the number to the shader's band count is a false intuition.</p>
+  <p><strong>Gray gloves:</strong> the truncate form tops out at <code>(N-1)/N</code> — at N=4 the brightest any channel reaches is 0.75, so pure-white gloves become 75% gray. Switch to the canonical form <code>floor(x·(N-1)+0.5)/(N-1)</code> (a Round node, divide by N-1), which keeps white at 1.0. So: raise the level count, and use the round-to-nearest form so highlights survive.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES + NEXT
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Code Files</h2>
+<p>Download the reusable node group from this lesson:</p>
+<ul>
+  <li><a href="../../reference/code/albedo-posterize/posterize_rgb.py" download><code>posterize_rgb.py</code></a> — builds the "Posterize RGB" node group (run in Blender's Scripting workspace; also runs headless via <code>blender -b --python posterize_rgb.py</code>).</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p>Posterization reduces <em>how many</em> colors survive — but not <em>which</em> ones. Two assets posterized independently can drift into clashing palettes. Next lesson: <strong>palette snapping</strong> — mapping every pixel to the nearest color in an art-directed palette so your whole scene shares one coherent color story.</p>
+</div>
+
+
+<script type="application/json" id="glossary-data">{"posterization": "Reducing a continuous range of colors to a small set of discrete levels via floor-divide quantization — the same operation a toon shader applies to lighting.", "floor-divide": "The quantization step floor(x*N)/N: scale up by N, drop the fraction, scale back down, snapping values to N flat levels.", "color-levels": "The N parameter controlling how many discrete values each channel is quantized to (2–16 in the shader)."}</script>
+<script type="module" src="../../assets/page-shell.js"></script>
+
+</body>
+</html>
