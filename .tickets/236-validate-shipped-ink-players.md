@@ -4,7 +4,7 @@ title: "Runtime-validate shipped lesson 05/06 story_player.gd (back-fill)"
 type: bug
 status: open
 priority: high
-blocked_by: ["235"]
+blocked_by: ["235", "238"]
 tags: ["ink", "validation"]
 ---
 
@@ -82,3 +82,29 @@ green. NOTE: the spike (spike_story.gd) has the same pattern — worth fixing to
 
 L06 PASSED all harness checks (speaker set, # hidden suppressed, reached ending) — its
 single-step loop is correct. This asymmetry is itself evidence option 2 is right.
+
+
+## Decision (2026-08-28) — fix via Option 1 (use the return value), NOT the loop switch
+
+L05's fix: keep `continue_story_maximally()` but read its RETURN VALUE (which is the
+full concatenated text) instead of the `current_text` property (last line only).
+
+Rationale: the bug is reading the wrong thing (property vs return value), not the
+choice of continue method. Option 1 is the minimal, honest fix AND preserves the
+teaching progression — lesson 05 stays "maximal continue is the simple default,"
+and lesson 06's pivot ("now switch to single-step BECAUSE tags need per-line
+granularity") keeps its punch. Switching L05 to single-step (Option 2) would
+retroactively spoil lesson 06's central beat.
+
+Concretely in `_advance_story`:
+```
+var text = _ink_player.continue_story_maximally()   # RETURN value = full text
+if text.strip_edges() != "":
+    _text_label.text += text
+```
+(drop the separate `current_text` read).
+
+Also fix `spike_story.gd` (same latent bug; it's a spike, note not a lesson deliverable).
+
+Blocked-by #238 (harden the harness first) so the fix is validated by a trustworthy
+harness, not the thin one.
