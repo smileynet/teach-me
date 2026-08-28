@@ -1,7 +1,7 @@
 ---
 id: "212"
 title: "Ink Lesson 06: Tags as Commands"
-status: in_progress
+status: done
 blocked_by: ["211"]
 priority: high
 tags: [ink]
@@ -13,12 +13,12 @@ Tag protocol design, parsing tags for speaker/audio/camera/items, driving game s
 
 ## Acceptance criteria
 
-- [ ] Lesson HTML at examples/ink-godot/lessons/
-- [ ] Reference .ink story compiled via inklecate (0 errors, 0 warnings)
-- [ ] README.md in reference/code/ directory
-- [ ] mise run ink:validate passes
-- [ ] Glossary terms annotated (jargon pass)
-- [ ] check-lesson.py passes
+- [x] Lesson HTML at examples/ink-godot/lessons/
+- [x] Reference .ink story compiled via inklecate (0 errors, 0 warnings)
+- [x] README.md in reference/code/ directory
+- [x] mise run ink:validate passes
+- [x] Glossary terms annotated (jargon pass)
+- [x] check-lesson.py passes
 
 ## Findings-adjusted plan (2026-08-27, 4 subagents: 2 research + 2 review)
 
@@ -59,3 +59,7 @@ Reference `.ink` (tagged, deterministic, golden transcript), `story_player.gd` (
 `reference/code/tags-as-commands/`, tags-flow SVG, ~7-term glossary, misconception exercise, 5 SR questions.
 Validate: check-lesson (incl Q15), ink:validate, verify-links, browser render. Regenerate map + index
 (index needs explicit `--output examples/ink-godot/lessons/index.html`).
+
+## Resolution (2026-08-28)
+
+Lesson 0006-tags-as-commands.html authored (tag protocol, pain-first, single-step-loop beat, dispatch SVG, suppress contract, misconception exercise); deterministic tagged reference .ink + golden transcript; story_player.gd single-step loop + match dispatcher; 5 SR questions; map+index regenerated
