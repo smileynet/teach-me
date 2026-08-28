@@ -2,7 +2,7 @@
 id: "218"
 title: "Lesson: Albedo Posterization in Blender Nodes (0016)"
 type: feature
-status: open
+status: done
 priority: high
 blocked_by: ["217"]
 parent: "216"
@@ -40,16 +40,16 @@ A substantial lesson teaching floor-divide quantization in Blender's shader node
 
 ## Acceptance criteria
 
-- [ ] Lesson file: `examples/godot-gamedev/lessons/blender-texture-prep/02-albedo-posterize.html`
-- [ ] Node chain built step-by-step with code blocks showing Blender node connections
-- [ ] Visual comparison at 3 band counts (N=4/8/16 on Barrel_01 — Blender Emit bake, or inline-SVG schematic fallback)
-- [ ] Node group created and documented (reusable) — as a bpy Python node-setup script (text, diffable), NOT a raw .blend
-- [ ] Explains truncate-vs-round: `floor(x*N)/N` (mirrors the shader) then the canonical `floor(x*(N-1)+0.5)/(N-1)` as an improvement (preserves white)
-- [ ] Connects floor-divide math to `posterize_albedo.gdshader:13` (the shader equivalent), NOT configurable_banding (that's a `/(N-1)` lighting-band form)
-- [ ] Color-space gotcha documented: input texture Color Space (sRGB "Color" vs "Non-Color") changes band distribution; must be pinned for reproducibility
-- [ ] SR questions generated (3-5 cards)
-- [ ] Reference artifact: bpy node-setup script at `reference/code/albedo-posterize/`
-- [ ] Tier-1 numpy posterize oracle wired into `mise run verify` (validates the taught math without Blender)
+- [x] Lesson file: `examples/godot-gamedev/lessons/blender-texture-prep/02-albedo-posterize.html`
+- [x] Node chain built step-by-step with code blocks showing Blender node connections
+- [x] Visual comparison at 3 band counts (N=4/8/16 on Barrel_01 — Blender Emit bake, or inline-SVG schematic fallback)
+- [x] Node group created and documented (reusable) — as a bpy Python node-setup script (text, diffable), NOT a raw .blend
+- [x] Explains truncate-vs-round: `floor(x*N)/N` (mirrors the shader) then the canonical `floor(x*(N-1)+0.5)/(N-1)` as an improvement (preserves white)
+- [x] Connects floor-divide math to `posterize_albedo.gdshader:13` (the shader equivalent), NOT configurable_banding (that's a `/(N-1)` lighting-band form)
+- [x] Color-space gotcha documented: input texture Color Space (sRGB "Color" vs "Non-Color") changes band distribution; must be pinned for reproducibility
+- [x] SR questions generated (3-5 cards)
+- [x] Reference artifact: bpy node-setup script at `reference/code/albedo-posterize/`
+- [x] Tier-1 numpy posterize oracle wired into `mise run verify` (validates the taught math without Blender)
 
 ## Corrected findings (2026-08-27, subagent research + shader audit)
 
@@ -97,3 +97,7 @@ Method B — Separate RGB + Greater Than:
 - Shader nodes work in EEVEE viewport preview but baking requires Cycles
 - For baking posterized result: use Emit pass (captures color without lighting influence)
 - Set bake Samples to 1-16 (flat shading needs minimal samples)
+
+## Resolution (2026-08-28)
+
+Taught posterization as the same floor(x*N)/N the shader uses for lighting, applied to albedo; Method A (Vector Math floor) as general tool, truncate vs canonical (/(N-1)+0.5) decision, color-space gotcha, misconception exercise. Blender validation stood up as a new domain: numpy math oracle + headless bpy node-group check + Emit bake.
