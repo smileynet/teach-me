@@ -13,6 +13,12 @@ tags: [platform]
 
 With #183, lessons default to shared/committed. But sometimes a user wants to generate a lesson just for themselves — personal exploration, work-specific context, or topics they don't want to contribute. These private lessons should still integrate with the map and navigation but never get committed.
 
+**Decided by ADR 0012 (accepted 2026-08-28):** this ticket implements the
+private-overlay half of the two-tier model. The private path is **`.user/`**
+(gitignored), generalized to topic granularity (a whole topic can be private, not
+just individual lessons). Public library content lives under `library/` (#183);
+private content overlays it locally at render time.
+
 ## What to build
 
 1. **Private lesson flag** — when generating a lesson, the user can mark it as private. Private lessons are written to a gitignored location (e.g., `.user/lessons/{domain}/`).
