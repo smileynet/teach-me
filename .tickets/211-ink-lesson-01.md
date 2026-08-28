@@ -54,3 +54,24 @@ key-concept; box-drawing `═` section comments; glossary-data = flat `{"slug":"
 ## Resolution (2026-08-27)
 
 Lesson 0005-godot-ink-integration.html authored (inkgd runtime loop, print-before-paint, SVG diagram, 7-term glossary, misconception exercise); deterministic reference .ink story + golden transcript; downloadable story_player.gd validated against spike; 5 SR questions; map+index regenerated
+
+
+## Correction (2026-08-28, via #236) — a runtime bug shipped in this lesson, now fixed
+
+#211 closed with story_player.gd validated by API-matching, not by running it in Godot.
+The #235 headless harness (built after) caught a real bug: `_advance_story` used
+`continue_story_maximally()` then read `_ink_player.current_text` — but through inkgd's
+InkPlayer wrapper, maximal-continue returns (and current_text holds) only the LAST line
+of a multi-line passage. So the Godot player silently dropped the opening narration
+("You stand at the mouth of a cave...") and showed only the final line.
+
+The golden transcript missed it because `play-ink.py` captures bink's continue RETURN
+VALUE (the full concatenated text), which is correct — the divergence is specific to the
+InkPlayer property/return through Godot.
+
+Fixed in #236: switched _advance_story to a single-step `while can_continue:
+continue_story()` accumulate loop (the only way to show a full passage through InkPlayer).
+Mirrored into the lesson HTML complete-block, spike_story.gd, prose (walkthrough, glossary,
+the maximal-continue gotcha note, SVG labels), and SR ig-05-003. Golden transcript unchanged
+(story untouched). Re-validated: `mise run ink:validate-gd` L05 now GREEN, check-lesson 13/0,
+links + transcripts pass.
