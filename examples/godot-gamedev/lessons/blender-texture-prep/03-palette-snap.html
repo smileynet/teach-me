@@ -80,9 +80,9 @@ snapped = palette[idx]              // the chosen swatch</code></pre>
 
 <p>Two settings make or break this method. First, the palette Image Texture's interpolation must be <strong>Closest</strong>, not Linear — Linear would blend adjacent swatches and defeat the whole point. Second, the palette strip's color space must be <strong>Non-Color</strong>, so Blender stores your authored swatches verbatim instead of applying an sRGB view transform that would shift every color.</p>
 
-<p>Rather than hand-place pixels, this script builds the strip and the sampling group in one run. Open it in Blender's Scripting workspace and press Run, then add <strong>Group → Palette Snap B (LUT)</strong> to any material.</p>
+<p>Rather than hand-place pixels, this script builds the strip and the sampling group in one run. The essentials of Method B are below; the <a href="#code-files">downloadable file</a> is the fully-assembled version that builds <em>both</em> methods and includes a headless validator. Open it in Blender's Scripting workspace and press Run, then add <strong>Group → Palette Snap B (LUT)</strong> to any material.</p>
 
-<pre data-file="palette_snap.py" data-mode="complete"><code>import bpy
+<pre data-file="palette_snap.py" data-mode="fragment"><code>import bpy
 
 # 6-color warm-toon palette (sRGB), darkest -> lightest.
 PALETTE = [
@@ -196,7 +196,7 @@ if __name__ == "__main__":
 <!-- ═══════════════════════════════════════════════════════════════
      CODE FILES + NEXT
      ═══════════════════════════════════════════════════════════════ -->
-<h2>Code Files</h2>
+<h2 id="code-files">Code Files</h2>
 <p>Download the reusable node groups from this lesson:</p>
 <ul>
   <li><a href="../../reference/code/palette-snap/palette_snap.py" download><code>palette_snap.py</code></a> — builds both "Palette Snap A (Ramp)" and "Palette Snap B (LUT)" node groups (run in Blender's Scripting workspace; also runs headless via <code>blender -b --python palette_snap.py -- --check</code>).</li>
