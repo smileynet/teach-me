@@ -1,7 +1,7 @@
 ---
 id: "212"
 title: "Ink Lesson 06: Tags as Commands"
-status: open
+status: in_progress
 blocked_by: ["211"]
 priority: high
 tags: [ink]
