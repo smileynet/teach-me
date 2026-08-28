@@ -1,7 +1,7 @@
 ---
 id: "240"
 title: "verify-interactive.py silently skips when an unrelated server occupies 8787/8080"
-status: open
+status: in_progress
 blocked_by: []
 priority: high
 tags: ["platform"]
