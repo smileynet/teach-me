@@ -1,7 +1,7 @@
 ---
 id: "226"
 title: "Verify bink reachability matches inklecate (conformance spike)"
-status: open
+status: in_progress
 blocked_by: []
 priority: high
 type: spike
