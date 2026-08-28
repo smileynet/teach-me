@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "generated_by": "bake_export.py",
+  "albedo": {
+    "file": "Barrel_01_toon_albedo.png",
+    "w": 1024,
+    "h": 1024,
+    "colorspace": "sRGB"
+  },
+  "gltf": {
+    "file": "Barrel_01_toon.glb",
+    "exists": true,
+    "size": 57532,
+    "lights_excluded": true,
+    "cameras_excluded": true,
+    "control_maps_embedded": false
+  }
+}

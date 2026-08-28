@@ -124,6 +124,7 @@ run = [
   "uv run python tools/palette-snap-oracle.py",
   "uv run python tools/control-maps-oracle.py",
   "uv run python tools/control-maps-drift.py",
+  "uv run python tools/bake-export-oracle.py",
   "uv run python tools/verify-links.py",
   "uv run python tools/lint-html.py",
   "uv run python tools/check-svg-vars.py --workspace examples/oidc-rust --workspace examples/workout-fundamentals --workspace examples/godot-gamedev",
