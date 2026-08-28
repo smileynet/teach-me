@@ -97,3 +97,12 @@ For material_override shader PARAMETERS (per-object toon settings), edit the `.t
 
 - **Never** use pixel-art (Kenney, KayKit) for color simplification testing — already flat-color, effect is invisible.
 - **Always** use 1K+ PBR textures (Poly Haven CC0) for Kuwahara, posterize, palette snap validation.
+
+## mk_toon_lite: gooch IS the band-color ramp (validated 2026-08-27)
+
+In `mk_toon_lite.gdshader`, discrete light bands only render as **distinct colors** when `gooch_ramp_intensity > 0`. The band math computes a `lit_factor`, but the final color is `mix(shadow_color, lit_color, lit_factor)` — and with `gooch_ramp_intensity = 0`, `shadow_color == lit_color == ALBEDO`, so every band collapses to identical albedo (flat, no visible banding). Turning gooch OFF to "isolate pure banding" produces a flat single tone — the opposite of intent. **To show crisp bands: keep `gooch_ramp_intensity ≈ 0.5`, set `light_bands = 3`, `light_bands_scale ≈ 0.9`, and a moderate `wrapped_lighting ≈ 0.3`.**
+
+Crisp-band capture recipe (barrel/cylinder, confirmed via pixel-row + image read):
+- **¾ side-raking directional light** so the terminator crosses the visible front face (`N·L` sweeps 1→0 left-to-right). Front lighting → one flat band. Compute the light basis from a target travel direction via look_at math; a directional light emits along `-basis.z`.
+- **Keep the cylinder** — a sphere's omnidirectional normals hide front-face washout (the real failure mode). The cylinder is the honest test mesh.
+- Result: 3 clean vertical band stripes (e.g. `(255,181,71)` → `(235,141,56)` → `(116,76,36)`).

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 15: What Makes a Texture Toon-Unfriendly?</title>
+  <script src="../../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../../assets/vendor/preact.module.js",
+        "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
+        "htm": "../../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="blender-texture-prep-map.html">Blender to Godot Texture Prep</a> <span class="nav-sep">›</span> <span>What Makes a Texture Toon-Unfriendly?</span></nav>
+<h1>What Makes a Texture Toon-Unfriendly?</h1>
+
+<div class="lesson-meta">
+  Lesson 15 · Blender to Godot Texture Prep · ~12 min read<br>
+  <strong>Win:</strong> You can look at any PBR texture set and predict which channels will fight toon shading, decide what to keep, discard, or repurpose, and explain why <span class="term" data-term="quantization">quantization</span> amplifies texture noise.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> PBR textures encode continuous properties; toon shaders discretize them. Continuous detail plus discrete shading equals amplified noise — so the fix is to simplify the texture before it reaches the shader, not to fight the shader.
+</div>
+<h2>The Problem</h2>
+
+<p>Here are two renders of the same barrel, under the same toon shader, with the same lighting and the same mesh. The <em>only</em> difference is the texture.</p>
+
+<figure>
+  <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-start;">
+    <div style="flex:1 1 240px;">
+      <img src="../../assets/img/texture-audit-flat.png" alt="Barrel with flat color under the toon shader: three clean vertical bands — bright orange, mid orange, dark brown — reading cleanly across the curved face." style="width:100%; height:auto; border-radius:6px;">
+      <p style="text-align:center; color:var(--text-muted); font-size:0.9rem;">Flat color: three clean bands.</p>
+    </div>
+    <div style="flex:1 1 240px;">
+      <img src="../../assets/img/texture-audit-both.png" alt="Same barrel with full PBR albedo and normal map: a realistic red explosive barrel with rust, scratches and a hazard label, but the toon bands are buried and the shadow edge is speckled." style="width:100%; height:auto; border-radius:6px;">
+      <p style="text-align:center; color:var(--text-muted); font-size:0.9rem;">Same shader, real PBR textures.</p>
+    </div>
+  </div>
+  <figcaption style="color:var(--text-muted); font-size:0.9rem; margin-top:0.5rem;">Same shader, same settings, same mesh. The texture is the only variable — and it breaks the toon look.</figcaption>
+</figure>
+
+<p>The render on the right isn't wrong because the shader is bad. It's wrong because photoreal PBR textures carry exactly the kind of detail that toon shading is designed to throw away — and when you quantize that detail instead of discarding it, you amplify it into noise. This lesson is about learning to <em>see</em> that conflict before you try to fix it. No Blender yet; just diagnosis.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 1 — Quantization amplifies noise (key concept)
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Quantization amplifies noise</h2>
+
+<p>A toon shader takes the continuous lighting value at each pixel — how directly that point faces the light, a smooth number from 0 to 1 — and snaps it into a handful of discrete bands. That snap is a step function: everything between two thresholds collapses to one flat tone.</p>
+
+<p>Feed a <strong>smooth</strong> signal through that step function and you get clean, wide bands. Feed a <strong>noisy</strong> signal through the <em>same</em> step function and every little wiggle that happens to straddle a threshold flips between bands — turning fine detail into speckle. The step function doesn't smooth noise; it hardens it into visible edges.</p>
+
+<svg role="img" aria-labelledby="quant-title" viewBox="0 0 640 260" style="max-width:100%; height:auto; margin:1.5rem 0;">
+  <title id="quant-title">A smooth input signal through a step function yields clean bands; a noisy input signal through the same step function yields speckle.</title>
+
+  <!-- Row 1: smooth input -> clean bands -->
+  <text x="20" y="30" font-size="13" font-weight="bold" fill="var(--svg-primary)">Smooth input (clean lighting)</text>
+  <polyline points="20,70 60,64 100,56 140,46 180,38 220,32 260,28" fill="none" stroke="var(--svg-primary)" stroke-width="2.5"/>
+  <text x="285" y="52" font-size="20" fill="var(--svg-neutral)">&#8594;</text>
+  <rect x="320" y="40" width="80" height="30" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5"/>
+  <text x="360" y="60" text-anchor="middle" font-size="12" fill="var(--svg-neutral-text)">step()</text>
+  <text x="410" y="52" font-size="20" fill="var(--svg-neutral)">&#8594;</text>
+  <!-- clean stair -->
+  <polyline points="440,72 490,72 490,52 540,52 540,32 600,32" fill="none" stroke="var(--svg-success)" stroke-width="2.5"/>
+  <text x="440" y="92" font-size="12" fill="var(--svg-success)">clean bands</text>
+
+  <line x1="20" y1="130" x2="620" y2="130" stroke="var(--svg-line)" stroke-width="1" stroke-dasharray="4 4"/>
+
+  <!-- Row 2: noisy input -> speckle -->
+  <text x="20" y="165" font-size="13" font-weight="bold" fill="var(--svg-error)">Noisy input (PBR detail)</text>
+  <polyline points="20,205 40,196 60,204 80,190 100,200 120,182 140,192 160,176 180,186 200,168 220,178 240,162 260,170" fill="none" stroke="var(--svg-error)" stroke-width="2"/>
+  <text x="285" y="188" font-size="20" fill="var(--svg-neutral)">&#8594;</text>
+  <rect x="320" y="176" width="80" height="30" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5"/>
+  <text x="360" y="196" text-anchor="middle" font-size="12" fill="var(--svg-neutral-text)">step()</text>
+  <text x="410" y="188" font-size="20" fill="var(--svg-neutral)">&#8594;</text>
+  <!-- jagged stair (speckle) -->
+  <polyline points="440,208 452,208 452,188 464,188 464,208 480,208 480,168 492,168 492,208 508,208 508,188 520,188 520,168 536,168 536,208 552,208 552,188 568,188 568,208 584,208 584,168 600,168" fill="none" stroke="var(--svg-error)" stroke-width="2"/>
+  <text x="440" y="228" font-size="12" fill="var(--svg-error)">speckle (noise amplified)</text>
+</svg>
+
+<div class="note">
+<strong>New concept — quantization:</strong> collapsing a continuous range of values into a small set of discrete steps. Toon shading quantizes lighting on purpose — that's what makes the flat cel look. The catch: quantization is indifferent to <em>where</em> the input came from. Detail you wanted (broad form) and detail you didn't (surface grain) get the same hard treatment.</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 2 — The three enemies (channel isolation)
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>The three enemies</h2>
+
+<p>Let's isolate the sources of trouble by toggling one texture channel at a time on the barrel. Start from the clean reference, add one thing, observe what breaks.</p>
+
+<h3>Start: flat color only</h3>
+<figure>
+  <img src="../../assets/img/texture-audit-flat.png" alt="Barrel lit with flat orange color: three clean vertical toon bands sweeping across the curved front face, from bright to dark." style="max-width:420px; width:100%; height:auto; border-radius:6px;">
+</figure>
+<p>Three clean bands, sweeping across the curved face. The side-raking light puts the shadow terminator across the front, so the lighting value sweeps the full range and each band owns a wide, readable stripe. This is the target look — hold it in mind as the baseline.</p>
+
+<h3>+ albedo texture</h3>
+<figure>
+  <img src="../../assets/img/texture-audit-albedo.png" alt="Barrel with the PBR albedo texture enabled: a realistic red explosive barrel covered in rust, scratches, and a yellow hazard triangle label. The toon bands are almost impossible to see under the surface detail." style="max-width:420px; width:100%; height:auto; border-radius:6px;">
+</figure>
+<p>Turn on the diffuse (albedo) texture and the bands vanish into a storm of rust, scratches, weld seams, and a printed hazard label. The bands are technically still there — but the high-frequency color detail is louder than the lighting. This is the <strong>&ldquo;busy&rdquo; look</strong>: not stylized, not realistic, just noisy.</p>
+
+<h3>+ normal map</h3>
+<figure>
+  <img src="../../assets/img/texture-audit-normal.png" alt="Barrel with flat color and the normal map enabled: three bands are visible but the boundary between them is a jagged sawtooth edge, chattering with tiny per-pixel shadow flecks." style="max-width:420px; width:100%; height:auto; border-radius:6px;">
+</figure>
+<p>Now go back to flat color but enable the normal map. The bands return — but look at the boundary between them. Instead of a clean line it's a jagged, chattering sawtooth. The normal map perturbs the surface direction pixel-by-pixel, so pixels near a band threshold flip back and forth across it. That's the quantization-amplifies-noise mechanism from Section 1, made literal: continuous normal detail pushed through the step function becomes <strong>shadow speckle</strong>.</p>
+
+<h3>Both together</h3>
+<figure>
+  <img src="../../assets/img/texture-audit-both.png" alt="Barrel with both albedo texture and normal map: a realistic explosive barrel that has both buried bands and a speckled shadow edge — a realistic model with broken lighting." style="max-width:420px; width:100%; height:auto; border-radius:6px;">
+</figure>
+<p>Both problems at once: bands buried under albedo detail <em>and</em> a speckled terminator from the normal map. A realistic model with broken lighting — the render you almost never want.</p>
+
+<div class="note">
+<strong>When to keep vs discard the normal map:</strong>
+<ul>
+  <li><strong>Keep &amp; simplify</strong> — when the mesh has broad forms you actually want the shader to shade (folds in cloth, large dents). Flatten the fine detail, keep the big shapes.</li>
+  <li><strong>Discard entirely</strong> — when the silhouette already communicates the form (a barrel's rings, a hard-surface prop). The normal map only adds speckle here.</li>
+</ul>
+<strong>Default:</strong> disable the normal map first. Add it back only if the result looks too flat — and if you do, flatten its fine detail before you trust it.</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 3 — Channel triage
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Channel triage</h2>
+
+<p>A typical PBR asset ships more than a diffuse map. The roughness, metallic, and ambient-occlusion channels are often packed into a single <strong><span class="term" data-term="ARM">ARM</span></strong> texture (Ambient occlusion / Roughness / Metallic, one per color channel). Before you touch Blender, decide the fate of each channel.</p>
+
+<svg role="img" aria-labelledby="triage-title" viewBox="0 0 640 300" style="max-width:100%; height:auto; margin:1.5rem 0;">
+  <title id="triage-title">Channel triage: the ARM texture's three channels and the diffuse and normal maps, each routed to keep, discard, or repurpose.</title>
+
+  <!-- ARM node -->
+  <rect x="20" y="120" width="150" height="50" rx="8" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="2"/>
+  <text x="95" y="142" text-anchor="middle" font-size="13" font-weight="bold" fill="var(--svg-neutral-text)">ARM (packed)</text>
+  <text x="95" y="159" text-anchor="middle" font-size="10" fill="var(--svg-neutral-text)">AO · Rough · Metal</text>
+
+  <!-- R: AO -> repurpose -->
+  <line x1="170" y1="132" x2="360" y2="45" stroke="var(--svg-line)" stroke-width="2" marker-end="url(#arr-t)"/>
+  <rect x="360" y="26" width="120" height="40" rx="6" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="2"/>
+  <text x="420" y="50" text-anchor="middle" font-size="12" font-weight="bold" fill="var(--svg-warning-text)">R: AO</text>
+  <text x="500" y="42" font-size="12" font-weight="bold" fill="var(--svg-warning)">REPURPOSE</text>
+  <text x="500" y="58" font-size="10" fill="var(--text-muted)">&#8594; threshold_map</text>
+
+  <!-- G: Roughness -> discard -->
+  <line x1="170" y1="145" x2="360" y2="118" stroke="var(--svg-line)" stroke-width="2" marker-end="url(#arr-t)"/>
+  <rect x="360" y="98" width="120" height="40" rx="6" fill="var(--svg-error-fill)" stroke="var(--svg-error)" stroke-width="2"/>
+  <text x="420" y="122" text-anchor="middle" font-size="12" font-weight="bold" fill="var(--svg-error-text)">G: Roughness</text>
+  <text x="500" y="122" font-size="12" font-weight="bold" fill="var(--svg-error)">DISCARD</text>
+
+  <!-- B: Metallic -> discard -->
+  <line x1="170" y1="158" x2="360" y2="182" stroke="var(--svg-line)" stroke-width="2" marker-end="url(#arr-t)"/>
+  <rect x="360" y="162" width="120" height="40" rx="6" fill="var(--svg-error-fill)" stroke="var(--svg-error)" stroke-width="2"/>
+  <text x="420" y="186" text-anchor="middle" font-size="12" font-weight="bold" fill="var(--svg-error-text)">B: Metallic</text>
+  <text x="500" y="186" font-size="12" font-weight="bold" fill="var(--svg-error)">DISCARD</text>
+
+  <!-- Diffuse -> keep+simplify -->
+  <rect x="20" y="210" width="150" height="34" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="95" y="232" text-anchor="middle" font-size="12" font-weight="bold" fill="var(--svg-primary-text)">Diffuse</text>
+  <line x1="170" y1="227" x2="358" y2="240" stroke="var(--svg-line)" stroke-width="2" marker-end="url(#arr-t)"/>
+  <rect x="360" y="222" width="150" height="36" rx="6" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="2"/>
+  <text x="435" y="240" text-anchor="middle" font-size="11" font-weight="bold" fill="var(--svg-success-text)">KEEP + SIMPLIFY</text>
+  <text x="435" y="253" text-anchor="middle" font-size="9" fill="var(--text-muted)">posterize, palette snap</text>
+
+  <!-- Normal -> decide -->
+  <rect x="20" y="256" width="150" height="34" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="95" y="278" text-anchor="middle" font-size="12" font-weight="bold" fill="var(--svg-primary-text)">Normal</text>
+  <line x1="170" y1="273" x2="358" y2="280" stroke="var(--svg-line)" stroke-width="2" marker-end="url(#arr-t)"/>
+  <rect x="360" y="264" width="150" height="30" rx="6" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="2"/>
+  <text x="435" y="283" text-anchor="middle" font-size="11" font-weight="bold" fill="var(--svg-warning-text)">DECIDE (keep form / flatten)</text>
+
+  <defs><marker id="arr-t" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9" fill="none" stroke="var(--svg-line)" stroke-width="1.5"/></marker></defs>
+</svg>
+
+<p>The two discards are free: our shader runs with specular turned off, so roughness and metallic have <em>nothing</em> to plug into — there's no specular lobe for them to modulate. The AO channel is the interesting one. It already encodes where a surface is self-shadowed, which is exactly the kind of spatial bias a toon shader can use to nudge <em>where</em> the shadow boundary falls.</p>
+
+<div class="note">
+<strong>New concept — threshold_map:</strong> a texture that biases, per pixel, where the shadow boundary lands. Darker pixels pull the terminator earlier (more shadow); lighter pixels push it later. The AO channel already carries this spatial relationship, so it can be repurposed as a <span class="term" data-term="threshold-map">threshold map</span> instead of thrown away. You'll author one later in this track.</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 4 — The empty slots
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>The empty slots</h2>
+
+<p>The <code>mk_toon_lite</code> shader already declares texture inputs for most of the toon-specific control it needs — but in our scene every one of them is empty. Each is a slot you'll fill later in this track. Here's the map of what's coming:</p>
+
+<table>
+<caption>Toon-control texture inputs the shader exposes, and where this track fills each one.</caption>
+<thead><tr><th scope="col">Slot</th><th scope="col">Purpose</th><th scope="col">Filled in</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code>albedo_texture</code></th><td>Base color, simplified to discrete bands</td><td>Posterize + palette-snap lessons</td></tr>
+<tr><th scope="row"><code>threshold_map</code></th><td>Per-pixel shadow-boundary bias (from AO)</td><td>Control-maps lesson</td></tr>
+<tr><th scope="row"><code>noise_map</code></th><td>Break up band edges so they aren't mechanically straight</td><td>Control-maps lesson</td></tr>
+<tr><th scope="row"><code>normal_map</code></th><td>Surface form — kept only if flattened first</td><td>Bake-and-export lesson</td></tr>
+</tbody></table>
+
+<div class="note">
+<strong>Why the slots are empty by default:</strong> every texture input in <code>mk_toon_lite</code> is guarded by a <code>use_*</code> boolean that defaults to off. Assigning a texture does nothing until you flip its toggle — so you can wire everything up first and enable features one at a time, which is exactly how you'll debug the look.</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 5 — Industry context (FYI)
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>How the pros do it</h2>
+
+<div class="note">
+<strong>Alternative:</strong> AAA toon games (Guilty Gear, Genshin Impact) don't convert PBR textures at all — they hand-paint every texture for non-photoreal rendering from scratch, including custom control maps with per-pixel shadow and highlight authoring. That's the highest-quality path and the most expensive.
+<br><br><strong>When to use which:</strong>
+<ul>
+  <li><strong>Hand-paint from scratch</strong> — choose when the art style is the product (a character-action or fighting game where every silhouette is scrutinized) and you have artist time to author ILM/shadow maps per asset.</li>
+  <li><strong>Simplify existing PBR</strong> (this track) — choose when you're starting from free or purchased PBR assets, want to keep dynamic lighting, and need a clean result without a texture artist on payroll.</li>
+</ul>
+<strong>Default:</strong> simplify PBR unless the toon look is your game's headline feature — hand-painting is a large, ongoing per-asset cost you take on deliberately, not by default.</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A colleague is prepping a PBR castle-wall asset for the same toon shader. They assign the albedo texture and disable the normal map. &ldquo;The normal map was causing shadow speckle, so I removed it,&rdquo; they explain. But the toon bands still look noisy and the areas that should be flat aren't flat. Why? What is the actual remaining source of the noise, and what would you recommend they do about it?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>The normal map is only one of the three enemies. Which channel did they leave fully enabled and untouched? Re-read Section 1: what kinds of continuous input get amplified by quantization?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>Disabling the normal map removes the <em>speckled terminator</em>, but it does nothing about the <strong>albedo texture</strong>, which they left fully enabled. A photoreal albedo map is itself a continuous, high-frequency signal — stone grain, mortar lines, moss, dirt, color variation. When the toon shader quantizes lighting over that busy color, the detail reads as noise and the &ldquo;flat&rdquo; areas are never actually flat, because the color underneath them isn't flat.</p>
+  <p>The misconception is that <em>normal maps are the only problem</em>. In fact any continuous, high-frequency channel fights toon shading — and albedo is usually the loudest one. The fix isn't to delete the albedo (you need base color) but to <strong>simplify</strong> it: posterize it to a few discrete colors and snap it to a limited palette so it stops carrying detail the shader will amplify. That's the next lesson.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     REFERENCES
+     ═══════════════════════════════════════════════════════════════ -->
+<h2>Official Documentation</h2>
+<ul>
+  <li><a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html">Godot Spatial Shader reference</a> — the <code>light()</code> function and lighting values a toon shader quantizes.</li>
+  <li><a href="https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_images.html">Godot texture import</a> — color-space and normal-map import flags that matter when you wire PBR textures in.</li>
+  <li><a href="https://en.wikipedia.org/wiki/Cel_shading">Cel shading (overview)</a> — why the look depends on quantizing lighting to a small number of discrete tones.</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p>Now you know what's wrong. Next lesson: fix it. You'll build a Blender node group that posterizes any albedo texture into discrete color bands that harmonize with your toon shader's band count — turning the loudest of the three enemies into an ally.</p>
+</div>
+
+
+<script type="application/json" id="glossary-data">{"quantization": "Collapsing a continuous range of values into a small set of discrete steps; toon shading quantizes lighting on purpose.", "threshold-map": "A texture that biases, per pixel, where a toon shader's shadow boundary falls — darker pulls the terminator earlier.", "ARM": "A packed texture storing Ambient occlusion, Roughness, and Metallic in its R, G, and B channels respectively."}</script>
+<script type="module" src="../../assets/page-shell.js"></script>
+
+</body>
+</html>

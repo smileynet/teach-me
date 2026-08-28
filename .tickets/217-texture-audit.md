@@ -265,22 +265,55 @@ Two separate MCP failure modes, both now understood:
 
 
 
+## Research refinement (2026-08-27) — subagent findings
+
+Two research tracks (crisp-cel-bands, orientation-pedagogy) + two internal reviews (corpus cross-check, lesson-pattern extraction) ran. Raw: `.scratch/subagent-research/*.md`, `.scratch/subagent-review/*.md`.
+
+### Crisp-band capture — RESOLVED (lighting, not params; keep the barrel)
+
+The flat-reference washout is **geometry meeting math**, not a soft-param bug. A front-lit cylinder has `N·L ≈ 1` across the entire visible face, so all band thresholds crowd into thin crescents at the silhouette → one flat tone. Fix, in leverage order:
+1. **¾ side light** (~30–45° off-axis, slightly above) so the terminator crosses the visible face and `N·L` sweeps 1→0 → bands read as clean vertical stripes following the curve.
+2. **Fewer bands (2–3, not more)** — each band owns a wider region. Cranking band count up makes washout worse.
+3. **Half-Lambert / moderate wrapped_lighting** (`0.5·N·L+0.5`) so the shadow side carries bands instead of collapsing to flat black.
+
+**Keep the barrel — do NOT switch to a sphere.** A sphere's omnidirectional normals guarantee a clean sweep from any angle, which *hides* the exact front-face washout real assets (barrels, pillars, limbs, cans) hit. The barrel is the honest test mesh. Capture plan: on a throwaway `mktoon_test_strong.tscn` copy (protected `mktoon_test.tscn` stays untouched), set ¾ light + `light_bands=3` + `light_bands_scale≈0.9` + `gooch=0`, keep moderate wrapped lighting for the shadow side. Independent-validate band count (~3) before authoring. Source: `.scratch/subagent-research/crisp-cel-bands.md` (13 cited sources, L4–L6).
+
+### Orientation-pedagogy — confirms the diagnose-first arc
+
+Show the broken result FIRST as a contrasting case, then teach why (Schwartz "inventing vs telling"; Loibl & Rummel). The payoff is the explicit broken-vs-correct COMPARISON step. Name the deep-structure cause, not the surface symptom. Close with the near-transfer misconception-probe (already in spec). Source: `.scratch/subagent-research/orientation-pedagogy.md`.
+
+### Corpus cross-check — spec CONSISTENT; six contract gaps to close
+
+Diagram plan (2 hand-written SVGs), exercise design, and all shader claims ("roughness no-effect", "AO→threshold_map", "quantization amplifies noise") VERIFIED against source — no content contradictions. Gaps to fix during authoring:
+1. **`key_concept` is a template PARAM**, not a body section → pass `key_concept="PBR encodes continuous properties; toon shaders discretize. Continuous detail + discrete shading = amplified noise."`
+2. **Enumerate `glossary_data`** — define threshold_map, quantization, ARM (spec names terms, lists no defs).
+3. **SR cards: contract requires 4–8 open-answer + 2–3 interactive** with full criteria/eli5/source/level metadata + ≥3 archetypes (spec's "4 cards" undercounts).
+4. **Pass `depth=2`** (`lessons/{domain-slug}/NN-slug.html`) so asset prefixes resolve.
+5. **Lesson number:** file is `01-texture-audit`, title says "0015" → use `lesson_number=15` in `.lesson-meta`.
+6. **Regenerate quiz + map + index** pages (pipeline completeness).
+No standalone CLI — `page_template.render_lesson_page(...)` is a library; run via `.venv\Scripts\python.exe` with `PYTHONIOENCODING=utf-8`, write-then-read body. Sources: `.scratch/subagent-review/corpus-crosscheck.md`, `lesson-patterns.md`.
+
 ## Acceptance criteria
 
-- [ ] Lesson file: `examples/godot-gamedev/lessons/blender-texture-prep/01-texture-audit.html`
+- [x] Lesson file: `examples/godot-gamedev/lessons/blender-texture-prep/01-texture-audit.html`
+- [x] `render_lesson_page` called with `key_concept=`, `glossary_data={...}`, `depth=2`, `lesson_number=15`
+- [x] Glossary terms defined: threshold_map, quantization, ARM (+ any others introduced)
+- [x] Quiz page + map + index regenerated after lesson lands
 - [x] A/B opening visual (flat vs PBR, side by side or sequential)
 - [x] Progressive channel isolation (4 screenshots: flat → +albedo → +normal → both)
-- [ ] "Quantization amplifies noise" SVG diagram
-- [ ] Channel triage SVG diagram (ARM fan-out + diffuse/normal decisions)
-- [ ] Decision callout: when to keep vs discard normal map
-- [ ] Exercise tests the Win (misconception probing: "just disable normals" isn't enough)
-- [ ] SR questions generated (4 cards) in blender-texture-prep.jsonl
-- [ ] No `data-file` code blocks (no downloadable files needed)
-- [ ] Page generated via `page_template.py` with correct structure
-- [ ] Layer 1: 4 screenshots validated via image analysis (correct state each)
-- [ ] Layer 2: 2 SVG diagrams validated via image analysis (readable, color-independent)
-- [ ] Layer 3: Playwright confirms page structure + img load + both themes
-- [ ] Layer 4: `mise run verify` passes (links, lint, SVG vars)
+- [x] "Quantization amplifies noise" SVG diagram
+- [x] Channel triage SVG diagram (ARM fan-out + diffuse/normal decisions)
+- [x] Decision callout: when to keep vs discard normal map
+- [x] Exercise tests the Win (misconception probing: "just disable normals" isn't enough)
+- [x] SR questions generated (4–8 open-answer + 2–3 interactive, ≥3 archetypes, full criteria/eli5/source/level metadata) in blender-texture-prep.jsonl
+- [ ] Jargon annotation pass: body first-use of glossary terms (quantization, threshold-map, ARM) wrapped in `data-term` spans via `jargon-annotate.py` (explicit file path — subfolder; dry-run first for ARM substring safety)
+- [ ] `check-lesson.py` passes (expect PASS G2/Q6/Q9/Q10/Q12, SKIP G3/CF/Q14)
+- [x] No `data-file` code blocks (no downloadable files needed)
+- [x] Page generated via `page_template.py` with correct structure
+- [x] Layer 1: 4 screenshots validated via image analysis (correct state each)
+- [x] Layer 2: 2 SVG diagrams validated via image analysis (readable, color-independent)
+- [x] Layer 3: Playwright confirms page structure + img load + both themes
+- [x] Layer 4: lint-html (0 errors) + check-svg-vars (no hex) + map_parser tests (37/37) pass. NOTE: `mise run verify` itself fails on Windows (bash `/dev/null` + bare `python` env quirk); verify-links reports pre-existing symlink-as-text false positives (same ../../assets/*.css|js flagged on all sibling lessons) — live HTTP 200 confirms all assets + 4 images serve correctly.
 
 ## Research context
 
