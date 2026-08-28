@@ -2,7 +2,7 @@
 id: "236"
 title: "Runtime-validate shipped lesson 05/06 story_player.gd (back-fill)"
 type: bug
-status: in_progress
+status: done
 priority: high
 blocked_by: ["235", "238"]
 tags: ["ink", "validation"]
@@ -43,11 +43,11 @@ Two files:
 
 ## Acceptance criteria
 
-- [ ] L05 story_player.gd: headless import parses + playthrough reaches END, text accumulates
-- [ ] L06 story_player.gd: headless import parses + playthrough reaches END, speaker label set, `# hidden` line suppressed, mid-story tag observed
-- [ ] The 4 assumption checks above each confirmed or fixed
-- [ ] Any fix mirrored into the lesson HTML complete-block (contract preserved) + golden transcript re-verified
-- [ ] #211 and #212 resolution notes updated with real runtime evidence
+- [x] L05 story_player.gd: headless import parses + playthrough reaches END, text accumulates
+- [x] L06 story_player.gd: headless import parses + playthrough reaches END, speaker label set, `# hidden` line suppressed, mid-story tag observed
+- [x] The 4 assumption checks above each confirmed or fixed
+- [x] Any fix mirrored into the lesson HTML complete-block (contract preserved) + golden transcript re-verified
+- [x] #211 and #212 resolution notes updated with real runtime evidence
 
 
 ## FINDING (2026-08-27, via #235 harness) — L05 has a real runtime bug
@@ -160,3 +160,7 @@ doesn't. Corrected arc — actually cleaner:
 `mise run ink:validate-gd` → L05 GREEN (payoff); `ink:transcripts` unchanged; check-lesson
 0005 contract holds; ink:validate/ink:play sanity. Newline gotcha: single-step `+= line + "\n"`
 may double blank lines vs maximal — verify visible output in the harness.
+
+## Resolution (2026-08-28)
+
+L05 _advance_story switched to single-step 'while can_continue: continue_story()' accumulate loop across reference .gd + HTML complete-block + spike; L05 prose/glossary/SVG reframed around the loop + maximal-last-line gotcha; L06 pivot reframed to reuse L05's loop; SR ig-05-003 updated; #211 resolution corrected. Harness (which caught the bug) now green.
