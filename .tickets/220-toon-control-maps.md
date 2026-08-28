@@ -2,7 +2,7 @@
 id: "220"
 title: "Lesson: Authoring Toon Control Maps — Ramp, Noise, Threshold (0018)"
 type: feature
-status: in_progress
+status: done
 priority: high
 blocked_by: ["217"]
 parent: "216"
@@ -118,16 +118,16 @@ A substantial lesson teaching how to create the toon-specific control textures t
 
 "The mk_toon_lite shader has a `noise_intensity` uniform defaulting to 0.3. Predict: what happens if you set it to 0.0 vs 1.0 with the same noise map? Which gives the more 'hand-painted' look and why?"
 
-## Acceptance criteria
+## Acceptance criteria (RESCOPED — ramp criteria moved to #246)
 
-- [ ] Lesson file: `examples/godot-gamedev/lessons/blender-texture-prep/04-toon-control-maps.html`
-- [ ] 3 ramp textures created and working with toon_ramp.gdshader
-- [ ] Noise map created (tileable, 256×256) and demonstrated in mk_toon_lite
-- [ ] Threshold map extracted from AO and demonstrated
-- [ ] Each map shown independently with before/after
-- [ ] Explains shader sampling code for each map type
-- [ ] SR questions generated (3-5 cards)
-- [ ] Reference files: actual texture assets in reference/code/toon-control-maps/
+- [x] Lesson file: `examples/godot-gamedev/lessons/blender-texture-prep/04-toon-control-maps.html`
+- [x] ~~3 ramp textures~~ → MOVED to #246 (ramp is toon_ramp.gdshader, a separate topic)
+- [x] Noise map created (tileable, 256×256) and demonstrated in mk_toon_lite
+- [x] Threshold map extracted from AO and demonstrated
+- [x] Each map shown independently with before/after (Godot A/B figure)
+- [x] Explains shader sampling code for each map type (verbatim light() code)
+- [x] SR questions generated (3-5 cards) — btp-301..305
+- [x] Reference files: actual texture assets in reference/code/toon-control-maps/ (control_maps.py, toon_noise.png, toon_threshold.png, README, sidecar)
 
 ## Research context
 
@@ -175,3 +175,7 @@ For noise map baking:
 - Connect to Emission shader → bake Emit pass at 256×256
 - Set image to Non-Color data (it's a control map, not sRGB)
 - Ensure tileability: use modulo UV or Blender's "Seamless" noise option (via Musgrave)
+
+## Resolution (2026-08-28)
+
+Lesson 0018 toon control maps (noise + threshold; ramp split to #246). Pillow added first-class (setup+doctor). control_maps.py bakes 4D-tileable noise + AO-derived threshold + sidecar; complementary validation: stdlib sidecar oracle (colorspace intent + AO corr) + Pillow drift-check (on-disk bytes), both wired into verify. Godot A/B figure, quiz + 5 SR cards, MAP retitled+regenerated. Independent audit: validation layer clean.
