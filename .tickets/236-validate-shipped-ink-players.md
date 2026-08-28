@@ -2,7 +2,7 @@
 id: "236"
 title: "Runtime-validate shipped lesson 05/06 story_player.gd (back-fill)"
 type: bug
-status: open
+status: in_progress
 priority: high
 blocked_by: ["235", "238"]
 tags: ["ink", "validation"]
@@ -108,3 +108,55 @@ Also fix `spike_story.gd` (same latent bug; it's a spike, note not a lesson deli
 
 Blocked-by #238 (harden the harness first) so the fix is validated by a trustworthy
 harness, not the thin one.
+
+
+## CORRECTION (2026-08-28) — Option 1 is WRONG; the fix is Option 2 (single-step loop)
+
+Research (`.scratch/research/inkgd-text-idiom.md`, verified against inkgd 0.6.0 source)
+OVERTURNS the earlier Option-1 decision. The scope review had ASSUMED
+`InkPlayer.continue_story_maximally()` returns the full concatenated text. The source
+proves otherwise:
+
+- inkle C# `Story` + inkgd raw `InkStory`: return value = full concat, `current_text` = last line. (premise true here)
+- **inkgd `InkPlayer` wrapper (what EVERY lesson uses via InkPlayerFactory.create()): `continue_story_maximally()` DISCARDS the story's concatenated return and does `text = self.current_text` → BOTH the return value AND the property give only the LAST line.**
+
+→ Reading the return value (Option 1) does NOT fix the bug. There is no way to get full
+passage text from one maximal call through the InkPlayer API. **The only correct fix is
+the manual single-step accumulate loop** — exactly what Lesson 06 already does:
+```gdscript
+func _advance_story():
+    while _ink_player.can_continue:
+        var text = _ink_player.continue_story()   # one line; return == property here
+        if text != "":
+            _text_label.text += text + "\n"
+    if _ink_player.has_choices:
+        _show_choices()
+    elif not _ink_player.can_continue:
+        _on_ended()
+```
+
+### Pedagogical rethink (the Option-2 objection was based on the false premise)
+"Option 2 spoils L06's pivot" assumed maximal-continue WORKS for display in L05. It
+doesn't. Corrected arc — actually cleaner:
+- L05 teaches the single-step accumulate loop as the correct display baseline + the
+  maximal-continue-last-line GOTCHA (the real bug, now a teachable point).
+- L06's pivot reframes from "switch to single-step for tags" → "you already step
+  line-by-line; now read each line's tags in that same loop." Lighter, better progression.
+- ig-06-002 already teaches "maximal collapses per-line data to last line" (for tags) —
+  corrected L05 aligns both lessons on one truth.
+
+### Revised change set (canonical fix confirmed by dialogue-display research: accumulate the loop)
+1. _advance_story → single-step accumulate loop in: reference .gd (SoT), HTML complete-block
+   (4-SPACE indent), spike_story.gd (TABS). 4th site lesson05_player.gd auto-regenerates via ink-gd-sync.py.
+2. Rewrite L05 prose: walkthrough "fills current_text", glossary continue-maximally
+   "accumulating into current_text" clause, the "New concept" note, SVG "read current_text"
+   label (line 115) → reframe around single-step loop + maximal-last-line gotcha.
+3. Reframe L06 pivot sentence (mechanism unchanged; only the "why now").
+4. Update SR ig-05-003 (step "read current_text and display it" → read each line in the loop).
+5. Exercise UNCHANGED (teaches async timing, still correct). Golden transcript UNCHANGED (story untouched).
+6. #211 resolution note: shipped-bug-then-fixed correction.
+
+### Re-validation
+`mise run ink:validate-gd` → L05 GREEN (payoff); `ink:transcripts` unchanged; check-lesson
+0005 contract holds; ink:validate/ink:play sanity. Newline gotcha: single-step `+= line + "\n"`
+may double blank lines vs maximal — verify visible output in the harness.
