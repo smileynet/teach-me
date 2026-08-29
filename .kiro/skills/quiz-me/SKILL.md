@@ -77,12 +77,7 @@ If all three: strong response. If 1-2: partial, ask a follow-up to probe deeper.
 
 Every answer (correct AND incorrect) should include links to authoritative sources. These help the learner verify and deepen understanding.
 
-**Quality rules for source links:**
-- Link to **specific page sections** (use #anchors when available), not top-level docs pages
-- Each link must **directly help answer the question** — could someone read that section and determine why this answer is correct/incorrect?
-- Prefer multiple targeted links over one generic one (e.g., both the Iceberg spec section AND the AWS implementation docs)
-- Include a `section` note explaining what the linked page covers and why it's relevant
-- **Never link to generic overviews** (e.g., "AWS S3 Documentation" home page) — find the specific subsection
+**Quality rules for source links** are owned by the `browse-and-verify` skill (§ Quality rules for quiz source links) — specific anchors over top-level pages, each link must directly help answer the question, multiple targeted links over one generic, never link to generic overviews. Browse and verify each URL before committing it.
 
 **Format in HTML:**
 ```html

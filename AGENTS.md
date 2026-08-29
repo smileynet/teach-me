@@ -152,7 +152,7 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 
 ## Skill Format (kiro-cli)
 
-Skills live in `.kiro/skills/<name>/SKILL.md`, auto-loaded via `skill://.kiro/skills/**/SKILL.md`. For frontmatter and authoring conventions, see the global `skill-authoring` skill.
+Skills live in `.kiro/skills/<name>/SKILL.md`, auto-loaded via `skill://.kiro/skills/**/SKILL.md`. For frontmatter and authoring conventions, see the global `skill-authoring` skill. Judge a skill by effectiveness — activation accuracy, workflow up front (detail in `references/`), non-redundancy, one-level references, dispatched-skills-stay-monolithic — NOT a line count (the agentskills.io spec has no hard size limit; <500 lines is a soft guardrail).
 
 ## Design Posture (ADR 0001)
 
