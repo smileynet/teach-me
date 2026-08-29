@@ -73,6 +73,38 @@ covered by `mise run ink:play`). This is expected, not a gap:
 If you want a story's output regression-tested, keep the tested path free of
 shuffle/RANDOM, or gate the randomness behind a test variable.
 
+**A third exclusion class — unbound `EXTERNAL`.** A story that declares
+`EXTERNAL name(...)` with no ink `function name(...)` fallback cannot run in bink
+either — bink has no external-binding API, so it errors "Missing function binding
+... fallbacks disabled". `play-ink.py` detects this (`detect_unbound_externals`)
+and refuses capture / skips replay, exactly like shuffle/RANDOM. Output
+correctness for such a story is covered by `mise run ink:validate-gd` instead
+(real Godot binds the external). Lesson 07's `07_state_bridge.ink` is the
+canonical example. If you WANT a golden transcript, design the reference story
+pure-ink (no unbound EXTERNAL) — lesson 08 does this and gets a real fixture.
+
+## inkgd Phase-B runtime (lessons 05-08)
+
+Verified against the vendored inkgd 0.6.0 (`ink_player.gd`) — the ticket paraphrases
+were wrong twice, so use these signatures, not memory:
+
+- `bind_external_function(name, object, method_name, lookahead_safe=false)` — takes
+  `(object, method_name)`, **not a Callable**. Bind AFTER `create_story()`, BEFORE the
+  first `continue_story()`. `lookahead_safe`: ink calls externals during choice
+  lookahead, so a side-effecting external (spend gold, play sound) must be
+  `lookahead_safe=false` or it fires during preview; pure functions can be `true`.
+- `observe_variable(name, object, method_name)` — fires on **change**, NOT on
+  registration. Seed game state once yourself right after registering
+  (`_on_gold_changed("gold", get_variable("gold"))`), then the observer keeps it in sync.
+  Missing this leaves a HUD blank until the first change (caught by the L07 harness).
+- `get_variable(name)` / `set_variable(name, value)`; `get_state()->String` /
+  `set_state(String)` — the state blob is the WHOLE story (vars + visit counts +
+  callstack + seed). Never hand-save individual vars.
+- The shipped player uses the single-step accumulate loop `while can_continue:
+  _text += continue_story()` — append the line AS-IS (ink's line already ends in `\n`;
+  adding `+ "\n"` double-spaces, the #251 bug). Never `continue_story_maximally()`
+  through InkPlayer (returns only the last line — the #236 bug).
+
 ## The validation pipeline
 
 | Check | Command | Catches |
