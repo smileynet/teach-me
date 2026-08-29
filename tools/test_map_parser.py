@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
 from map_parser import (
-    DomainMap, Topic, load_map, validate,
+    DomainMap, Topic, Edge, load_map, validate,
     get_available_topics, get_next_suggestion, update_status,
 )
 
@@ -154,10 +154,14 @@ def test_get_available_all_blocked():
         leads_to=[], orientation="",
         topics=[
             Topic(slug="a", title="A", why="", scope="substantial",
-                  prereqs=["b"], status="not-started"),
+                  prereqs=["b"], status="not-started", id="A" * 26),
             Topic(slug="b", title="B", why="", scope="substantial",
-                  prereqs=["a"], status="not-started"),
-        ]
+                  prereqs=["a"], status="not-started", id="B" * 26),
+        ],
+        edges=[
+            Edge(source_id="B" * 26, target_id="A" * 26, type="prereq"),  # a needs b
+            Edge(source_id="A" * 26, target_id="B" * 26, type="prereq"),  # b needs a
+        ],
     )
     assert get_available_topics(m) == []
 
@@ -177,10 +181,14 @@ def test_get_next_suggestion_nothing_available():
         leads_to=[], orientation="",
         topics=[
             Topic(slug="a", title="A", why="", scope="substantial",
-                  prereqs=["b"], status="not-started"),
+                  prereqs=["b"], status="not-started", id="A" * 26),
             Topic(slug="b", title="B", why="", scope="substantial",
-                  prereqs=["a"], status="not-started"),
-        ]
+                  prereqs=["a"], status="not-started", id="B" * 26),
+        ],
+        edges=[
+            Edge(source_id="B" * 26, target_id="A" * 26, type="prereq"),
+            Edge(source_id="A" * 26, target_id="B" * 26, type="prereq"),
+        ],
     )
     assert get_next_suggestion(m) is None
 
@@ -239,6 +247,122 @@ def test_update_status_missing_slug():
         assert "not found" in str(e)
 
     tmp.unlink()
+
+
+# ---------------------------------------------------------------------------
+# #257 — ULID ids + typed edges
+# ---------------------------------------------------------------------------
+
+import lib.ulid as _ulid
+
+
+def _write_map(body: str) -> Path:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".MAP.md", delete=False, encoding="utf-8") as f:
+        f.write(body)
+        return Path(f.name)
+
+
+_BASE_MAP = """---
+domain: t
+description: "d"
+depth: 0
+parent: null
+---
+
+# T
+
+## Orientation
+
+Intro.
+
+## Topics
+
+### alpha
+- **title:** Alpha
+- **why:** w
+- **scope:** substantial
+- **prereqs:** []
+- **status:** complete
+
+### beta
+- **title:** Beta
+- **why:** w
+- **scope:** substantial
+- **prereqs:** [alpha]
+- **status:** not-started
+"""
+
+
+def test_id_minted_when_absent():
+    p = _write_map(_BASE_MAP)
+    m = load_map(p)
+    assert all(_ulid.is_valid(t.id) for t in m.topics)
+    assert m.topic_by_id(m.topics[0].id) is m.topics[0]
+    p.unlink()
+
+
+def test_prereq_edges_synthesized_from_inline():
+    p = _write_map(_BASE_MAP)
+    m = load_map(p)
+    prereq = [e for e in m.edges if e.type == "prereq"]
+    assert len(prereq) == 1
+    alpha = m.topic_by_slug("alpha")
+    beta = m.topic_by_slug("beta")
+    assert prereq[0].source_id == alpha.id and prereq[0].target_id == beta.id
+    assert validate(m) == []
+    p.unlink()
+
+
+def test_edges_section_typed_and_related_symmetric():
+    body = _BASE_MAP + """
+## Edges
+- from: alpha
+  to: beta
+  type: related
+  why: "adjacent ideas"
+"""
+    p = _write_map(body)
+    m = load_map(p)
+    related = [e for e in m.edges if e.type == "related"]
+    # symmetric — author once, both directions derived
+    assert len(related) == 2
+    pairs = {(e.source_id, e.target_id) for e in related}
+    a, b = m.topic_by_slug("alpha").id, m.topic_by_slug("beta").id
+    assert (a, b) in pairs and (b, a) in pairs
+    assert all(e.why == "adjacent ideas" for e in related)
+    # a symmetric related edge must NOT be flagged as a prereq cycle
+    assert validate(m) == []
+    p.unlink()
+
+
+def test_prereq_cycle_detected_but_related_cycle_ok():
+    # prereq cycle → error
+    m = DomainMap(
+        domain="t", description="", depth=0, parent=None, leads_to=[], orientation="",
+        topics=[
+            Topic(slug="a", title="A", why="", scope="substantial", prereqs=[], status="not-started", id="A" * 26),
+            Topic(slug="b", title="B", why="", scope="substantial", prereqs=[], status="not-started", id="B" * 26),
+        ],
+        edges=[
+            Edge("A" * 26, "B" * 26, "prereq"),
+            Edge("B" * 26, "A" * 26, "prereq"),
+        ],
+    )
+    assert any("Cycle" in e for e in validate(m))
+    # same shape but related → no cycle error
+    m.edges = [Edge("A" * 26, "B" * 26, "related"), Edge("B" * 26, "A" * 26, "related")]
+    assert not any("Cycle" in e for e in validate(m))
+
+
+def test_validate_flags_bad_id_and_edge_type():
+    m = DomainMap(
+        domain="t", description="", depth=0, parent=None, leads_to=[], orientation="",
+        topics=[Topic(slug="a", title="A", why="", scope="substantial", prereqs=[], status="not-started", id="not-a-ulid")],
+        edges=[Edge("A" * 26, "A" * 26, "bogus")],
+    )
+    errs = validate(m)
+    assert any("invalid ULID" in e for e in errs)
+    assert any("invalid type" in e for e in errs)
 
 
 # ---------------------------------------------------------------------------
