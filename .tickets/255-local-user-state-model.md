@@ -1,7 +1,7 @@
 ---
 id: "255"
 title: "Minimal per-user overlay: gitignored sparse status map keyed by node ID"
-status: open
+status: in_progress
 blocked_by: ["258"]
 priority: high
 tags: ["platform"]
@@ -20,6 +20,41 @@ acceptable (delete = reset progress).
 
 This is the concrete store that #258's overlay-interface calls
 (`overlay.get(node_id) -> {status, updated_at} | None`, `overlay.set(node_id, status)`).
+
+## Findings (research + review, 2026-08-29 — #258 already delivered the store)
+
+#258 shipped `tools/lib/overlay.py` + the ULID-keyed `.user/status-overlay.json` store,
+the `load/get/set/reset` interface, serve endpoints, `.user/` gitignore (any depth), and
+fresh-clone behavior. So AC 1,3,5,6,7 are DONE. Only AC 2 (SR relocation) + AC 4 (prereq
+indicator) remain. Evidence: `.scratch/review/sr-relocation-blast.md`,
+`.scratch/review/prereq-indicator-surface.md`, `.scratch/research/sr-key-strategy.md`,
+`.scratch/research/prereq-indicator-ux.md`.
+
+### SR stays SLUG-keyed — do NOT re-key cards to ULID (locked by evidence)
+Anki/FSRS separate an immutable card GUID from the mutable topic label; scheduling hangs
+off the stable id, never the name. Re-keying existing cards SILENTLY RESETS FSRS/SM-2
+state (the documented Anki import-collision failure). So "keyed by node id" is satisfied
+at the JOIN boundary: overlay=ULID-keyed; SR cards keep uuid4 id + slug/lesson_id and join
+to the graph via the slug↔ULID map the parser already provides. Full card re-keying is
+undesirable and belongs in #259 if ever.
+
+### SR relocation = one-point centralization (NOT N-point)
+Path hardcoded in 11 sites / 8 files; `questions.py` is the intended resolver (#107; 6
+tools already import from it). Add a resolver preferring `<ws>/.user/learning-records/`
+(per-user, gitignored) with FALLBACK to `<ws>/learning-records/` for READ — because the 9
+committed `examples/*/learning-records/` files are demo FIXTURES and MUST stay committed
+(moving them under `.user/` would gitignore + break them). Convert the 7 hardcoders:
+check-topic-completeness, generate-quiz-page, generate_map_page, backfill-criteria,
+verify-links, init_workspace, serve.py. Zero test blast radius; no .gitignore change.
+serve.py `/api/questions` uses the resolver; confirm `.user/` isn't browsable if private.
+
+### Prereq indicator = no new fetch (data already client-side)
+Each topic ships `prereqs` as resolved ULIDs + its own `status` in the island; every
+prereq's live status signal is already hydrated in store.js (ULID-keyed). Edit
+`TopicCard.js` (prereqText block L13-19): met = prereq status complete|in-progress. NO
+gating (topic stays clickable). UX: filled ✓ met / outline ○ not-yet — NOT padlock/grey/
+red. Accessibility: pair color with glyph+word (StatusBadge precedent; color-not-alone is
+a hard rule). CSS in generate_map_page.py `css_extra` (map-card CSS is island-local).
 
 ## What to build
 
