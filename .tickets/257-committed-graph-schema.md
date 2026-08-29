@@ -150,8 +150,29 @@ verified SAFE — keyed by `topic.id` end-to-end, no slug-keyed caller.)
 - **C — client render** (`generate_map_page.py` island + `MapView.js`/`TopicCard.js`):
   emit `id`(ULID)+`slug`+id-keyed edges array; style by type (prereq solid/related
   dashed). Verify via `visual-qa` — edges land on cards.
-- **D — emitters** (last): `map_from_deps`/`map_from_chunks`/`enrich_prereqs` write `id`
-  + typed edges; `soft_prereqs` → `related` edges.
+- **D — emitters + close A's soft_prereqs loop** (resolved 2026-08-29):
+  - **Decision: `soft_prereqs` → `related` edges** (symmetric, non-gating). Prior art
+    (KnowLP dual prereq/similarity graph, arXiv 2506.22303; K12-KGraph `relates_to`):
+    a soft prereq isn't a weak prereq (removing gating removes what makes it a prereq) —
+    it's an associative link, which is exactly our `related` type. NOT a weighted prereq,
+    NOT a 4th type.
+  - **`load_map` (finishes Subtask A's open edge):** add `Topic.soft_prereqs` (parsed like
+    `prereqs`); synthesize symmetric `related` edges from inline `soft_prereqs` (reuse the
+    `_add_edge` + reverse-derive path). `related` edges are excluded from the prereq
+    cycle-check (already scoped). Add a load_map test: a `soft_prereqs` entry → a `related`
+    edge, not a prereq.
+  - **Emitters:** `map_from_deps.py` inject `- **id:** {ulid.new()}` after `### {slug}`
+    (~:391; `from lib import ulid` — sys.path set at :26); `map_from_chunks.py` inject after
+    `### {slug}` (:176; needs the GUARDED `try: from tools.lib import ulid / except: from lib`
+    import — no top-level sys.path insert, imported as `tools.map_from_chunks`). Inline
+    prereqs/soft_prereqs STAY (load_map derives edges from them — no `## Edges` needed).
+    `map_from_chunks._validate_output` still passes with ids (verified).
+  - **`enrich_prereqs.py`: NO change** — verified id lines pass through untouched (line-walk
+    only special-cases `###`/`prereqs`/`soft_prereqs`; id line copied verbatim). Do NOT mint
+    ids in enrich (it splits/joins on `\n` → EOL-churn risk; minting stays in emitters +
+    migrate_map_ids.py).
+  - **Verify:** `_validate_output` round-trips; regenerate a fixture → soft_prereqs produces
+    a `related` edge (not prereq, not cycle-checked); `mise run verify` EXIT 0.
 
 
 

@@ -28,6 +28,7 @@ import networkx as nx
 sys.path.insert(0, str(Path(__file__).parent))
 from extract_concepts import extract_concepts
 from map_from_chunks import slugify, is_noise, derive_scope, extract_why
+from lib import ulid
 
 
 # =============================================================================
@@ -351,6 +352,7 @@ def _render_map(
     for topic in topics:
         prereqs_str = f"[{', '.join(topic.prereqs)}]" if topic.prereqs else "[]"
         lines.append(f"### {topic.slug}")
+        lines.append(f"- **id:** {ulid.new()}")
         lines.append(f"- **title:** {topic.title}")
         lines.append(f"- **why:** {topic.why}")
         lines.append(f"- **scope:** {topic.scope}")

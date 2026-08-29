@@ -19,6 +19,11 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
+try:
+    from tools.lib import ulid
+except ModuleNotFoundError:  # when tools/ is on sys.path directly
+    from lib import ulid  # type: ignore[no-redef]
+
 
 # Noise patterns — headings that are front/back matter, not teachable content
 SKIP_PATTERNS = {
@@ -174,6 +179,7 @@ def generate_map(chunks: list[dict], domain: str, title: str) -> str:
     for topic in topics:
         prereqs_str = f"[{', '.join(topic.prereqs)}]" if topic.prereqs else "[]"
         lines.append(f"### {topic.slug}")
+        lines.append(f"- **id:** {ulid.new()}")
         lines.append(f"- **title:** {topic.title}")
         lines.append(f"- **why:** {topic.why}")
         lines.append(f"- **scope:** {topic.scope}")

@@ -365,6 +365,22 @@ def test_validate_flags_bad_id_and_edge_type():
     assert any("invalid type" in e for e in errs)
 
 
+def test_soft_prereqs_become_symmetric_related_edges():
+    body = _BASE_MAP.replace(
+        "### beta\n- **title:** Beta\n- **why:** w\n- **scope:** substantial\n- **prereqs:** [alpha]",
+        "### beta\n- **title:** Beta\n- **why:** w\n- **scope:** substantial\n- **prereqs:** []\n- **soft_prereqs:** [alpha]",
+    )
+    p = _write_map(body)
+    m = load_map(p)
+    a, b = m.topic_by_slug("alpha").id, m.topic_by_slug("beta").id
+    related = [(e.source_id, e.target_id) for e in m.edges if e.type == "related"]
+    assert (a, b) in related and (b, a) in related  # symmetric
+    # soft prereq is NOT a prereq edge and is NOT cycle-checked
+    assert not any(e.type == "prereq" and e.source_id == a and e.target_id == b for e in m.edges)
+    assert validate(m) == []
+    p.unlink()
+
+
 # ---------------------------------------------------------------------------
 # Runner
 # ---------------------------------------------------------------------------
