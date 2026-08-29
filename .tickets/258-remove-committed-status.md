@@ -1,7 +1,7 @@
 ---
 id: "258"
 title: "Remove per-user status from the committed graph (readiness derived from overlay)"
-status: in_progress
+status: done
 blocked_by: ["257"]
 priority: high
 tags: ["platform"]
@@ -101,25 +101,30 @@ name `update_status`; add `/.user/` to `.gitignore` ONCE (triple-claimed by #255
 
 ## Acceptance criteria
 
-- [ ] `status` removed from `Topic` and from every committed MAP.md (9 files)
-- [ ] No code path writes per-user status into the committed tree (`update_status`
+- [x] `status` removed from `Topic` and from every committed MAP.md (9 files)
+- [x] No code path writes per-user status into the committed tree (`update_status`
       committed-file writer gone; serve POST + generate-time write-back go to overlay;
       `map_from_chunks`/`map_from_deps` emitters stop emitting the status line)
-- [ ] `tools/lib/overlay.py` ships the locked interface (`load/get/set/reset`, ULID keys,
+- [x] `tools/lib/overlay.py` ships the locked interface (`load/get/set/reset`, ULID keys,
       sparse, stdlib JSON, absent=not-started, get→None on absent)
-- [ ] `get_available_topics`/`get_next_suggestion` take the overlay as an argument;
+- [x] `get_available_topics`/`get_next_suggestion` take the overlay as an argument;
       readiness is derived, node carries no status
-- [ ] Index progress ring and `check-topic-completeness` read the overlay (no silent 0%)
-- [ ] Client seeds status from the overlay-joined `/api/map` payload (island no longer
+- [x] Index progress ring and `check-topic-completeness` read the overlay (no silent 0%)
+- [x] Client seeds status from the overlay-joined `/api/map` payload (island no longer
       the status source of truth)
-- [ ] `generate-topic/SKILL.md` no longer instructs committed status writes/reads
-- [ ] `/.user/` added to `.gitignore`; migration is idempotent
-- [ ] Grep proof: zero committed readers of `**status:**` / `Topic.status` remain
-- [ ] Fresh clone (no overlay) shows all topics with zero completion, nothing errors
-- [ ] `mise run verify` EXIT 0; tests updated (no `Topic(status=...)`)
+- [x] `generate-topic/SKILL.md` no longer instructs committed status writes/reads
+- [x] `.user/` added to `.gitignore` (any-depth — example workspaces are nested);
+      migration is idempotent
+- [x] Grep proof: zero committed readers of `**status:**` / `Topic.status` remain
+- [x] Fresh clone (no overlay) shows all topics with zero completion, nothing errors
+- [x] `mise run verify` EXIT 0; tests updated (no `Topic(status=...)`)
 
 ## Validation
 
 Fresh-clone simulation (delete overlay) → map/index render all topics at 0% with no
 error; mark a topic complete → written ONLY to the gitignored overlay, `git status`
 clean of committed changes; `mise run verify` green.
+
+## Resolution (2026-08-29)
+
+Severed per-user status from the committed graph. New tools/lib/overlay.py (locked load/get/set/reset, ULID keys, sparse .user/status-overlay.json). map_parser: dropped Topic.status + validate check; get_available_topics/get_next_suggestion take a {node_id->status} dict. serve.py: GET/POST status endpoints resolve slug->id and read/write overlay only; GET /api/map joins overlay status. generate_map_page: removed MAP.md write-back + trust-complete branch, sources status from overlay. Fixed silent-0% consumers (index ring, check-topic-completeness) to read overlay. Stopped map_from_chunks/map_from_deps emitting the status line. Idempotent migrate_strip_status.py removed status from 9 MAP.md. .user/ gitignored at any depth. generate-topic SKILL updated. Tests migrated off Topic(status=...).
