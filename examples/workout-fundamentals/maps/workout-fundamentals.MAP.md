@@ -26,7 +26,6 @@ Strength training is governed by a small number of principles that explain 90% o
 - **scope:** substantial
 - **prereqs:** []
 - **lesson_file:** 0001-progressive-overload.html
-- **status:** complete
 
 ### recovery-and-adaptation
 - **id:** 01M174TQQ06SZ2KWDKZBZ7Y01R
@@ -35,7 +34,6 @@ Strength training is governed by a small number of principles that explain 90% o
 - **scope:** substantial
 - **prereqs:** [progressive-overload]
 - **lesson_file:** 0002-recovery-and-adaptation.html
-- **status:** complete
 
 ### programming-basics
 - **id:** 01M174TQQ0TC0KXPNJFKAM1JHC
@@ -44,7 +42,6 @@ Strength training is governed by a small number of principles that explain 90% o
 - **scope:** substantial
 - **prereqs:** [progressive-overload, recovery-and-adaptation]
 - **lesson_file:** 0003-programming-basics.html
-- **status:** complete
 
 ### exercise-selection
 - **id:** 01M174TQQ0A8H2E0Y3NWFYND1M
@@ -52,7 +49,6 @@ Strength training is governed by a small number of principles that explain 90% o
 - **why:** Not all exercises are equal — compound movements that train multiple joints give beginners the most return for their time. But the choice matters less than you think.
 - **scope:** substantial
 - **prereqs:** [programming-basics]
-- **status:** not-started
 
 ### nutrition-essentials
 - **id:** 01M174TQQ0PKM5CA9PAMHCRMGW
@@ -61,7 +57,6 @@ Strength training is governed by a small number of principles that explain 90% o
 - **scope:** substantial
 - **prereqs:** [recovery-and-adaptation]
 - **leads_to:** [nutrition-for-training]
-- **status:** not-started
 
 ### putting-it-together
 - **id:** 01M174TQQ0D8HCNG0GHJS2G6GX
@@ -69,4 +64,3 @@ Strength training is governed by a small number of principles that explain 90% o
 - **why:** Theory without application is useless. This synthesizes everything into a concrete program you can start Monday.
 - **scope:** lightweight
 - **prereqs:** [programming-basics, exercise-selection, nutrition-essentials]
-- **status:** not-started

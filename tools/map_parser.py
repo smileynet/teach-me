@@ -5,7 +5,7 @@ Parses MAP.md files (YAML frontmatter + markdown topic blocks) into a queryable
 data structure. Used by the teach skill, generation server, and map page generator.
 
 Usage:
-    from tools.map_parser import load_map, validate, get_available_topics, get_next_suggestion, update_status
+    from tools.map_parser import load_map, validate, get_available_topics, get_next_suggestion
 """
 
 from __future__ import annotations
@@ -27,7 +27,6 @@ class Topic:
     why: str
     scope: str  # lightweight | substantial | deep
     prereqs: list[str]  # authored prerequisite slugs (round-trip surface; edges derive from these)
-    status: str  # not-started | in-progress | complete
     lesson_file: str | None = None
     id: str = ""  # immutable ULID; minted on parse if absent, persisted by migration (#257)
     aliases: list[str] = field(default_factory=list)  # former slugs, for rename resolution
@@ -264,7 +263,6 @@ def load_map(path: str | Path) -> DomainMap:
             why=fields.get("why", ""),
             scope=fields.get("scope", "substantial"),
             prereqs=_parse_list_field(fields.get("prereqs", "[]")),
-            status=fields.get("status", "not-started"),
             lesson_file=fields.get("lesson_file"),
             id=tid,
             aliases=_parse_list_field(fields.get("aliases", "[]")),
@@ -399,12 +397,6 @@ def validate(domain_map: DomainMap) -> list[str]:
     if visited < len(domain_map.topics):
         errors.append("Cycle detected in topic prerequisites")
 
-    # Check valid status values
-    valid_statuses = {"not-started", "in-progress", "complete"}
-    for t in domain_map.topics:
-        if t.status not in valid_statuses:
-            errors.append(f"Topic '{t.slug}' has invalid status '{t.status}'")
-
     return errors
 
 
@@ -421,22 +413,33 @@ def _prereq_sources(domain_map: DomainMap) -> dict[str, list[str]]:
     return m
 
 
-def get_available_topics(domain_map: DomainMap) -> list[Topic]:
-    """Return topics whose prereqs are all complete or in-progress."""
-    satisfied = {t.id for t in domain_map.topics if t.status in ("complete", "in-progress")}
+def get_available_topics(domain_map: DomainMap, status_map: dict[str, str]) -> list[Topic]:
+    """Return not-started topics whose prereqs are all complete or in-progress.
+
+    `status_map` is the per-user overlay join `{node_id → status}` (see
+    `tools.lib.overlay.Overlay.status_map`). Status lives in the overlay, never on the
+    node; a node absent from `status_map` is not-started.
+    """
+    satisfied = {
+        t.id for t in domain_map.topics
+        if status_map.get(t.id, "not-started") in ("complete", "in-progress")
+    }
     prereq_sources = _prereq_sources(domain_map)
     available = []
     for t in domain_map.topics:
-        if t.status != "not-started":
+        if status_map.get(t.id, "not-started") != "not-started":
             continue
         if all(src in satisfied for src in prereq_sources.get(t.id, [])):
             available.append(t)
     return available
 
 
-def get_next_suggestion(domain_map: DomainMap) -> Topic | None:
-    """Suggest the best next topic: available + most downstream dependents."""
-    available = get_available_topics(domain_map)
+def get_next_suggestion(domain_map: DomainMap, status_map: dict[str, str]) -> Topic | None:
+    """Suggest the best next topic: available + most downstream dependents.
+
+    `status_map` is the per-user overlay join `{node_id → status}`.
+    """
+    available = get_available_topics(domain_map, status_map)
     if not available:
         return None
 
@@ -457,38 +460,6 @@ def get_next_suggestion(domain_map: DomainMap) -> Topic | None:
         return len(dependents)
 
     return max(available, key=lambda t: count_dependents(t.id))
-
-
-# ---------------------------------------------------------------------------
-# Mutation
-# ---------------------------------------------------------------------------
-
-import threading
-_write_lock = threading.Lock()
-
-
-def update_status(path: str | Path, topic_slug: str, new_status: str) -> None:
-    """Update a topic's status in the MAP.md file without clobbering other content."""
-    path = Path(path)
-
-    valid = {"not-started", "in-progress", "complete"}
-    if new_status not in valid:
-        raise ValueError(f"Invalid status '{new_status}', must be one of {valid}")
-
-    with _write_lock:
-        text = path.read_text(encoding="utf-8")
-
-        # Find the topic section and replace its status line
-        # Pattern: after "### {slug}" find "- **status:** ..."
-        pattern = re.compile(
-            rf"(### {re.escape(topic_slug)}\b.*?- \*\*status:\*\*\s*)\S+",
-            re.DOTALL,
-        )
-        new_text, count = pattern.subn(rf"\g<1>{new_status}", text, count=1)
-        if count == 0:
-            raise ValueError(f"Topic '{topic_slug}' not found in {path}")
-
-        path.write_text(new_text, encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------

@@ -30,6 +30,8 @@ if hasattr(sys.stderr, "reconfigure"):
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 LESSONS_DIR = PROJECT_ROOT / "lessons"
 QUESTIONS_DIR = PROJECT_ROOT / "learning-records" / "questions"
+# Workspace root for the per-user status overlay (defaults to project root; set_workspace overrides).
+OVERLAY_ROOT = PROJECT_ROOT
 
 # Sub-map navigation (zoom)
 try:
@@ -48,11 +50,21 @@ MAPS_DIR: Path | None = None
 
 
 def set_workspace(workspace_path: Path) -> None:
-    """Override LESSONS_DIR, QUESTIONS_DIR, and MAPS_DIR to point at a workspace."""
-    global LESSONS_DIR, QUESTIONS_DIR, MAPS_DIR
+    """Override LESSONS_DIR, QUESTIONS_DIR, MAPS_DIR, and OVERLAY_ROOT to a workspace."""
+    global LESSONS_DIR, QUESTIONS_DIR, MAPS_DIR, OVERLAY_ROOT
     LESSONS_DIR = workspace_path / "lessons"
     QUESTIONS_DIR = workspace_path / "learning-records" / "questions"
     MAPS_DIR = workspace_path / "maps"
+    OVERLAY_ROOT = workspace_path
+
+
+def _overlay_status_map() -> dict:
+    """{node_id → status} from the per-user overlay for the active workspace."""
+    try:
+        from tools.lib.overlay import Overlay
+    except ModuleNotFoundError:
+        from lib.overlay import Overlay  # type: ignore[no-redef]
+    return Overlay(OVERLAY_ROOT).status_map()
 
 # State → color mapping (teach-me color vocabulary)
 STATE_COLORS = {
@@ -88,6 +100,10 @@ def parse_map_md(path: Path) -> dict:
         if e.type == "prereq":
             prereq_by_target.setdefault(e.target_id, []).append(e.source_id)
 
+    # Per-user status overlay join (#258): status lives in the gitignored overlay,
+    # never on the committed node. Absent id = not-started.
+    status_map = _overlay_status_map()
+
     topics = [
         {
             "id": t.id,
@@ -95,9 +111,9 @@ def parse_map_md(path: Path) -> dict:
             "title": t.title,
             "why": t.why,
             "scope": t.scope,
-            "status": t.status,
+            "status": status_map.get(t.id, "not-started"),
             "lesson_file": t.lesson_file or "",
-            "prereqs": list(t.prereqs),            # authored slugs (round-trip / status write-back)
+            "prereqs": list(t.prereqs),            # authored slugs (round-trip surface)
             "prereqIds": prereq_by_target.get(t.id, []),  # resolved ULIDs (client edge endpoints)
         }
         for t in dm.topics
@@ -157,16 +173,19 @@ def topic_has_quiz(slug: str) -> bool:
     return False
 
 
-def compute_effective_status(slug: str, map_status: str) -> str:
-    """Compute topic status from actual files on disk.
-    
+def compute_effective_status(slug: str, overlay_status: str) -> str:
+    """Compute display status from files on disk, floored by the per-user overlay.
+
     Status lifecycle:
       not-started → in-progress (lesson exists) → complete (lesson + reference + quiz/questions)
-    
-    Never downgrades: if MAP.md says 'complete', trust it (user may have marked manually).
+
+    The overlay is the source of truth for user intent: if the user marked a topic
+    `complete` or `in-progress` in the overlay, never downgrade below that. Disk
+    evidence can only promote a topic the overlay left at `not-started`. This derives
+    a view — it is NOT written back anywhere (per #258, status is never committed).
     """
-    if map_status == "complete":
-        return "complete"
+    if overlay_status in ("complete", "in-progress"):
+        return overlay_status
 
     has_lesson = topic_has_lesson(slug) is not None
     has_ref = topic_has_reference(slug)
@@ -178,7 +197,7 @@ def compute_effective_status(slug: str, map_status: str) -> str:
     elif has_lesson:
         return "in-progress"
     else:
-        return map_status  # keep whatever MAP.md says
+        return overlay_status  # not-started
 
 
 def topic_has_questions(slug: str) -> int:
@@ -213,12 +232,11 @@ def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path |
 
     # Build data island
     topic_data = []
-    status_updates = {}  # track changes to write back to MAP.md (keyed by slug — update_status locates by slug)
     for t in topics:
         lesson_path = t.get("lesson_file") or topic_has_lesson(t["slug"])
+        # Disk-derived view, floored by the per-user overlay (t["status"] from parse_map_md).
+        # NOT written back — status is never committed (#258).
         effective_status = compute_effective_status(t["slug"], t["status"])
-        if effective_status != t["status"]:
-            status_updates[t["slug"]] = effective_status
         topic_data.append({
             "id": t["id"],                 # real ULID (node key + edge endpoint space)
             "slug": t["slug"],             # for lesson/quiz routing + file matching
@@ -228,15 +246,6 @@ def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path |
             "status": effective_status,
             "lessonPath": lesson_path or None,
         })
-
-    # Write status updates back to MAP.md (keeps it in sync with reality)
-    if status_updates and map_path and map_path.exists():
-        try:
-            from map_parser import update_status as _update_status
-        except ImportError:
-            from tools.map_parser import update_status as _update_status
-        for slug, new_status in status_updates.items():
-            _update_status(map_path, slug, new_status)
 
     # Normalize leads_to to list of dicts
     leads_to_data = []

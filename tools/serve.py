@@ -157,6 +157,13 @@ if not MAPS_DIR.exists():
     # Fallback: look in the example workspace
     MAPS_DIR = PROJECT_ROOT / "examples" / "iceberg-workspace" / "maps"
 
+
+def _overlay():
+    """The per-user status overlay for the served workspace (root = maps' parent)."""
+    from lib.overlay import Overlay
+
+    return Overlay(MAPS_DIR.parent)
+
 # Mock command for testing (simulates a 3-step generation)
 MOCK_CMD = [
     "bash",
@@ -387,7 +394,7 @@ async def list_maps() -> JSONResponse:
 
 @app.get("/api/map/{domain}")
 async def get_map(domain: str) -> JSONResponse:
-    """Return parsed MAP.md data for a domain."""
+    """Return parsed MAP.md data for a domain, joined with the per-user status overlay."""
     from map_parser import load_map, validate, get_available_topics, get_next_suggestion
 
     candidates = list(MAPS_DIR.glob(f"*{domain}*MAP.md")) + list(MAPS_DIR.glob(f"{domain}*"))
@@ -396,8 +403,9 @@ async def get_map(domain: str) -> JSONResponse:
 
     m = load_map(candidates[0])
     errors = validate(m)
-    available = get_available_topics(m)
-    suggestion = get_next_suggestion(m)
+    status_map = _overlay().status_map()  # {node_id → status}; absent = not-started
+    available = get_available_topics(m, status_map)
+    suggestion = get_next_suggestion(m, status_map)
 
     return JSONResponse({
         "domain": m.domain,
@@ -407,7 +415,8 @@ async def get_map(domain: str) -> JSONResponse:
         "leads_to": [{"slug": lt.slug, "why": lt.why} for lt in m.leads_to],
         "topic_count": len(m.topics),
         "topics": [
-            {"slug": t.slug, "title": t.title, "status": t.status,
+            {"slug": t.slug, "title": t.title,
+             "status": status_map.get(t.id, "not-started"),
              "scope": t.scope, "prereqs": t.prereqs, "lesson_file": t.lesson_file}
             for t in m.topics
         ],
@@ -421,34 +430,35 @@ class StatusUpdateRequest(BaseModel):
     status: str  # not-started | in-progress | complete
 
 
-@app.get("/api/map/{domain}/{slug}/status")
-async def get_topic_status(domain: str, slug: str) -> JSONResponse:
-    """Get a topic's current status from its MAP.md file."""
+def _resolve_topic_id(domain: str, slug: str):
+    """Resolve (map_path, node_id) for a domain+slug, or raise 404."""
     from map_parser import load_map
 
     candidates = list(MAPS_DIR.glob(f"*{domain}*MAP.md")) + list(MAPS_DIR.glob(f"{domain}*"))
     if not candidates:
         raise HTTPException(status_code=404, detail=f"No MAP.md found for domain '{domain}'")
-
     m = load_map(candidates[0])
     for t in m.topics:
         if t.slug == slug:
-            return JSONResponse({"domain": domain, "slug": slug, "status": t.status})
-
+            return candidates[0], t.id
     raise HTTPException(status_code=404, detail=f"Topic '{slug}' not found in domain '{domain}'")
+
+
+@app.get("/api/map/{domain}/{slug}/status")
+async def get_topic_status(domain: str, slug: str) -> JSONResponse:
+    """Get a topic's current status from the per-user overlay (absent = not-started)."""
+    _, node_id = _resolve_topic_id(domain, slug)
+    rec = _overlay().get(node_id)
+    status = rec["status"] if rec else "not-started"
+    return JSONResponse({"domain": domain, "slug": slug, "status": status})
 
 
 @app.post("/api/map/{domain}/{slug}/status")
 async def update_topic_status(domain: str, slug: str, req: StatusUpdateRequest) -> JSONResponse:
-    """Update a topic's status in its MAP.md file."""
-    from map_parser import update_status
-
-    candidates = list(MAPS_DIR.glob(f"*{domain}*MAP.md")) + list(MAPS_DIR.glob(f"{domain}*"))
-    if not candidates:
-        raise HTTPException(status_code=404, detail=f"No MAP.md found for domain '{domain}'")
-
+    """Persist a topic's status to the per-user overlay ONLY (never the committed MAP.md)."""
+    _, node_id = _resolve_topic_id(domain, slug)
     try:
-        update_status(candidates[0], slug, req.status)
+        _overlay().set(node_id, req.status)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

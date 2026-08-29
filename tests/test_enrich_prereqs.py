@@ -42,7 +42,6 @@ def _make_map(topics: list[dict], domain: str = "test") -> str:
         lines.append(f"- **why:** Test")
         lines.append(f"- **scope:** substantial")
         lines.append(f"- **prereqs:** {prereqs}")
-        lines.append(f"- **status:** not-started")
         lines.append("")
     return "\n".join(lines)
 

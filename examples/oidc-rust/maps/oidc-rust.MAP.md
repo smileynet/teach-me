@@ -26,7 +26,6 @@ Every web service that says "Sign in with Google" is using OpenID Connect — an
 - **scope:** substantial
 - **prereqs:** []
 - **lesson_file:** 0001-oidc-auth-flows.html
-- **status:** complete
 
 ### token-anatomy
 - **id:** 01M174TQPXBH83XTK1HWTNY04R
@@ -35,7 +34,6 @@ Every web service that says "Sign in with Google" is using OpenID Connect — an
 - **scope:** substantial
 - **prereqs:** [oidc-auth-flows]
 - **lesson_file:** 0002-token-anatomy.html
-- **status:** complete
 
 ### rust-oidc-client
 - **id:** 01M174TQPX4G6A5TMGD7MEEK2K
@@ -43,7 +41,6 @@ Every web service that says "Sign in with Google" is using OpenID Connect — an
 - **why:** The openidconnect crate handles discovery, PKCE, token exchange, and ID token validation — but its type system is intimidating. You need to know which types to wire together and what the compiler is protecting you from.
 - **scope:** deep
 - **prereqs:** [oidc-auth-flows, token-anatomy]
-- **status:** not-started
 
 ### token-validation-middleware
 - **id:** 01M174TQPX07QG13F5CPAFPC2P
@@ -51,7 +48,6 @@ Every web service that says "Sign in with Google" is using OpenID Connect — an
 - **why:** Your API endpoints need to validate bearer tokens on every request — fetching JWKS, checking signatures, verifying claims. This is where most production bugs live (caching, rotation, clock skew).
 - **scope:** substantial
 - **prereqs:** [token-anatomy]
-- **status:** not-started
 
 ### session-and-refresh
 - **id:** 01M174TQPXSF617VN6Z02F3YM1
@@ -59,7 +55,6 @@ Every web service that says "Sign in with Google" is using OpenID Connect — an
 - **why:** Login is one request; staying logged in is a session problem. Refresh token rotation, secure cookie handling, and logout (front-channel vs back-channel) are where simple demos become production code.
 - **scope:** substantial
 - **prereqs:** [rust-oidc-client]
-- **status:** not-started
 
 ### testing-oidc
 - **id:** 01M174TQPXG8YAF3FWXRAQN92X
@@ -67,4 +62,3 @@ Every web service that says "Sign in with Google" is using OpenID Connect — an
 - **why:** You can't call Google's auth server in CI. Mock providers, test JWKs, and integration test patterns let you verify auth code without live IdP dependencies.
 - **scope:** lightweight
 - **prereqs:** [rust-oidc-client, token-validation-middleware]
-- **status:** not-started
