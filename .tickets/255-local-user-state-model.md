@@ -1,7 +1,7 @@
 ---
 id: "255"
 title: "Minimal per-user overlay: gitignored sparse status map keyed by node ID"
-status: in_progress
+status: done
 blocked_by: ["258"]
 priority: high
 tags: ["platform"]
@@ -97,19 +97,26 @@ overlay status is complete/in-progress). No availability locking, no blocked top
 
 ## Acceptance criteria
 
-- [ ] A gitignored `.user/` overlay stores `{node_id → {status, updated_at}}` (sparse)
-- [ ] Quiz/SR per-user state relocated under `.user/`, keyed by node id (no committed
-      per-user state anywhere)
-- [ ] Overlay interface (`load/get/set/reset`) is pure stdlib on-disk JSON; #258's
-      queries + serve endpoints use it
-- [ ] Topic view shows recommended-prereq met/unmet indicator (informational, no gating)
-- [ ] Fresh clone (no `.user/`) = all topics not-started, nothing errors; deleting
-      `.user/` resets progress cleanly
-- [ ] `.user/` is gitignored; `git status` clean after marking topics complete
-- [ ] `mise run verify` EXIT 0
+- [x] A gitignored `.user/` overlay stores `{node_id → {status, updated_at}}` (sparse) — #258
+- [x] Quiz/SR per-user state relocated under `.user/learning-records/` (per-user); status
+      overlay is node-id-keyed; SR stays slug-keyed and joins to the graph via slug↔ULID
+      (re-keying cards is harmful per Anki/FSRS evidence — deferred to #259). No committed
+      per-user state (live workspace + `.user/` both gitignored; only demo fixtures committed)
+- [x] Overlay interface (`load/get/set/reset`) is pure stdlib on-disk JSON; #258's
+      queries + serve endpoints use it — #258
+- [x] Topic view shows recommended-prereq met/unmet indicator (informational, no gating) —
+      Playwright: `✓ met` / `○ not yet` glyph+word, cards stay interactive, `/.user/` 404
+- [x] Fresh clone (no `.user/`) = all topics not-started, nothing errors; deleting
+      `.user/` resets progress cleanly — #258 fresh-clone sim + resolver default
+- [x] `.user/` is gitignored; `git status` clean after marking topics complete
+- [x] `mise run verify` EXIT 0
 
 ## Validation
 
 Mark topics complete → writes only to `.user/`, `git status` clean; delete `.user/` →
 progress resets, no errors; a topic with an unmet recommended prereq shows the ○
 indicator but is still fully accessible (no gating).
+
+## Resolution (2026-08-29)
+
+Minimal per-user overlay floor completed (store shipped in #258). SR/quiz store relocated to .user/learning-records/ via a one-point resolver in questions.py (prefer private .user/, fall back to committed example fixtures for read); 7 path-hardcoders converted; init_workspace scaffolds the private path; serve.py /api/questions uses the resolver and a new /.user/ 404 guard keeps the overlay non-browsable. SR cards stay slug-keyed (re-keying resets FSRS state per Anki evidence; node-id join at the graph boundary only; full re-key deferred to #259). Non-gating recommended-prereq indicator added to TopicCard.js (✓ met / ○ not yet from live overlay-backed status signals, no fetch, color+glyph+word), CSS in generate_map_page css_extra. Validated via mise verify+check-maps, SR resolver checks, and Playwright (indicator states, non-gating, privacy guard).
