@@ -38,19 +38,16 @@ This is a test orientation paragraph.
 - **title:** First Topic
 - **why:** The starting point
 - **prereqs:** []
-- **status:** not-started
 
 ### topic-two
 - **title:** Second Topic
 - **why:** Builds on the first
 - **prereqs:** [topic-one]
-- **status:** not-started
 
 ### topic-three
 - **title:** Third Topic
 - **why:** The capstone
 - **prereqs:** [topic-two]
-- **status:** not-started
 """
 
 

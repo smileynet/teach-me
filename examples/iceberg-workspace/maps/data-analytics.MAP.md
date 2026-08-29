@@ -32,7 +32,6 @@ Every organization sits on operational data that only becomes useful when it flo
 - **scope:** substantial
 - **prereqs:** []
 - **lesson_file:** 0002-data-ingestion-change-capture.html
-- **status:** complete
 
 ### storage-and-table-formats
 - **id:** 01M174TQPPD0TDSBXSM79ZBZ73
@@ -41,7 +40,6 @@ Every organization sits on operational data that only becomes useful when it flo
 - **scope:** deep
 - **prereqs:** [ingestion]
 - **lesson_file:** 0001-iceberg-metadata-tree.html
-- **status:** complete
 
 ### compute-engines
 - **id:** 01M174TQPPQC00AS015ZGRV1R3
@@ -49,7 +47,6 @@ Every organization sits on operational data that only becomes useful when it flo
 - **why:** The engine you pick decides what workloads are fast, what's expensive, and how your storage is actually read
 - **scope:** substantial
 - **prereqs:** [storage-and-table-formats]
-- **status:** not-started
 
 ### transformation-and-modeling
 - **id:** 01M174TQPP4NSA7HE1FG1ZHHYC
@@ -57,7 +54,6 @@ Every organization sits on operational data that only becomes useful when it flo
 - **why:** Raw ingested data is unusable for analysis — transformation turns it into trusted, business-meaningful tables
 - **scope:** substantial
 - **prereqs:** [storage-and-table-formats]
-- **status:** not-started
 
 ### orchestration
 - **id:** 01M174TQPPPS80V8ZSSXTHTSWK
@@ -65,7 +61,6 @@ Every organization sits on operational data that only becomes useful when it flo
 - **why:** Pipelines fail, dependencies shift, schedules slip — orchestration is what makes the whole stack run without manual intervention
 - **scope:** substantial
 - **prereqs:** [ingestion, transformation-and-modeling]
-- **status:** not-started
 
 ### serving-and-bi
 - **id:** 01M174TQPP4Z1ADE34PFAX1GWJ
@@ -73,7 +68,6 @@ Every organization sits on operational data that only becomes useful when it flo
 - **why:** The entire stack exists to put trustworthy answers in front of decision-makers — this is where value is realized
 - **scope:** substantial
 - **prereqs:** [transformation-and-modeling]
-- **status:** not-started
 
 ### governance-and-observability
 - **id:** 01M174TQPPM488YV8AA7M4TC7E
@@ -82,4 +76,3 @@ Every organization sits on operational data that only becomes useful when it flo
 - **scope:** substantial
 - **prereqs:** [transformation-and-modeling, orchestration]
 - **leads_to:** [data-governance-at-scale]
-- **status:** not-started

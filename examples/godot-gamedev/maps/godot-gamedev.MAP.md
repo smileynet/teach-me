@@ -28,7 +28,6 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **prereqs:** []
 - **lesson_file:** 0001-nodes-and-scenes.html
 - **leads_to:** [game-ai-and-behavior]
-- **status:** complete
 
 ### gdscript-fundamentals
 - **id:** 01M174TQPE9JAPFN8JB1ERFEPE
@@ -37,7 +36,6 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **scope:** substantial
 - **prereqs:** [nodes-and-scenes]
 - **lesson_file:** 0002-gdscript-fundamentals.html
-- **status:** complete
 
 ### 2d-game-mechanics
 - **id:** 01M174TQPEZQMEFSVC2TMKVZAP
@@ -46,7 +44,6 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **scope:** deep
 - **prereqs:** [gdscript-fundamentals]
 - **leads_to:** [procedural-generation]
-- **status:** not-started
 
 ### physics-and-collision
 - **id:** 01M174TQPEFPESE3GDEMACGS5M
@@ -54,7 +51,6 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **why:** Rigid bodies, areas, raycasts, and collision layers are how your game world enforces physical rules
 - **scope:** substantial
 - **prereqs:** [nodes-and-scenes, gdscript-fundamentals]
-- **status:** not-started
 
 ### ui-and-control-nodes
 - **id:** 01M174TQPE5HAD87R8D409B9R7
@@ -62,7 +58,6 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **why:** Every game needs at least a title screen and a score counter — Godot's Control nodes are a full UI toolkit built into the engine
 - **scope:** substantial
 - **prereqs:** [gdscript-fundamentals]
-- **status:** not-started
 
 ### animation-and-audio
 - **id:** 01M174TQPE5AAZKC0NR1JP1Y9W
@@ -71,7 +66,6 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **scope:** substantial
 - **prereqs:** [nodes-and-scenes, gdscript-fundamentals]
 - **leads_to:** [shader-programming]
-- **status:** not-started
 
 ### 3d-fundamentals
 - **id:** 01M174TQPEB6J1NZ3QVM080KRY
@@ -80,7 +74,6 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **scope:** deep
 - **prereqs:** [2d-game-mechanics, physics-and-collision]
 - **leads_to:** [shader-programming]
-- **status:** not-started
 
 ### exporting-and-publishing
 - **id:** 01M174TQPE0MZGBZKVXFS0GJ23
@@ -89,4 +82,3 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **scope:** lightweight
 - **prereqs:** [2d-game-mechanics]
 - **leads_to:** [publishing-and-marketing]
-- **status:** not-started

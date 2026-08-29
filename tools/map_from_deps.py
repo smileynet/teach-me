@@ -362,7 +362,6 @@ def _render_map(
             lines.append(f"- **soft_prereqs:** {soft_str}")
         if topic.module:
             lines.append(f"- **module:** {topic.module}")
-        lines.append(f"- **status:** not-started")
         lines.append("")
 
     return "\n".join(lines)

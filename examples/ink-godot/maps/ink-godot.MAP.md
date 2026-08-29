@@ -26,7 +26,6 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **scope:** substantial
 - **prereqs:** []
 - **lesson_file:** 0001-ink-flow-and-knots.html
-- **status:** complete
 
 ### ink-choices-and-weave
 - **id:** 01M174TQPVXSXEVPRYM5QNNWT3
@@ -35,7 +34,6 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **scope:** substantial
 - **prereqs:** [ink-flow-and-knots]
 - **lesson_file:** 0002-ink-choices-and-weave.html
-- **status:** in-progress
 
 ### ink-variables-and-conditionals
 - **id:** 01M174TQPV20MTTGH29SMYCZ24
@@ -44,7 +42,6 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **scope:** substantial
 - **prereqs:** [ink-choices-and-weave]
 - **lesson_file:** 0003-ink-variables-and-conditionals.html
-- **status:** in-progress
 
 ### ink-functions-and-tunnels
 - **id:** 01M174TQPVTPB3VFTCRBX3KJFG
@@ -53,7 +50,6 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **scope:** substantial
 - **prereqs:** [ink-variables-and-conditionals]
 - **lesson_file:** 0004-ink-functions-and-tunnels.html
-- **status:** in-progress
 
 ### godot-ink-integration
 - **id:** 01M174TQPVDXGR1JFAHZ15J7XH
@@ -62,7 +58,6 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **scope:** substantial
 - **prereqs:** [ink-functions-and-tunnels]
 - **lesson_file:** 0005-godot-ink-integration.html
-- **status:** in-progress
 
 ### tags-as-commands
 - **id:** 01M174TQPV6FWNWQJS1JRC5ADW
@@ -71,7 +66,6 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **scope:** substantial
 - **prereqs:** [godot-ink-integration]
 - **lesson_file:** 0006-tags-as-commands.html
-- **status:** in-progress
 
 ### state-bridge
 - **id:** 01M174TQPV2FBSAMEKC0Z5DWGH
@@ -80,7 +74,6 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **scope:** substantial
 - **prereqs:** [tags-as-commands]
 - **lesson_file:** 0007-state-bridge.html
-- **status:** complete
 
 ### production-patterns
 - **id:** 01M174TQPV2WJXAXZGWJ2TJ0Q0
@@ -89,7 +82,6 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **scope:** deep
 - **prereqs:** [state-bridge]
 - **lesson_file:** 0008-production-patterns.html
-- **status:** complete
 
 ## Expansion Opportunities
 

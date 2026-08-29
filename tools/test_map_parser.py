@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from map_parser import (
     DomainMap, Topic, Edge, load_map, validate,
-    get_available_topics, get_next_suggestion, update_status,
+    get_available_topics, get_next_suggestion,
 )
 
 EXAMPLES_DIR = Path(__file__).parent.parent / "examples"
@@ -37,7 +37,6 @@ def test_load_data_analytics():
     t = m.topic_by_slug("storage-and-table-formats")
     assert t is not None
     assert t.title == "Storage & Open Table Formats"
-    assert t.status == "complete"
     assert t.prereqs == ["ingestion"]
     assert t.scope == "deep"
 
@@ -85,7 +84,7 @@ def test_validate_too_many_topics():
         domain="test", description="", depth=0, parent=None,
         leads_to=[], orientation="",
         topics=[Topic(slug=f"t{i}", title=f"T{i}", why="", scope="substantial",
-                      prereqs=[], status="not-started") for i in range(10)]
+                      prereqs=[]) for i in range(10)]
     )
     errors = validate(m)
     assert any("Too many topics" in e for e in errors)
@@ -97,7 +96,7 @@ def test_validate_undefined_prereq():
         leads_to=[], orientation="",
         topics=[
             Topic(slug="a", title="A", why="", scope="substantial",
-                  prereqs=["nonexistent"], status="not-started"),
+                  prereqs=["nonexistent"]),
         ]
     )
     errors = validate(m)
@@ -110,26 +109,13 @@ def test_validate_cycle():
         leads_to=[], orientation="",
         topics=[
             Topic(slug="a", title="A", why="", scope="substantial",
-                  prereqs=["b"], status="not-started"),
+                  prereqs=["b"]),
             Topic(slug="b", title="B", why="", scope="substantial",
-                  prereqs=["a"], status="not-started"),
+                  prereqs=["a"]),
         ]
     )
     errors = validate(m)
     assert any("Cycle" in e for e in errors)
-
-
-def test_validate_invalid_status():
-    m = DomainMap(
-        domain="test", description="", depth=0, parent=None,
-        leads_to=[], orientation="",
-        topics=[
-            Topic(slug="a", title="A", why="", scope="substantial",
-                  prereqs=[], status="garbage"),
-        ]
-    )
-    errors = validate(m)
-    assert any("invalid status" in e for e in errors)
 
 
 # ---------------------------------------------------------------------------
@@ -138,10 +124,14 @@ def test_validate_invalid_status():
 
 def test_get_available_topics():
     m = load_map(DATA_ANALYTICS_MAP)
-    available = get_available_topics(m)
+    # Status now lives in the overlay: {node_id → status}. Reproduce the historical
+    # scenario (ingestion complete, storage in-progress) via an explicit status_map.
+    ing = m.topic_by_slug("ingestion").id
+    sto = m.topic_by_slug("storage-and-table-formats").id
+    status_map = {ing: "complete", sto: "in-progress"}
+    available = get_available_topics(m, status_map)
     slugs = [t.slug for t in available]
-    # ingestion has no prereqs but storage is in-progress (prereq satisfied)
-    # so compute-engines and transformation-and-modeling should be available
+    # compute-engines and transformation-and-modeling should be available
     assert "compute-engines" in slugs
     assert "transformation-and-modeling" in slugs
     # governance requires orchestration which is not-started
@@ -154,24 +144,25 @@ def test_get_available_all_blocked():
         leads_to=[], orientation="",
         topics=[
             Topic(slug="a", title="A", why="", scope="substantial",
-                  prereqs=["b"], status="not-started", id="A" * 26),
+                  prereqs=["b"], id="A" * 26),
             Topic(slug="b", title="B", why="", scope="substantial",
-                  prereqs=["a"], status="not-started", id="B" * 26),
+                  prereqs=["a"], id="B" * 26),
         ],
         edges=[
             Edge(source_id="B" * 26, target_id="A" * 26, type="prereq"),  # a needs b
             Edge(source_id="A" * 26, target_id="B" * 26, type="prereq"),  # b needs a
         ],
     )
-    assert get_available_topics(m) == []
+    assert get_available_topics(m, {}) == []
 
 
 def test_get_next_suggestion():
     m = load_map(DATA_ANALYTICS_MAP)
-    suggestion = get_next_suggestion(m)
+    ing = m.topic_by_slug("ingestion").id
+    sto = m.topic_by_slug("storage-and-table-formats").id
+    suggestion = get_next_suggestion(m, {ing: "complete", sto: "in-progress"})
     assert suggestion is not None
-    # With ingestion=complete and storage=in-progress, transformation-and-modeling
-    # has the most downstream dependents (3) among available topics
+    # transformation-and-modeling has the most downstream dependents among available
     assert suggestion.slug in ("transformation-and-modeling", "compute-engines", "ingestion")
 
 
@@ -181,72 +172,30 @@ def test_get_next_suggestion_nothing_available():
         leads_to=[], orientation="",
         topics=[
             Topic(slug="a", title="A", why="", scope="substantial",
-                  prereqs=["b"], status="not-started", id="A" * 26),
+                  prereqs=["b"], id="A" * 26),
             Topic(slug="b", title="B", why="", scope="substantial",
-                  prereqs=["a"], status="not-started", id="B" * 26),
+                  prereqs=["a"], id="B" * 26),
         ],
         edges=[
             Edge(source_id="B" * 26, target_id="A" * 26, type="prereq"),
             Edge(source_id="A" * 26, target_id="B" * 26, type="prereq"),
         ],
     )
-    assert get_next_suggestion(m) is None
+    assert get_next_suggestion(m, {}) is None
 
 
 # ---------------------------------------------------------------------------
-# Mutation tests
+# Overlay-derived readiness (fresh overlay = all not-started)
 # ---------------------------------------------------------------------------
 
-def test_update_status():
-    # Copy a MAP.md to temp, update, verify
-    src = DATA_ANALYTICS_MAP
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
-        f.write(src.read_text())
-        tmp = Path(f.name)
-
-    update_status(tmp, "ingestion", "in-progress")
-    m = load_map(tmp)
-    assert m.topic_by_slug("ingestion").status == "in-progress"
-    # Other topics unchanged
-    assert m.topic_by_slug("storage-and-table-formats").status == "complete"
-    assert m.topic_by_slug("compute-engines").status == "not-started"
-
-    # Update again
-    update_status(tmp, "ingestion", "complete")
-    m = load_map(tmp)
-    assert m.topic_by_slug("ingestion").status == "complete"
-
-    tmp.unlink()
-
-
-def test_update_status_invalid():
-    src = DATA_ANALYTICS_MAP
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
-        f.write(src.read_text())
-        tmp = Path(f.name)
-
-    try:
-        update_status(tmp, "ingestion", "garbage")
-        assert False, "Should have raised ValueError"
-    except ValueError as e:
-        assert "Invalid status" in str(e)
-
-    tmp.unlink()
-
-
-def test_update_status_missing_slug():
-    src = DATA_ANALYTICS_MAP
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
-        f.write(src.read_text())
-        tmp = Path(f.name)
-
-    try:
-        update_status(tmp, "nonexistent-topic", "complete")
-        assert False, "Should have raised ValueError"
-    except ValueError as e:
-        assert "not found" in str(e)
-
-    tmp.unlink()
+def test_empty_overlay_only_roots_available():
+    """Fresh clone (empty overlay): only topics with no prereqs are available."""
+    m = load_map(DATA_ANALYTICS_MAP)
+    available = get_available_topics(m, {})
+    # Every available topic must have zero prereqs (nothing is complete/in-progress yet).
+    for t in available:
+        assert t.prereqs == [], f"{t.slug} available with unmet prereqs on empty overlay"
+    assert available, "at least one root topic should be available"
 
 
 # ---------------------------------------------------------------------------
@@ -282,14 +231,12 @@ Intro.
 - **why:** w
 - **scope:** substantial
 - **prereqs:** []
-- **status:** complete
 
 ### beta
 - **title:** Beta
 - **why:** w
 - **scope:** substantial
 - **prereqs:** [alpha]
-- **status:** not-started
 """
 
 
@@ -340,8 +287,8 @@ def test_prereq_cycle_detected_but_related_cycle_ok():
     m = DomainMap(
         domain="t", description="", depth=0, parent=None, leads_to=[], orientation="",
         topics=[
-            Topic(slug="a", title="A", why="", scope="substantial", prereqs=[], status="not-started", id="A" * 26),
-            Topic(slug="b", title="B", why="", scope="substantial", prereqs=[], status="not-started", id="B" * 26),
+            Topic(slug="a", title="A", why="", scope="substantial", prereqs=[], id="A" * 26),
+            Topic(slug="b", title="B", why="", scope="substantial", prereqs=[], id="B" * 26),
         ],
         edges=[
             Edge("A" * 26, "B" * 26, "prereq"),
@@ -357,7 +304,7 @@ def test_prereq_cycle_detected_but_related_cycle_ok():
 def test_validate_flags_bad_id_and_edge_type():
     m = DomainMap(
         domain="t", description="", depth=0, parent=None, leads_to=[], orientation="",
-        topics=[Topic(slug="a", title="A", why="", scope="substantial", prereqs=[], status="not-started", id="not-a-ulid")],
+        topics=[Topic(slug="a", title="A", why="", scope="substantial", prereqs=[], id="not-a-ulid")],
         edges=[Edge("A" * 26, "A" * 26, "bogus")],
     )
     errs = validate(m)
@@ -387,8 +334,8 @@ def test_slug_rename_preserves_edges():
     body = (
         "---\ndomain: t\ndescription: \"d\"\ndepth: 0\nparent: null\n---\n\n# T\n\n"
         "## Orientation\n\nIntro.\n\n## Topics\n\n"
-        f"### alpha\n- **id:** {aid}\n- **title:** Alpha\n- **prereqs:** []\n- **status:** complete\n\n"
-        f"### beta\n- **id:** {bid}\n- **title:** Beta\n- **prereqs:** [alpha]\n- **status:** not-started\n"
+        f"### alpha\n- **id:** {aid}\n- **title:** Alpha\n- **prereqs:** []\n\n"
+        f"### beta\n- **id:** {bid}\n- **title:** Beta\n- **prereqs:** [alpha]\n"
     )
     p = _write_map(body)
     before = sorted((e.source_id, e.target_id, e.type) for e in load_map(p).edges)

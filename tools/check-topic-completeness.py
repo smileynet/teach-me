@@ -230,27 +230,26 @@ def check_topic(workspace: Path, topic_slug: str, lesson_file: str | None = None
 
 
 def get_topics_from_map(workspace: Path) -> list[dict]:
-    """Extract topic slugs and metadata from MAP.md files in the workspace."""
+    """Extract topics the user has marked `complete` in the per-user overlay (#258).
+
+    Status is no longer in the committed MAP.md — it lives in the gitignored overlay
+    keyed by ULID node id. We parse each MAP.md for the graph (slug→id, lesson_file),
+    then keep only topics whose overlay status is `complete`.
+    """
+    try:
+        from tools.map_parser import load_map
+        from tools.lib.overlay import Overlay
+    except ModuleNotFoundError:
+        from map_parser import load_map  # type: ignore[no-redef]
+        from lib.overlay import Overlay  # type: ignore[no-redef]
+
+    status_map = Overlay(workspace).status_map()
     topics = []
     for map_file in workspace.glob("maps/*.MAP.md"):
-        content = map_file.read_text(encoding="utf-8")
-        # Find ### slug lines
-        for match in re.finditer(r'^### (\S+)', content, re.MULTILINE):
-            slug = match.group(1)
-            # Find the status and lesson_file after this heading
-            rest = content[match.end():]
-            # Stop at next ### or end
-            next_heading = re.search(r'^### ', rest, re.MULTILINE)
-            section = rest[:next_heading.start()] if next_heading else rest
-
-            status_match = re.search(r'\*\*status:\*\*\s*(\S+)', section)
-            lesson_file_match = re.search(r'\*\*lesson_file:\*\*\s*(\S+)', section)
-
-            if status_match and status_match.group(1) == "complete":
-                topics.append({
-                    "slug": slug,
-                    "lesson_file": lesson_file_match.group(1) if lesson_file_match else None,
-                })
+        dm = load_map(map_file)
+        for t in dm.topics:
+            if status_map.get(t.id) == "complete":
+                topics.append({"slug": t.slug, "lesson_file": t.lesson_file})
     return topics
 
 

@@ -25,7 +25,6 @@ Your data has to live somewhere, and HOW it's stored determines everything downs
 - **why:** Every modern analytics stack sits on object storage (S3, GCS, ADLS) — understanding its constraints and strengths is prerequisite to everything else
 - **scope:** substantial
 - **prereqs:** []
-- **status:** not-started
 
 ### columnar-file-formats
 - **id:** 01M174TQPS2E30N1MYEGNRRZ8E
@@ -33,7 +32,6 @@ Your data has to live somewhere, and HOW it's stored determines everything downs
 - **why:** The file format determines compression ratios, read patterns, and which queries can skip data — it's the physical foundation of performance
 - **scope:** substantial
 - **prereqs:** [object-storage-fundamentals]
-- **status:** not-started
 
 ### table-format-metadata
 - **id:** 01M174TQPS0PX6V614C6042P1Q
@@ -41,7 +39,6 @@ Your data has to live somewhere, and HOW it's stored determines everything downs
 - **why:** Open table formats add transactional semantics, schema evolution, and time travel on top of raw files — this is where "data lake" becomes "lakehouse"
 - **scope:** deep
 - **prereqs:** [columnar-file-formats]
-- **status:** not-started
 
 ### partitioning-strategies
 - **id:** 01M174TQPSND5QFHZNG077E898
@@ -49,7 +46,6 @@ Your data has to live somewhere, and HOW it's stored determines everything downs
 - **why:** How you partition data determines whether queries read megabytes or terabytes — the single biggest lever for query cost and speed
 - **scope:** substantial
 - **prereqs:** [columnar-file-formats]
-- **status:** not-started
 
 ### compaction-and-maintenance
 - **id:** 01M174TQPSF6F95WXFXT0VAPRP
@@ -57,4 +53,3 @@ Your data has to live somewhere, and HOW it's stored determines everything downs
 - **why:** Without regular maintenance, small files accumulate and metadata bloats — turning fast queries into slow, expensive ones over time
 - **scope:** lightweight
 - **prereqs:** [table-format-metadata]
-- **status:** not-started

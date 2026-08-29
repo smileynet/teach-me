@@ -168,8 +168,8 @@ def _synthetic_related() -> tuple[Path, Path, str]:
     (ws / "maps" / "synth.MAP.md").write_text(
         "---\ndomain: synth\ndescription: \"s\"\ndepth: 0\nparent: null\n---\n\n# Synth\n\n"
         "## Orientation\n\nx.\n\n## Topics\n\n"
-        f"### alpha\n- **id:** {aid}\n- **title:** Alpha\n- **prereqs:** []\n- **status:** not-started\n\n"
-        f"### beta\n- **id:** {bid}\n- **title:** Beta\n- **prereqs:** []\n- **soft_prereqs:** [alpha]\n- **status:** not-started\n",
+        f"### alpha\n- **id:** {aid}\n- **title:** Alpha\n- **prereqs:** []\n\n"
+        f"### beta\n- **id:** {bid}\n- **title:** Beta\n- **prereqs:** []\n- **soft_prereqs:** [alpha]\n",
         encoding="utf-8")
     # Generate the map page into ws/lessons via the generator.
     import generate_map_page as gmp

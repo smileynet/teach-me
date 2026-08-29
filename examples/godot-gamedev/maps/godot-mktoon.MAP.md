@@ -26,7 +26,6 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **scope:** substantial
 - **prereqs:** [toon-banding]
 - **lesson_file:** 0009-configurable-banding.html
-- **status:** in-progress
 
 ### gooch-shading
 - **id:** 01M174TQPH8CD5PXM9BN2E86BY
@@ -35,7 +34,6 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **scope:** substantial
 - **prereqs:** [configurable-banding]
 - **lesson_file:** 0010-gooch-shading.html
-- **status:** in-progress
 
 ### wrapped-lighting-noise
 - **id:** 01M174TQPH2BVG3FT78A1AD3K6
@@ -44,7 +42,6 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **scope:** substantial
 - **prereqs:** [gooch-shading]
 - **lesson_file:** 0011-wrapped-lighting-noise.html
-- **status:** in-progress
 
 ### specular-rim
 - **id:** 01M174TQPH2Y56YNJHW6E4CSMQ
@@ -53,7 +50,6 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **scope:** substantial
 - **prereqs:** [wrapped-lighting-noise]
 - **lesson_file:** 0012-specular-rim.html
-- **status:** in-progress
 
 ### outlines-overlays
 - **id:** 01M174TQPH5ZBRNCNF0ZB2TEP7
@@ -62,7 +58,6 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **scope:** substantial
 - **prereqs:** [specular-rim]
 - **lesson_file:** 0013-outlines-overlays.html
-- **status:** in-progress
 
 ### vfx-dissolve-vertex
 - **id:** 01M174TQPHRS48N7909AXCZF24
@@ -71,7 +66,6 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **scope:** substantial
 - **prereqs:** [outlines-overlays]
 - **lesson_file:** 0014-vfx-dissolve-vertex.html
-- **status:** in-progress
 
 ## Expansion Opportunities
 

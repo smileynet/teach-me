@@ -28,7 +28,6 @@ The reference implementation is `mk_toon_lite.gdshader` — which declares unifo
 - **scope:** lightweight
 - **prereqs:** [toon-banding]
 - **lesson_file:** blender-texture-prep/01-texture-audit.html
-- **status:** in-progress
 
 ### albedo-posterize
 - **id:** 01M174TQPB8QFQZ6A8D4WQ3HAB
@@ -37,7 +36,6 @@ The reference implementation is `mk_toon_lite.gdshader` — which declares unifo
 - **scope:** substantial
 - **prereqs:** [texture-audit]
 - **lesson_file:** blender-texture-prep/02-albedo-posterize.html
-- **status:** in-progress
 
 ### palette-snap
 - **id:** 01M174TQPBFQG4MTH62HANBFMD
@@ -46,7 +44,6 @@ The reference implementation is `mk_toon_lite.gdshader` — which declares unifo
 - **scope:** substantial
 - **prereqs:** [albedo-posterize]
 - **lesson_file:** blender-texture-prep/03-palette-snap.html
-- **status:** in-progress
 
 ### toon-control-maps
 - **id:** 01M174TQPBTDFW2AAZZXKCCWKN
@@ -55,7 +52,6 @@ The reference implementation is `mk_toon_lite.gdshader` — which declares unifo
 - **scope:** substantial
 - **prereqs:** [texture-audit]
 - **lesson_file:** blender-texture-prep/04-toon-control-maps.html
-- **status:** in-progress
 
 ### ramp-band-textures
 - **id:** 01M174TQPBD4AXH3MSNAF1CNPS
@@ -64,7 +60,6 @@ The reference implementation is `mk_toon_lite.gdshader` — which declares unifo
 - **scope:** substantial
 - **prereqs:** [toon-banding]
 - **lesson_file:** blender-texture-prep/ramp-band-textures.html
-- **status:** not-started
 
 ### bake-and-export
 - **id:** 01M174TQPB4KRM72DXG8GAZ3KJ
@@ -73,7 +68,6 @@ The reference implementation is `mk_toon_lite.gdshader` — which declares unifo
 - **scope:** substantial
 - **prereqs:** [palette-snap, toon-control-maps]
 - **lesson_file:** blender-texture-prep/05-bake-and-export.html
-- **status:** in-progress
 
 ### wiring-the-shader
 - **id:** 01M174TQPB5WJ7TT2EJ2YPXTZ4
@@ -82,7 +76,6 @@ The reference implementation is `mk_toon_lite.gdshader` — which declares unifo
 - **scope:** substantial
 - **prereqs:** [bake-and-export, configurable-banding]
 - **lesson_file:** 0020-wiring-the-shader.html
-- **status:** not-started
 
 ## Expansion Opportunities
 

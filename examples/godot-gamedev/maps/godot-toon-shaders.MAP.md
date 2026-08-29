@@ -25,7 +25,6 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **scope:** substantial
 - **prereqs:** []
 - **lesson_file:** 0003-spatial-shader-anatomy.html
-- **status:** complete
 
 ### toon-banding
 - **id:** 01M174TQPM3VYT0E96F4B7735M
@@ -34,7 +33,6 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **scope:** substantial
 - **prereqs:** [spatial-shader-anatomy]
 - **lesson_file:** 0004-toon-banding.html
-- **status:** complete
 
 ### triplanar-mapping
 - **id:** 01M174TQPM333KKHJYZHE7AE6E
@@ -43,7 +41,6 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **scope:** substantial
 - **prereqs:** [spatial-shader-anatomy]
 - **lesson_file:** 0005-triplanar-mapping.html
-- **status:** complete
 
 ### toon-outlines
 - **id:** 01M174TQPMSZ3ZBHD6DW3SGCD2
@@ -52,7 +49,6 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **scope:** substantial
 - **prereqs:** [toon-banding]
 - **lesson_file:** 0006-toon-outlines.html
-- **status:** complete
 
 ### advanced-outlines
 - **id:** 01M174TQPMKFNCRGHCMNSSCNES
@@ -61,7 +57,6 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **scope:** substantial
 - **prereqs:** [toon-outlines]
 - **lesson_file:** 0007-advanced-outlines.html
-- **status:** complete
 
 ### color-simplification
 - **id:** 01M174TQPMXHHWXY6QRP4CZADH
@@ -70,7 +65,6 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **scope:** substantial
 - **prereqs:** [toon-banding, toon-outlines]
 - **lesson_file:** 0008-color-simplification.html
-- **status:** complete
 
 
 ## Expansion Opportunities

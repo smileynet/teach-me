@@ -184,7 +184,6 @@ def generate_map(chunks: list[dict], domain: str, title: str) -> str:
         lines.append(f"- **why:** {topic.why}")
         lines.append(f"- **scope:** {topic.scope}")
         lines.append(f"- **prereqs:** {prereqs_str}")
-        lines.append(f"- **status:** not-started")
         lines.append("")
 
     return "\n".join(lines)

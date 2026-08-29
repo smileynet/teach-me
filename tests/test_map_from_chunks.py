@@ -54,7 +54,6 @@ class TestMapParserCompatibility:
             assert topic.title, f"Topic {topic.slug} missing title"
             assert topic.why, f"Topic {topic.slug} missing why"
             assert topic.scope in ("lightweight", "substantial", "deep")
-            assert topic.status == "not-started"
 
     def test_prereqs_form_linear_chain(self):
         dm = self._generate_and_parse("chunks_tutorial.json", "test", "Test")

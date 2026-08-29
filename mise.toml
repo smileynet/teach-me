@@ -68,9 +68,18 @@ depends = ["setup"]
 run = "python tools/serve.py --lan \"$@\""
 
 [tasks."serve:restart"]
-description = "Kill existing server and restart (default workspace)"
+description = "Restart the background server (stops existing, starts fresh; single instance)"
 depends = ["setup"]
-run = "lsof -ti :8787 | xargs kill -9 2>/dev/null; sleep 1; python tools/serve.py \"$@\""
+run = "python tools/serve-bg.py --force \"$@\""
+
+[tasks."serve:bg"]
+description = "Start server in the BACKGROUND (non-blocking). Usage: mise run serve:bg -- [--workspace PATH] [--lan] [--port N]"
+depends = ["setup"]
+run = "python tools/serve-bg.py \"$@\""
+
+[tasks."serve:stop"]
+description = "Stop the background server started by serve:bg"
+run = "python tools/serve-bg.py --stop"
 
 [tasks.init-workspace]
 description = "Create a fresh learning workspace (workspace/)"

@@ -58,11 +58,15 @@ If no source-chunks exist (web-researched topic), skip this step — the agent u
 
 ### Phase 2: Generate (SEQUENTIAL — main context)
 
-**Before writing:** Check the topic's current status in MAP.md. If it's `complete`, this is a **rewrite**:
-1. Reset status to `in-progress` via `map_parser.update_status(map_path, slug, "in-progress")`
+**Before writing:** Check the topic's current status in the per-user overlay (via the
+running server's `GET /api/map/{domain}/{slug}/status`, or `tools/lib/overlay.py`
+`Overlay(workspace).get(node_id)`). If it's `complete`, this is a **rewrite**:
+1. Reset status to `in-progress` in the overlay (`POST .../status` with `in-progress`,
+   or `Overlay(workspace).set(node_id, "in-progress")`) — status is per-user overlay
+   state, NEVER written into the committed MAP.md
 2. Delete the existing quiz page for this topic (will be regenerated below)
 3. Remove existing SR questions for this topic from the domain JSONL (filter out lines where `"topic": "{slug}"`)
-4. Regenerate the map page (reflects the status change immediately)
+4. Regenerate the map page (reflects the overlay status change immediately)
 5. Inform the user: "Topic was complete — reset to in-progress for rewrite. Mark complete again once you've reviewed the new lesson."
 
 **Note:** The pipeline does NOT auto-mark the topic complete after generation. The user marks it complete themselves (via the lesson page button) after reviewing the rewritten content.
@@ -103,7 +107,12 @@ Dispatch simultaneously:
 **Gate:** ALL must pass. Any failure blocks the topic from being marked complete.
 
 **After all pass:**
-1. Update MAP.md — if this is a **new topic** (was `not-started` or `in-progress` before generation started), set status to `complete` and add `lesson_file:` field. If this is a **rewrite** (was `complete` before, reset to `in-progress` in Phase 2), leave status as `in-progress` — the user marks complete after reviewing.
+1. Update MAP.md — add the `lesson_file:` field for the topic (committed graph data).
+   Do NOT write `status` into MAP.md — status is per-user overlay state. Set completion
+   in the overlay: if this is a **new topic**, mark it `complete` in the overlay
+   (`Overlay(workspace).set(node_id, "complete")`, or the user marks it via the lesson
+   page button). If this is a **rewrite** (reset to `in-progress` in Phase 2), leave the
+   overlay at `in-progress` — the user marks complete after reviewing.
 2. Regenerate map page — `python3 tools/generate_map_page.py {map.MAP.md} --workspace {workspace} --output {workspace}/lessons/{domain}-map.html`
 3. Regenerate index — `python3 tools/generate_index_page.py --scan-dir examples`
 

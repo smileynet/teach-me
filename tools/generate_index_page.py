@@ -32,6 +32,20 @@ except ModuleNotFoundError:
     from map_parser import load_map as mp_load_map  # type: ignore[no-redef]
 
 
+def _overlay_status_map(map_path: Path) -> dict:
+    """{node_id → status} from the per-user overlay for the map's workspace.
+
+    A `*.MAP.md` lives at `{workspace}/maps/...`, so the overlay root is the maps
+    dir's parent. Absent overlay (fresh clone) → empty map → all topics not-started.
+    """
+    try:
+        from tools.lib.overlay import Overlay
+    except ModuleNotFoundError:
+        from lib.overlay import Overlay  # type: ignore[no-redef]
+    workspace = map_path.parent.parent if map_path.parent.name == "maps" else map_path.parent
+    return Overlay(workspace).status_map()
+
+
 def find_maps(scan_dirs: list[Path] | None = None) -> list[Path]:
     """Find all depth-0 MAP.md files."""
     if scan_dirs is None:
@@ -79,8 +93,11 @@ def parse_map_meta(path: Path) -> dict:
         description = dm.description
 
     total = len(dm.topics)
-    complete = sum(1 for t in dm.topics if t.status == "complete")
-    in_progress = sum(1 for t in dm.topics if t.status == "in-progress")
+    # Status lives in the per-user overlay (#258), keyed by ULID node id; absent =
+    # not-started. The overlay root is the map's workspace (maps dir's parent).
+    status_map = _overlay_status_map(path)
+    complete = sum(1 for t in dm.topics if status_map.get(t.id) == "complete")
+    in_progress = sum(1 for t in dm.topics if status_map.get(t.id) == "in-progress")
 
     return {
         "domain": dm.domain,

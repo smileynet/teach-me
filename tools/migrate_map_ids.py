@@ -6,7 +6,7 @@ inserts `- **id:** <ULID>` as the FIRST field after each `### slug` header if th
 lacks a valid one, and writes atomically. Re-running is a no-op (empty git diff) — the
 data (a present, valid ULID) is the idempotency key. Does NOT parse+reserialize (that
 would normalize formatting and break the empty-diff proof) — same raw-text discipline as
-map_parser.update_status.
+the migrate_strip_status status-line strip.
 
 Usage:
     python tools/migrate_map_ids.py                       # dry-run, report only
