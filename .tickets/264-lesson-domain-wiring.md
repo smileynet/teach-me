@@ -1,7 +1,7 @@
 ---
 id: "264"
 title: "Lesson mark-complete POSTs to /api/map/null/ — data-domain never wired into lesson pages"
-status: in_progress
+status: done
 blocked_by: []
 tags: ["platform"]
 ---
@@ -73,19 +73,26 @@ Evidence: `.scratch/review/lesson-gen-surface.md`, `.scratch/review/lessonaction
 
 ## Acceptance criteria
 
-- [ ] `render_lesson_page` emits a `<script data-domain data-lesson-id data-map-page
+- [x] `render_lesson_page` emits a `<script data-domain data-lesson-id data-map-page
       data-topic-title>` so LessonActions builds `/api/map/{real-domain}/{slug}/status`
-- [ ] All 30 committed example lesson pages backfilled with the config (idempotent;
-      domain_slug read from each page's own breadcrumb `*-map.html`, not hardcoded)
-- [ ] Clicking mark-complete on a served example lesson fires `POST` to the real-domain URL
-      and returns 200 `{ok:true}` (Playwright round-trip)
-- [ ] Mount-time `GET .../status` fires and seeds the button from the overlay
-- [ ] The button does NOT show "Complete" if the POST fails — reverts to prior status +
-      shows an `aria-live` error (Playwright failure-path check)
-- [ ] `mise run verify` EXIT 0 (verify-interactive still green)
+- [x] All 34 committed example lesson pages backfilled with the config (idempotent — re-run
+      0 updated/34 skipped; domain_slug read from each page's own breadcrumb `*-map.html`:
+      0004→godot-toon-shaders, 0001→godot-gamedev, blender/→blender-texture-prep)
+- [x] Clicking mark-complete on a served example lesson fires `POST` to the real-domain URL
+      and returns 200 `{ok:true}` (Playwright: POST /api/map/oidc-rust/... → 200)
+- [x] Mount-time `GET .../status` fires and seeds the button from the overlay (Playwright:
+      GET /api/map/oidc-rust/oidc-auth-flows/status → 200; reload persists 'complete')
+- [x] The button does NOT show "Complete" if the POST fails — reverts to prior status +
+      shows an `aria-live` error (Playwright failure-path: 500 → reverted + "Could not save")
+- [x] `mise run verify` EXIT 0 (verify-interactive 8/8 green; fixed a brittle
+      `button:first-child` quiz selector exposed by the now-rendering map link)
 
 ## Validation
 
 Serve an example workspace (`python tools/serve-bg.py --workspace examples/oidc-rust`),
 Playwright-load a lesson, click mark-complete → confirm POST hits the real domain, returns
 200, overlay file updates, and the button reflects persisted state (reload → still complete).
+
+## Resolution (2026-08-29)
+
+render_lesson_page emits a data-* config script (domain/lesson-id/map-page/topic-title) before page-shell.js via a _base_page lesson_actions param; LessonActions' existing script[data-domain] query consumes it (no mount change). Backfilled all 34 committed example lessons with tools/migrate-add-lesson-actions.py (idempotent; domain slug from each page's own breadcrumb *-map.html — handles godot's 4 maps). Fixed the silent-lie: handleToggleComplete snapshots prior status, checks res.ok, reverts + shows an aria-live error on failure; no new status branch. Fixed a positional quiz-button selector in verify-interactive exposed by the now-rendering map link. Note: #199 must NOT delete lesson_id (now used for the config script).
