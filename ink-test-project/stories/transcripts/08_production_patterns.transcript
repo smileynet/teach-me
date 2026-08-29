@@ -1,0 +1,21 @@
+# choices: 0,1,2,3,4
+# story: 08_production_patterns.ink
+
+The tavern is warm and loud. The keeper wipes a glass.
+>>> Ask the keeper's name
+
+"Name's Mara," the keeper says.
+The tavern is warm and loud. The keeper wipes a glass.
+>>> Greet her by name
+"Evening, Mara." She nods, pleased you remembered.
+The tavern is warm and loud. The keeper wipes a glass.
+>>> Help the cook with the barrels
+
+You haul the barrels to the cellar. The cook grins.
+The tavern is warm and loud. The keeper wipes a glass.
+>>> Collect the cook's thanks
+"For the barrels — here, on the house."
+A mug of cider slides across the bar.
+The tavern is warm and loud. The keeper wipes a glass.
+>>> Leave
+You step out into the cool night.

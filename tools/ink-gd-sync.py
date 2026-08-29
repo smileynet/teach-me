@@ -29,6 +29,10 @@ FILES = {
         "scenes/lesson07_player.gd",
     "examples/ink-godot/reference/code/state-bridge/07_state_bridge.ink":
         "stories/07_state_bridge.ink",
+    "examples/ink-godot/reference/code/production-patterns/story_player.gd":
+        "scenes/lesson08_player.gd",
+    "examples/ink-godot/reference/code/production-patterns/08_production_patterns.ink":
+        "stories/08_production_patterns.ink",
 }
 
 
