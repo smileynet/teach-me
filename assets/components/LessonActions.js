@@ -19,6 +19,7 @@ const html = htm.bind(h);
 function LessonActions({ lessonId, domain, mapPage, topicTitle }) {
   const [status, setStatus] = useState('loading');
   const [quizExists, setQuizExists] = useState(null);
+  const [error, setError] = useState(null);
 
   const resolvedMapPage = mapPage || (domain ? `${domain}-map.html` : null);
   const quizUrl = 'quiz/' + lessonId + '-quiz.html';
@@ -43,14 +44,23 @@ function LessonActions({ lessonId, domain, mapPage, topicTitle }) {
   function handleToggleComplete() {
     const slug = lessonId.replace(/^\d+-/, '');
     const newStatus = status === 'complete' ? 'in-progress' : 'complete';
+    const priorStatus = status;
+    setError(null);
     setStatus('saving');
     fetch(`/api/map/${domain}/${slug}/status`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus }),
     })
-      .then(() => setStatus(newStatus === 'complete' ? 'complete' : 'idle'))
-      .catch(() => setStatus(newStatus === 'complete' ? 'complete' : 'idle'));
+      .then(res => {
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        setStatus(newStatus === 'complete' ? 'complete' : 'idle');
+      })
+      .catch(() => {
+        // Never show a state the server didn't persist — revert + surface the error.
+        setStatus(priorStatus);
+        setError('Could not save — try again');
+      });
   }
 
   const quizLabel = quizExists === null ? '…' : quizExists ? '📝 Take quiz' : '+ Generate quiz';
@@ -65,13 +75,18 @@ function LessonActions({ lessonId, domain, mapPage, topicTitle }) {
         <span class="btn">…</span>
       `}
       ${status === 'idle' && html`
-        <button class="btn primary" onClick=${handleToggleComplete}>✓ Mark complete</button>
+        <button class="btn primary" onClick=${handleToggleComplete}
+                title=${error || 'Mark this lesson complete'}>✓ Mark complete</button>
       `}
       ${status === 'complete' && html`
-        <button class="btn done" onClick=${handleToggleComplete}>✓ Complete</button>
+        <button class="btn done" onClick=${handleToggleComplete}
+                title=${error || 'Lesson complete — click to unmark'}>✓ Complete</button>
       `}
       ${status === 'saving' && html`
         <span class="btn">…</span>
+      `}
+      ${error && html`
+        <span class="lesson-actions-error" role="status" aria-live="polite">${error}</span>
       `}
     </div>
   `;

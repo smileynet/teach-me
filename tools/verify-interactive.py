@@ -172,7 +172,14 @@ def run_checks(page, url: str) -> list[dict]:
     })
 
     # 5. Quiz button navigates correctly (verify destination URL is valid)
-    quiz_btn = page.query_selector('.lesson-actions-bar button:first-child')
+    # Locate the quiz button by its label — NOT by position. With a wired domain
+    # (#264), the "← Back to map" link now renders first in the bar, so a
+    # positional `button:first-child` selector would miss the quiz button.
+    quiz_btn = None
+    for b in page.query_selector_all('.lesson-actions-bar button'):
+        if 'quiz' in (b.text_content() or '').lower():
+            quiz_btn = b
+            break
     quiz_nav_ok = False
     quiz_detail = "No quiz button found"
     if quiz_btn:
