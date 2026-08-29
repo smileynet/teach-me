@@ -2,12 +2,38 @@
 id: "198"
 title: "Fix index page links for multi-workspace serving"
 status: open
-blocked_by: []
+blocked_by: ["183"]
 priority: high
 tags: [platform]
 ---
 
 # Fix index page links for multi-workspace serving
+
+## Decision (code review 2026-08-29): Option A, threaded through the data island
+
+Root cause confirmed: the domain-card href is built CLIENT-SIDE in
+`assets/components/IndexView.js:39` as a bare `${domain}-map.html`. The Python
+`render_card()` that computes a correct relative path is DEAD CODE (unreachable
+after an earlier `return` in `generate_page()`). The aggregate index at
+`lessons/index.html` scans all workspaces but emits bare hrefs, so maps under
+`library/{domain}/lessons/` 404.
+
+Fix (Option A): in `generate_index_page.py` `generate_page()` (the `domain_data`
+loop, ~L232-241), compute `mapHref` from `meta["path"]` relative to
+`OUTPUT.parent` (use `.as_posix()` — the dead code leaks Windows backslashes),
+add it to the data island; in `IndexView.js:39` prefer `domain.mapHref` with the
+bare guess as fallback. Also delete the unreachable second half of
+`generate_page()` + unused `render_card`/`progress_ring_svg`.
+
+Why A (not B/C): the generator already knows the path; it's the smallest local
+change; it survives the `examples/`→`library/` rename (path is DERIVED, not
+hardcoded); and it fixes BOTH local serve AND static GitHub Pages (where no server
+exists, so only correct relative paths work). B breaks the multi-domain aggregate
+model; C is a large serve.py change that still doesn't fix static Pages.
+
+**Blocked by #183:** the rename settles the `library/` layout the hrefs target.
+Doing this first would write hrefs against `examples/` and require a rewrite.
+
 
 ## Problem
 
