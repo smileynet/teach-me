@@ -83,6 +83,7 @@ def _base_page(
     include_dagre: bool = False,
     module_script: str = "",
     css_extra: str = "",
+    lesson_actions: dict[str, str] | None = None,
 ) -> str:
     """Render a complete HTML page with all boilerplate.
 
@@ -109,6 +110,16 @@ def _base_page(
             data_json = json.dumps(island_data, ensure_ascii=False)
             islands_html += f'<script type="application/json" id="{island_id}">{data_json}</script>\n'
 
+    # Lesson-actions config: LessonActions.js reads these data-* attrs (queried via
+    # script[data-domain]) to build /api/map/{domain}/{slug}/status. Emitted BEFORE
+    # page-shell.js so the attributes exist when mountLessonActions() runs.
+    lesson_actions_script = ""
+    if lesson_actions:
+        attrs = " ".join(
+            f'data-{k}="{_esc(str(v))}"' for k, v in lesson_actions.items()
+        )
+        lesson_actions_script = f'<script type="application/json" id="lesson-actions-config" {attrs}></script>\n'
+
     # Page shell or custom module script
     shell_script = ""
     if include_page_shell:
@@ -130,7 +141,7 @@ def _base_page(
 
 {breadcrumb_html}{body_content}
 
-{islands_html}{shell_script}
+{islands_html}{lesson_actions_script}{shell_script}
 </body>
 </html>"""
 
@@ -198,6 +209,12 @@ def render_lesson_page(
         data_islands=islands if islands else None,
         include_glossary_css=bool(glossary_data),
         include_page_shell=True,
+        lesson_actions={
+            "domain": domain_slug,
+            "lesson-id": lesson_id,
+            "map-page": map_page,
+            "topic-title": title,
+        },
     )
 
 
