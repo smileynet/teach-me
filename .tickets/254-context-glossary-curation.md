@@ -1,7 +1,7 @@
 ---
 id: "254"
 title: "Curate CONTEXT.md: move 10 non-glossary entries to AGENTS/specs"
-status: open
+status: in_progress
 blocked_by: []
 priority: medium
 tags: ["docs"]
