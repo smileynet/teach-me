@@ -52,3 +52,19 @@ under budget. Linked from AGENTS.md.
   redirection re-encodes to cp1252 (an em-dash becomes byte `0x97`), and `play-ink.py` reads fixtures
   as UTF-8 and crashes on replay. Capture with a small Python wrapper that runs play-ink and writes
   stdout as UTF-8.
+
+
+## Map pages / graph render (#257, #261)
+
+- **Serve map pages via `serve.py`, NOT `http.server`.** Map pages import assets with a
+  depth-relative `../assets` prefix; plain `python -m http.server` 404s those (it has no
+  `/assets` root mount), so dagre never loads and the graph renders 0 cards/0 edges — a
+  test gate can FALSELY pass on an empty render. `serve.py --workspace {ws}` mounts
+  `/assets` from the project root and the workspace at `/`. (Hit during the #261 map-edge
+  gate; `tools/check-map-edges.py` uses serve.py for this reason.)
+- **PowerShell one-liners with `$vars` are unreliable here.** Multi-statement
+  `powershell -NoProfile -Command "... $x ... $y ..."` intermittently fails
+  "The variable '$x' cannot be retrieved because it has not been set" (observed ~6× in one
+  session — line counts, hash compares, `$_`-in-catch). Prefer `.venv\Scripts\python.exe -c`,
+  `git`, or the grep/read tools for anything with variables; reserve PowerShell for simple
+  single-expression calls. Never use `$_` inside a `catch {}` in a `-Command` string.
