@@ -1,48 +1,59 @@
 ---
-created_at: 2026-08-26T21:15:00-07:00
-base_commit: 9d70c86
-handoff_key: mktoon-texture-prep
+created_at: 2026-08-29T11:20:00-07:00
+base_commit: 9160976
+handoff_key: content-graph-schema
 ---
 
 # Handoff
 
-> Supersedes the `ink-godot-lessons` handoff (recoverable at git history; that workstream's tickets #208-214 remain open and untouched).
+> Supersedes the `ink-godot-track` handoff. This session built the ADR-0014 content model.
 
 ## Objective
-Build the `blender-texture-prep` lesson track (#216 epic, lessons #217-222): teach converting photoreal PBR textures to toon-friendly assets for the mk_toon_lite shader. Next concrete step: author lesson #217 (texture-audit).
+Make the committed topic GRAPH first-class (ULID ids + typed edges) and per-user state a
+thin gitignored overlay. Tracked in tickets (NO PLAN.md — `tkt ready` is authoritative).
 
 ## Constraints
-- **Godot MCP `save_scene` is DESTRUCTIVE** — strips inline SubResources/material_override from hand-authored .tscn. NEVER call it on mktoon_test.tscn. Edit .tscn on disk instead. (Full rules: `.kiro/skills/godot-validation/SKILL.md` → MCP Reliability.)
-- **game_eval mutations are ephemeral** — use for READ-only (capture + pixel sample), not persisting param/light changes.
-- **Agent visual self-reports are unreliable** — validate every capture with independent image read (`kiro-cli chat --no-interactive --trust-tools=read "<question> <path>"`) or your own read.
-- test-scene project at `D:\code\teach-me\test-scene`; screenshots land in Godot `user://` then copy to `test-scene/.scratch/screenshots/` (gitignored).
+- No PLAN.md; `tkt sync-plan` N/A. `tkt` via `D:\code\tkt\target\release\tkt.exe`.
+- Python via `.venv\Scripts\python.exe` directly (mise shim recursion). Windows-first.
+- `tkt close --check-all --evidence ... --resolution ...` WORKS (closed 4 this session) —
+  the AGENTS.md "hand-edit status:done" instruction is STALE (see #263).
+- AGENTS.md at 150/150 (ceiling) — route new gotchas to `.memory/specs/`, not AGENTS.md.
+- Pre-existing ink-test-project/test-scene churn in `git status` is #234/#233's, NOT ours.
 
-## Prior Decisions
-- #216 is an EPIC/tracking ticket — child lessons own concrete deliverables (node group→#218, ramp/noise/threshold→#220). Don't rebuild in #216.
-- Strategy A+B (research-backed): keep dynamic lighting, simplify albedo (posterize+palette) + author control maps. Do NOT bake lighting.
-- Lesson #217 = orientation (channel-isolation teaching, misconception-probe exercise, 2 SVGs, no code files). Full spec in ticket body.
+## Prior Decisions (ADR-0014, accepted)
+- Overlay model: committed graph + thin per-user overlay, joined at runtime.
+- Node id = immutable ULID (`tools/lib/ulid.py`, vendored) + mutable slug (display/route).
+- Edges typed + closed vocab: `prereq` (informational, no gating), `leads_to` (nav),
+  `related` (symmetric; `soft_prereqs`→related). Cycle-check scoped to prereq only.
+- Readiness/order/next/backlinks DERIVED at runtime, never stored.
+- Minimal overlay is the floor; SR sync apparatus deferred (#259 backlog).
 
 ## Current State
-Work status lives in tickets (no PLAN.md). What's not in tickets:
-- mktoon_test.tscn is wired (albedo+normal on, outline next_pass) with a VALIDATED raking light `Transform3D(0.259..., ..., 0, 3, 0)` (rotation -15,75,0) that puts a terminator across the barrel face.
-- 4 progressive screenshots captured (flat/albedo-only/normal-only/both) + validated via independent image analysis. In `test-scene/.scratch/screenshots/` (mktoon_*.png).
-- Research promoted to `.memory/research/mktoon-texture-prep/` (12 files; #216/#217 reference them).
+#257 (schema) fully DONE across subtasks A–D + hardened by #261 (all closed, pushed).
+`map_parser.load_map` is the single MAP.md parser; all 9 committed maps carry stable
+ULIDs; map render is ULID-keyed with `data-*` test contract; `mise run check-maps` gates
+edge connectivity (identity-first, negative-tested). Nothing mid-flight — clean stop.
 
 ## Next Steps
-1. **Resolve band-strength decision** (see #217 validation findings): bands are production-subtle. Either tune stronger (light_bands_scale~0.85, wrapped~0.15, gooch=0 — via DISK edit, then capture+validate) OR reframe lesson around "subtle intent destroyed by noise". Needs the user's earlier call ("A" = tune) finished.
-2. **Author lesson #217** — spec is complete in ticket. Needs: strong-band flat reference recaptured after step 1.
-3. **#227** (medium, ready) — add `hint_normal` to mk_toon_lite normal_map uniform (1-line shader fix; keep both shader copies in sync).
+Frontier (`tkt ready`): **#258** (remove per-user `status` from committed MAP.md —
+sever the 3 write-paths: `map_parser.update_status`, serve.py POST status, generate-time
+write-back; make `get_available_topics`/`get_next_suggestion` take the overlay arg) →
+then **#255** (minimal `.user/` overlay). Parallel: **#183** (examples/→library/ rename).
+Use the research→review→build→verify→close pattern that worked all session.
 
 ## Fog
-- Band-strength: blind param tuning FAILED (3 no-op iterations due to game_eval ephemerality — now understood). Correct path is disk-edit + capture + independent-validate loop. Not yet dialed to a crisp-band reference.
-- Whether to keep the barrel as the hero asset or switch to a sphere (cleaner banding at any angle) if disk-edit tuning still can't get crisp bands across the cylinder face.
+- #258/#255 need an overlay INTERFACE contract (`overlay.get/set(node_id)`) agreed between
+  them — #255 provides the store, #258 calls it. Define the interface before starting #258.
+- #260 (cross-map dangling prereqs: toon-banding/configurable-banding) unresolved: is a
+  cross-map prereq valid (→ forest-validate) or a data error (→ fix 4 refs)? Decide in #260.
 
 ## Evidence
-- Screenshots: `test-scene/.scratch/screenshots/mktoon_{flat_color,albedo_only,normal_only,before_pbr}.png` (visually confirmed + independent image analysis).
-- Scene renders clean: headless `--check-only` import passed after light edit (commit fce58a2).
-- tkt validate: pass (11 pre-existing warnings, none in mktoon track). Frontier: #216, #217, #227 ready.
+- HEAD `9160976`. `mise run verify` EXIT 0; `mise run check-maps` EXIT 0 (9 maps + synth).
+- #257 subtasks: A 9f08d15, B 0b4ccdc, C 3b55f5c, D 592136e, close 56a2e11; #261 75ed752.
+- ADR: `.memory/adr/0014-committed-graph-schema-minimal-overlay.md`.
 
 ## Recommended Updates
-- [x] skill(godot-validation): MCP failure modes captured this session (commit 644edc7)
-- [x] .tickets/227: hint_normal fix created this session
-- [ ] Consider promoting the "disk-edit + capture + independent-validate" loop to a named procedure in godot-validation if #218-222 reuse it heavily
+- [ ] #263: reconcile AGENTS.md "Closing a ticket" (tkt close works; stale bug claim).
+- [ ] #262: visual-qa.py registers pageerror listener AFTER goto (misses load errors).
+- [ ] AGENTS.md Commands (deferred): consider adding `mise run check-maps` +
+      `tools/migrate_map_ids.py` rows IF a trim frees budget (at 150/150 now).
