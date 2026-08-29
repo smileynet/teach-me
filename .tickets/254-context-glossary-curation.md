@@ -1,7 +1,7 @@
 ---
 id: "254"
 title: "Curate CONTEXT.md: move 10 non-glossary entries to AGENTS/specs"
-status: in_progress
+status: done
 blocked_by: []
 priority: medium
 tags: ["docs"]
@@ -53,9 +53,13 @@ Some AGENTS-bound entries may already be implied by existing lines — dedupe on
 
 ## Acceptance criteria
 
-- [ ] The 6 gotcha entries relocated into AGENTS.md Constraints (deduped against existing lines)
-- [ ] AGENTS.md remains <= 150 lines (trim/consolidate or extract per agents-md-authoring if needed)
-- [ ] The 4 spec entries relocated to `.memory/specs/` (create the files; one per concern or a grouped doc)
-- [ ] All 10 entries removed from CONTEXT.md; the 17 KEEP entries untouched
-- [ ] CONTEXT.md entries all carry `_Avoid_` (or are unambiguous project-term definitions) — no orphan mechanisms
-- [ ] No knowledge lost (each moved entry's content preserved at its new home)
+- [x] The 6 gotcha entries relocated into AGENTS.md Constraints (deduped against existing lines)
+- [x] AGENTS.md remains <= 150 lines (trim/consolidate or extract per agents-md-authoring if needed)
+- [x] The 4 spec entries relocated to `.memory/specs/` (create the files; one per concern or a grouped doc)
+- [x] All 10 entries removed from CONTEXT.md; the 17 KEEP entries untouched
+- [x] CONTEXT.md entries all carry `_Avoid_` (or are unambiguous project-term definitions) — no orphan mechanisms
+- [x] No knowledge lost (each moved entry's content preserved at its new home)
+
+## Resolution (2026-08-29)
+
+Relocated 10 non-glossary CONTEXT.md entries: 6 gotchas to AGENTS.md Environment, 4 UI/content contracts to .memory/specs/ui-contracts.md. Kept AGENTS.md at 150 lines by extracting deep track gotchas to environment-gotchas.md and consolidating Commands/Constraints (steering-covered lesson-authoring rows pointered to visual-teaching.md; pixel-art validation rule preserved in code-validation-teaching.md). CONTEXT.md left with 17 pure disambiguation entries, all carrying _Avoid_.
