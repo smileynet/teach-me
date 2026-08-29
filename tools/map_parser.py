@@ -31,6 +31,7 @@ class Topic:
     lesson_file: str | None = None
     id: str = ""  # immutable ULID; minted on parse if absent, persisted by migration (#257)
     aliases: list[str] = field(default_factory=list)  # former slugs, for rename resolution
+    soft_prereqs: list[str] = field(default_factory=list)  # optional deps → symmetric `related` edges
 
 
 @dataclass
@@ -267,6 +268,7 @@ def load_map(path: str | Path) -> DomainMap:
             lesson_file=fields.get("lesson_file"),
             id=tid,
             aliases=_parse_list_field(fields.get("aliases", "[]")),
+            soft_prereqs=_parse_list_field(fields.get("soft_prereqs", "[]")),
         ))
 
     # slug/alias -> id index (edges are authored by slug, resolved to ids here)
@@ -292,6 +294,15 @@ def load_map(path: str | Path) -> DomainMap:
             src = slug_to_id.get(pslug)  # None if dangling — validate() reports by slug
             if src:
                 _add_edge(src, t.id, "prereq")
+
+    # `related` edges from inline soft_prereqs (symmetric, non-gating — ADR-0014 / #257 D).
+    # A soft prereq is an associative link, not a weak prereq: model it as `related`.
+    for t in topics:
+        for sslug in t.soft_prereqs:
+            other = slug_to_id.get(sslug)
+            if other:
+                _add_edge(t.id, other, "related")
+                _add_edge(other, t.id, "related")  # symmetric
 
     # Optional `## Edges` section: block-style list of {from, to, type, why} authored by slug.
     edges_match = re.search(r"## Edges\s*\n(.*?)(?=\n## |\Z)", body, re.DOTALL)
