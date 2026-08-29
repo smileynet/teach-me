@@ -587,7 +587,7 @@ func _trim_promoted_debugger_entries() -> void:
 
 func _trim_promoted_debugger_key_counts() -> void:
 	while _promoted_debugger_key_order.size() > MAX_PROMOTED_DEBUGGER_KEYS:
-		var key := _promoted_debugger_key_order.pop_front()
+		var key: String = _promoted_debugger_key_order.pop_front()
 		_promoted_debugger_keys.erase(key)
 		_promoted_debugger_row_times.erase(key)
 
