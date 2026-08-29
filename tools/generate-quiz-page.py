@@ -21,7 +21,10 @@ import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-QUESTIONS_DIR = PROJECT_ROOT / "learning-records" / "questions"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from questions import questions_dir_for
+
+QUESTIONS_DIR = questions_dir_for(PROJECT_ROOT)
 OUTPUT_DIR = PROJECT_ROOT / "lessons" / "quiz"
 
 
@@ -99,7 +102,7 @@ def main():
         workspace = Path(args.workspace)
         if not workspace.is_absolute():
             workspace = PROJECT_ROOT / workspace
-        questions_dir = workspace / "learning-records" / "questions"
+        questions_dir = questions_dir_for(workspace)
         default_output_dir = workspace / "lessons" / "quiz"
     else:
         workspace = PROJECT_ROOT

@@ -14,6 +14,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from questions import questions_dir_for
+
 
 def find_lesson(workspace: Path, topic_slug: str, lesson_file: str | None = None) -> Path | None:
     """Find a lesson file matching the topic slug or explicit filename."""
@@ -78,7 +81,7 @@ def check_quiz_features(quiz_path: Path) -> dict:
 
 def check_sr_questions(workspace: Path, topic_slug: str) -> dict:
     """Check SR questions exist for this topic."""
-    questions_dir = workspace / "learning-records" / "questions"
+    questions_dir = questions_dir_for(workspace)
     if not questions_dir.exists():
         return {"count": 0, "has_questions": False}
 
@@ -153,7 +156,7 @@ def check_concept_coverage(workspace: Path, topic_slug: str, lesson_path: Path) 
 
     # Check SR questions
     question_terms = set()
-    questions_dir = workspace / "learning-records" / "questions"
+    questions_dir = questions_dir_for(workspace)
     topic_file = questions_dir / f"{topic_slug}.jsonl"
     if topic_file.exists():
         for line in topic_file.read_text(encoding="utf-8").splitlines():

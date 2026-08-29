@@ -23,6 +23,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from questions import questions_dir_for
+
 
 def needs_reformat(criteria: str) -> bool:
     """Check if criteria needs reformatting (missing numbered points)."""
@@ -149,7 +152,7 @@ def main():
         if idx + 1 < len(args):
             workspace = Path(args[idx + 1])
 
-    questions_dir = workspace / "learning-records" / "questions"
+    questions_dir = questions_dir_for(workspace)
     if not questions_dir.exists():
         print(f"No questions directory at {questions_dir}")
         return
