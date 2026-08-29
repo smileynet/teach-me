@@ -10,7 +10,7 @@ const html = htm.bind(h);
 const CARD_WIDTH = 420;
 const CARD_PAD = 60;
 
-function computeLayout(topics) {
+function computeLayout(topics, edges) {
   // Measure card heights by rendering offscreen
   const measurements = {};
   const measContainer = document.createElement('div');
@@ -32,6 +32,18 @@ function computeLayout(topics) {
   });
   document.body.removeChild(measContainer);
 
+  const nodeIds = new Set(topics.map(t => t.id));
+  // Prefer the explicit typed edge list (id-keyed). Fall back to per-topic prereqs
+  // (also ids post-#257) so a map without an edges array still renders. The filter
+  // guarantees both endpoints are real node ids → dagre never invents a phantom node.
+  let graphEdges = (edges || []).filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
+  if (graphEdges.length === 0) {
+    graphEdges = [];
+    topics.forEach(t => (t.prereqs || []).forEach(p => {
+      if (nodeIds.has(p)) graphEdges.push({ source: p, target: t.id, type: 'prereq' });
+    }));
+  }
+
   // dagre layout
   const g = new dagre.graphlib.Graph();
   g.setGraph({ rankdir: 'TB', nodesep: CARD_PAD, ranksep: 60, marginx: 24, marginy: 24 });
@@ -40,9 +52,7 @@ function computeLayout(topics) {
   topics.forEach(t => {
     g.setNode(t.id, { width: CARD_WIDTH, height: measurements[t.id] || 200 });
   });
-  topics.forEach(t => {
-    t.prereqs.forEach(p => g.setEdge(p, t.id));
-  });
+  graphEdges.forEach(e => g.setEdge(e.source, e.target, { type: e.type }));
 
   dagre.layout(g);
 
@@ -52,22 +62,22 @@ function computeLayout(topics) {
     positions[t.id] = { x: node.x - CARD_WIDTH / 2, y: node.y - (measurements[t.id] || 200) / 2 };
   });
 
-  const edges = [];
+  const laidEdges = [];
   g.edges().forEach(e => {
-    edges.push(g.edge(e).points);
+    laidEdges.push({ points: g.edge(e).points, type: g.edge(e).type || 'prereq' });
   });
 
   const graphData = g.graph();
-  return { positions, edges, width: graphData.width, height: graphData.height };
+  return { positions, edges: laidEdges, width: graphData.width, height: graphData.height };
 }
 
-export function MapView({ topics, leadsTo }) {
+export function MapView({ topics, leadsTo, edges }) {
   const [layout, setLayout] = useState(null);
 
   useEffect(() => {
     if (!topics || !topics.length) return;
     initTopicStates(topics);
-    const result = computeLayout(topics);
+    const result = computeLayout(topics, edges);
     setLayout(result);
   }, []);
 

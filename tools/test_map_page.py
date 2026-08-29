@@ -129,11 +129,23 @@ class TestMapPageDataIsland:
 
     def test_topics_in_data(self):
         html = _generate_fixture_html()
-        assert '"id": "topic-one"' in html or '"id":"topic-one"' in html
+        # Post-#257: the island carries the human slug plus a ULID id (not slug-as-id).
+        assert '"slug": "topic-one"' in html or '"slug":"topic-one"' in html
+        import re
+        m = re.search(r'id="page-data">(.*?)</script>', html, re.DOTALL)
+        assert m, "no page-data island"
+        import json
+        data = json.loads(m.group(1))
+        t0 = next(t for t in data["topics"] if t["slug"] == "topic-one")
+        assert len(t0["id"]) == 26, f"id not a ULID: {t0['id']!r}"
 
     def test_prereqs_in_data(self):
         html = _generate_fixture_html()
-        assert 'topic-one' in html  # topic-two's prereq
+        import re, json
+        data = json.loads(re.search(r'id="page-data">(.*?)</script>', html, re.DOTALL).group(1))
+        by_slug = {t["slug"]: t for t in data["topics"]}
+        # topic-two's prereq is topic-one — the island carries it as topic-one's ULID id.
+        assert by_slug["topic-two"]["prereqs"] == [by_slug["topic-one"]["id"]]
 
     def test_leads_to_in_data(self):
         html = _generate_fixture_html()

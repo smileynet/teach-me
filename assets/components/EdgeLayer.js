@@ -11,7 +11,10 @@ export function EdgeLayer({ edges, width, height }) {
           <polygon points="0 0,8 3,0 6" fill="var(--text-faint)" />
         </marker>
       </defs>
-      ${edges.map(points => {
+      ${edges.map(edge => {
+        // Back-compat: an edge may be a bare points array or {points, type}.
+        const points = Array.isArray(edge) ? edge : edge.points;
+        const type = Array.isArray(edge) ? 'prereq' : (edge.type || 'prereq');
         let d = `M ${points[0].x} ${points[0].y}`;
         for (let i = 1; i < points.length - 1; i++) {
           const cp = points[i];
@@ -20,7 +23,11 @@ export function EdgeLayer({ edges, width, height }) {
         }
         const last = points[points.length - 1];
         d += ` L ${last.x} ${last.y}`;
-        return html`<path d=${d} fill="none" stroke="var(--border)" stroke-width="1.5" marker-end="url(#arrowhead)" />`;
+        // Signaling: 'related' is a softer, symmetric adjacency → dashed, no arrowhead.
+        const dashed = type === 'related';
+        return html`<path d=${d} fill="none" stroke="var(--border)" stroke-width="1.5"
+          stroke-dasharray=${dashed ? '5 4' : 'none'}
+          marker-end=${dashed ? 'none' : 'url(#arrowhead)'} />`;
       })}
     </svg>
   `;

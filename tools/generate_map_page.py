@@ -82,17 +82,31 @@ def parse_map_md(path: Path) -> dict:
 
     title = dm.title or dm.domain or "Map"
 
+    # Prereq edges, id-keyed (target_id -> [source_id]) for per-topic prereq resolution.
+    prereq_by_target: dict[str, list[str]] = {}
+    for e in dm.edges:
+        if e.type == "prereq":
+            prereq_by_target.setdefault(e.target_id, []).append(e.source_id)
+
     topics = [
         {
+            "id": t.id,
             "slug": t.slug,
             "title": t.title,
             "why": t.why,
             "scope": t.scope,
             "status": t.status,
             "lesson_file": t.lesson_file or "",
-            "prereqs": list(t.prereqs),
+            "prereqs": list(t.prereqs),            # authored slugs (round-trip / status write-back)
+            "prereqIds": prereq_by_target.get(t.id, []),  # resolved ULIDs (client edge endpoints)
         }
         for t in dm.topics
+    ]
+
+    # Full typed edge list (id-keyed) for the client to build + style the graph.
+    edges = [
+        {"source": e.source_id, "target": e.target_id, "type": e.type, "why": e.why}
+        for e in dm.edges
     ]
 
     return {
@@ -100,6 +114,7 @@ def parse_map_md(path: Path) -> dict:
         "title": title,
         "orientation": dm.orientation,
         "topics": topics,
+        "edges": edges,
     }
 
 
@@ -198,17 +213,18 @@ def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path |
 
     # Build data island
     topic_data = []
-    status_updates = {}  # track changes to write back to MAP.md
+    status_updates = {}  # track changes to write back to MAP.md (keyed by slug — update_status locates by slug)
     for t in topics:
         lesson_path = t.get("lesson_file") or topic_has_lesson(t["slug"])
         effective_status = compute_effective_status(t["slug"], t["status"])
         if effective_status != t["status"]:
             status_updates[t["slug"]] = effective_status
         topic_data.append({
-            "id": t["slug"],
+            "id": t["id"],                 # real ULID (node key + edge endpoint space)
+            "slug": t["slug"],             # for lesson/quiz routing + file matching
             "title": t["title"],
             "why": t["why"],
-            "prereqs": t["prereqs"],
+            "prereqs": t["prereqIds"],     # resolved ULIDs — matches node ids so dagre edges connect
             "status": effective_status,
             "lessonPath": lesson_path or None,
         })
@@ -235,6 +251,7 @@ def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path |
         "orientation": orientation,
         "topics": topic_data,
         "leadsTo": leads_to_data,
+        "edges": map_data.get("edges", []),
     }
 
     # Determine depth from output path relative to workspace
@@ -257,7 +274,7 @@ def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path |
     const data = JSON.parse(document.getElementById('page-data').textContent);
 
     render(
-      html`<${{MapView}} topics=${{data.topics}} leadsTo=${{data.leadsTo}} orientation=${{data.orientation}} title=${{data.title}} />`,
+      html`<${{MapView}} topics=${{data.topics}} leadsTo=${{data.leadsTo}} edges=${{data.edges}} orientation=${{data.orientation}} title=${{data.title}} />`,
       document.getElementById('app')
     );
 """
