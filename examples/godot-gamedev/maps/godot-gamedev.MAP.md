@@ -21,6 +21,7 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 ## Topics
 
 ### nodes-and-scenes
+- **id:** 01M174TQPEWJXH0VZ88FMHYF3G
 - **title:** Nodes, Scenes & the Scene Tree
 - **why:** Everything in Godot is a node in a tree — understanding this architecture is the foundation for every project
 - **scope:** substantial
@@ -30,6 +31,7 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **status:** complete
 
 ### gdscript-fundamentals
+- **id:** 01M174TQPE9JAPFN8JB1ERFEPE
 - **title:** GDScript Fundamentals
 - **why:** GDScript is how you give nodes behavior — variables, functions, signals, and lifecycle callbacks make your game respond to the player
 - **scope:** substantial
@@ -38,6 +40,7 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **status:** complete
 
 ### 2d-game-mechanics
+- **id:** 01M174TQPEZQMEFSVC2TMKVZAP
 - **title:** 2D Game Mechanics
 - **why:** 2D is where most Godot learners build their first complete game — movement, collision, tilemaps, and camera work
 - **scope:** deep
@@ -46,6 +49,7 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **status:** not-started
 
 ### physics-and-collision
+- **id:** 01M174TQPEFPESE3GDEMACGS5M
 - **title:** Physics & Collision Systems
 - **why:** Rigid bodies, areas, raycasts, and collision layers are how your game world enforces physical rules
 - **scope:** substantial
@@ -53,6 +57,7 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **status:** not-started
 
 ### ui-and-control-nodes
+- **id:** 01M174TQPE5HAD87R8D409B9R7
 - **title:** UI, Menus & HUD
 - **why:** Every game needs at least a title screen and a score counter — Godot's Control nodes are a full UI toolkit built into the engine
 - **scope:** substantial
@@ -60,6 +65,7 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **status:** not-started
 
 ### animation-and-audio
+- **id:** 01M174TQPE5AAZKC0NR1JP1Y9W
 - **title:** Animation & Audio
 - **why:** AnimationPlayer, tweens, and the audio bus system turn a functional prototype into something that feels alive
 - **scope:** substantial
@@ -68,6 +74,7 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **status:** not-started
 
 ### 3d-fundamentals
+- **id:** 01M174TQPEB6J1NZ3QVM080KRY
 - **title:** 3D Fundamentals
 - **why:** Godot's 3D pipeline shares the same node/scene model — once you know 2D, 3D is a spatial upgrade, not a rewrite
 - **scope:** deep
@@ -76,6 +83,7 @@ Godot is a free, open-source game engine whose node/scene architecture makes it 
 - **status:** not-started
 
 ### exporting-and-publishing
+- **id:** 01M174TQPE0MZGBZKVXFS0GJ23
 - **title:** Exporting & Publishing
 - **why:** A game isn't done until someone can play it — export templates, platform quirks, and distribution channels
 - **scope:** lightweight
