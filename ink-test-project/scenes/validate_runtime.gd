@@ -21,6 +21,7 @@ func _ready():
 	await _validate_lesson05()
 	await _validate_lesson06()
 	await _validate_lesson07()
+	await _validate_lesson08()
 
 	if _failures > 0:
 		printerr("=== FAIL: %d check(s) failed ===" % _failures)
@@ -183,6 +184,32 @@ func _validate_lesson07():
 		_ok("L07", "save/load round-trip: gold restored to 10 after set_state")
 	else:
 		_fail("L07", "save/load did not restore gold; get_variable('gold')=%s" % str(restored))
+
+	p.queue_free()
+
+
+# --- Lesson 08: state-bus flags gate hub content (production patterns) ---
+func _validate_lesson08():
+	var p = await _spawn("res://scenes/lesson08_player.tscn")
+	var container = p.get_node("ChoicesContainer")
+
+	# Initial hub: asked_name/helped_cook both false, so the gated "Greet" and
+	# "Collect thanks" choices are hidden -> 3 choices (Ask, Help, Leave).
+	if p.read_flag("asked_name") == false and container.get_child_count() == 3:
+		_ok("L08", "state-bus flags start false; 3 hub choices (gated content hidden)")
+	else:
+		_fail("L08", "unexpected initial hub: asked_name=%s choices=%d" % [str(p.read_flag("asked_name")), container.get_child_count()])
+
+	# Ask the keeper's name (choice 0) -> writes asked_name = true.
+	await _press_choice(p, 0)
+
+	# Back at the hub: the state-bus flag flipped, and the gated "Greet" choice now
+	# appears -> 4 choices. This is the whole pattern: a flag one topic set unlocks
+	# content in another, with no state stored outside the ink VARs.
+	if p.read_flag("asked_name") == true and container.get_child_count() == 4:
+		_ok("L08", "state bus works: asked_name=true unlocked a gated choice (4 now)")
+	else:
+		_fail("L08", "state bus did not gate content: asked_name=%s choices=%d" % [str(p.read_flag("asked_name")), container.get_child_count()])
 
 	p.queue_free()
 

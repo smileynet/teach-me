@@ -81,7 +81,7 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **scope:** deep
 - **prereqs:** [state-bridge]
 - **lesson_file:** 0008-production-patterns.html
-- **status:** not-started
+- **status:** complete
 
 ## Expansion Opportunities
 

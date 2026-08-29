@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 8: Production Patterns</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="ink-godot-map.html">Ink + Godot</a> <span class="nav-sep">›</span> <span>Production Patterns</span></nav>
+<h1>Production Patterns</h1>
+
+<div class="lesson-meta">
+  Lesson 8 · Ink + Godot · ~18 min read<br>
+  <strong>Win:</strong> You can architect a multi-story ink game the way a shipped title does — a handful of <span class="term" data-term="state-bus">state-bus</span> variables carrying cross-story state, each dialog <span class="term" data-term="stateless-dialog">stateless</span> so it starts fresh, and one <span class="term" data-term="hub-and-spoke">hub-and-spoke</span> loop driving every conversation.
+</div>
+
+<div class="key-concept">
+  <strong>After this lesson:</strong> You've built every primitive — flow, choices, variables, functions, integration, tags, and the two-way bridge. This capstone adds almost no new syntax. Instead it answers the question a real game forces: <em>where does the state live, and how do hundreds of story files share it without turning into spaghetti?</em> The answer, drawn from <span class="term" data-term="esoteric-ebb">Esoteric Ebb</span> (286 stories, 500K words), is three patterns you already have the pieces for.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE SCALING PROBLEM
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Scaling Problem</h2>
+
+<p>One story is easy. A hundred is an architecture problem. When the blacksmith needs to know the player insulted the mayor <em>in a different conversation yesterday</em>, where does that fact live? The tempting answer — store it inside the blacksmith's ink file — collapses the moment a second file needs the same fact. Ebb ships 286 story files and about 1,800 shared variables; the patterns below are how they stay coherent.</p>
+
+<p>The through-line is one idea: <strong>ink is not the game — it's a narrative layer the engine drives.</strong> Durable world state lives in the host engine; each ink file is a stateless view onto it. That single boundary decision is what the three patterns implement.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PATTERN 1: STATE-BUS VARIABLES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Pattern 1: State-Bus Variables</h2>
+
+<p>Instead of separate systems for quests, factions, and inventory, a production ink game often uses one flat namespace of variables as a shared <span class="term" data-term="state-bus">state bus</span>. Any file can write a flag; any file can read it. You already know the mechanism — it's just <code>VAR</code> from lesson 03, used as a communication channel rather than local bookkeeping:</p>
+
+<pre data-mode="fragment"><code>VAR asked_name = false
+
+=== ask_name ===
+"Name's Mara," the keeper says.
+~ asked_name = true
+-> tavern</code></pre>
+
+<p>A different topic — even a different <em>file</em> in the full game — reads that same flag to change what it offers:</p>
+
+<pre data-mode="fragment"><code>+ {asked_name} [Greet her by name] -> greet</code></pre>
+
+<p>One flag set in one place, read in another. In Ebb a variable like <code>Snell_helped</code> set in a single scene is read by more than half the game's other files — a cheap mesh of reactivity with no bespoke quest system. The whole "state" is just named booleans and integers on the bus.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PATTERN 2: STATELESS-PER-DIALOG
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Pattern 2: Stateless-Per-Dialog</h2>
+
+<p>Here's the pattern that surprises people: a production game often <em>doesn't</em> let ink own the save. It doesn't call <code>get_state()</code> to persist a conversation. Instead the engine keeps the state-bus variables in its own store, and for each conversation it creates a <span class="term" data-term="stateless-dialog">fresh</span> <code>InkPlayer</code> and pushes the current values in with <code>set_variable</code> before the first line:</p>
+
+<pre data-mode="fragment"><code># Engine owns the bus. Each dialog starts fresh and is seeded from it.
+for key in game_state.flags:
+    _ink_player.set_variable(key, game_state.flags[key])
+# ...run the dialog...
+# On exit, harvest anything the story changed back into the engine:
+for key in game_state.flags:
+    game_state.flags[key] = _ink_player.get_variable(key)</code></pre>
+
+<p>Why give up ink's built-in save? Because it makes every dialog enterable in any order, keeps saves a flat list of flags (trivial to patch when you ship an update), and means no single ink file is the source of truth. This is the direct payoff of lesson 07's bridge: <code>get_variable</code>/<code>set_variable</code> are the seam between the story and the engine's durable state.</p>
+
+<div class="note">
+  <strong>Trade-off — no mid-conversation save:</strong> because state syncs at dialog boundaries, you can't save halfway through a single conversation. Production games accept this: conversations are short, and the flat, order-independent save is worth far more than resuming mid-sentence. If you need mid-conversation resume, use lesson 07's <code>get_state()</code> instead — but you lose the flat-save benefit.
+</div>
+
+<svg viewBox="0 0 560 250" role="img" aria-labelledby="diagram-production"
+     style="display:block;margin:1.5rem auto;max-width:100%;height:auto">
+  <title id="diagram-production">The engine holds the durable state bus of flags. For each conversation it creates a fresh ink story, seeds it from the bus with set_variable, runs the hub-and-spoke dialog, then harvests changed flags back into the bus with get_variable. Three separate story files all read and write the same engine-owned bus.</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--svg-line)"/>
+    </marker>
+  </defs>
+
+  <!-- engine bus -->
+  <rect x="180" y="20" width="200" height="54" rx="6" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="2"/>
+  <text x="280" y="42" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="var(--svg-warning-text)">engine state bus</text>
+  <text x="280" y="60" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-warning-text)">durable flags (source of truth)</text>
+
+  <!-- three stateless dialogs -->
+  <rect x="30" y="150" width="140" height="70" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="100" y="178" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-primary-text)">tavern.ink</text>
+  <text x="100" y="196" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="var(--svg-primary-text)">fresh, seeded</text>
+
+  <rect x="210" y="150" width="140" height="70" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="280" y="178" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-primary-text)">smith.ink</text>
+  <text x="280" y="196" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="var(--svg-primary-text)">fresh, seeded</text>
+
+  <rect x="390" y="150" width="140" height="70" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="460" y="178" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-primary-text)">mayor.ink</text>
+  <text x="460" y="196" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="var(--svg-primary-text)">fresh, seeded</text>
+
+  <!-- two-way arrows: seed down, harvest up -->
+  <line x1="150" y1="120" x2="100" y2="150" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <line x1="280" y1="74" x2="280" y2="150" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <line x1="410" y1="120" x2="460" y2="150" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <text x="280" y="115" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="var(--svg-text)">set_variable (seed) / get_variable (harvest)</text>
+</svg>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PATTERN 3: HUB-AND-SPOKE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Pattern 3: Hub-and-Spoke</h2>
+
+<p>How does one player script drive 286 different conversations? Because they all share one shape: a <span class="term" data-term="hub-and-spoke">hub-and-spoke</span> loop. The hub is a re-enterable knot listing topics; each topic (spoke) does its bit and diverts <em>back</em> to the hub; one choice exits. The player's job is the same two-phase loop from lesson 06 — drain the lines, render the choices — running until the player leaves:</p>
+
+<pre data-mode="fragment"><code>=== tavern ===          // the hub
+The tavern is warm and loud. # speaker: Narrator
++ [Ask the keeper's name] -> ask_name
++ {asked_name} [Greet her by name] -> greet
++ [Leave] -> leave
+
+=== ask_name ===        // a spoke: do something, divert BACK
+"Name's Mara," the keeper says. # speaker: Mara
+~ asked_name = true
+-> tavern</code></pre>
+
+<div class="key-concept">
+  <strong>Why divert back to the hub — never self-loop:</strong> a knot's read count reflects <em>entry</em>. Re-entering the hub by a fresh divert (spoke → hub) advances counts correctly and re-evaluates every choice condition, so gated content appears the moment its flag flips. This is the sticky-choice-and-gather discipline from lessons 02 and 04, now the backbone of the whole game. A knot that tried to loop on <em>itself</em> would freeze its own read count — the classic bug.
+</div>
+
+<p>Here is the entire player. It is lesson 06's loop, unchanged — the architecture lives in the <em>story</em>, not the engine code:</p>
+
+<pre data-file="story_player.gd" data-mode="complete"><code># story_player.gd
+# Production-patterns player for an ink story using the inkgd runtime.
+# This is the SAME single-step drain loop from lessons 05-07 -- the capstone adds
+# no new engine API. What changes is the STORY's architecture, not the player:
+#   * Hub-and-spoke  -- the loop naturally drives a re-enterable hub: drain lines,
+#                       render choices, pick one, drain again. One loop, any number
+#                       of topics, visited in any order.
+#   * State-bus VARs -- the story reads/writes a few flags (asked_name, helped_cook)
+#                       to carry cross-topic state. In a real multi-story game you'd
+#                       read them out with get_variable and push them into the NEXT
+#                       story's fresh InkPlayer with set_variable -- that's the
+#                       "stateless-per-dialog" pattern: durable state lives HERE, in
+#                       the engine, not inside any one ink file.
+#
+# Node setup (attach this to a Control):
+#   Control (this script)
+#   +- SpeakerLabel     : Label          -- who is speaking
+#   +- TextLabel        : RichTextLabel   -- story text (BBCode enabled)
+#   +- ChoicesContainer : VBoxContainer   -- choice buttons appear here
+extends Control
+
+var InkPlayerFactory := preload("res://addons/inkgd/ink_player_factory.gd") as GDScript
+
+var _ink_player = null
+
+@onready var _speaker_label: Label = $SpeakerLabel
+@onready var _text_label: RichTextLabel = $TextLabel
+@onready var _choices_container: VBoxContainer = $ChoicesContainer
+
+
+func _ready():
+	_ink_player = InkPlayerFactory.create()
+	_ink_player.loads_in_background = false
+	add_child(_ink_player)
+
+	_ink_player.ink_file = load("res://stories/08_production_patterns.ink.json")
+	_ink_player.connect("loaded", Callable(self, "_on_story_loaded"))
+	call_deferred("_create_story")
+
+
+func _create_story():
+	_ink_player.create_story()
+
+
+func _on_story_loaded(successfully: bool):
+	if not successfully:
+		_text_label.text = "[color=red]ERROR: Story failed to load.[/color]"
+		return
+	_advance_story()
+
+
+# Phase 1 of the hub loop: drain every available line (single-step, so per-line
+# tags survive -- the lesson 06 rule). Phase 2 (render choices) happens when the
+# drain stops at a choice point.
+func _advance_story():
+	while _ink_player.can_continue:
+		var text = _ink_player.continue_story()
+		var show_line = _process_tags(_ink_player.current_tags)
+		if show_line and text.strip_edges() != "":
+			_text_label.text += text
+
+	if _ink_player.has_choices:
+		_show_choices()
+
+
+func _process_tags(tags: Array) -&gt; bool:
+	var show_line := true
+	for tag in tags:
+		var parts = (tag as String).split(":", false, 1)
+		var key = parts[0].strip_edges()
+		var value = parts[1].strip_edges() if parts.size() &gt; 1 else ""
+		match key:
+			"speaker":
+				_speaker_label.text = value
+			"hidden":
+				show_line = false
+			_:
+				pass
+	return show_line
+
+
+# Read a state-bus flag out of the story -- this is how a real game would harvest
+# ink's variables to persist them (get_variable) and later push them into the next
+# dialog's fresh InkPlayer (set_variable). Shown here for the harness/demo.
+func read_flag(name: String):
+	return _ink_player.get_variable(name)
+
+
+func _show_choices():
+	for child in _choices_container.get_children():
+		child.queue_free()
+
+	var choices = _ink_player.current_choices
+	for i in range(choices.size()):
+		var btn = Button.new()
+		btn.text = choices[i].text
+		btn.connect("pressed", Callable(self, "_on_choice_selected").bind(i))
+		_choices_container.add_child(btn)
+
+
+func _on_choice_selected(index: int):
+	for child in _choices_container.get_children():
+		child.queue_free()
+	_ink_player.choose_choice_index(index)
+	_advance_story()</code></pre>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE PAYOFF: COMBAT AS DIALOG
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Payoff: Combat as Dialog</h2>
+
+<p>Once you have these three patterns, something surprising falls out: you don't need a separate combat system. Ebb runs combat <em>inside</em> ink using the exact same machinery. A turn is a hub; the player's actions are choices; the resolution is a tag the engine acts on. Ink never sees the dice — it emits the intent and reads the result back off the bus on the next entry:</p>
+
+<pre data-mode="fragment"><code>=== attack_turn ===
++ [Swing the axe] -> resolve_axe
++ {has_spell} [Cast ember] -> resolve_ember
+
+=== resolve_axe ===
+You swing. # hploss: 2d6      // engine rolls, writes the result to the bus
+-> attack_turn                // back to the hub for the next turn</code></pre>
+
+<p>Choices are actions, tags are resolution, a state-bus variable tracks whose turn it is — combat is just a conversation with the world. Four encounters in Ebb are authored exactly like dialog, with no bespoke combat code. That is the whole point of the architecture: once the boundary is right, new systems are <em>content</em>, not engineering.</p>
+
+<div class="note">
+  <strong>Note — determinism:</strong> real combat rolls dice, so its output changes every run. This lesson's reference story stays deterministic (no <code>RANDOM</code>) so it can be regression-tested with a golden transcript. In a shipped game the roll happens in the engine (behind the <code>hploss</code> tag), and ink reads the outcome back off the bus — keeping the story itself deterministic and the randomness in one testable place.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> You're building a game with a blacksmith, a mayor, and a tavern keeper in three separate ink files. Requirements:</p>
+  <ul>
+    <li>If the player insulted the mayor, the blacksmith is cold to them in a later, separate conversation.</li>
+    <li>Each conversation is a menu of topics the player works through in any order.</li>
+    <li>The player can quit between conversations and resume.</li>
+  </ul>
+  <p>A teammate proposes storing the "insulted the mayor" fact inside <code>mayor.ink</code> as a read count, and having <code>smith.ink</code> check it. It compiles, but it doesn't work — the blacksmith never reacts. For each requirement, name the pattern that handles it, and explain why the teammate's approach fails.</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Which file "owns" the insulted fact in their design? When <code>smith.ink</code> runs as its own fresh story, can it see a read count that lives inside a <em>different</em> story file?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p><strong>Requirement → pattern:</strong> the cross-conversation memory is a <span class="term" data-term="state-bus">state-bus</span> variable (<code>VAR mayor_insulted</code>) that <code>mayor.ink</code> writes and <code>smith.ink</code> reads; the menu-in-any-order is <span class="term" data-term="hub-and-spoke">hub-and-spoke</span>; quit-and-resume is <span class="term" data-term="stateless-dialog">stateless-per-dialog</span> — the engine owns the flags and reseeds each fresh story.</p>
+  <p><strong>Why the teammate's approach fails:</strong> a read count inside <code>mayor.ink</code> is <em>local to that story instance</em>. When <code>smith.ink</code> runs, it's a different, freshly-created story that has never entered <code>mayor.ink</code>'s knots — so the count it checks is always zero. They tried to make one ink file <em>own</em> world state, but ink files are stateless views; durable facts have to live on the bus, in the engine, where every story can be seeded from them.</p>
+  <p><strong>Key insight:</strong> ink is not the game. The story is a narrative layer; the engine owns the durable state. The moment a fact must outlive or cross a single conversation, it belongs on the state bus — not inside any one <code>.ink</code> file.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Code Files</h2>
+<p>Download the final-state files from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/production-patterns/story_player.gd" download><code>story_player.gd</code></a> — the hub-and-spoke drain loop (unchanged from lesson 06)</li>
+  <li><a href="../reference/code/production-patterns/08_production_patterns.ink" download><code>08_production_patterns.ink</code></a> — the tavern hub with state-bus flags gating content (compile to <code>.ink.json</code>)</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next — You've Finished the Track</h3>
+  <p>That's the full ink + Godot arc: from a single divert to a multi-story architecture a shipped game uses. Where to go deeper:</p>
+  <ul>
+    <li><strong>ink lists</strong> — bitfield sets and state machines for quest tracking, used by Heaven's Vault and Ebb.</li>
+    <li><strong>Storylets</strong> — quality-based narrative: let the engine pick which content is eligible, rather than hardcoding diverts.</li>
+    <li><strong>Localization</strong> — string extraction and translation workflows for a shipping title.</li>
+  </ul>
+  <p>Each builds on the state-bus and hub-and-spoke foundation you now have.</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"state-bus": "A flat namespace of ink VAR flags used as shared cross-story state: any file writes a flag, any file reads it. It replaces bespoke quest/faction/inventory systems with named booleans and integers, so one flag set in one scene can change content across the whole game.", "stateless-dialog": "The pattern where no single ink file owns durable state. The engine keeps the state-bus flags in its own store and, for each conversation, creates a fresh InkPlayer seeded via set_variable, then harvests changes back via get_variable. Enables any-order entry and flat, patch-safe saves.", "hub-and-spoke": "A conversation shape where a re-enterable hub knot lists topics, each topic (spoke) does its bit and diverts BACK to the hub, and one choice exits. Re-entering by fresh divert advances read counts correctly and re-evaluates gated choices — never a self-loop. One drain-and-render loop drives every such conversation.", "esoteric-ebb": "A shipped narrative RPG whose ink architecture (286 story files, ~500K words, ~1,800 shared variables) is the reference for these production patterns. It runs dialog, quests, and even combat through ink using the state bus and hub-and-spoke loop."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
