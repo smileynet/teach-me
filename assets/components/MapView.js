@@ -64,7 +64,8 @@ function computeLayout(topics, edges) {
 
   const laidEdges = [];
   g.edges().forEach(e => {
-    laidEdges.push({ points: g.edge(e).points, type: g.edge(e).type || 'prereq' });
+    // e = {v, w} are the node ids; carry them for data-source/data-target instrumentation.
+    laidEdges.push({ points: g.edge(e).points, type: g.edge(e).type || 'prereq', source: e.v, target: e.w });
   });
 
   const graphData = g.graph();
@@ -85,7 +86,8 @@ export function MapView({ topics, leadsTo, edges }) {
 
   return html`
     <div class="dag-container">
-      <div class="dag-canvas" style="width:${layout.width}px;height:${layout.height}px;position:relative">
+      <div class="dag-canvas" style="width:${layout.width}px;height:${layout.height}px;position:relative"
+           data-render-complete="true" data-edge-count=${layout.edges.length}>
         <${EdgeLayer} edges=${layout.edges} width=${layout.width} height=${layout.height} />
         ${topics.map(t => html`
           <${TopicCard}

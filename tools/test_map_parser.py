@@ -381,6 +381,31 @@ def test_soft_prereqs_become_symmetric_related_edges():
     p.unlink()
 
 
+def test_slug_rename_preserves_edges():
+    # Fixture with EXPLICIT ids so ids are stable across loads (no ephemeral minting).
+    aid, bid = _ulid.new(), _ulid.new()
+    body = (
+        "---\ndomain: t\ndescription: \"d\"\ndepth: 0\nparent: null\n---\n\n# T\n\n"
+        "## Orientation\n\nIntro.\n\n## Topics\n\n"
+        f"### alpha\n- **id:** {aid}\n- **title:** Alpha\n- **prereqs:** []\n- **status:** complete\n\n"
+        f"### beta\n- **id:** {bid}\n- **title:** Beta\n- **prereqs:** [alpha]\n- **status:** not-started\n"
+    )
+    p = _write_map(body)
+    before = sorted((e.source_id, e.target_id, e.type) for e in load_map(p).edges)
+
+    # Rename alpha's slug (header) AND its reference in beta's prereqs. Ids are unchanged.
+    renamed = p.read_text(encoding="utf-8").replace("### alpha", "### alpha-renamed").replace("[alpha]", "[alpha-renamed]")
+    p.write_text(renamed, encoding="utf-8")
+    m2 = load_map(p)
+    after = sorted((e.source_id, e.target_id, e.type) for e in m2.edges)
+
+    assert after == before, "id-keyed edges changed after a slug rename"
+    assert validate(m2) == [], "rename introduced validation errors"
+    # The prereq edge still points from alpha's id to beta's id, regardless of the new slug.
+    assert (aid, bid, "prereq") in after
+    p.unlink()
+
+
 # ---------------------------------------------------------------------------
 # Runner
 # ---------------------------------------------------------------------------

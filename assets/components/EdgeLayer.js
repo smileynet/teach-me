@@ -12,9 +12,11 @@ export function EdgeLayer({ edges, width, height }) {
         </marker>
       </defs>
       ${edges.map(edge => {
-        // Back-compat: an edge may be a bare points array or {points, type}.
+        // Back-compat: an edge may be a bare points array or {points, type, source, target}.
         const points = Array.isArray(edge) ? edge : edge.points;
         const type = Array.isArray(edge) ? 'prereq' : (edge.type || 'prereq');
+        const source = Array.isArray(edge) ? null : edge.source;
+        const target = Array.isArray(edge) ? null : edge.target;
         let d = `M ${points[0].x} ${points[0].y}`;
         for (let i = 1; i < points.length - 1; i++) {
           const cp = points[i];
@@ -27,7 +29,8 @@ export function EdgeLayer({ edges, width, height }) {
         const dashed = type === 'related';
         return html`<path d=${d} fill="none" stroke="var(--border)" stroke-width="1.5"
           stroke-dasharray=${dashed ? '5 4' : 'none'}
-          marker-end=${dashed ? 'none' : 'url(#arrowhead)'} />`;
+          marker-end=${dashed ? 'none' : 'url(#arrowhead)'}
+          data-source=${source} data-target=${target} data-type=${type} />`;
       })}
     </svg>
   `;
