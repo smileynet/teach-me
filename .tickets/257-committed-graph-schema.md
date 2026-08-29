@@ -89,7 +89,60 @@ never stored.
   during the transition, just adds id + typed edges).
 - The minimal user overlay (#255).
 
-## Acceptance criteria
+## Implementation plan (research-backed 2026-08-29)
+
+Three research tracks + a code-review edit plan
+(`.scratch/research/257-*.md`, `.scratch/subagent-raw/257-editplan.md`) resolved the
+open implementation questions:
+
+### Decisions locked
+- **ULID = vendored stdlib module** `tools/lib/ulid.py` (~40 lines: `new`/`is_valid`/
+  `parse`), NO dependency. IDs minted rarely (authoring/migration), stored as the
+  26-char string in git; runtime is parse/validate-dominated. Spec-compliant → escape
+  hatch to `python-ulid`/stdlib `uuid7` stays open. (Rejected nanoid/uuid4: unsortable;
+  uuid7: needs py3.14, we're on 3.12.)
+- **Typed-edge authoring = a `## Edges` markdown section** (NOT inline `prereqs`).
+  Block-style list of `{from, to, type, why}` authored BY SLUG (human-writable),
+  resolved to IDs at parse time. Chosen because the per-topic `_FIELD_RE` only captures
+  single-line fields — a `## Edges` section keeps `_FIELD_RE` untouched and reuses the
+  proven `_parse_frontmatter` nested-object logic (same machinery as `leads_to`). Makes
+  `related` first-class + carries per-edge `why`. Example:
+  ```
+  ## Edges
+  - from: iceberg-metadata
+    to: table-format
+    type: prereq
+    why: understand the on-disk layout before metadata makes sense
+  ```
+- **Migration = idempotent backfill + slug→id resolution + reserved `aliases:`.** The
+  data (presence of `- **id:**`) is the idempotency key — re-run = empty git diff. Edges
+  stay authored by slug; MAP.md never contains a ULID in an edge. Renames add old slug to
+  a per-topic `aliases:` list (id unchanged → references still resolve).
+
+### The silent-failure trap (gate on VISUAL verification)
+`generate_map_page.py:270` (`"id": t["slug"]`) is the one line making id==slug today.
+`MapView.js:63` does `g.setEdge(p, t.id)` — matches only because id IS the slug. When id
+becomes a ULID but prereqs stay slugs, dagre SILENTLY creates phantom nodes and edges
+detach (no error). Fix: emit id-keyed prereqs/edges in the island; verify arrows land on
+cards (`mise run visual-qa`), not "it ran." Cycle-check MUST scope to `type=="prereq"`
+or symmetric `related` edges false-positive as cycles. (`store.js`/`GenButton` state flow
+verified SAFE — keyed by `topic.id` end-to-end, no slug-keyed caller.)
+
+### Subtasks (order A→B→C, D last; each shippable + verifiable)
+- **A — schema + parser** (`tools/lib/ulid.py` + `map_parser.py`): `Edge{source_id,
+  target_id,type,why}` + `EDGE_TYPES=("prereq","leads_to","related")`; `Topic.id`;
+  `DomainMap.edges` + `topic_by_id`; parse `## Edges`; synthesize edges via slug→id;
+  cycle-check scoped to `prereq`; repoint `get_available_topics`/`get_next_suggestion`
+  to id-keyed prereq edges; endpoint + edge-type validation. Gates the rest.
+- **B — migration** (`tools/migrate_map_ids.py`): idempotent ULID backfill into committed
+  MAP.md; verify run-twice = 0 minted, git diff = id-line insertions only.
+- **C — client render** (`generate_map_page.py` island + `MapView.js`/`TopicCard.js`):
+  emit `id`(ULID)+`slug`+id-keyed edges array; style by type (prereq solid/related
+  dashed). Verify via `visual-qa` — edges land on cards.
+- **D — emitters** (last): `map_from_deps`/`map_from_chunks`/`enrich_prereqs` write `id`
+  + typed edges; `soft_prereqs` → `related` edges.
+
+
 
 - [ ] `Topic` has an immutable `id` (ULID); `slug` is display/routing only
 - [ ] Committed edges are typed `{source_id, target_id, type, why}` with
