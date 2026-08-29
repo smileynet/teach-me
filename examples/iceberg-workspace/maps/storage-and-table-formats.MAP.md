@@ -20,6 +20,7 @@ Your data has to live somewhere, and HOW it's stored determines everything downs
 ## Topics
 
 ### object-storage-fundamentals
+- **id:** 01M174TQPS85HE7F2EZ0R7KH09
 - **title:** Object Storage Fundamentals
 - **why:** Every modern analytics stack sits on object storage (S3, GCS, ADLS) — understanding its constraints and strengths is prerequisite to everything else
 - **scope:** substantial
@@ -27,6 +28,7 @@ Your data has to live somewhere, and HOW it's stored determines everything downs
 - **status:** not-started
 
 ### columnar-file-formats
+- **id:** 01M174TQPS2E30N1MYEGNRRZ8E
 - **title:** Columnar File Formats (Parquet, ORC)
 - **why:** The file format determines compression ratios, read patterns, and which queries can skip data — it's the physical foundation of performance
 - **scope:** substantial
@@ -34,6 +36,7 @@ Your data has to live somewhere, and HOW it's stored determines everything downs
 - **status:** not-started
 
 ### table-format-metadata
+- **id:** 01M174TQPS0PX6V614C6042P1Q
 - **title:** Table Format Metadata (Iceberg, Delta, Hudi)
 - **why:** Open table formats add transactional semantics, schema evolution, and time travel on top of raw files — this is where "data lake" becomes "lakehouse"
 - **scope:** deep
@@ -41,6 +44,7 @@ Your data has to live somewhere, and HOW it's stored determines everything downs
 - **status:** not-started
 
 ### partitioning-strategies
+- **id:** 01M174TQPSND5QFHZNG077E898
 - **title:** Partitioning & Clustering Strategies
 - **why:** How you partition data determines whether queries read megabytes or terabytes — the single biggest lever for query cost and speed
 - **scope:** substantial
@@ -48,6 +52,7 @@ Your data has to live somewhere, and HOW it's stored determines everything downs
 - **status:** not-started
 
 ### compaction-and-maintenance
+- **id:** 01M174TQPSF6F95WXFXT0VAPRP
 - **title:** Compaction & Table Maintenance
 - **why:** Without regular maintenance, small files accumulate and metadata bloats — turning fast queries into slow, expensive ones over time
 - **scope:** lightweight

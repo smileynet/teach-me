@@ -20,6 +20,7 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 ## Topics
 
 ### configurable-banding
+- **id:** 01M174TQPHA2TWZBPKQN7NPG1E
 - **title:** Configurable Toon Banding
 - **why:** The simple floor() from lesson 0004 is fixed — a production shader needs artist-facing controls for band count, smoothness blend, and intensity scale without changing code
 - **scope:** substantial
@@ -28,6 +29,7 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **status:** in-progress
 
 ### gooch-shading
+- **id:** 01M174TQPH8CD5PXM9BN2E86BY
 - **title:** Gooch Warm/Cool Shadows
 - **why:** Black shadows look amateur — Gooch shading replaces them with a cool-to-warm color ramp that adds perceived depth without breaking the stylized look
 - **scope:** substantial
@@ -36,6 +38,7 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **status:** in-progress
 
 ### wrapped-lighting-noise
+- **id:** 01M174TQPH2BVG3FT78A1AD3K6
 - **title:** Wrapped Lighting & Noise Bias
 - **why:** Hard geometric terminators look CG — half-Lambert wrap softens the shadow boundary while noise texture bias adds organic irregularity that reads as hand-painted
 - **scope:** substantial
@@ -44,6 +47,7 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **status:** in-progress
 
 ### specular-rim
+- **id:** 01M174TQPH2Y56YNJHW6E4CSMQ
 - **title:** Specular & Rim Lighting (Threshold-Smoothstep)
 - **why:** One reusable pattern — threshold + smoothstep — gives you both flat specular stamps (anime eye-catch lights) and Fresnel-based rim glow, adding dimension without breaking flat-color regions
 - **scope:** substantial
@@ -52,6 +56,7 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **status:** in-progress
 
 ### outlines-overlays
+- **id:** 01M174TQPH5ZBRNCNF0ZB2TEP7
 - **title:** Inverted-Hull Outlines & Artistic Overlays
 - **why:** A companion outline shader (second material pass) completes the cel look, while hatch/sketch textures weighted by shadow add hand-drawn authenticity
 - **scope:** substantial
@@ -60,6 +65,7 @@ This is the "authored shading" fork from `toon-banding`. You need to understand 
 - **status:** in-progress
 
 ### vfx-dissolve-vertex
+- **id:** 01M174TQPHRS48N7909AXCZF24
 - **title:** VFX Layer — Dissolve & Vertex Animation
 - **why:** Map-based dissolve with glowing borders and vertex displacement (sine, bounce, noise with stutter) are the runtime effects that bring toon-shaded characters to life in cutscenes and gameplay
 - **scope:** substantial

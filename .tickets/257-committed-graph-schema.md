@@ -136,6 +136,17 @@ verified SAFE — keyed by `topic.id` end-to-end, no slug-keyed caller.)
   to id-keyed prereq edges; endpoint + edge-type validation. Gates the rest.
 - **B — migration** (`tools/migrate_map_ids.py`): idempotent ULID backfill into committed
   MAP.md; verify run-twice = 0 minted, git diff = id-line insertions only.
+  - **B technique (validated 2026-08-29, prototyped against all 9 maps → 59 ids,
+    idempotent, CRLF preserved):** SURGICAL raw-text insert, NOT parse+reserialize (even
+    ruamel isn't diff-clean → breaks the empty-diff proof). Read `read_bytes().decode`,
+    `re.sub` on header `^(### )([^\r\n]+?)([ \t]*)(\r?\n)`; probe the block for a valid-ULID
+    id line (skip) else append `- **id:** {ulid.new()}` reusing the block's OWN newline
+    (group 4) so mixed CRLF/LF is preserved (`blender-texture-prep.MAP.md` is the lone LF
+    file). Insert as the FIRST field after the header (field ordering/sets vary per block).
+    Guard with `_write_lock`; atomic write via temp + `os.replace`; dry-run default, `--apply`
+    to write; flag an existing-but-invalid id for manual review (don't duplicate). Standalone
+    `tools/migrate_map_ids.py` (not a map_parser flag). Add a unit test (idempotency +
+    CRLF/LF preservation).
 - **C — client render** (`generate_map_page.py` island + `MapView.js`/`TopicCard.js`):
   emit `id`(ULID)+`slug`+id-keyed edges array; style by type (prereq solid/related
   dashed). Verify via `visual-qa` — edges land on cards.

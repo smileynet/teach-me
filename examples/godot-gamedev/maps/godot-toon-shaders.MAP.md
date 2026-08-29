@@ -19,6 +19,7 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 ## Topics
 
 ### spatial-shader-anatomy
+- **id:** 01M174TQPM0PYKA1JEB494GVSS
 - **title:** Spatial Shader Anatomy
 - **why:** Before writing toon lighting you need to understand the three shader entry points, what coordinate space each operates in, and how data flows between them
 - **scope:** substantial
@@ -27,6 +28,7 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **status:** complete
 
 ### toon-banding
+- **id:** 01M174TQPM3VYT0E96F4B7735M
 - **title:** Toon Banding
 - **why:** The core technique — three approaches to turning continuous lighting into discrete bands, with trade-offs that determine your art direction options
 - **scope:** substantial
@@ -35,6 +37,7 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **status:** complete
 
 ### triplanar-mapping
+- **id:** 01M174TQPM333KKHJYZHE7AE6E
 - **title:** Triplanar Mapping
 - **why:** World-space texturing eliminates UV seams and stretching on surfaces like roads, walls, and terrain — essential for any scene with procedural or non-UV'd geometry
 - **scope:** substantial
@@ -43,6 +46,7 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **status:** complete
 
 ### toon-outlines
+- **id:** 01M174TQPMSZ3ZBHD6DW3SGCD2
 - **title:** Toon Outlines — Geometry & Screen-Space
 - **why:** Outlines complete the cel-shading look — the inverted hull gives per-object control while screen-space edge detection provides production quality with zero mesh prep
 - **scope:** substantial
@@ -51,6 +55,7 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **status:** complete
 
 ### advanced-outlines
+- **id:** 01M174TQPMKFNCRGHCMNSSCNES
 - **title:** Advanced Outlines — Per-Object & Wide
 - **why:** Dual-viewport color-ID gives per-object control in screen-space, and JFA distance fields enable pixel-perfect outlines at any width — the techniques shipped games combine for different object categories
 - **scope:** substantial
@@ -59,6 +64,7 @@ Toon (cel) shading replaces smooth realistic lighting with discrete brightness b
 - **status:** complete
 
 ### color-simplification
+- **id:** 01M174TQPMXHHWXY6QRP4CZADH
 - **title:** Color Simplification — Posterization, Palettes & Paint
 - **why:** Toon banding discretizes lighting but leaves texture colors at full complexity — posterization, palette snapping, and Kuwahara smoothing each reduce color in different ways at different pipeline stages, completing the flat-color cel look
 - **scope:** substantial

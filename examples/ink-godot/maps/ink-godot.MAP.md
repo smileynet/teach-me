@@ -20,6 +20,7 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 ## Topics
 
 ### ink-flow-and-knots
+- **id:** 01M174TQPVJ8DXJ9XHG6PYVSJC
 - **title:** Flow & Knots
 - **why:** Stories in ink are built from named sections (knots) connected by diverts — understanding this flow is the foundation for everything that follows
 - **scope:** substantial
@@ -28,6 +29,7 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **status:** complete
 
 ### ink-choices-and-weave
+- **id:** 01M174TQPVXSXEVPRYM5QNNWT3
 - **title:** Choices, Stitches & Weave
 - **why:** Choices are how players interact with ink — once-only vs sticky, nested branches, stitches for organizing within knots, and the gather pattern that prevents spaghetti convergence
 - **scope:** substantial
@@ -36,6 +38,7 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **status:** in-progress
 
 ### ink-variables-and-conditionals
+- **id:** 01M174TQPV20MTTGH29SMYCZ24
 - **title:** Variables & Conditionals
 - **why:** Tracking state across knots lets stories remember what the player did — conditional content, read counts, and variable types make stories reactive
 - **scope:** substantial
@@ -44,6 +47,7 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **status:** in-progress
 
 ### ink-functions-and-tunnels
+- **id:** 01M174TQPVTPB3VFTCRBX3KJFG
 - **title:** Functions & Tunnels
 - **why:** Reusable logic keeps large ink projects manageable — pure functions for computation, tunnels for scene templates that return to the caller
 - **scope:** substantial
@@ -52,6 +56,7 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **status:** in-progress
 
 ### godot-ink-integration
+- **id:** 01M174TQPVDXGR1JFAHZ15J7XH
 - **title:** First Godot Integration
 - **why:** Loading an ink story in Godot, displaying text line-by-line, and handling player choices via the InkPlayer node — the bridge from writing to playing
 - **scope:** substantial
@@ -60,6 +65,7 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **status:** in-progress
 
 ### tags-as-commands
+- **id:** 01M174TQPV6FWNWQJS1JRC5ADW
 - **title:** Tags as Commands
 - **why:** Ink tags become structured game commands (speaker, audio, camera, items) — a protocol that drives game systems from narrative without coupling ink to engine code
 - **scope:** substantial
@@ -68,6 +74,7 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **status:** in-progress
 
 ### state-bridge
+- **id:** 01M174TQPV2FBSAMEKC0Z5DWGH
 - **title:** State Bridge (External Functions & Variable Observers)
 - **why:** Binding game logic to ink and observing state changes reactively — the two-way communication between story and game that makes narrative-driven gameplay possible
 - **scope:** substantial
@@ -76,6 +83,7 @@ Phase A (lessons 01–04) is engine-agnostic — you write ink in the Inky edito
 - **status:** complete
 
 ### production-patterns
+- **id:** 01M174TQPV2WJXAXZGWJ2TJ0Q0
 - **title:** Production Patterns (Multi-Story, Hub Architecture, Combat-in-Ink)
 - **why:** Scaling from one story to hundreds requires architecture — stateless-per-dialog, story variables as a state bus, hub-and-spoke flow, and combat as conversation are patterns from a shipped 500K-word game
 - **scope:** deep
