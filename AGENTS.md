@@ -23,9 +23,7 @@ assets/scaffolds/   — content-pattern examples (boilerplate is in tools/lib/pa
 examples/           — test fixtures and example workspaces (MAP.md samples, topic examples)
 ```
 
-The `workspace/` directory is the single live workspace per machine. All topics go here — maps, lessons, quizzes, reference docs, learning records. It's gitignored (user-local state). Auto-created on first `mise run serve` if missing.
-
-Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each domain gets its own subfolder with per-domain numbering starting from 01. Quizzes and maps parallel this: `lessons/{domain-slug}/quiz/`, `lessons/{domain-slug}/{domain}-map.html`.
+`workspace/` is the single live workspace per machine — all topics (maps, lessons, quizzes, reference docs, learning records) go here. Gitignored (user-local); auto-created on first `mise run serve`. Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`, per-domain numbering from 01; quizzes and maps parallel this (`lessons/{domain-slug}/quiz/`, `lessons/{domain-slug}/{domain}-map.html`).
 
 ## Skills
 
@@ -46,40 +44,28 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 | Task | Command | What it does |
 |------|---------|-------------|
 | Install deps | `mise run setup` | drawsvg + graphviz + playwright + rich via uv |
-| Generate diagram | `mise run draw -- --type flow --data '{...}'` | SVG to stdout (builtin layout) |
-| Generate complex diagram | `mise run draw -- --type graph --backend graphviz --data '{...}'` | Auto-layout via Graphviz |
+| Generate diagram | `mise run draw -- --type flow --data '{...}'` (builtin) or `--type graph --backend graphviz` (auto-layout) | SVG to stdout |
 | Render .mmd/.d2 | `mise run render-diagrams` | Batch render to assets/generated/ |
 | Check topic complete | `python3 tools/check-topic-completeness.py --workspace X --all` | Reports missing artifacts per topic (lesson, ref, quiz, jargon, SR) |
 | Compile lesson code blocks | `python tools/check-lesson-code.py` | Compiles downloadable `data-file` blocks (skips `fragment`): `.ink`→inklecate, `.py`→py_compile (both in `verify`); `.gd`/`.gdshader`→SKIP (Godot compile-check is opt-in, needs a project). Diff blocks reconstructed to post-diff state; blocks grouped by `data-file` + assembled before compile |
 | Annotate jargon | `python3 tools/jargon-annotate.py --workspace X` | Mechanical term annotation from glossary-data JSON (idempotent) |
 | Migrate SVG colors | `python3 tools/check-svg-vars.py --workspace X` | Flags hardcoded hex in lesson SVGs |
 | Init workspace | `python tools/init_workspace.py [--default] [--path DIR]` | Scaffold workspace; --default for generic first-launch content (pure Python — no bash) |
-| Serve workspace | `mise run serve -- [--workspace PATH]` | Start server (default: workspace/). Auto-creates workspace on first run |
-| Validate shaders | `godot --path test-scene --editor` | Open test-scene in Godot; apply shaders to meshes, visually confirm |
-| Validate shaders (headless) | `godot --headless --editor --import --quit --path test-scene` | Catches compilation errors only (no visual check) |
-| Validate ink stories | `mise run ink:validate` | Compile all .ink files via inklecate, report errors/warnings |
-| Validate ink (strict) | `mise run ink:validate:strict` | Same but warnings = errors (for release gates) |
+| Serve workspace | `mise run serve -- [--workspace PATH]` | Start server (default workspace/, auto-created). Add `:lan` for 0.0.0.0:8787; `:restart` to kill+restart |
+| Validate shaders | `godot --path test-scene --editor` (visual) or `--headless --editor --import --quit` (compile-only) | Apply shaders to meshes; headless catches compile errors, no visual check |
+| Validate ink stories | `mise run ink:validate` (add `:strict` to treat warnings as errors) | Compile all .ink via inklecate, report errors/warnings |
 | Validate ink GDScript | `mise run ink:validate-gd` | Headless Godot: run shipped lesson story_player.gd in the real inkgd runtime (needs Godot; skips if absent). `ink:validate` does NOT need Godot. |
 | Validate Blender artifacts | `mise run verify:blender` | Real Blender: run the bpy artifacts' `--check` node-group validators (Tier-2 for the Blender lesson track). Skips if Blender absent. NOT in core `verify` — run before closing Blender-track tickets. |
 | tkt (direct) | `D:\code\tkt\target\release\tkt.exe` | Bypass mise shim recursion for ticket management |
-| Serve on LAN | `mise run serve:lan -- [--workspace PATH]` | Same but on 0.0.0.0:8787 for network access |
-| Serve restart | `mise run serve:restart` | Kill existing server and restart |
-| SR status | `mise run sr` | What's due, health summary |
-| SR review | `mise run sr:review` | Review all due (or `-- topic-slug` for one topic) |
-| SR quality check | `mise run sr:check` | Leech detection, prompt format issues |
-| SR analytics | `mise run sr:analytics` | Knowledge %, what's decaying, load forecast |
-| SR lifecycle | `mise run sr:lifecycle -- suspend ID` | Suspend, retire, reset, sync-lessons |
+| SR review | `mise run sr` (due + health); `sr:review [-- topic]`, `sr:check` (leeches/format), `sr:analytics` (retention), `sr:lifecycle -- suspend ID` | Spaced-repetition review + maintenance |
+| SR export | `mise run sr:quick-check -- [topic] [--all]` (review HTML); `sr:export-anki -- [topic] [--output path]` (.apkg) | Generate review pages / export cards |
 | Visual QA | `mise run visual-qa` | Exercise all components, report pass/fail |
 | Theme preview | `mise run theme-preview -- --palette palettes/purple-night.json` | Preview + contrast validation |
 | Health check | `mise run doctor` | Verify tools, venv, references |
 | Smoke test | `mise run verify` | Links + lint + SVG var check |
 | Clone references | `mise run rehydrate` | Clone repos from REFERENCES.md |
 | Open lesson | `mise run open-lesson` | Open latest lesson in browser |
-| Quick-check page | `mise run sr:quick-check -- [topic] [--all]` | Generate quick-check review HTML from due SR cards |
-| Export to Anki | `mise run sr:export-anki -- [topic] [--output path]` | Export cards to .apkg |
-| Generate map page | `mise run map:generate -- <MAP.md> [--output path]` | Interactive map HTML from MAP.md |
-| Regenerate all maps | `mise run maps:regenerate` | Rebuild all map pages (workspace + examples) |
-| Generate index | `mise run index:generate -- [--scan-dir path]` | All Lessons dashboard from MAP.md files |
+| Generate map / index | `mise run map:generate -- <MAP.md>` (one); `maps:regenerate` (all); `index:generate -- [--scan-dir path]` (dashboard) | Map/index HTML from MAP.md files |
 | Ingest source | `python tools/ingest_source.py <file-or-url> --workspace W --domain D --title T` | Full pipeline: chunk → classify → MAP → enrich prereqs |
 | Match section | `python tools/match_section.py source-chunks/domain.json "query"` | Find chunks matching a section reference |
 
@@ -118,38 +104,31 @@ Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`. Each doma
 | Don't teach from parametric memory | Cite sources in every lesson |
 | Don't invent specific numbers | Cite or frame as general |
 | Don't ask recall questions in gates | Ask "explain to [person] why..." |
-| Don't omit page-shell.js | Every lesson includes page-shell.js via the template's depth-relative path — single entry point for nav, glossary, typography, layout |
-| Don't ship silent buttons | Interactive buttons must have visible hover state + click feedback (animation, color change, or navigation) |
-| Don't trust visual validation on pixel-art assets | Color simplification shaders (Kuwahara, posterize) produce NO visible effect on low-res flat-color textures — use 1K+ PBR textures (Poly Haven CC0) for honest validation |
 | Don't give partial URLs | When a server is running, always provide full clickable URLs (http://host:port/path) |
 | Don't context-switch to content during infrastructure | Finish the migration/ticket in progress before generating lessons or teaching |
 | Don't create per-topic workspaces | One workspace/ per machine holds all topics. Use examples/ only for demo fixtures |
-| Don't script creative work | If it requires judgment (question writing, term selection, level assignment), it's a skill instruction — not a `tools/` script |
-| Don't over-engineer user-facing features | Show information simply. One line of attribution beats a system of routing + classification + progressive disclosure |
+| Don't script creative work | Judgment work (question writing, term selection, level assignment) is a skill instruction, not a `tools/` script |
+| Don't over-engineer user-facing features | Show information simply. One line of attribution beats routing + classification + progressive disclosure |
 | Don't start new feature chains with open tickets in the current chain | Finish through the parent ticket before proposing new work |
-| Don't drop code blocks without narrative framing | Before: what's changing and why. Between sequential blocks: what limitation motivates the next. After: connect back to concept. |
-| Don't put lessons in flat lessons/ root | Use `lessons/{domain-slug}/NN-slug.html` — per-domain subfolders with numbering starting from 01 |
-| Don't name files in code blocks without providing them | Every `data-file` block must have a corresponding downloadable file at `reference/code/{lesson-slug}/` |
+| Don't put lessons in flat lessons/ root | Use `lessons/{domain-slug}/NN-slug.html` — per-domain subfolders numbered from 01 |
+
+Lesson-authoring rules (page-shell.js, narrative framing around code blocks, downloadable `data-file` artifacts, no silent buttons, honest visual validation) live in `.kiro/steering/visual-teaching.md`.
 
 ## Environment
+
+Deep track-specific gotchas (Blender bake internals, inkgd cache noise, transcript UTF-8, Windows Python quirks) live in `.memory/specs/environment-gotchas.md`. Always-on facts:
 
 - Codex sandbox (bwrap) fails: `bwrap: loopback: Failed RTM_NEWADDR`. Use `codex exec --dangerously-bypass-approvals-and-sandbox`.
 - Playwright MCP requires headless mode (no X server).
 - Bedrock image limit: >20 images in conversation history triggers 2000px max. Resize to ≤768px; dispatch fresh subagents for image analysis in long sessions.
-- Git symlinks on Windows are text files (contain target path as text). For local serving, use `python tools/serve.py --workspace examples/godot-gamedev` — it mounts `/assets` from project root automatically (no junctions needed). Only use junctions for `python -m http.server` debugging.
-- Python tools with Unicode stdout (✓, ✗) fail on Windows cp1252. Every new `tools/*.py` that prints non-ASCII MUST reconfigure stdout+stderr to UTF-8 at module top (`if hasattr(sys.stdout, "reconfigure"): sys.stdout.reconfigure(encoding="utf-8", errors="replace")` — same for stderr). Six tools + verify-blender.py hit this (#237); a freshly-written tool will too. Not a shared helper (single-use) — inline the guard.
 - Mise shim recursion: `mise run` may fail with "recursive shim invocation detected". Workaround: invoke `.venv\Scripts\python.exe` directly instead of `python` or `mise run`.
-- Blender is NOT a `[tools]` dep and its mise `blender` shim is broken on Windows. `mise run verify:blender` resolves Blender via `[env] BLENDER` (default `"blender"`) — point it at the full exe in gitignored `mise.local.toml`, e.g. `BLENDER = "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe"`. Blender's `-b --python` swallows exceptions and exits 0, so `verify-blender.py` passes `--python-exit-code 1` AND checks each artifact's success sentinel (never trusts the exit code alone). The Godot A/B visual capture for the mktoon lessons is MANUAL (needs a GPU/window — headless can't render 3D); it is not part of any automated gate.
-- Blender bpy `img.save()` SILENTLY fails (no error, no file) when `img.filepath_raw` is a RELATIVE path in headless mode. Always `Path(outdir).resolve()` to an absolute path before assigning `filepath_raw`, and set `img.file_format` explicitly. Hit by every bake script this session (#219/#220/#221).
-- serve.py serves ONE workspace at a time. To view a different domain, restart: `mise run serve -- --workspace examples/{domain}`. Cross-workspace index page links are broken until #198 is resolved.
-- examples/*/lessons/ are tracked (committed test fixtures). Only the live top-level `workspace/` is gitignored (anchored `/workspace/`) — no `git add -f` needed for example lessons.
-- tkt new creates `{id}-{slug}.md`. Write ticket content to THAT file — don't create a separate file or you get duplicates requiring manual cleanup.
-- inkgd (godot4 branch): first headless import shows SVG icon error ("plugin could not be initialized") — harmless, resolves on editor relaunch or second import. `ink:validate-gd` double-imports to warm the cache so this benign cold-cache noise (`SCRIPT ERROR: Parse Error: Could not preload ... icon.svg`) never trips its error guard.
-- inklecate is a mise `[tools]` dep (`github:inkle/ink`, pinned in `mise.lock`) — on PATH after `mise install`, no hardcoded path. Godot is NOT a `[tools]` dep (heavy; only `ink:validate-gd` needs it): it resolves via PATH from `[env] GODOT = { default = "godot" }`. If your Godot isn't on PATH, point at it in gitignored `mise.local.toml`: `[env]\nGODOT = "C:/path/to/godot.exe"`.
-- maps:regenerate mise task uses bash for-loop syntax (fails on Windows). Use manual Python calls per-MAP: `.venv\Scripts\python.exe tools/generate_map_page.py {MAP} --workspace {ws} --output {out}` then `tools/generate_index_page.py --scan-dir {ws} --output {ws}/lessons/index.html` (both now carry the UTF-8 stdout guard — no `PYTHONIOENCODING` needed).
-- Golden `.transcript` fixtures must be written UTF-8 from Python (`open(path, "w", encoding="utf-8", newline="\n")`), NEVER via PowerShell `>` redirection — redirection re-encodes to cp1252 (an em-dash becomes byte `0x97`), and `play-ink.py` reads fixtures as UTF-8 and crashes on replay. Capture with a small Python wrapper that runs play-ink and writes stdout as UTF-8.
-- Background servers on Windows: use `Start-Process -WindowStyle Hidden` (never `-NoNewWindow` with redirects — it blocks). Verify with `Get-NetTCPConnection -LocalPort PORT -State Listen`. Never read stdout synchronously from a server process.
-- Mutate-then-restore tests (break a file → run a check → restore it) must put the RESTORE in its OWN shell call, never chained behind the run. A blocked/cancelled Godot/build/test run leaves the file broken and strands it (observed twice this session: a parse error left in `validate_runtime.gd` after a cancelled `--import` chain). Pattern: (1) back up + break, (2) run, (3) restore — three separate calls.
+- serve.py serves ONE workspace at a time. To view a different domain, restart: `mise run serve -- --workspace examples/{domain}`. Git symlinks on Windows are text files — serve.py mounts `/assets` from project root automatically (no junctions). Cross-workspace index links are broken until #198.
+- glTF has NO per-image color-space flag — Godot infers it from the material SLOT (baseColor/emissive → sRGB; normal/metallicRoughness/occlusion → linear). A control/data map (noise, threshold) has no correct slot, so NEVER embed it in a glTF (an sRGB slot corrupts it; a `.glb`-embedded texture has no `.import` to fix) — ship data maps as separate Non-Color PNGs.
+- All Preact packages must resolve to ONE instance or signals silently stop triggering re-renders. Vendored locally in `assets/vendor/` (import map resolves it); on a CDN (esm.sh) add `?external=preact`.
+- GitHub Pages rejects symlinks in deploy artifacts — use `cp -rL` (dereference) when assembling `_site/` or `upload-pages-artifact` fails.
+- GitHub Pages environment rules reject deploys from tag refs — only `main` is allowed. Trigger on push to main with a tag-detection step (`git tag --points-at HEAD`), skip build+deploy if no `v*` tag; `workflow_dispatch` always works. Do NOT trigger from `on: push: tags:`.
+- FOUC prevention: a synchronous `<script>` in `<head>` (currently `typography-prefs.js`) reads prefs from localStorage and applies CSS custom properties BEFORE CSS paints. Must stay blocking/in-head — deferring it reintroduces the flash.
+- Godot `light()` ATTENUATION is a float combining distance falloff AND shadow state (0.0 = fully shadowed, 1.0 = fully lit at range) — NOT just distance. The `+ (ATTENUATION - 1.0)` pattern (FlexibleToonShader) bakes both into the banding calc.
 
 ## Skill Format (kiro-cli)
 

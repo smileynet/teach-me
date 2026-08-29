@@ -125,3 +125,4 @@ both with a mutated sidecar + a drifted PNG.)
 - Skipping validation for "simple" code blocks (the triplanar bug was 3 characters wrong)
 - Building regex-based type checkers when the runtime is available (false confidence — catches what the runtime already catches, misses what actually matters)
 - Treating "compiles without errors" as sufficient validation for visual code (shaders can compile perfectly while producing invisible geometry, wrong lighting, or mirrored textures)
+- Trusting visual validation on pixel-art / low-res assets — color-simplification shaders (Kuwahara, posterize) produce NO visible effect on low-res flat-color textures, so a screenshot "looks fine" while proving nothing. Validate on 1K+ PBR textures (Poly Haven CC0) for an honest signal.

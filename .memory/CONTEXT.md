@@ -2,10 +2,6 @@
 
 Domain terms and naming decisions for teach-me.
 
-**glTF slot-driven color space**:
-glTF has NO per-image color-space flag — Godot infers it from which material SLOT references a texture: `baseColorTexture`/emissive → sRGB; `normalTexture`/`metallicRoughness`/occlusion → linear. Consequence: a control/data map (noise, threshold) has no correct slot, so it must NOT be embedded in a glTF (an sRGB slot corrupts it, and a `.glb`-embedded texture has no `.import` to fix) — ship data maps as separate Non-Color PNGs.
-_Avoid_: assuming a texture carries its own color-space intent into glTF
-
 **teach-me**:
 A test bed for learning-oriented agent skills, refined here before deploying globally via crew-research.
 _Avoid_: the product, the platform
@@ -74,35 +70,3 @@ _Avoid_: optional research step
 teach-me is a discovery/exploration tool, not a retention optimization system. SR reinforces what was interesting, not maximizes recall. Features that add friction between "I'm curious" and "I'm learning" don't belong.
 _Avoid_: study tool, learning management system, course platform
 
-**Mask color (diagram cards)**:
-Slate gray #585b70 for occluded label masks. Neutral against all diagram layer colors (blue, amber, green). Never amber (clashes with diagram elements).
-_Avoid_: amber/orange masks, bright accent colors for masks
-
-**Preact singleton**:
-All Preact packages must resolve to the same instance. When using CDN (esm.sh), add `?external=preact`. In teach-me: vendored locally in `assets/vendor/` — import map handles resolution. Duplicate instances cause signals to silently not trigger re-renders.
-
-**GitHub Pages symlinks**:
-GitHub Pages forbids symlinks in deploy artifacts. Use `cp -rL` (dereference) when assembling the `_site/` directory. The `actions/upload-pages-artifact` rejects symlinks with "Artifact could not be deployed."
-
-**GitHub Pages environment protection**:
-Pages environment rules reject deploys from tag refs — only `main` branch is allowed. Workflow triggers on push to main with a tag-detection step (`git tag --points-at HEAD`); skips build+deploy if no `v*` tag present. Manual deploy via `workflow_dispatch` always works.
-_Avoid_: triggering workflow directly from `on: push: tags:` (will fail with "not allowed to deploy due to environment protection rules")
-
-**MAP.md domain field**:
-The `domain:` frontmatter field MUST match the MAP.md filename (without `.MAP.md`). The index page links to `{domain}-map.html` — a mismatch causes 404.
-
-**Preferences module**:
-The single source of truth for all user reading preferences (theme, font, spacing, layout). Signal-based (`assets/preferences.js`), auto-persists to `teach-me-prefs-v1` localStorage key, auto-applies CSS vars + `data-theme`.
-_Avoid_: settings store, config (those imply server-side)
-
-**Page shell**:
-A planned single entry point (`assets/page-shell.js`) that orchestrates all component mounting on lesson pages. Components register with the shell rather than self-mounting. Not yet implemented (ticket 127).
-_Avoid_: app shell (implies SPA), framework
-
-**Blocking head script**:
-A synchronous `<script>` in `<head>` that runs before CSS paints — reads preferences from localStorage and applies CSS custom properties to prevent FOUC (flash of unstyled content). Currently `typography-prefs.js`.
-_Avoid_: inline script (it's a separate file, loaded synchronously)
-
-**ATTENUATION (Godot shader)**:
-In `light()`, ATTENUATION is a float combining distance falloff AND shadow state (0.0 = fully shadowed, 1.0 = fully lit at full range). It is NOT just distance. The `+ (ATTENUATION - 1.0)` pattern (from FlexibleToonShader) bakes both into the banding calculation.
-_Avoid_: assuming ATTENUATION is purely distance-based
