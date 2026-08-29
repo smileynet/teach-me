@@ -1,7 +1,7 @@
 ---
 id: "257"
 title: "First-class committed graph schema: ULID node IDs + typed why-annotated edges"
-status: in_progress
+status: done
 blocked_by: ["256"]
 priority: high
 tags: ["platform"]
@@ -194,3 +194,7 @@ verified SAFE — keyed by `topic.id` end-to-end, no slug-keyed caller.)
 `mise run verify` green; regenerate maps and confirm typed edges render + dagre edges
 present; rename a topic's slug and confirm no edge breaks (id-keyed); `validate` catches
 a duplicate id, a bad ULID, and a prereq cycle.
+
+## Resolution (2026-08-29)
+
+First-class committed graph schema delivered in 4 subtasks (A schema/parser, B ULID migration, C client render, D emitters + soft_prereqs->related). Nodes carry immutable ULID ids + mutable slug; edges are typed {prereq|leads_to|related} keyed by id, resolved from slug at parse time; readiness/order derived. NOTE: AC 'enrich_prereqs write id' was delivered as PASS-THROUGH (verified untouched), not minting — per Subtask D research, minting stays in the generating emitters (map_from_deps/chunks) + migrate_map_ids.py to avoid enrich's \n-join EOL churn; enrich never needs to mint since it edits already-committed (already-id'd) maps. Unblocks #258 (remove committed status) -> #255 (minimal overlay). Pre-existing cross-map dangling prereqs tracked separately in #260.
