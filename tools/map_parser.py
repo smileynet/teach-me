@@ -41,6 +41,7 @@ class DomainMap:
     leads_to: list[LeadsTo]
     orientation: str
     topics: list[Topic]
+    title: str = ""  # the '# Heading' of the MAP.md; falls back to domain if absent
 
     def topic_by_slug(self, slug: str) -> Topic | None:
         for t in self.topics:
@@ -167,6 +168,10 @@ def load_map(path: str | Path) -> DomainMap:
     fm = _parse_frontmatter(fm_match.group(1))
     body = text[fm_match.end():]
 
+    # Extract the '# Heading' title (first-level heading in the body; "" if absent)
+    title_match = re.search(r"^# (.+)$", body, re.MULTILINE)
+    title = title_match.group(1).strip() if title_match else ""
+
     # Extract orientation
     orientation = ""
     orient_match = re.search(
@@ -220,6 +225,7 @@ def load_map(path: str | Path) -> DomainMap:
         leads_to=leads_to,
         orientation=orientation,
         topics=topics,
+        title=title,
     )
 
 

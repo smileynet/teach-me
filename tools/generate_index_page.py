@@ -25,6 +25,12 @@ if hasattr(sys.stderr, "reconfigure"):
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = PROJECT_ROOT / "lessons" / "index.html"
 
+# Single canonical parser (#256).
+try:
+    from tools.map_parser import load_map as mp_load_map
+except ModuleNotFoundError:
+    from map_parser import load_map as mp_load_map  # type: ignore[no-redef]
+
 
 def find_maps(scan_dirs: list[Path] | None = None) -> list[Path]:
     """Find all depth-0 MAP.md files."""
@@ -49,48 +55,37 @@ def find_maps(scan_dirs: list[Path] | None = None) -> list[Path]:
 
 
 def parse_map_meta(path: Path) -> dict:
-    """Extract domain metadata + topic stats from a MAP.md."""
-    content = path.read_text(encoding="utf-8")
+    """Extract domain metadata + topic stats from a MAP.md.
 
-    # Frontmatter
-    fm_match = re.match(r'^---\n(.*?)\n---', content, re.DOTALL)
-    domain = ""
-    description = ""
-    depth = 0
-    if fm_match:
-        for line in fm_match.group(1).splitlines():
-            if line.startswith("domain:"):
-                domain = line.split(":", 1)[1].strip().strip('"')
-            elif line.startswith("description:"):
-                description = line.split(":", 1)[1].strip().strip('"')
-            elif line.startswith("depth:"):
-                try:
-                    depth = int(line.split(":", 1)[1].strip())
-                except ValueError:
-                    pass
+    Uses the canonical `map_parser.load_map` (#256 — single parser), preserving the
+    historical index behavior: skip depth>0 maps, title falls back to a title-cased
+    domain, description is the first sentence of the orientation.
+    """
+    dm = mp_load_map(path)
 
     # Skip non-root maps
-    if depth > 0:
+    if dm.depth > 0:
         return None
 
-    # Title
-    title_match = re.search(r'^# (.+)$', content, re.MULTILINE)
-    title = title_match.group(1) if title_match else domain.replace("-", " ").title()
+    # Title: the '# Heading', else a title-cased domain
+    title = dm.title or dm.domain.replace("-", " ").title()
 
-    # Orientation (first sentence)
-    orient_match = re.search(r'## Orientation\n\n(.+?)(?:\.|$)', content)
-    orientation = orient_match.group(1).strip() + "." if orient_match else description
+    # Description = first sentence of the orientation (up to the first '.'), with a
+    # trailing '.'; fall back to the frontmatter description.
+    if dm.orientation:
+        first = dm.orientation.split(".", 1)[0].strip()
+        description = first + "."
+    else:
+        description = dm.description
 
-    # Topic statuses
-    statuses = re.findall(r'\*\*status:\*\*\s*(\S+)', content)
-    total = len(statuses)
-    complete = statuses.count("complete")
-    in_progress = statuses.count("in-progress")
+    total = len(dm.topics)
+    complete = sum(1 for t in dm.topics if t.status == "complete")
+    in_progress = sum(1 for t in dm.topics if t.status == "in-progress")
 
     return {
-        "domain": domain,
+        "domain": dm.domain,
         "title": title,
-        "description": orientation,
+        "description": description,
         "total": total,
         "complete": complete,
         "in_progress": in_progress,
