@@ -16,6 +16,12 @@ import re
 import sys
 from pathlib import Path
 
+# Windows cp1252 stdout chokes on the ✓ this prints (AGENTS.md Constraints).
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = PROJECT_ROOT / "lessons" / "index.html"
 
