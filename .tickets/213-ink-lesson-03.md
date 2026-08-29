@@ -1,7 +1,7 @@
 ---
 id: "213"
 title: "Ink Lesson 07: State Bridge"
-status: open
+status: in_progress
 blocked_by: ["212"]
 priority: high
 tags: [ink]
