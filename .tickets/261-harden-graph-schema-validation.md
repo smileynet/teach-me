@@ -1,7 +1,7 @@
 ---
 id: "261"
 title: "Harden #257: rename regression test + identity-first map-edge gate (related dashed, all 9 maps)"
-status: in_progress
+status: done
 blocked_by: []
 priority: medium
 tags: ["platform"]
@@ -54,19 +54,23 @@ gates. (Fix 4 = cross-map dangling prereqs = separate #260, NOT here.)
 4. **`mise run check-maps` task** (separate from core `verify` to keep verify fast).
 
 ## Acceptance criteria
-- [ ] `test_map_parser.py` has a committed rename regression test (edges byte-identical
+- [x] `test_map_parser.py` has a committed rename regression test (edges byte-identical
       after slug rename); passes in `mise run verify`
-- [ ] EdgeLayer paths carry `data-source`/`data-target`/`data-type`; TopicCard carries
+- [x] EdgeLayer paths carry `data-source`/`data-target`/`data-type`; TopicCard carries
       `data-topic-id`; MapView container carries `data-edge-count`/`data-render-complete`
-- [ ] `tools/check-map-edges.py` runs all 9 committed maps: every expected edge present
+- [x] `tools/check-map-edges.py` runs all 9 committed maps: every expected edge present
       by id+type (Tier 1), 0 detached endpoints (Tier 2), 0 console errors — exit 0
-- [ ] The synthetic `related` map asserts a dashed/no-arrow path connecting the correct
+- [x] The synthetic `related` map asserts a dashed/no-arrow path connecting the correct
       pair (Tier 1 exact)
-- [ ] Negative tests confirm the oracle CATCHES a wrong-pair edge and a detached endpoint
+- [x] Negative tests confirm the oracle CATCHES a wrong-pair edge and a detached endpoint
       (not just green-on-happy-path)
-- [ ] `mise run check-maps` task added; 9 committed maps regenerated with data-* attrs
+- [x] `mise run check-maps` task added; 9 committed maps regenerated with data-* attrs
 
 ## Validation
 `mise run verify` green (incl. rename test). `mise run check-maps` exit 0 across 9 maps +
 the synthetic related map. Negative-test: temporarily mutate an edge's data-target to a
 wrong id → gate fails (proving the oracle bites); revert.
+
+## Resolution (2026-08-29)
+
+Turned #257's four throwaway/partial validations into committed gates. Rename regression test locks the ULID-decoupling invariant. Identity-first two-tier map-edge oracle (data-model assertion, not bbox-only — which can't distinguish correct from plausible-wrong pairs) covers all 9 maps + a synthetic related-edge map (first render-time exercise of the dashed related path). Standalone tools/check-map-edges.py (serve.py-based, .venv UTF-8) as mise run check-maps, kept out of core verify for speed. Negative-tested to confirm it catches wrong-pair + detached defects. #260 (cross-map dangling prereqs) remains separate.
