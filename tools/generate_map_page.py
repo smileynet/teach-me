@@ -63,74 +63,44 @@ STATE_COLORS = {
 
 
 def parse_map_md(path: Path) -> dict:
-    """Parse a MAP.md file into a structured dict."""
-    content = path.read_text(encoding="utf-8")
+    """Parse a MAP.md file into the structured dict this generator consumes.
 
-    # Extract YAML frontmatter
-    fm_match = re.match(r'^---\n(.*?)\n---', content, re.DOTALL)
-    frontmatter = {}
-    if fm_match:
-        for line in fm_match.group(1).splitlines():
-            if ':' in line and not line.strip().startswith('-'):
-                key, val = line.split(':', 1)
-                frontmatter[key.strip()] = val.strip().strip('"')
-        # Parse leads_to list (supports both string items and dict items with slug/why)
-        leads_to_section = re.search(r'^leads_to:\s*\n((?:\s+-.*\n?(?:\s+\w+:.*\n?)*)*)', fm_match.group(1), re.MULTILINE)
-        leads_to = []
-        if leads_to_section:
-            items = re.split(r'\n\s+-\s+', '\n' + leads_to_section.group(1))
-            for item in items:
-                item = item.strip()
-                if not item:
-                    continue
-                if 'slug:' in item or 'why:' in item:
-                    # Dict format: parse slug and why
-                    slug_m = re.search(r'slug:\s*(.+)', item)
-                    why_m = re.search(r'why:\s*"?([^"]+)"?', item)
-                    leads_to.append({
-                        "slug": slug_m.group(1).strip() if slug_m else item.split('\n')[0].strip(),
-                        "why": why_m.group(1).strip() if why_m else "",
-                    })
-                else:
-                    # Simple string format
-                    leads_to.append({"slug": item.strip(), "why": ""})
-        frontmatter['leads_to'] = leads_to
+    Thin adapter over the canonical `map_parser.load_map` (#256 — single parser).
+    Reproduces the historical dict shape {frontmatter, title, orientation, topics}
+    so downstream rendering is unchanged.
+    """
+    dm = mp_load_map(path)
 
-    # Extract orientation
-    orient_match = re.search(r'## Orientation\n\n(.+?)(?=\n##|\Z)', content, re.DOTALL)
-    orientation = orient_match.group(1).strip() if orient_match else ""
+    frontmatter = {
+        "domain": dm.domain,
+        "description": dm.description,
+        "depth": dm.depth,
+        "parent": dm.parent,
+        # leads_to as list of {slug, why} dicts (historical shape)
+        "leads_to": [{"slug": lt.slug, "why": lt.why} for lt in dm.leads_to],
+    }
 
-    # Extract title
-    title_match = re.search(r'^# (.+)$', content, re.MULTILINE)
-    title = title_match.group(1) if title_match else frontmatter.get('domain', 'Map')
+    title = dm.title or dm.domain or "Map"
 
-    # Extract topics
-    topics = []
-    topic_blocks = re.findall(r'### (\S+)\n(.*?)(?=\n###|\Z)', content, re.DOTALL)
-    for slug, block in topic_blocks:
-        topic = {"slug": slug}
-        topic["title"] = _extract_field(block, "title") or slug
-        topic["why"] = _extract_field(block, "why") or ""
-        topic["scope"] = _extract_field(block, "scope") or "substantial"
-        topic["status"] = _extract_field(block, "status") or "not-started"
-        topic["lesson_file"] = _extract_field(block, "lesson_file") or ""
-        # Parse prereqs list (strip auto-enrichment comments)
-        prereqs_str = _extract_field(block, "prereqs") or "[]"
-        prereqs_str = re.sub(r'<!--.*?-->', '', prereqs_str).strip()
-        topic["prereqs"] = [p.strip() for p in prereqs_str.strip("[]").split(",") if p.strip()]
-        topics.append(topic)
+    topics = [
+        {
+            "slug": t.slug,
+            "title": t.title,
+            "why": t.why,
+            "scope": t.scope,
+            "status": t.status,
+            "lesson_file": t.lesson_file or "",
+            "prereqs": list(t.prereqs),
+        }
+        for t in dm.topics
+    ]
 
     return {
         "frontmatter": frontmatter,
         "title": title,
-        "orientation": orientation,
+        "orientation": dm.orientation,
         "topics": topics,
     }
-
-
-def _extract_field(block: str, field: str) -> str | None:
-    match = re.search(rf'\*\*{field}:\*\*\s*(.+)', block)
-    return match.group(1).strip() if match else None
 
 
 def topic_has_lesson(slug: str) -> str | None:
