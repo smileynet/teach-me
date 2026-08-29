@@ -1,7 +1,7 @@
 ---
 id: "214"
 title: "Ink Lesson 08: Production Patterns"
-status: in_progress
+status: done
 blocked_by: ["213"]
 priority: high
 tags: [ink]
