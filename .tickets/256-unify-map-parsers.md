@@ -1,7 +1,7 @@
 ---
 id: "256"
 title: "Unify the three MAP.md parsers to one map_parser.load_map"
-status: in_progress
+status: done
 blocked_by: []
 priority: high
 tags: ["platform"]
@@ -45,15 +45,19 @@ Independent of the #183 rename — this is schema-plumbing, not paths.
 
 ## Acceptance criteria
 
-- [ ] `generate_map_page.py` and `generate_index_page.py` parse MAP.md ONLY via
+- [x] `generate_map_page.py` and `generate_index_page.py` parse MAP.md ONLY via
       `map_parser.load_map` (no independent regex parsing of topic blocks/status)
-- [ ] Generated map pages and index page are byte-identical (or diff-explained) before
+- [x] Generated map pages and index page are byte-identical (or diff-explained) before
       vs after for all committed maps
-- [ ] `mise run verify` EXIT 0 (map/index generation + tests)
-- [ ] `grep` shows no second `### ` / `**status:**` / `**prereqs:**` topic-block regex
+- [x] `mise run verify` EXIT 0 (map/index generation + tests)
+- [x] `grep` shows no second `### ` / `**status:**` / `**prereqs:**` topic-block regex
       parser outside `map_parser.py`
 
 ## Validation
 
 Regenerate all maps + index (`maps:regenerate` per-workspace + `index:generate`) and
 diff against committed output; `mise run verify` green; grep confirms single parser.
+
+## Resolution (2026-08-29)
+
+Both shadow parsers now delegate to map_parser.load_map: generate_map_page.parse_map_md is a thin adapter returning the historical dict shape; generate_index_page.parse_map_meta reads the DomainMap model (depth>0 skip, title fallback, first-sentence description, status counts) instead of regex-scraping. Added DomainMap.title to close the one model gap; removed dead _extract_field. Behavior-preserving (byte-identical output).
