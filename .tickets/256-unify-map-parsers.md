@@ -1,7 +1,7 @@
 ---
 id: "256"
 title: "Unify the three MAP.md parsers to one map_parser.load_map"
-status: open
+status: in_progress
 blocked_by: []
 priority: high
 tags: ["platform"]
