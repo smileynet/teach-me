@@ -38,7 +38,7 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.ink_compile import DEFAULT_INKLECATE, compile_file, inklecate_available, detect_nondeterminism
+from lib.ink_compile import DEFAULT_INKLECATE, compile_file, inklecate_available, detect_nondeterminism, detect_unbound_externals
 
 DEFAULT_INK_DIR = "ink-test-project/stories"
 DEFAULT_TURN_CAP = 200
@@ -238,6 +238,17 @@ def validate_story(ink_path: Path, inklecate: str, turn_cap: int, out_dir: Path)
 
 def _capture_mode(story_path: Path, choice_seq: list[int], inklecate: str, turn_cap: int) -> int:
     """Capture a transcript for one story and print it to stdout."""
+    ext = detect_unbound_externals(story_path)
+    if ext:
+        print(
+            f"ERROR: {story_path.name} declares unbound EXTERNAL(s) "
+            f"({', '.join(ext)}) with no ink `function` fallback. bink has no "
+            f"binding API, so it cannot run this story. Golden-transcript capture "
+            f"is refused; output correctness is covered by `mise run ink:validate-gd` "
+            f"(real Godot binds the external).",
+            file=sys.stderr,
+        )
+        return 1
     nd = detect_nondeterminism(story_path)
     if nd:
         print(
@@ -285,6 +296,10 @@ def _replay_mode(story_dir: Path, inklecate: str, turn_cap: int) -> int:
             nd = detect_nondeterminism(story_path)
             if nd:
                 print(f"  [--] {fixture.name}: SKIP (nondeterministic: {', '.join(nd)})")
+                continue
+            ext = detect_unbound_externals(story_path)
+            if ext:
+                print(f"  [--] {fixture.name}: SKIP (unbound EXTERNAL: {', '.join(ext)})")
                 continue
             json_path = compile_ink(story_path, inklecate, out_dir)
             if json_path is None:

@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/lesson07_player.gd" id="1"]
+
+[node name="Lesson07Player" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+script = ExtResource("1")
+
+[node name="SpeakerLabel" type="Label" parent="."]
+layout_mode = 2
+
+[node name="TextLabel" type="RichTextLabel" parent="."]
+layout_mode = 2
+bbcode_enabled = true
+
+[node name="GoldLabel" type="Label" parent="."]
+layout_mode = 2
+
+[node name="ChoicesContainer" type="VBoxContainer" parent="."]
+layout_mode = 2

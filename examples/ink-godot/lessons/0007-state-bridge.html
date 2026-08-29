@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 7: State Bridge</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="ink-godot-map.html">Ink + Godot</a> <span class="nav-sep">›</span> <span>State Bridge</span></nav>
+<h1>State Bridge</h1>
+
+<div class="lesson-meta">
+  Lesson 7 · Ink + Godot · ~16 min read<br>
+  <strong>Win:</strong> You can open a two-way channel between ink and your game: ink calls out to game logic with an <span class="term" data-term="external-function">external function</span>, your game reacts to ink state changes with a <span class="term" data-term="variable-observer">variable observer</span>, and you persist the whole story with <span class="term" data-term="save-load">save/load</span>.
+</div>
+
+<div class="key-concept">
+  <strong>After this lesson:</strong> Lesson 06 sent commands <em>one way</em> — ink told the engine what to do. Now you'll wire the return path: the story can ask the game a question mid-scene, the game can watch a story variable and keep a HUD in sync, and a player can quit and resume exactly where they left off.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE PAIN: A SEALED MONOLOGUE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Pain: A Sealed Monologue</h2>
+
+<p>Tags let ink <em>command</em> the engine, but the story still can't <em>ask</em> it anything. Suppose a price should depend on the player's standing with the guild — a number that lives in your game, not the story. You can't hardcode it in ink, because ink doesn't know it. And when ink changes a variable the player cares about — gold, health — your HUD has no idea it happened. The story is a sealed monologue: it talks, but it can't listen, and nothing outside can hear it change.</p>
+
+<p>Three bridges open the channel. We'll add them in order of how tightly they couple ink to the engine: a call <em>out</em>, a reaction <em>in</em>, and finally persistence of the whole state.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     BRIDGE 1: EXTERNAL FUNCTIONS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Bridge 1: External Functions (ink calls out)</h2>
+
+<p>An <span class="term" data-term="external-function">external function</span> lets ink call a method you define in GDScript. The story <em>declares</em> the function with <code>EXTERNAL</code>, calls it like any ink function, and your engine supplies the answer:</p>
+
+<pre data-mode="fragment"><code>EXTERNAL discount_for(rep)
+
+=== market ===
+~ temp off = discount_for(reputation)
+~ temp price = 12 - off
+{off &gt; 0: "For a friend of the guild — {price} coins." }</code></pre>
+
+<p>On the engine side you <span class="term" data-term="bind-external">bind</span> the name to a method — after the story is created, before the first line runs:</p>
+
+<pre data-mode="fragment"><code>_ink_player.bind_external_function("discount_for", self, "_discount_for", true)
+
+func _discount_for(rep: int) -&gt; int:
+    return 3 if rep &gt;= 2 else 0</code></pre>
+
+<p>Now the writer asks a question in the story's own language and the game answers it. The story stays portable — it names <em>what</em> it needs (a discount), not <em>how</em> it's computed.</p>
+
+<div class="note">
+  <strong>Gotcha — <span class="term" data-term="lookahead-safe">lookahead safety</span>:</strong> ink evaluates a little ahead to know which choices to show, and it calls external functions <em>during that lookahead</em>. A pure function like <code>discount_for</code> is fine to call twice, so we pass <code>lookahead_safe = true</code>. But a function with a <em>side effect</em> — spend gold, play a sound — would fire spuriously during the preview. Bind those with <code>lookahead_safe = false</code> so ink only calls them for real.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     BRIDGE 2: VARIABLE OBSERVERS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Bridge 2: Variable Observers (the game reacts)</h2>
+
+<p>The external function is a <em>pull</em> — ink asks, the game answers. Often you want the opposite: the story changes <code>gold</code>, and the HUD should update on its own. Polling the variable every frame is wasteful and easy to forget. A <span class="term" data-term="variable-observer">variable observer</span> is a <em>push</em> — register once, and inkgd calls you back whenever that variable changes:</p>
+
+<pre data-mode="fragment"><code>_ink_player.observe_variable("gold", self, "_on_gold_changed")
+
+func _on_gold_changed(_name: String, new_value) -&gt; void:
+    _gold_label.text = "Gold: %d" % int(new_value)</code></pre>
+
+<svg viewBox="0 0 560 220" role="img" aria-labelledby="diagram-state-bridge"
+     style="display:block;margin:1.5rem auto;max-width:100%;height:auto">
+  <title id="diagram-state-bridge">The story holds a gold variable. An external function call goes from ink out to game logic and returns a value. A variable observer pushes each change of gold from ink to the HUD label. Save and load serialize the whole story state to and from a string.</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--svg-line)"/>
+    </marker>
+  </defs>
+
+  <!-- ink story -->
+  <rect x="20" y="80" width="150" height="70" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="95" y="108" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="var(--svg-primary-text)">ink story</text>
+  <text x="95" y="126" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-primary-text)">VAR gold</text>
+
+  <!-- game logic (external) -->
+  <rect x="390" y="20" width="150" height="50" rx="6" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5"/>
+  <text x="465" y="40" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-neutral-text)">game logic</text>
+  <text x="465" y="56" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-neutral-text)">discount_for()</text>
+  <!-- external: two-way -->
+  <line x1="170" y1="100" x2="390" y2="45" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <text x="270" y="60" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-text)">external fn (call + return)</text>
+
+  <!-- HUD (observer) -->
+  <rect x="390" y="95" width="150" height="50" rx="6" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="1.5"/>
+  <text x="465" y="115" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-success-text)">HUD label</text>
+  <text x="465" y="131" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-success-text)">Gold: 1</text>
+  <!-- observer: one-way push -->
+  <line x1="170" y1="120" x2="390" y2="120" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="270" y="112" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-text)">observer (push on change)</text>
+
+  <!-- save/load -->
+  <rect x="390" y="170" width="150" height="42" rx="6" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="1.5"/>
+  <text x="465" y="190" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--svg-warning-text)">state string</text>
+  <text x="465" y="205" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="var(--svg-warning-text)">get / set_state</text>
+  <line x1="170" y1="140" x2="390" y2="185" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+</svg>
+
+<div class="note">
+  <strong>Gotcha — observers fire on <em>change</em>, not on registration:</strong> after you call <code>observe_variable</code>, the callback does <em>not</em> run for the current value — only when the variable next changes. So the HUD would start blank until the first purchase. Seed it once yourself right after registering: <code>_on_gold_changed("gold", _ink_player.get_variable("gold"))</code>. Then the observer keeps it in sync from there.
+</div>
+
+<div class="note">
+  <strong>When to use which:</strong>
+  <ul>
+    <li><strong>External function</strong> — the story needs a value or action <em>from</em> the game at a specific point (a computed price, a dice roll, spend gold).</li>
+    <li><strong>Variable observer</strong> — the game needs to <em>react</em> whenever a story variable changes (keep a HUD, portrait, or music state in sync).</li>
+  </ul>
+  They are not interchangeable: calling an external function again will never update a HUD, and observing a variable will never compute a value for the story. Reach for the direction the data actually flows.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     BRIDGE 3: SAVE / LOAD
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Bridge 3: Save / Load (persist the whole story)</h2>
+
+<p>The player quits mid-scene and comes back. Without persistence they restart at line one — every choice, visit count, and variable gone. inkgd serializes the entire story to a string with <code>get_state()</code>, and restores it with <code>set_state()</code>:</p>
+
+<pre data-mode="fragment"><code>func save_game():
+    _saved_state = _ink_player.get_state()   # one JSON string: everything
+
+func load_game():
+    _ink_player.set_state(_saved_state)</code></pre>
+
+<div class="note">
+  <strong>Gotcha — it's the <em>whole</em> state or nothing:</strong> <code>get_state()</code> captures variables, visit counts, the call stack, and the RNG seed together. The tempting shortcut — "I'll just save my three variables" — silently drops the current knot and every read count, so the restored story resumes in the wrong place with once-only content re-enabled. Save the one blob; don't hand-pick fields.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     THE FULL PLAYER
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>The Full Player</h2>
+
+<p>Here is the complete player wiring all three bridges. It's the lesson 05/06 single-step loop with the bindings added in <code>_on_story_loaded</code> — the one place where the story exists but hasn't run yet:</p>
+
+<pre data-file="story_player.gd" data-mode="complete"><code># story_player.gd
+# State-bridge integration for an ink story using the inkgd runtime.
+# Extends Lesson 06's single-step loop with the three ink&lt;-&gt;engine bridges:
+#   1. External function  -- ink calls OUT to game logic (discount_for)
+#   2. Variable observer  -- the game reacts TO an ink VAR change (gold -&gt; HUD)
+#   3. Save / load         -- persist and restore the whole story state
+#
+# Node setup (attach this to a Control):
+#   Control (this script)
+#   +- SpeakerLabel     : Label          -- who is speaking
+#   +- TextLabel        : RichTextLabel   -- story text (BBCode enabled)
+#   +- GoldLabel        : Label           -- HUD mirror of the ink `gold` VAR
+#   +- ChoicesContainer : VBoxContainer   -- choice buttons appear here
+extends Control
+
+var InkPlayerFactory := preload("res://addons/inkgd/ink_player_factory.gd") as GDScript
+
+var _ink_player = null
+var _saved_state := ""   # a snapshot for the save/load demo
+
+@onready var _speaker_label: Label = $SpeakerLabel
+@onready var _text_label: RichTextLabel = $TextLabel
+@onready var _gold_label: Label = $GoldLabel
+@onready var _choices_container: VBoxContainer = $ChoicesContainer
+
+
+func _ready():
+	_ink_player = InkPlayerFactory.create()
+	_ink_player.loads_in_background = false
+	add_child(_ink_player)
+
+	_ink_player.ink_file = load("res://stories/07_state_bridge.ink.json")
+	_ink_player.connect("loaded", Callable(self, "_on_story_loaded"))
+	call_deferred("_create_story")
+
+
+func _create_story():
+	_ink_player.create_story()
+
+
+func _on_story_loaded(successfully: bool):
+	if not successfully:
+		_text_label.text = "[color=red]ERROR: Story failed to load.[/color]"
+		return
+
+	# BRIDGE 1 -- External function. The story declared `EXTERNAL discount_for(rep)`;
+	# we bind it AFTER create_story() and BEFORE the first continue. It's pure (no
+	# side effects), so lookahead_safe = true: ink may call it while previewing
+	# choices, and that's harmless here. A function that PLAYED A SOUND or SPENT
+	# GOLD would need lookahead_safe = false, or it would fire during preview.
+	_ink_player.bind_external_function("discount_for", self, "_discount_for", true)
+
+	# BRIDGE 2 -- Variable observer. The engine reacts to `gold` changing inside
+	# ink (push, not poll) -- but the observer only fires on a CHANGE, not on
+	# registration. So seed the HUD once from the current value, then let the
+	# observer keep it in sync from here on.
+	_ink_player.observe_variable("gold", self, "_on_gold_changed")
+	_on_gold_changed("gold", _ink_player.get_variable("gold"))
+
+	_advance_story()
+
+
+# BRIDGE 1 target: given the player's reputation, return a coin discount.
+# This is GAME logic the writer doesn't have to hardcode in ink.
+func _discount_for(rep: int) -&gt; int:
+	return 3 if rep &gt;= 2 else 0
+
+
+# BRIDGE 2 target: (variable_name, new_value). Mirror gold onto the HUD.
+func _on_gold_changed(_variable_name: String, new_value) -&gt; void:
+	_gold_label.text = "Gold: %d" % int(new_value)
+
+
+# Step ONE line at a time (Lesson 05/06 loop). Ink's line text already ends in a
+# newline, so append it as-is (adding "\n" here double-spaces output).
+func _advance_story():
+	while _ink_player.can_continue:
+		var text = _ink_player.continue_story()
+		var show_line = _process_tags(_ink_player.current_tags)
+		if show_line and text.strip_edges() != "":
+			_text_label.text += text
+
+	if _ink_player.has_choices:
+		_show_choices()
+
+
+func _process_tags(tags: Array) -&gt; bool:
+	var show_line := true
+	for tag in tags:
+		var parts = (tag as String).split(":", false, 1)
+		var key = parts[0].strip_edges()
+		var value = parts[1].strip_edges() if parts.size() &gt; 1 else ""
+		match key:
+			"speaker":
+				_speaker_label.text = value
+			"hidden":
+				show_line = false
+			_:
+				pass
+	return show_line
+
+
+# BRIDGE 3 -- Save / load. get_state() returns the WHOLE story state as one JSON
+# string (variables, visit counts, callstack, RNG seed). Never hand-save vars one
+# by one -- you'd drop the current knot and read counts. set_state() restores it.
+func save_game() -&gt; void:
+	_saved_state = _ink_player.get_state()
+
+
+func load_game() -&gt; void:
+	if _saved_state != "":
+		_ink_player.set_state(_saved_state)
+
+
+func _show_choices():
+	for child in _choices_container.get_children():
+		child.queue_free()
+
+	var choices = _ink_player.current_choices
+	for i in range(choices.size()):
+		var btn = Button.new()
+		btn.text = choices[i].text
+		btn.connect("pressed", Callable(self, "_on_choice_selected").bind(i))
+		_choices_container.add_child(btn)
+
+
+func _on_choice_selected(index: int):
+	for child in _choices_container.get_children():
+		child.queue_free()
+	_ink_player.choose_choice_index(index)
+	_advance_story()</code></pre>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EXERCISE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A teammate wants the gold counter in the HUD to update whenever the story spends gold. They bind an external function and call it from ink every time gold changes:</p>
+<pre data-mode="fragment"><code>EXTERNAL update_gold_hud(amount)
+// ...in the story, after every purchase:
+~ update_gold_hud(gold)</code></pre>
+  <p>It works, but now <em>every</em> line that touches gold needs a manual <code>update_gold_hud</code> call, and they keep forgetting one — the HUD drifts out of sync. They ask you to help them "add more external calls to cover the missing spots." Why is that the wrong fix, and what should they use instead?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Which direction is the data flowing — is the story <em>asking the game for something</em>, or is the game <em>reacting to a story change</em>? Which bridge matches that direction?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>An <span class="term" data-term="external-function">external function</span> is a <strong>pull</strong>: ink calls out when it wants a value or action. Using it to update the HUD means the <em>story</em> is now responsible for remembering to notify the engine on every change — exactly the manual bookkeeping that keeps drifting out of sync. Adding more calls just adds more places to forget.</p>
+  <p>The data is flowing the other way: <code>gold</code> changes <em>in ink</em>, and the game needs to <em>react</em>. That's a <span class="term" data-term="variable-observer">variable observer</span>. Register once with <code>observe_variable("gold", self, "_on_gold_changed")</code> and inkgd pushes every change to you automatically — the story never has to announce anything. One registration replaces every scattered call, and it can't drift because nothing has to remember to fire it.</p>
+  <p><strong>Key insight:</strong> match the bridge to the direction of the data. Game-needs-a-value-from-the-story is an external function; game-reacts-to-a-story-change is an observer. Reaching for the wrong direction turns into exactly this kind of manual, drift-prone glue.</p>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CODE FILES
+     ═══════════════════════════════════════════════════════════════ -->
+
+<h2>Code Files</h2>
+<p>Download the final-state files from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/state-bridge/story_player.gd" download><code>story_player.gd</code></a> — the player wiring all three bridges</li>
+  <li><a href="../reference/code/state-bridge/07_state_bridge.ink" download><code>07_state_bridge.ink</code></a> — the market story with an EXTERNAL and an observed VAR (compile to <code>.ink.json</code>)</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next:</strong> <a href="0008-production-patterns.html">Production Patterns</a> — you now have every primitive: flow, choices, state, tags, and the two-way bridge. The finale assembles them into the architecture a shipped game uses — stateless dialogs, a variable bus across many stories, and combat run as conversation.</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"external-function": "A function the ink story declares with EXTERNAL and calls like any function, but whose body lives in the game engine. It lets the story pull a value or action from game logic (a computed price, a dice roll) without hardcoding it. Bound in GDScript with bind_external_function.", "variable-observer": "A callback the game registers with observe_variable so inkgd notifies it whenever a named ink variable changes. It's a push (fires on change), not a poll, which keeps a HUD or other game state in sync without checking every frame.", "save-load": "Persisting the whole story with get_state() (serialize to one JSON string) and restoring it with set_state(). The state blob holds variables, visit counts, the call stack, and the RNG seed together, so the player resumes exactly where they left off.", "bind-external": "Connecting an ink EXTERNAL name to a GDScript method via bind_external_function(name, object, method, lookahead_safe). Done after create_story() and before the first continue, so the binding exists when ink first calls the function.", "lookahead-safe": "A flag on bind_external_function. ink evaluates ahead to decide which choices to show and calls external functions during that lookahead. lookahead_safe=true suits pure functions (safe to call twice); side-effecting functions need lookahead_safe=false so they only fire for real."}</script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
