@@ -25,6 +25,10 @@ FILES = {
         "stories/05_first_godot_integration.ink",
     "examples/ink-godot/reference/code/tags-as-commands/06_tags_as_commands.ink":
         "stories/06_tags_as_commands.ink",
+    "examples/ink-godot/reference/code/state-bridge/story_player.gd":
+        "scenes/lesson07_player.gd",
+    "examples/ink-godot/reference/code/state-bridge/07_state_bridge.ink":
+        "stories/07_state_bridge.ink",
 }
 
 

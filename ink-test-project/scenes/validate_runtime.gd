@@ -20,6 +20,7 @@ func _ready():
 	# Awaiting process frames lets that settle before we interact.
 	await _validate_lesson05()
 	await _validate_lesson06()
+	await _validate_lesson07()
 
 	if _failures > 0:
 		printerr("=== FAIL: %d check(s) failed ===" % _failures)
@@ -140,6 +141,48 @@ func _validate_lesson06():
 		_ok("L06", "reached ending; speaker updated through the passage")
 	else:
 		_fail("L06", "ending/speaker wrong: text=%s speaker=%s" % [text_label.text, speaker_label.text])
+
+	p.queue_free()
+
+
+# --- Lesson 07: external function, variable observer, save/load round-trip ---
+func _validate_lesson07():
+	var p = await _spawn("res://scenes/lesson07_player.tscn")
+	var text_label = p.get_node("TextLabel")
+	var gold_label = p.get_node("GoldLabel")
+
+	# OBSERVER fired on load with the initial value (10) -> HUD mirrors it.
+	if gold_label.text == "Gold: 10":
+		_ok("L07", "observer fired on load: HUD shows initial gold (10)")
+	else:
+		_fail("L07", "observer did not sync initial gold; GoldLabel='%s'" % gold_label.text)
+
+	# EXTERNAL discount_for(reputation=2) -> 3, so price = 12 - 3 = 9. The discount
+	# line only prints when off > 0, proving ink actually called out to the engine.
+	if "9 coins" in text_label.text and "friend of the guild" in text_label.text:
+		_ok("L07", "external fn called: discount applied (price 9 from reputation)")
+	else:
+		_fail("L07", "external discount not applied; text=%s" % text_label.text)
+
+	# SAVE the whole state at gold=10 (before buying).
+	p.save_game()
+
+	# Buy the lantern (choice 0, "Buy the lantern (9 coins)") -> gold 10 - 9 = 1.
+	await _press_choice(p, 0)
+
+	# OBSERVER fired again on the mutation -> HUD now shows 1.
+	if gold_label.text == "Gold: 1":
+		_ok("L07", "observer fired on mutation: HUD shows gold after purchase (1)")
+	else:
+		_fail("L07", "observer did not sync gold after buy; GoldLabel='%s'" % gold_label.text)
+
+	# LOAD the saved state -> gold restored to 10 (whole-state round-trip).
+	p.load_game()
+	var restored = p._ink_player.get_variable("gold")
+	if int(restored) == 10:
+		_ok("L07", "save/load round-trip: gold restored to 10 after set_state")
+	else:
+		_fail("L07", "save/load did not restore gold; get_variable('gold')=%s" % str(restored))
 
 	p.queue_free()
 

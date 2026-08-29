@@ -142,3 +142,21 @@ def detect_nondeterminism(ink_source_path: Path) -> list[str]:
             found.append(pat.pattern)
     return found
 
+
+
+
+# An `EXTERNAL name(args)` declaration WITHOUT a matching ink `function name(...)`
+# fallback means the story cannot run in bink (no engine binding, fallbacks
+# disabled) — its output correctness is validated in the real runtime instead
+# (mise run ink:validate-gd). Detected so transcript capture refuses it cleanly,
+# the same way detect_nondeterminism refuses shuffle/RANDOM stories.
+_EXTERNAL_RE = re.compile(r"^\s*EXTERNAL\s+(\w+)\s*\(", re.MULTILINE)
+_FUNCTION_RE = re.compile(r"^\s*(?:===\s*)?function\s+(\w+)\s*\(", re.MULTILINE)
+
+
+def detect_unbound_externals(ink_source_path: Path) -> list[str]:
+    """Return EXTERNAL names that have no ink `function` fallback (unplayable in bink)."""
+    text = ink_source_path.read_text(encoding="utf-8", errors="replace")
+    externals = set(_EXTERNAL_RE.findall(text))
+    fallbacks = set(_FUNCTION_RE.findall(text))
+    return sorted(externals - fallbacks)
