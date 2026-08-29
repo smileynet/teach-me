@@ -30,7 +30,9 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-QUESTIONS_DIR = PROJECT_ROOT / "learning-records" / "questions"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from questions import questions_dir_for
+QUESTIONS_DIR = questions_dir_for(PROJECT_ROOT)
 
 # Patterns to extract relative asset links
 LINK_PATTERN = re.compile(r'<link[^>]+href="([^"]+)"', re.IGNORECASE)

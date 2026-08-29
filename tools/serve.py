@@ -359,7 +359,8 @@ async def list_lessons() -> JSONResponse:
 @app.get("/api/questions")
 async def list_questions() -> JSONResponse:
     """Return map of lesson_ids that have questions (for complete state detection)."""
-    questions_dir = WORKSPACE / "learning-records" / "questions"
+    from questions import questions_dir_for
+    questions_dir = questions_dir_for(WORKSPACE)
     if not questions_dir.exists():
         return JSONResponse({})
     lesson_ids: dict[str, int] = {}
@@ -468,6 +469,18 @@ async def update_topic_status(domain: str, slug: str, req: StatusUpdateRequest) 
 # Mount static files: workspace content + project assets
 # Serve workspace (lessons, quiz, etc.) and assets from project root
 app.mount("/assets", StaticFiles(directory=str(PROJECT_ROOT / "assets")), name="assets")
+
+
+@app.get("/.user/{path:path}")
+async def _block_private_overlay(path: str) -> JSONResponse:
+    """The `.user/` overlay (status + SR progress) is PRIVATE — never browsable (#255).
+
+    Registered before the catch-all workspace mount so it wins. Access goes through the
+    API (e.g. /api/map, /api/questions), not raw file fetch.
+    """
+    raise HTTPException(status_code=404, detail="Not found")
+
+
 app.mount("/", StaticFiles(directory=str(WORKSPACE), html=True), name="workspace")
 
 # ---------------------------------------------------------------------------

@@ -67,7 +67,7 @@ _INDEX_TEMPLATE = """\
 _SUBDIRS = (
     "lessons/quiz",
     "reference",
-    "learning-records/questions",
+    ".user/learning-records/questions",
     "maps",
 )
 

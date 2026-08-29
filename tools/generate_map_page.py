@@ -29,7 +29,9 @@ if hasattr(sys.stderr, "reconfigure"):
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 LESSONS_DIR = PROJECT_ROOT / "lessons"
-QUESTIONS_DIR = PROJECT_ROOT / "learning-records" / "questions"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from questions import questions_dir_for
+QUESTIONS_DIR = questions_dir_for(PROJECT_ROOT)
 # Workspace root for the per-user status overlay (defaults to project root; set_workspace overrides).
 OVERLAY_ROOT = PROJECT_ROOT
 
@@ -53,7 +55,7 @@ def set_workspace(workspace_path: Path) -> None:
     """Override LESSONS_DIR, QUESTIONS_DIR, MAPS_DIR, and OVERLAY_ROOT to a workspace."""
     global LESSONS_DIR, QUESTIONS_DIR, MAPS_DIR, OVERLAY_ROOT
     LESSONS_DIR = workspace_path / "lessons"
-    QUESTIONS_DIR = workspace_path / "learning-records" / "questions"
+    QUESTIONS_DIR = questions_dir_for(workspace_path)
     MAPS_DIR = workspace_path / "maps"
     OVERLAY_ROOT = workspace_path
 
@@ -302,6 +304,14 @@ def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path |
     .topic-card h3 {{ font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text); flex-wrap: wrap; }}
     .topic-card .why {{ font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }}
     .topic-card .prereq-label {{ font-size: 0.75rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.5rem; }}
+    .topic-card .prereq-list {{ list-style: none; margin: 0 0 0.5rem; padding: 0; font-size: 0.72rem; }}
+    .topic-card .prereq-item {{ display: flex; align-items: baseline; gap: 0.3rem; line-height: 1.5; }}
+    /* met/unmet: color reinforces, glyph (✓/○) + word ("met"/"not yet") carry meaning (color-not-alone) */
+    .topic-card .prereq-item.met .prereq-mark, .topic-card .prereq-item.met .prereq-state {{ color: var(--success); }}
+    .topic-card .prereq-item.unmet .prereq-mark, .topic-card .prereq-item.unmet .prereq-state {{ color: var(--text-muted); }}
+    .topic-card .prereq-mark {{ font-weight: 700; }}
+    .topic-card .prereq-state {{ font-variant: small-caps; letter-spacing: 0.02em; }}
+    .topic-card .prereq-name {{ color: var(--text-faint); font-style: italic; }}
     .topic-card .actions {{ display: flex; gap: 0.4rem; flex-wrap: wrap; }}
     .btn {{
       font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px;

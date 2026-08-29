@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Question bank: JSONL storage for spaced repetition cards.
 
-Storage convention:
-  learning-records/questions/<topic-slug>.jsonl  — one card per line
-  learning-records/reviews.jsonl                 — append-only review log
+Storage convention (#255 — per-user store is private):
+  .user/learning-records/questions/<topic-slug>.jsonl  — one card per line (per-user)
+  .user/learning-records/reviews.jsonl                 — append-only review log
+  learning-records/…                                   — committed example FIXTURES (read fallback)
 
+Resolve via questions_dir_for(workspace) / reviews_log_for(workspace): prefer the
+private `.user/` store, fall back to the committed fixture path for reads.
 Each line in a topic file is a complete card record (JSON object).
 Reviews are logged separately for future FSRS training.
 """
@@ -24,14 +27,43 @@ from sm2 import CardSchedule, review, is_due, EASE_DEFAULT
 # Resolve relative to project root (parent of tools/)
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-# Workspace-first resolution: use workspace/ if it exists, fall back to project root
+
+def _store_root_for(workspace: Path) -> Path:
+    """Root dir of the SR store for a workspace (#255).
+
+    Per-user progress is private: prefer `<workspace>/.user/learning-records/`
+    (gitignored). Fall back to `<workspace>/learning-records/` when the `.user/`
+    store doesn't exist yet — this is where the COMMITTED example fixtures live
+    (examples/*/learning-records/, read-only demo data that must stay committed).
+
+    So: read from `.user/` if present, else the committed fixture path; writes/new
+    workspaces scaffold under `.user/` (see init_workspace).
+    """
+    user_store = workspace / ".user" / "learning-records"
+    if user_store.exists():
+        return user_store
+    committed = workspace / "learning-records"
+    if committed.exists():
+        return committed
+    # Neither exists yet (fresh live workspace) — default to the private path.
+    return user_store
+
+
+def questions_dir_for(workspace: Path) -> Path:
+    """`questions/` dir under the resolved SR store root for a workspace."""
+    return _store_root_for(workspace) / "questions"
+
+
+def reviews_log_for(workspace: Path) -> Path:
+    """`reviews.jsonl` under the resolved SR store root for a workspace."""
+    return _store_root_for(workspace) / "reviews.jsonl"
+
+
+# Module-level defaults: use workspace/ if it exists, else project root.
 _WORKSPACE = _PROJECT_ROOT / "workspace"
-if _WORKSPACE.exists() and (_WORKSPACE / "learning-records").exists():
-    QUESTIONS_DIR = _WORKSPACE / "learning-records" / "questions"
-    REVIEWS_LOG = _WORKSPACE / "learning-records" / "reviews.jsonl"
-else:
-    QUESTIONS_DIR = _PROJECT_ROOT / "learning-records" / "questions"
-    REVIEWS_LOG = _PROJECT_ROOT / "learning-records" / "reviews.jsonl"
+_DEFAULT_WS = _WORKSPACE if _WORKSPACE.exists() else _PROJECT_ROOT
+QUESTIONS_DIR = questions_dir_for(_DEFAULT_WS)
+REVIEWS_LOG = reviews_log_for(_DEFAULT_WS)
 
 
 @dataclass
