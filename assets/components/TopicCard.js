@@ -18,7 +18,7 @@ export function TopicCard({ topic, allTopics, position }) {
       }).join(', ');
 
   return html`
-    <div class="topic-card" style="left:${position.x}px; top:${position.y}px">
+    <div class="topic-card" data-topic-id=${topic.id} style="left:${position.x}px; top:${position.y}px">
       <h3>
         ${topic.title}
         <${StatusBadge} status=${state.status} />

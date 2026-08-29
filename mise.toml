@@ -141,6 +141,12 @@ run = "python tools/visual-qa.py --serve"
 sources = ["assets/**/*.{js,css}", "lessons/*.html", "tools/visual-qa.py"]
 outputs = [".scratch/visual-qa/manifest.json"]
 
+[tasks."check-maps"]
+description = "Graph-edge connectivity gate: every committed map's edges render by id+type, 0 detached, 0 console errors (#261). Serves each workspace via serve.py."
+depends = ["setup"]
+run = "python tools/check-map-edges.py"
+sources = ["assets/components/{MapView,EdgeLayer,TopicCard}.js", "examples/*/maps/*.MAP.md", "tools/check-map-edges.py"]
+
 [tasks.theme-preview]
 description = "Preview a color palette (usage: mise run theme-preview -- --palette palettes/purple-night.json)"
 depends = ["setup"]
