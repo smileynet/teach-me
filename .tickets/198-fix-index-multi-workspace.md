@@ -1,7 +1,7 @@
 ---
 id: "198"
 title: "Fix index page links for multi-workspace serving"
-status: in_progress
+status: done
 blocked_by: ["183"]
 priority: high
 tags: [platform]
@@ -86,8 +86,12 @@ Teach `serve.py` to mount multiple workspaces and rewrite the index links dynami
 
 ## Acceptance criteria
 
-- [ ] `http://host:8787/lessons/index.html` loads and shows all domains
-- [ ] Clicking any domain card navigates to its map page (no 404)
-- [ ] Works with `--workspace .` (project root) serving
-- [ ] Works with the existing single-workspace serving (backwards compatible)
-- [ ] No hardcoded absolute paths (must work on any machine)
+- [x] `http://host:8787/lessons/index.html` loads and shows all domains
+- [x] Clicking any domain card navigates to its map page (no 404)
+- [x] Works with `--workspace .` (project root) serving
+- [x] Works with the existing single-workspace serving (backwards compatible)
+- [x] No hardcoded absolute paths (must work on any machine)
+
+## Resolution (2026-08-30)
+
+Per ADR-0015: kept document-relative ../assets (root-relative + base breaks anchors/SVG on project pages). Link targets fixed via shared tools/lib/map_links.map_href (index island mapHref + IndexView reads it; global map uses helper; dead render_card + unreachable generate_page tail deleted). serve.py provides the unifying root: normalize any-depth **/assets to PROJECT_ROOT/assets, and (multi-domain roots only) **/index.html back-links to the served-root index, before the greedy mount. Deleted the 4 library/*/assets symlink stubs (#229 hack). Static Pages assembly reproducing depth is #112 (workflow stale, tracked separately).
