@@ -487,6 +487,48 @@ async def _block_private_overlay(path: str) -> JSONResponse:
     raise HTTPException(status_code=404, detail="Not found")
 
 
+# Unifying root (ADR-0015): pages use document-relative `../assets/...` correct for their
+# committed location; the SERVER makes those resolve from any depth. When serving a
+# multi-domain root (e.g. library/), a page at /{domain}/lessons/X.html requests
+# /{domain}/assets/... — normalize any-depth `**/assets/{rest}` to the shared assets tree.
+# Registered BEFORE the greedy `/` mount so it wins (mirrors the .user/ guard precedence).
+_SERVING_MULTI_DOMAIN = not (WORKSPACE / "lessons").is_dir()
+
+
+@app.get("/{prefix:path}/assets/{rest:path}")
+async def _nested_assets(prefix: str, rest: str):
+    """Resolve `.../assets/<rest>` at ANY depth to PROJECT_ROOT/assets/<rest> (ADR-0015).
+
+    `prefix` is intentionally ignored — assets are shared, not per-domain. Path-traversal
+    guarded via resolve()+containment.
+    """
+    from fastapi.responses import FileResponse
+
+    assets_root = (PROJECT_ROOT / "assets").resolve()
+    target = (assets_root / rest).resolve()
+    if assets_root != target and assets_root not in target.parents:
+        raise HTTPException(status_code=404, detail="Not found")
+    if not target.is_file():
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(str(target))
+
+
+if _SERVING_MULTI_DOMAIN:
+    # Domain-map / lesson pages emit bare `index.html` back-links (correct when the page
+    # sits directly in a workspace's lessons/). Under a multi-domain root they'd resolve to
+    # /{domain}/lessons/index.html (nonexistent). Normalize any nested `index.html` request
+    # to the served-root index. Only active when serving a multi-domain tree — single-
+    # workspace serving keeps its own per-workspace index untouched.
+    @app.get("/{prefix:path}/index.html")
+    async def _root_index(prefix: str):
+        from fastapi.responses import FileResponse
+
+        root_index = WORKSPACE / "index.html"
+        if root_index.is_file():
+            return FileResponse(str(root_index))
+        raise HTTPException(status_code=404, detail="Not found")
+
+
 app.mount("/", StaticFiles(directory=str(WORKSPACE), html=True), name="workspace")
 
 # ---------------------------------------------------------------------------
