@@ -65,7 +65,8 @@ library/           — public topic library (shipped, growing; served by default
 | Smoke test | `mise run verify` | Links + lint + SVG var check |
 | Clone references | `mise run rehydrate` | Clone repos from REFERENCES.md |
 | Open lesson | `mise run open-lesson` | Open latest lesson in browser |
-| Generate map / index | `mise run map:generate -- <MAP.md>` (one); `maps:regenerate` (all); `index:generate -- [--scan-dir path]` (dashboard) | Map/index HTML from MAP.md files |
+| Generate map / index | `mise run map:generate -- <MAP.md>` (one); `maps:regenerate` (all); `index:generate -- [--scan-dir path]` (dashboard); `map:global -- [--scan-dir path]` (forest map — all domains as nodes, parent/child + leads_to edges) | Map/index/forest HTML from MAP.md files |
+| Validate map forest | `python tools/check-maps-forest.py` (in `verify`) | Forest-scope prereq check — cross-map prereqs (sibling sub-maps) resolve against the union, not per-map (#155/#260) |
 | Ingest source | `python tools/ingest_source.py <file-or-url> --workspace W --domain D --title T` | Full pipeline: chunk → classify → MAP → enrich prereqs |
 | Match section | `python tools/match_section.py source-chunks/domain.json "query"` | Find chunks matching a section reference |
 
