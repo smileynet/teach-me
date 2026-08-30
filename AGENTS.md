@@ -105,7 +105,7 @@ library/           — public topic library (shipped, growing; served by default
 | Don't teach from parametric memory | Cite sources in every lesson |
 | Don't invent specific numbers | Cite or frame as general |
 | Don't ask recall questions in gates | Ask "explain to [person] why..." |
-| Don't give partial URLs | When a server is running, always provide full clickable URLs (http://host:port/path) |
+| Don't give partial URLs, or default to 127.0.0.1 for humans | When a server is running, always provide full clickable URLs (http://host:port/path). For a human to VIEW, launch `--lan` and give the LAN address (http://192.168.x.x:PORT) as the primary link — 127.0.0.1 is only for agent-internal checks |
 | Don't context-switch to content during infrastructure | Finish the migration/ticket in progress before generating lessons or teaching |
 | Don't create per-topic workspaces | One workspace/ per machine holds all topics. Use library/ only for demo fixtures |
 | Don't script creative work | Judgment work (question writing, term selection, level assignment) is a skill instruction, not a `tools/` script |

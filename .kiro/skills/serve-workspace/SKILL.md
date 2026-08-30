@@ -47,8 +47,13 @@ To guarantee a clean single instance: `mise run serve:restart -- [...]` (force-r
 ## LAN exposure
 
 `--lan` binds `0.0.0.0` and prints `http://192.168.x.x:PORT` — reachable from other
-devices. First LAN launch on Windows may need a Firewall inbound allow for the port. Always
-give the full clickable URL (per AGENTS.md).
+devices. First LAN launch on Windows may need a Firewall inbound allow for the port.
+
+**Default to `--lan` when launching for a human to view.** When the user asks to see/launch
+the site, start with `--lan` and hand them the **LAN address (`http://192.168.x.x:PORT`)** as
+the primary link — NOT `127.0.0.1`. The user is typically on a different device than the
+server. Only give the `127.0.0.1` link for agent-internal validation (headless checks, curl),
+never as the primary URL for a person. Always give the full clickable URL (per AGENTS.md).
 
 ## Ports
 
