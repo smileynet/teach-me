@@ -26,6 +26,7 @@
   --text-faint: #6C7086;
   --accent: #CBA6F7;
   --link: #89B4FA;
+  --focus-ring: #89B4FA;
   --border: #313244;
   --code-bg: #1E1E2E;
   --success: #A6E3A1;
@@ -66,6 +67,7 @@
   --text-faint: #9ca3af;
   --accent: #7c3aed;
   --link: #2563eb;
+  --focus-ring: #2563eb;
   --border: #dee2e6;
   --code-bg: #f5f5f0;
   --success: #16a34a;
@@ -248,6 +250,17 @@ pre[data-mode="fragment"]::after {
 .code-toolbar a:focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 1px;
+}
+/* Global high-contrast focus ring (#268 — WCAG 2.4.11). The UA default outline is
+   near-invisible on the dark theme; apply a token-driven ring to all interactive
+   elements in both themes. Keyboard-only via :focus-visible (no ring on mouse click). */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 .code-toolbar .copied {
   color: var(--success);
