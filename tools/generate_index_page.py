@@ -185,7 +185,15 @@ def generate_page(domains: list[dict], scan_dir: Path | None = None, output_file
     css_extra = """
     body { max-width: 900px; margin: 0 auto; padding: 2rem; }
     .index-view h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
-    .index-meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .index-meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem; }
+    .index-cue { font-size: 0.9rem; margin: 0 0 1.5rem; }
+    .index-cue-start { color: var(--text-muted); }
+    .index-cue-resume a {
+      display: inline-block; color: var(--accent); font-weight: 600;
+      text-decoration: none; padding: 0.5rem 0.9rem; border-radius: 8px;
+      background: var(--bg-elevated); border: 1px solid var(--border);
+    }
+    .index-cue-resume a:hover { border-color: var(--accent); }
     .mission-fold { margin-top: 0.75rem; border-top: 1px solid var(--border); padding-top: 0.5rem; }
     .mission-fold summary { font-size: 0.8rem; color: var(--text-faint); cursor: pointer; }
     .mission-fold summary:hover { color: var(--text-muted); }
