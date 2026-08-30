@@ -41,6 +41,19 @@ SCRIPT_PATTERN = re.compile(r'<script[^>]+src="([^"]+)"', re.IGNORECASE)
 # <a href> existence, and by check_duplicate_links which strips the block).
 NAV_BLOCK_PATTERN = re.compile(r'<nav class="page-nav"[^>]*>.*?</nav>', re.DOTALL | re.IGNORECASE)
 NAV_LINK_PATTERN = re.compile(r'<a[^>]+href="([^"]+)"', re.IGNORECASE)
+# (label, href) pairs from breadcrumb anchors — label (inner text, tags stripped)
+# lets the guard distinguish the "All Lessons" crumb from map/lesson crumbs (#273).
+NAV_ANCHOR_PATTERN = re.compile(r'<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>', re.DOTALL | re.IGNORECASE)
+
+
+def _nav_links(nav_html: str) -> list[tuple[str, str]]:
+    """Return (label, href) for each anchor in a breadcrumb nav block."""
+    out = []
+    for m in NAV_ANCHOR_PATTERN.finditer(nav_html):
+        href, inner = m.group(1), m.group(2)
+        label = re.sub(r"<[^>]+>", "", inner).strip()
+        out.append((label, href))
+    return out
 
 
 def _resolve_via_assets_mount(href: str) -> Path | None:
@@ -106,8 +119,7 @@ def check_file(html_path: Path) -> list[tuple[str, str]]:
     # wrong-depth crumbs (nested pages linking to nonexistent siblings) and missing
     # targets (a domain with no lessons/index.html). #273.
     for nav_match in NAV_BLOCK_PATTERN.finditer(content):
-        for a_match in NAV_LINK_PATTERN.finditer(nav_match.group(0)):
-            href = a_match.group(1)
+        for label, href in _nav_links(nav_match.group(0)):
             if href.startswith(("http://", "https://", "data:", "#", "//", "javascript:", "mailto:")):
                 continue
             href_path = href.split("#", 1)[0]  # drop fragment
@@ -118,6 +130,22 @@ def check_file(html_path: Path) -> list[tuple[str, str]]:
                 target = target / "index.html"
             if not target.exists():
                 failures.append((href, f"breadcrumb target not found: {target}"))
+                continue
+            # Semantic depth guard (#273): a wrong-depth crumb can resolve to a
+            # same-named file at the wrong level (existence passes, nav is wrong).
+            # Only applies to pages INSIDE a domain lessons/ tree — the aggregate
+            # index / global-map at the library root legitimately point their
+            # "All Lessons" crumb at the library-root index.html, not a lessons/ one.
+            if "lessons" not in parent.parts:
+                continue
+            if label.strip().lower() == "all lessons":
+                # Must land on the domain lessons-root index: lessons/index.html
+                # (parent dir literally named "lessons"), NOT a nested subfolder index.
+                if not (target.name == "index.html" and target.parent.name == "lessons"):
+                    failures.append((href, f"'All Lessons' crumb resolves outside the lessons/ root index: {target}"))
+            elif target.name.endswith("-map.html"):
+                if target.parent.name != "lessons":
+                    failures.append((href, f"map crumb resolves outside lessons/: {target}"))
 
     return failures
 
