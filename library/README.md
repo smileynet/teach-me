@@ -1,6 +1,6 @@
-# Examples
+# Public Library
 
-Each subdirectory is a **workspace** — a self-contained learning project with its own mission, lessons, and progress. These demonstrate what teach-me produces at various stages of use.
+Each subdirectory is a **workspace** — a self-contained learning project with its own mission, lessons, and progress. This is the shipped, growing public topic library (ADR 0012) — served by default on a fresh clone. These demonstrate what teach-me produces at various stages of use.
 
 ## Workspaces
 

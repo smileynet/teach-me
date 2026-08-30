@@ -20,7 +20,7 @@ assets/components/  — Preact components (MapView, TopicCard, QuizView, etc.)
 assets/services/    — signal services (generation.js SSE stream)
 assets/scaffolds/   — content-pattern examples (boilerplate is in tools/lib/page_template.py)
 .tickets/           — local ticket tracking
-examples/           — test fixtures and example workspaces (MAP.md samples, topic examples)
+library/           — public topic library (shipped, growing; served by default on a fresh clone — ADR 0012). Committed lessons/maps/reference per domain.
 ```
 
 `workspace/` is the single live workspace per machine — all topics (maps, lessons, quizzes, reference docs, learning records) go here. Gitignored (user-local); auto-created on first `mise run serve`. Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`, per-domain numbering from 01; quizzes and maps parallel this (`lessons/{domain-slug}/quiz/`, `lessons/{domain-slug}/{domain}-map.html`).
@@ -106,7 +106,7 @@ examples/           — test fixtures and example workspaces (MAP.md samples, to
 | Don't ask recall questions in gates | Ask "explain to [person] why..." |
 | Don't give partial URLs | When a server is running, always provide full clickable URLs (http://host:port/path) |
 | Don't context-switch to content during infrastructure | Finish the migration/ticket in progress before generating lessons or teaching |
-| Don't create per-topic workspaces | One workspace/ per machine holds all topics. Use examples/ only for demo fixtures |
+| Don't create per-topic workspaces | One workspace/ per machine holds all topics. Use library/ only for demo fixtures |
 | Don't script creative work | Judgment work (question writing, term selection, level assignment) is a skill instruction, not a `tools/` script |
 | Don't over-engineer user-facing features | Show information simply. One line of attribution beats routing + classification + progressive disclosure |
 | Don't start new feature chains with open tickets in the current chain | Finish through the parent ticket before proposing new work |
@@ -122,7 +122,7 @@ Deep track-specific gotchas (Blender bake internals, inkgd cache noise, transcri
 - Playwright MCP requires headless mode (no X server).
 - Bedrock image limit: >20 images in conversation history triggers 2000px max. Resize to ≤768px; dispatch fresh subagents for image analysis in long sessions.
 - Mise shim recursion: `mise run` may fail with "recursive shim invocation detected". Workaround: invoke `.venv\Scripts\python.exe` directly instead of `python` or `mise run`.
-- serve.py serves ONE workspace at a time. To view a different domain, restart: `mise run serve -- --workspace examples/{domain}`. Git symlinks on Windows are text files — serve.py mounts `/assets` from project root automatically (no junctions). Cross-workspace index links are broken until #198.
+- serve.py serves ONE workspace at a time. To view a different domain, restart: `mise run serve -- --workspace library/{domain}`. Git symlinks on Windows are text files — serve.py mounts `/assets` from project root automatically (no junctions). Cross-workspace index links are broken until #198.
 - glTF has NO per-image color-space flag — Godot infers it from the material SLOT (baseColor/emissive → sRGB; normal/metallicRoughness/occlusion → linear). A control/data map (noise, threshold) has no correct slot, so NEVER embed it in a glTF (an sRGB slot corrupts it; a `.glb`-embedded texture has no `.import` to fix) — ship data maps as separate Non-Color PNGs.
 - All Preact packages must resolve to ONE instance or signals silently stop triggering re-renders. Vendored locally in `assets/vendor/` (import map resolves it); on a CDN (esm.sh) add `?external=preact`.
 - GitHub Pages rejects symlinks in deploy artifacts — use `cp -rL` (dereference) when assembling `_site/` or `upload-pages-artifact` fails.
@@ -147,4 +147,4 @@ The teach skill's posture is **knowledgeable colleague at a whiteboard** — not
 
 ## Test Fixture
 
-The root-level teaching workspace (MISSION.md, RESOURCES.md, lessons/, reference/, learning-records/) is the **Iceberg on AWS** example — a real teaching session used as a test fixture. See `examples/README.md` for what to test feature changes against.
+The root-level teaching workspace (MISSION.md, RESOURCES.md, lessons/, reference/, learning-records/) is the **Iceberg on AWS** example — a real teaching session used as a test fixture. See `library/README.md` for what to test feature changes against.

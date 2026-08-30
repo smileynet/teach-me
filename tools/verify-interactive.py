@@ -62,8 +62,8 @@ _CANDIDATE_PAGES = [
     "/lessons/0002-blender-npr-shaders.html",
     "/lessons/blender-texture-prep/01-texture-audit.html",
     "/lessons/0004-toon-banding.html",
-    "/examples/iceberg-workspace/lessons/0001-iceberg-metadata-tree.html",
-    "/examples/oidc-rust/lessons/0001-oidc-auth-flows.html",
+    "/library/iceberg-workspace/lessons/0001-iceberg-metadata-tree.html",
+    "/library/oidc-rust/lessons/0001-oidc-auth-flows.html",
 ]
 
 
@@ -311,13 +311,13 @@ def main():
         # serve.py defaults to workspace/, which may not exist OR may be a freshly
         # scaffolded workspace with only an index.html and no lesson pages. Serve
         # workspace/ ONLY if it actually contains a lesson page one of our candidates
-        # can hit; otherwise fall back to examples/godot-gamedev (always has lessons).
+        # can hit; otherwise fall back to library/godot-gamedev (always has lessons).
         project_root = Path(__file__).resolve().parent.parent
         ws_lessons = project_root / "workspace" / "lessons"
         ws_has_lesson = ws_lessons.exists() and any(
             p.name != "index.html" for p in ws_lessons.rglob("*.html")
         )
-        serve_ws = "workspace" if ws_has_lesson else "examples/godot-gamedev"
+        serve_ws = "workspace" if ws_has_lesson else "library/godot-gamedev"
         server_proc = subprocess.Popen(
             [sys.executable, "tools/serve.py", "--workspace", serve_ws, "--port", str(port)],
             **popen_kwargs,

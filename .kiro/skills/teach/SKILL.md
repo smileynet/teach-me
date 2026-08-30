@@ -53,7 +53,7 @@ This is the first-contact flow. The user opened this project in their AI assista
    - "What should you be able to DO after learning this?" (defines success)
    - "Any constraints — time pressure, prior knowledge, must-cover areas?"
 
-3. **Scaffold** (automatic): Run `tools/init-workspace.sh --path workspace` (or `examples/{slug}` for demos). Write MISSION.md from their answers.
+3. **Scaffold** (automatic): Run `tools/init-workspace.sh --path workspace` (or `library/{slug}` for demos). Write MISSION.md from their answers.
 
 4. **Offer customization** (brief, don't block):
    - "Before I research, any preferences? Detailed walkthroughs or jump-to-the-point? Lots of diagrams or mostly text?"

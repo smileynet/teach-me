@@ -11,7 +11,7 @@ per-user state and are intentionally dropped (fresh clone = all not-started; use
 re-mark via the overlay).
 
 Usage:
-    python tools/migrate_strip_status.py            # strip all examples/**/*.MAP.md
+    python tools/migrate_strip_status.py            # strip all library/**/*.MAP.md
     python tools/migrate_strip_status.py --check     # report only, exit 1 if any remain
     python tools/migrate_strip_status.py PATH ...    # explicit files
 """
@@ -38,7 +38,7 @@ def strip_file(path: Path) -> int:
 
 
 def find_maps() -> list[Path]:
-    return sorted(PROJECT_ROOT.glob("examples/**/*.MAP.md"))
+    return sorted(PROJECT_ROOT.glob("library/**/*.MAP.md"))
 
 
 def main() -> int:

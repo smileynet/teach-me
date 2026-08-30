@@ -9,7 +9,7 @@ Importable (serve.py calls init_workspace() in-process on first launch) or
 runnable as a script:
 
     python tools/init_workspace.py                          # workspace/ at project root
-    python tools/init_workspace.py --path examples/my-topic # custom location
+    python tools/init_workspace.py --path library/my-topic # custom location
     python tools/init_workspace.py --default                # generic first-launch content
 
 Cross-platform notes (ticket #245):

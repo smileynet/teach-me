@@ -43,7 +43,7 @@ if hasattr(sys.stderr, "reconfigure"):
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.ink_compile import compile_source, inklecate_available, DEFAULT_INKLECATE
 
-DEFAULT_LESSONS_GLOB = "examples/**/lessons/**/*.html"
+DEFAULT_LESSONS_GLOB = "library/**/lessons/**/*.html"
 
 # Match a whole <pre ...data-file="X"...> ... <code>BODY</code> ... </pre> block.
 # DOTALL so BODY spans newlines; non-greedy so adjacent blocks don't merge.

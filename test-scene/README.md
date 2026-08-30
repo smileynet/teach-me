@@ -38,7 +38,7 @@ Agents can:
 
 ## Shaders
 
-All shaders in `shaders/` are copied from `examples/godot-gamedev/reference/code/`.
+All shaders in `shaders/` are copied from `library/godot-gamedev/reference/code/`.
 They should match 1:1 — the source of truth is the lesson reference code.
 
 ## Updating

@@ -138,7 +138,7 @@ run = [
   "uv run python tools/check-maps-forest.py",
   "uv run python tools/lint-html.py",
   "uv run python tools/check-lesson-code.py",
-  "uv run python tools/check-svg-vars.py --workspace examples/oidc-rust --workspace examples/workout-fundamentals --workspace examples/godot-gamedev",
+  "uv run python tools/check-svg-vars.py --workspace library/oidc-rust --workspace library/workout-fundamentals --workspace library/godot-gamedev",
   "uv run python -m pytest tools/test_map_page.py tools/test_map_parser.py -q",
   "uv run python tools/verify-interactive.py",
   "uv run python tools/play-ink.py --dir ink-test-project/stories --replay-transcripts",
@@ -155,7 +155,7 @@ outputs = [".scratch/visual-qa/manifest.json"]
 description = "Graph-edge connectivity gate: every committed map's edges render by id+type, 0 detached, 0 console errors (#261). Serves each workspace via serve.py."
 depends = ["setup"]
 run = "python tools/check-map-edges.py"
-sources = ["assets/components/{MapView,EdgeLayer,TopicCard}.js", "examples/*/maps/*.MAP.md", "tools/check-map-edges.py"]
+sources = ["assets/components/{MapView,EdgeLayer,TopicCard}.js", "library/*/maps/*.MAP.md", "tools/check-map-edges.py"]
 
 [tasks.theme-preview]
 description = "Preview a color palette (usage: mise run theme-preview -- --palette palettes/purple-night.json)"
@@ -209,10 +209,10 @@ run = "python tools/generate_map_page.py"
 
 
 [tasks."maps:regenerate"]
-description = "Regenerate ALL map pages (workspace + examples)"
+description = "Regenerate ALL map pages (workspace + library)"
 depends = ["setup"]
 run = """
-for map in examples/*/maps/*.MAP.md; do
+for map in library/*/maps/*.MAP.md; do
   ws=$(dirname $(dirname "$map"))
   domain=$(basename "$map" .MAP.md)
   python tools/generate_map_page.py "$map" --workspace "$ws" --output "$ws/lessons/${domain}-map.html"

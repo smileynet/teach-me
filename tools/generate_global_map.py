@@ -151,7 +151,7 @@ _CSS_EXTRA = """
 
 def main() -> int:
     args = sys.argv[1:]
-    scan_dir = PROJECT_ROOT / "examples"
+    scan_dir = PROJECT_ROOT / "library"
     output = PROJECT_ROOT / "lessons" / "global-map.html"
     if "--scan-dir" in args:
         i = args.index("--scan-dir")

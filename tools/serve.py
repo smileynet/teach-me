@@ -134,8 +134,14 @@ def _parse_args() -> tuple[str, int, Path]:
         ws = resolved
     elif (PROJECT_ROOT / "workspace" / "lessons").is_dir():
         ws = PROJECT_ROOT / "workspace"
+    elif (PROJECT_ROOT / "library").is_dir():
+        # Fresh clone (no private workspace): serve the committed public library
+        # (ADR-0012, supersedes ADR-0011's empty-workspace default). The library is a
+        # multi-domain tree with no top-level lessons/maps — it's mounted at / as a
+        # static tree (see the library-root mount below) and MAPS_DIR is unused.
+        ws = PROJECT_ROOT / "library"
     else:
-        # Auto-create default workspace on first launch (in-process — no bash).
+        # No workspace and no library — auto-create a default workspace (in-process).
         from init_workspace import init_workspace
 
         print("First launch - creating default workspace...")
@@ -155,7 +161,7 @@ _HOST, _PORT, WORKSPACE = _parse_args()
 MAPS_DIR = WORKSPACE / "maps"
 if not MAPS_DIR.exists():
     # Fallback: look in the example workspace
-    MAPS_DIR = PROJECT_ROOT / "examples" / "iceberg-workspace" / "maps"
+    MAPS_DIR = PROJECT_ROOT / "library" / "iceberg-workspace" / "maps"
 
 
 def _overlay():

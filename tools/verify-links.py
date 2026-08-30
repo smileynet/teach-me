@@ -42,7 +42,7 @@ SCRIPT_PATTERN = re.compile(r'<script[^>]+src="([^"]+)"', re.IGNORECASE)
 def _resolve_via_assets_mount(href: str) -> Path | None:
     """Map a link that points into an `assets/` segment onto the real mount.
 
-    `examples/*/assets` is a git symlink checked out as a plain TEXT STUB on
+    `library/*/assets` is a git symlink checked out as a plain TEXT STUB on
     Windows (a small file containing e.g. "../../assets"), so the per-workspace
     path is a file, not a dir, and disk resolution of `../assets/style.css`
     spuriously misses. serve.py mounts /assets from PROJECT_ROOT/assets
@@ -66,7 +66,7 @@ def find_html_files(target: str | None = None) -> list[Path]:
         return [p] if p.exists() else []
 
     files = []
-    for pattern in ["examples/iceberg-workspace/lessons/**/*.html", "examples/iceberg-workspace/reference/**/*.html", "examples/**/*.html"]:
+    for pattern in ["library/iceberg-workspace/lessons/**/*.html", "library/iceberg-workspace/reference/**/*.html", "library/**/*.html"]:
         files.extend(PROJECT_ROOT.glob(pattern))
     return sorted(files)
 
@@ -88,7 +88,7 @@ def check_file(html_path: Path) -> list[tuple[str, str]]:
             # Resolve relative path
             target = (parent / href).resolve()
             if not target.exists():
-                # `examples/*/assets` is a git symlink checked out as a text stub
+                # `library/*/assets` is a git symlink checked out as a text stub
                 # on Windows, so assets links resolve under a non-directory and
                 # spuriously miss. serve.py mounts /assets from PROJECT_ROOT; try
                 # that mount before reporting a failure.

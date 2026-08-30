@@ -13,7 +13,7 @@ Handles:
 Usage:
     python tools/backfill-criteria.py --workspace workspace --dry-run
     python tools/backfill-criteria.py --workspace workspace
-    python tools/backfill-criteria.py --workspace examples/iceberg-workspace
+    python tools/backfill-criteria.py --workspace library/iceberg-workspace
 """
 
 from __future__ import annotations
