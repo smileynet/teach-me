@@ -285,6 +285,68 @@ def run_checks(page, url: str) -> list[dict]:
     return checks
 
 
+# Index pages we probe (domain-workspace serve → /lessons/index.html; multi-domain
+# root serve → /index.html). The gate serves library/godot-gamedev, so the first hits.
+_INDEX_PAGES = ["/lessons/index.html", "/index.html", "/library/index.html"]
+
+
+def find_index_page(base_url: str) -> str | None:
+    for path in _INDEX_PAGES:
+        try:
+            with urllib.request.urlopen(base_url + path, timeout=2) as r:
+                if getattr(r, "status", r.getcode()) == 200:
+                    return base_url + path
+        except Exception:
+            continue
+    return None
+
+
+def run_index_checks(page, url: str) -> list[dict]:
+    """Smoke-check the All Lessons index (a Preact island page, like lessons).
+
+    Guards the #271 orientation/resume cue and the index's JS health — neither was
+    covered before (run_checks only probes lesson pages). Failed requests + console
+    errors here would otherwise ship silently.
+    """
+    checks = []
+    console_errors = []
+    failed_requests = []
+    page.on("console", lambda m: console_errors.append(m.text) if m.type == "error" else None)
+    page.on("response", lambda r: failed_requests.append(f"{r.status} {r.url}") if r.status >= 400 else None)
+
+    page.goto(url, wait_until="networkidle")
+    page.wait_for_timeout(500)
+
+    # a. Preact island mounted (not a blank #app)
+    app = page.query_selector("#app")
+    mounted = bool(app and (app.query_selector(".index-view") or app.inner_html().strip()))
+    checks.append({
+        "name": "index_renders",
+        "pass": mounted,
+        "detail": "Index island mounted (.index-view present)" if mounted else "#app empty — island failed to render",
+    })
+
+    # b. Exactly one orientation cue (#271: resume XOR first-time, never both)
+    cues = page.query_selector_all(".index-cue")
+    checks.append({
+        "name": "index_cue_present",
+        "pass": len(cues) == 1,
+        "detail": f"exactly one .index-cue" if len(cues) == 1 else f"expected 1 .index-cue, found {len(cues)}",
+    })
+
+    # c. No JS errors / no 4xx-5xx on the index (favicon excepted)
+    real_errors = [e for e in console_errors if "favicon" not in e.lower()]
+    real_failed = [f for f in failed_requests if "favicon" not in f.lower()]
+    ok = not real_errors and not real_failed
+    checks.append({
+        "name": "index_no_js_errors",
+        "pass": ok,
+        "detail": "Clean console + no failed requests" if ok else f"errors={real_errors[:2]} failed={real_failed[:2]}",
+    })
+
+    return checks
+
+
 def main():
     base_url = None
     server_proc = None
@@ -357,6 +419,13 @@ def main():
             page = context.new_page()
 
             checks = run_checks(page, url)
+
+            # Also smoke-check the index page if the server exposes one (#271 cue +
+            # index JS health). A missing index is not fatal here — some workspaces
+            # have no aggregate index — but a served index that errors IS a failure.
+            index_url = find_index_page(base_url)
+            if index_url:
+                checks += run_index_checks(context.new_page(), index_url)
 
             browser.close()
 
