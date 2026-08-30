@@ -305,12 +305,12 @@ def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path |
     .topic-card .why {{ font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }}
     .topic-card .prereq-label {{ font-size: 0.75rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.5rem; }}
     .topic-card .prereq-list {{ list-style: none; margin: 0 0 0.5rem; padding: 0; font-size: 0.72rem; }}
-    .topic-card .prereq-item {{ display: flex; align-items: baseline; gap: 0.3rem; line-height: 1.5; }}
+    .topic-card .prereq-item {{ display: flex; align-items: baseline; gap: 0.4rem; line-height: 1.6; margin-bottom: 0.15rem; }}
     /* met/unmet: color reinforces, glyph (✓/○) + word ("met"/"not yet") carry meaning (color-not-alone) */
     .topic-card .prereq-item.met .prereq-mark, .topic-card .prereq-item.met .prereq-state {{ color: var(--success); }}
     .topic-card .prereq-item.unmet .prereq-mark, .topic-card .prereq-item.unmet .prereq-state {{ color: var(--text-muted); }}
-    .topic-card .prereq-mark {{ font-weight: 700; }}
-    .topic-card .prereq-state {{ font-variant: small-caps; letter-spacing: 0.02em; }}
+    .topic-card .prereq-mark {{ font-weight: 700; flex: 0 0 auto; }}
+    .topic-card .prereq-state {{ font-variant: small-caps; letter-spacing: 0.02em; flex: 0 0 auto; margin-right: 0.15rem; }}
     .topic-card .prereq-name {{ color: var(--text-faint); font-style: italic; }}
     .topic-card .actions {{ display: flex; gap: 0.4rem; flex-wrap: wrap; }}
     .btn {{
