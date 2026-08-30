@@ -17,12 +17,28 @@ function computeLayout(domains, edges) {
   const nodeIds = new Set(domains.map(d => d.slug));
   const graphEdges = (edges || []).filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
 
+  // Measure each domain card's real height offscreen (title may wrap to 2 lines +
+  // the ring/meta row) so dagre reserves enough space and nothing clips (#269).
+  const heights = {};
+  const meas = document.createElement('div');
+  meas.style.cssText = 'position:absolute;visibility:hidden;left:-9999px;width:' + CARD_WIDTH + 'px';
+  document.body.appendChild(meas);
+  domains.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'domain-card' + (d.depth > 0 ? ' is-child' : '');
+    el.style.width = CARD_WIDTH + 'px';
+    el.innerHTML = `<h3>${d.title}${d.depth > 0 ? ' <span class="dc-sub-badge">sub-map</span>' : ''}</h3>`
+      + `<div class="dc-meta"><span class="dc-ring">◯</span> ${d.total} topics</div>`;
+    meas.appendChild(el);
+    heights[d.slug] = el.offsetHeight || 96;
+  });
+  document.body.removeChild(meas);
+
   const g = new dagre.graphlib.Graph({ compound: false });
   g.setGraph({ rankdir: 'TB', nodesep: CARD_PAD, ranksep: 70, marginx: 24, marginy: 24 });
   g.setDefaultEdgeLabel(() => ({}));
 
-  const H = 96; // domain card height (title + ring row)
-  domains.forEach(d => g.setNode(d.slug, { width: CARD_WIDTH, height: H }));
+  domains.forEach(d => g.setNode(d.slug, { width: CARD_WIDTH, height: heights[d.slug] }));
   graphEdges.forEach(e => g.setEdge(e.source, e.target, { type: e.type }));
 
   dagre.layout(g);
@@ -30,7 +46,7 @@ function computeLayout(domains, edges) {
   const positions = {};
   domains.forEach(d => {
     const n = g.node(d.slug);
-    positions[d.slug] = { x: n.x - CARD_WIDTH / 2, y: n.y - H / 2 };
+    positions[d.slug] = { x: n.x - CARD_WIDTH / 2, y: n.y - heights[d.slug] / 2 };
   });
 
   const laidEdges = [];
@@ -57,13 +73,15 @@ export function GlobalMapView({ domains, edges, islands }) {
 
   return html`
     <div>
-      <div class="dag-container">
-        <div class="dag-canvas" style="width:${layout.width}px;height:${layout.height}px;position:relative"
-             data-render-complete="true" data-domain-count=${domains.length} data-edge-count=${layout.edges.length}>
-          <${EdgeLayer} edges=${layout.edges} width=${layout.width} height=${layout.height} />
-          ${domains.map(d => html`
-            <${DomainCard} key=${d.slug} domain=${d} position=${layout.positions[d.slug]} />
-          `)}
+      <div class="dag-scroll">
+        <div class="dag-container">
+          <div class="dag-canvas" style="width:${layout.width}px;height:${layout.height}px;position:relative"
+               data-render-complete="true" data-domain-count=${domains.length} data-edge-count=${layout.edges.length}>
+            <${EdgeLayer} edges=${layout.edges} width=${layout.width} height=${layout.height} />
+            ${domains.map(d => html`
+              <${DomainCard} key=${d.slug} domain=${d} position=${layout.positions[d.slug]} />
+            `)}
+          </div>
         </div>
       </div>
       ${islandDomains.length > 0 && html`
