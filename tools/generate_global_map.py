@@ -114,7 +114,15 @@ def _module_script(depth: int) -> str:
 
 _CSS_EXTRA = """
     body { max-width: none; padding: 2rem; }
-    .dag-container { position: relative; width: 100%; overflow-x: auto; }
+    /* Horizontal scroll affordance (#269): a right-edge fade cues that the forest
+       extends beyond the viewport when the canvas is wider than the container. */
+    .dag-scroll { position: relative; }
+    .dag-scroll::after {
+      content: ""; position: absolute; top: 0; right: 0; width: 48px; height: 100%;
+      pointer-events: none; z-index: 3;
+      background: linear-gradient(to right, transparent, var(--bg));
+    }
+    .dag-container { position: relative; width: 100%; overflow-x: auto; scrollbar-width: thin; }
     .dag-canvas { position: relative; min-width: min-content; }
     .edge-layer { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1; }
     .domain-card {
@@ -127,7 +135,9 @@ _CSS_EXTRA = """
     .domain-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
     .domain-card .dc-meta { font-size: 0.78rem; color: var(--text-muted); }
     .domain-card .dc-ring { display: inline-flex; }
-    .domain-card.is-child { border-style: dashed; }
+    /* Sub-map distinction: a subtle left accent (NOT a dashed all-round border, which
+       read as a highlighted/selected state in the audit). Border color stays --border. */
+    .domain-card.is-child { border-left: 3px solid var(--accent); }
     .dc-sub-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 3px;
       background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
     .islands-panel { margin-top: 2rem; padding: 1rem; border: 1px dashed var(--border); border-radius: 8px; }
