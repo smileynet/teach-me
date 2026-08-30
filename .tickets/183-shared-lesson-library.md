@@ -1,7 +1,7 @@
 ---
 id: "183"
 title: "Public library: rename examples/ → library/ and serve it by default"
-status: in_progress
+status: done
 blocked_by: []
 priority: high
 tags: [platform]
@@ -106,15 +106,15 @@ After the 2026-08-28 `/workspace/` anchoring, `library/` is tracked with no
 
 ## Acceptance criteria
 
-- [ ] `git mv examples library` done; `library/` tracked without `git add -f`
-- [ ] All live functional literals in §2 updated; `mise run verify` EXIT 0
-- [ ] `tools/serve.py` first-launch serves `library/` content, not an empty
+- [x] `git mv examples library` done; `library/` tracked without `git add -f`
+- [x] All live functional literals in §2 updated; `mise run verify` EXIT 0
+- [x] `tools/serve.py` first-launch serves `library/` content, not an empty
       auto-created `workspace/` (supersedes ADR 0011 default)
-- [ ] README, AGENTS.md (lines 23/109/125/150 + workspace contract), and the three
+- [x] README, AGENTS.md (lines 23/109/125/150 + workspace contract), and the three
       SKILL.md files updated to `library/` and reframed per ADR 0012
-- [ ] `examples/README.md` renamed to `library/README.md`; internal refs updated
-- [ ] `.gitignore` ignores only `/workspace/` (+ `.user/` when #184 lands)
-- [ ] No `examples/` literal remains in functional code/config (docstrings may lag,
+- [x] `examples/README.md` renamed to `library/README.md`; internal refs updated
+- [x] `.gitignore` ignores only `/workspace/` (+ `.user/` when #184 lands)
+- [x] No `examples/` literal remains in functional code/config (docstrings may lag,
       tracked separately); grep `examples/` in tools/ + mise.toml is clean of live paths
 
 ## Validation
@@ -122,3 +122,7 @@ After the 2026-08-28 `/workspace/` anchoring, `library/` is tracked with no
 `mise run verify` EXIT 0 after the rename; `mise run serve` on a simulated fresh
 clone (no `workspace/`) serves `library/` content; `grep -rn "examples/" tools/ mise.toml`
 shows no live path literals.
+
+## Resolution (2026-08-30)
+
+Renamed examples to library per ADR-0012; the public library is the shipped default a fresh clone serves. Multi-domain mounting so aggregate index/global-map links resolve is the follow-up #198 (next in chain). Historical ticket/memory references intentionally left as-is.
