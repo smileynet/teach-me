@@ -24,7 +24,7 @@ function ProgressRing({ complete, total, size = 48 }) {
 }
 
 function DomainCard({ domain, mission }) {
-  const mapUrl = `${domain.domain}-map.html`;
+  const mapUrl = domain.mapHref || `${domain.domain}-map.html`;
   const remaining = domain.total - domain.complete;
 
   return html`

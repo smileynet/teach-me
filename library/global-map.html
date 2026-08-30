@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Map: Global Map</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+
+    body { max-width: none; padding: 2rem; }
+    /* Horizontal scroll affordance (#269): a right-edge fade cues that the forest
+       extends beyond the viewport when the canvas is wider than the container. */
+    .dag-scroll { position: relative; }
+    .dag-scroll::after {
+      content: ""; position: absolute; top: 0; right: 0; width: 48px; height: 100%;
+      pointer-events: none; z-index: 3;
+      background: linear-gradient(to right, transparent, var(--bg));
+    }
+    .dag-container { position: relative; width: 100%; overflow-x: auto; scrollbar-width: thin; }
+    .dag-canvas { position: relative; min-width: min-content; }
+    .edge-layer { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1; }
+    .domain-card {
+      position: absolute; width: 300px; padding: 1rem 1.2rem;
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+      z-index: 2; text-decoration: none; color: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .domain-card:hover { border-color: var(--accent); box-shadow: 0 2px 16px rgba(203,166,247,0.1); }
+    .domain-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
+    .domain-card .dc-meta { font-size: 0.78rem; color: var(--text-muted); }
+    .domain-card .dc-ring { display: inline-flex; }
+    /* Sub-map distinction: a subtle left accent (NOT a dashed all-round border, which
+       read as a highlighted/selected state in the audit). Border color stays --border. */
+    .domain-card.is-child { border-left: 3px solid var(--accent); }
+    .dc-sub-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 3px;
+      background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    .islands-panel { margin-top: 2rem; padding: 1rem; border: 1px dashed var(--border); border-radius: 8px; }
+    .islands-panel h2 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .islands-panel ul { list-style: none; padding: 0; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .islands-panel a { font-size: 0.8rem; padding: 0.3rem 0.6rem; border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text-muted); text-decoration: none; }
+    .islands-panel a:hover { border-color: var(--accent); color: var(--accent); }
+
+  </style>
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+  <script src="../assets/vendor/dagre.min.js"></script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <span>All Domains</span></nav>
+  <div id="app"></div>
+
+<script type="application/json" id="page-data">{"domains": [{"slug": "blender-texture-prep", "title": "Blender Texture Prep for Toon Shading", "depth": 1, "parent": "godot-gamedev", "total": 7, "complete": 0, "inProgress": 0, "mapHref": "godot-gamedev/lessons/blender-texture-prep-map.html"}, {"slug": "godot-gamedev", "title": "Game Development with Godot", "depth": 0, "parent": null, "total": 8, "complete": 0, "inProgress": 0, "mapHref": "godot-gamedev/lessons/godot-gamedev-map.html"}, {"slug": "godot-mktoon", "title": "Per-Material Toon Shading (MKToon)", "depth": 1, "parent": "godot-gamedev", "total": 6, "complete": 0, "inProgress": 0, "mapHref": "godot-gamedev/lessons/godot-mktoon-map.html"}, {"slug": "godot-toon-shaders", "title": "Godot Toon Shaders", "depth": 1, "parent": "godot-gamedev", "total": 6, "complete": 0, "inProgress": 0, "mapHref": "godot-gamedev/lessons/godot-toon-shaders-map.html"}, {"slug": "data-analytics", "title": "Modern Data Analytics Stacks", "depth": 0, "parent": null, "total": 7, "complete": 0, "inProgress": 0, "mapHref": "iceberg-workspace/lessons/data-analytics-map.html"}, {"slug": "storage-and-table-formats", "title": "Storage & Open Table Formats", "depth": 1, "parent": "data-analytics", "total": 5, "complete": 0, "inProgress": 0, "mapHref": "iceberg-workspace/lessons/storage-and-table-formats-map.html"}, {"slug": "ink-godot", "title": "Ink + Godot: Narrative Scripting", "depth": 0, "parent": null, "total": 8, "complete": 0, "inProgress": 0, "mapHref": "ink-godot/lessons/ink-godot-map.html"}, {"slug": "oidc-rust", "title": "OIDC Authentication in Rust", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "oidc-rust/lessons/oidc-rust-map.html"}, {"slug": "workout-fundamentals", "title": "Workout Fundamentals", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "workout-fundamentals/lessons/workout-fundamentals-map.html"}], "edges": [{"source": "godot-gamedev", "target": "blender-texture-prep", "type": "parent"}, {"source": "blender-texture-prep", "target": "godot-mktoon", "type": "leads_to", "why": ""}, {"source": "godot-gamedev", "target": "godot-mktoon", "type": "parent"}, {"source": "godot-gamedev", "target": "godot-toon-shaders", "type": "parent"}, {"source": "godot-toon-shaders", "target": "godot-mktoon", "type": "leads_to", "why": ""}, {"source": "data-analytics", "target": "storage-and-table-formats", "type": "parent"}], "islands": ["ink-godot", "oidc-rust", "workout-fundamentals"]}</script>
+<script type="module">
+
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { GlobalMapView } from '../assets/components/GlobalMapView.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    render(
+      html`<${GlobalMapView} domains=${data.domains} edges=${data.edges} islands=${data.islands} />`,
+      document.getElementById('app')
+    );
+
+</script>
+
+</body>
+</html>

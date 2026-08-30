@@ -52,20 +52,19 @@ def _completion(dm: DomainMap, map_path: Path) -> tuple[int, int, int]:
     return complete, in_progress, total
 
 
-def build_forest(scan_dir: Path) -> dict:
+def build_forest(scan_dir: Path, output_file: Path) -> dict:
     """Load all maps, synthesize domain nodes + structural edges + islands."""
+    from lib.map_links import map_href
     paths = find_maps(scan_dir)
     loaded = [(p, load_map(p)) for p in paths]
     by_domain = {dm.domain: (p, dm) for p, dm in loaded}
 
-    # A domain's map page lives at {workspace}/lessons/{domain}-map.html. Record the
-    # workspace-relative link so the client can navigate (cross-workspace links are the
-    # known #198 limitation — we still emit the intended target).
+    # A domain's map page lives at {workspace}/lessons/{domain}-map.html. Compute a
+    # document-relative href from the global-map output file (resolves on localhost AND
+    # static Pages — see #198 / research). Shared helper = same scheme as the index.
     nodes = []
     for p, dm in loaded:
         complete, in_progress, total = _completion(dm, p)
-        workspace = p.parent.parent if p.parent.name == "maps" else p.parent
-        map_href = f"{workspace.name}/lessons/{dm.domain}-map.html"
         nodes.append({
             "slug": dm.domain,
             "title": dm.title or dm.domain.replace("-", " ").title(),
@@ -74,7 +73,7 @@ def build_forest(scan_dir: Path) -> dict:
             "total": total,
             "complete": complete,
             "inProgress": in_progress,
-            "mapHref": map_href,
+            "mapHref": map_href(p, output_file, dm.domain),
         })
 
     # Structural edges: parent/child + leads_to. Resolve targets against known domains;
@@ -164,7 +163,7 @@ def main() -> int:
         if not output.is_absolute():
             output = PROJECT_ROOT / output
 
-    data = build_forest(scan_dir)
+    data = build_forest(scan_dir, output)
     depth = 1  # lessons/global-map.html
 
     html = render_map_page(
