@@ -169,10 +169,13 @@ def render_lesson_page(
                       Does NOT include h1, lesson-meta, or key-concept — those
                       are generated from structured data.
     """
-    # Breadcrumb: All Lessons › Domain › Title
-    map_page = f"{domain_slug}-map.html"
+    # Breadcrumb: All Lessons › Domain › Title.
+    # index.html and {slug}-map.html live at the lessons/ root; a page nested below
+    # lessons/ (depth > 1) must climb back up to reach them. depth-1 → empty prefix.
+    up_to_lessons = "../" * (depth - 1)
+    map_page = f"{up_to_lessons}{domain_slug}-map.html"
     crumbs = [
-        ("All Lessons", "index.html"),
+        ("All Lessons", f"{up_to_lessons}index.html"),
         (domain, map_page),
         (title, None),
     ]
