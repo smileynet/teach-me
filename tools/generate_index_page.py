@@ -35,15 +35,14 @@ except ModuleNotFoundError:
 def _overlay_status_map(map_path: Path) -> dict:
     """{node_id → status} from the per-user overlay for the map's workspace.
 
-    A `*.MAP.md` lives at `{workspace}/maps/...`, so the overlay root is the maps
-    dir's parent. Absent overlay (fresh clone) → empty map → all topics not-started.
+    Thin wrapper over the shared `overlay.status_map_for_map` (#155 extraction) so the
+    index, per-domain, and global map share one resolution.
     """
     try:
-        from tools.lib.overlay import Overlay
+        from tools.lib.overlay import status_map_for_map
     except ModuleNotFoundError:
-        from lib.overlay import Overlay  # type: ignore[no-redef]
-    workspace = map_path.parent.parent if map_path.parent.name == "maps" else map_path.parent
-    return Overlay(workspace).status_map()
+        from lib.overlay import status_map_for_map  # type: ignore[no-redef]
+    return status_map_for_map(map_path)
 
 
 def find_maps(scan_dirs: list[Path] | None = None) -> list[Path]:

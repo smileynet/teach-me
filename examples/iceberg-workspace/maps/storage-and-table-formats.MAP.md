@@ -3,7 +3,7 @@ domain: storage-and-table-formats
 description: "Deep dive into how analytical data is stored — file formats, table formats, metadata management, and the tradeoffs that determine query speed, cost, and operational complexity"
 generated: 2026-08-12
 depth: 1
-parent: modern-data-analytics-stacks
+parent: data-analytics
 leads_to:
   - slug: lakehouse-architecture
     why: "Combines the best of data lakes and warehouses — the natural evolution of open table formats"
