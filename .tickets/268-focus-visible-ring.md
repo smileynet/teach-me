@@ -1,7 +1,7 @@
 ---
 id: "268"
 title: "a11y: add high-contrast :focus-visible ring (UA default near-invisible on dark)"
-status: open
+status: done
 blocked_by: []
 priority: high
 tags: ["platform"]
@@ -27,12 +27,16 @@ guidance. Confirmed on all four page types via Playwright (.scratch/ux/shots/).
 
 ## Acceptance criteria
 
-- [ ] `:focus-visible` ring visible on buttons, card links, breadcrumb links in dark AND light
-- [ ] Ring ≥2px and ≥3:1 contrast against adjacent background (WCAG 2.4.11)
-- [ ] No `outline: none` left without a visible replacement
-- [ ] `mise run verify` EXIT 0 (verify-interactive still green)
+- [x] `:focus-visible` ring visible on buttons, card links, breadcrumb links in dark AND light
+- [x] Ring ≥2px and ≥3:1 contrast against adjacent background (WCAG 2.4.11)
+- [x] No `outline: none` left without a visible replacement
+- [x] `mise run verify` EXIT 0 (verify-interactive still green)
 
 ## Validation
 
 Playwright: tab through index, global-map, a domain map, a lesson; confirm a visible focus
 ring on each interactive element in both themes.
+
+## Resolution (2026-08-30)
+
+style.css: --focus-ring token per theme + global :focus-visible (a/button/[tabindex]/summary) 2px solid var(--focus-ring), offset 2px. Keyboard-only (no ring on mouse). Applies to all page types (all link style.css via _base_page).
