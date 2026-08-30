@@ -1,7 +1,7 @@
 ---
 id: "270"
 title: "Map prereq indicator renders glued: add gap between glyph/state/name spans"
-status: open
+status: done
 blocked_by: []
 priority: medium
 tags: ["platform"]
@@ -28,11 +28,15 @@ no separating space. Markup is correct; the CSS lacks a gap.
 
 ## Acceptance criteria
 
-- [ ] Prereq indicator renders as "✓ met  Spatial Shader Anatomy" (clear separation)
-- [ ] Both met (✓) and not-yet (○) states legible with glyph + word + name spaced
-- [ ] `mise run verify` EXIT 0; Playwright re-shot confirms spacing
+- [x] Prereq indicator renders as "✓ met  Spatial Shader Anatomy" (clear separation)
+- [x] Both met (✓) and not-yet (○) states legible with glyph + word + name spaced
+- [x] `mise run verify` EXIT 0; Playwright re-shot confirms spacing
 
 ## Validation
 
 Regenerate a domain map with a mix of met/unmet prereqs; Playwright screenshot confirms the
 three parts are visually separated.
+
+## Resolution (2026-08-30)
+
+generate_map_page css_extra: .prereq-item gap 0.3→0.4rem + line-height 1.6 + margin-bottom; .prereq-mark/.prereq-state flex:0 0 auto + .prereq-state margin-right 0.15rem. Glyph/state/name now clearly separated in both met and unmet states. Python-only change; committed example maps refresh on maps:regenerate.
