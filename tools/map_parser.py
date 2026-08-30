@@ -401,6 +401,91 @@ def validate(domain_map: DomainMap) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
+# Forest validation (#155 / #260) — resolve prereqs across a SET of maps
+# ---------------------------------------------------------------------------
+
+def build_forest_index(maps: list[DomainMap]) -> tuple[dict[str, str], list[str]]:
+    """Union slug/alias -> id across all maps in scope.
+
+    Returns (index, warnings). A cross-map prereq is valid iff its slug is present
+    somewhere in this union. Per-map slugs are unique within a file but NOT across a
+    forest, so a slug reused for different topics in two maps is ambiguous — reported as
+    a warning (first-wins binding; ULID node ids are the unambiguous key, #257).
+    """
+    index: dict[str, str] = {}
+    slug_owner: dict[str, str] = {}  # slug -> "domain/topic" of the first binder
+    warnings: list[str] = []
+    for m in maps:
+        for t in m.topics:
+            if t.slug in index and index[t.slug] != t.id:
+                warnings.append(
+                    f"Ambiguous slug '{t.slug}' across maps: bound to "
+                    f"{slug_owner[t.slug]}, also '{m.domain}/{t.slug}'"
+                )
+            else:
+                index.setdefault(t.slug, t.id)
+                slug_owner.setdefault(t.slug, f"{m.domain}/{t.slug}")
+            for a in t.aliases:
+                index.setdefault(a, t.id)
+    return index, warnings
+
+
+def validate_forest(maps: list[DomainMap]) -> list[str]:
+    """Validate a SET of maps together — prereqs resolve against the union, not per-map.
+
+    Use this as the gate for domains whose maps legitimately reference each other's
+    topics (e.g. a parent + its depth-1 sub-maps sharing a fork prereq — #260). Runs
+    each map's own single-map `validate` EXCEPT the per-map 'undefined prereq' check
+    (superseded here by the union check), plus a forest-wide prereq cycle check.
+    """
+    errors: list[str] = []
+    index, ambiguity = build_forest_index(maps)
+    errors.extend(ambiguity)
+    known = set(index)
+
+    # Per-map structural checks (topic count, ULID integrity, edge types) — reuse
+    # single-map validate but drop its 'undefined prereq' lines (union supersedes them).
+    for m in maps:
+        for e in validate(m):
+            if "undefined prereq" not in e:
+                errors.append(f"[{m.domain}] {e}")
+
+    # Union prereq resolution: a prereq is dangling ONLY if absent from every map.
+    for m in maps:
+        for t in m.topics:
+            for prereq in t.prereqs:
+                if prereq not in known:
+                    errors.append(
+                        f"[{m.domain}] Topic '{t.slug}' has undefined prereq '{prereq}'"
+                    )
+
+    # Forest-wide cycle check over union prereq edges (cross-map edges included).
+    all_ids = {t.id for m in maps for t in m.topics}
+    in_degree = {tid: 0 for tid in all_ids}
+    adjacency: dict[str, list[str]] = {tid: [] for tid in all_ids}
+    for m in maps:
+        for t in m.topics:
+            for prereq in t.prereqs:
+                src = index.get(prereq)
+                if src in in_degree and t.id in in_degree:
+                    adjacency[src].append(t.id)
+                    in_degree[t.id] += 1
+    queue = [tid for tid, d in in_degree.items() if d == 0]
+    visited = 0
+    while queue:
+        node = queue.pop(0)
+        visited += 1
+        for nb in adjacency[node]:
+            in_degree[nb] -= 1
+            if in_degree[nb] == 0:
+                queue.append(nb)
+    if visited < len(all_ids):
+        errors.append("Cycle detected in forest topic prerequisites")
+
+    return errors
+
+
+# ---------------------------------------------------------------------------
 # Queries
 # ---------------------------------------------------------------------------
 

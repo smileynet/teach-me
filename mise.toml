@@ -135,6 +135,7 @@ run = [
   "uv run python tools/control-maps-drift.py",
   "uv run python tools/bake-export-oracle.py",
   "uv run python tools/verify-links.py",
+  "uv run python tools/check-maps-forest.py",
   "uv run python tools/lint-html.py",
   "uv run python tools/check-lesson-code.py",
   "uv run python tools/check-svg-vars.py --workspace examples/oidc-rust --workspace examples/workout-fundamentals --workspace examples/godot-gamedev",
@@ -228,6 +229,11 @@ fi
 description = "Generate the All Lessons index page. Pass --scan-dir for custom location."
 depends = ["setup"]
 run = "python tools/generate_index_page.py"
+
+[tasks."map:global"]
+description = "Generate the global/forest map (domains as nodes; parent/child + leads_to edges). Pass --scan-dir/--output."
+depends = ["setup"]
+run = "python tools/generate_global_map.py"
 
 [tasks."jargon:annotate"]
 description = "Annotate glossary terms in lesson files. Pass --workspace or specific files."

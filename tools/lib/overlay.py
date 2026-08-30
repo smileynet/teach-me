@@ -123,6 +123,18 @@ def reset() -> None:
     _default.reset()
 
 
+def status_map_for_map(map_path) -> dict[str, str]:
+    """{node_id → status} for the workspace that owns a `*.MAP.md` path.
+
+    Shared by generate_index_page + generate_global_map (#155): a MAP.md lives at
+    `{workspace}/maps/...`, so the overlay root is the maps dir's parent. Absent
+    overlay (fresh clone) → empty map → all topics not-started.
+    """
+    p = Path(map_path)
+    workspace = p.parent.parent if p.parent.name == "maps" else p.parent
+    return Overlay(workspace).status_map()
+
+
 if __name__ == "__main__":
     # Self-test in a temp dir: sparse defaults, round-trip, validation, reset.
     import tempfile

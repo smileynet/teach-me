@@ -9,6 +9,12 @@ tags: ["platform"]
 
 # Cross-map prereq references fail single-map `validate`
 
+> **2026-08-29: Being resolved by #155 Phase 1** (folded in — the global/forest map needs
+> the same union-of-maps `build_forest_index`/`validate_forest`). Decision: cross-map
+> prereqs are VALID (Option A) — the 4 refs are intentional forks off `toon-banding`
+> (orientation prose confirms). #155 adds forest validation + rewires the check-maps/verify
+> gate to use it. This ticket closes when #155 Phase 1 lands.
+
 ## Discovered
 During #257 Subtask B (ULID backfill, 2026-08-29). Confirmed PRE-EXISTING — identical
 errors on the pre-migration original (`git show HEAD:...`), so this is a data/validation
