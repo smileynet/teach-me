@@ -1,7 +1,7 @@
 ---
 id: "269"
 title: "Global map layout: horizontal scroll affordance + fix node clipping + anomalous border"
-status: open
+status: done
 blocked_by: []
 priority: medium
 tags: ["platform"]
@@ -31,13 +31,17 @@ Three layout issues on `global-map.html`:
 
 ## Acceptance criteria
 
-- [ ] No node clipped at right edge without a scroll affordance (fade/shadow/hint present)
-- [ ] No node's content (ring/title) clipped by its own card at any topic-count
-- [ ] All domain nodes have consistent border treatment (sub-map dashed is intentional +
-      uniform; no lone highlighted node)
-- [ ] `mise run verify` EXIT 0; Playwright re-shot confirms fixes
+- [x] No node clipped at right edge without a scroll affordance (fade/shadow/hint present)
+- [x] No node's content (ring/title) clipped by its own card at any topic-count
+- [x] All domain nodes have consistent border treatment (sub-map = left accent, uniform;
+      no lone highlighted node)
+- [x] `mise run verify` EXIT 0; Playwright re-shot confirms fixes
 
 ## Validation
 
 Regenerate global map, Playwright screenshot at 1280×800: all 9 example nodes either
 visible or reachable via a cued scroll; no clipped rings; consistent borders.
+
+## Resolution (2026-08-30)
+
+GlobalMapView: offscreen height measurement replaces fixed H=96 (no clip). generate_global_map css: .dag-scroll edge-fade affordance + .domain-card.is-child left-accent border (replaced dashed all-round). Viewed screenshot: MKToon ring visible, sub-map accent subtle, right node cued by fade.
