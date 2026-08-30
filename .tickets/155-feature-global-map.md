@@ -1,7 +1,7 @@
 ---
 id: "155"
 title: "Feature: global map — unified view of all domain maps with lazy cross-domain connections"
-status: open
+status: in_progress
 blocked_by: ["150", "152"]
 priority: medium
 type: feature
@@ -19,7 +19,58 @@ Each domain gets its own MAP.md — but the learner's knowledge spans multiple d
 
 The existing `leads_to` field in MAP.md is hand-authored and rarely populated. Cross-domain connections should emerge from evidence, not be manufactured.
 
-## What to build
+## Plan (research + review, 2026-08-29) — PHASED; Phase 1 folds in #260
+
+Blockers #150/#152 are DONE → unblocked. Evidence:
+`.scratch/review/map-render-surface.md`, `.scratch/review/crossmap-prereq-260.md`,
+`.scratch/research/cross-domain-edges.md`, `.scratch/research/graph-of-graphs-viz.md`.
+
+### Phase 1 (THIS ticket) — structural forest map + close #260
+Structural edges only (higher precision than similarity — research: similarity asserts
+relatedness not dependency, and similarity nets go near-complete on a small corpus;
+explicit edges are the trusted seed). Build:
+1. `tools/generate_global_map.py`: `find_maps` (reuse) → `load_map` each (reuse) → build
+   load-once `by_domain` dict → synthesize DOMAIN-level edges from `.parent` (parent/child)
+   and `.leads_to` (frontmatter list, navigational). Do NOT reuse the `depth>0 → None` skip
+   (that guard is in generate_index_page.parse_map_meta, NOT find_maps) — keep children.
+   Per-domain completion via `_overlay_status_map` + `status_map.get(t.id)` counting,
+   OVERLAY-ONLY (match the index; the per-domain page's disk-derived compute_effective_status
+   would diverge). Emit a domain-level `page-data` island; call `render_map_page` (reuse,
+   component-agnostic) with a new module_script. `mise run map:global`.
+2. New client `assets/components/GlobalMapView.js` + `DomainCard.js` (MapView/TopicCard are
+   hard-wired to the topic model + ULID keys — NOT reusable). Lift generic `computeLayout` +
+   `EdgeLayer` + `.dag-*` CSS. Viz (graph-of-graphs research): compound/meta-node model, do
+   NOT mix sub-nodes+meta-nodes in one dagre pass; islands component-packed + sidebar (not
+   forced into a row); node size=topic count, color=completion; click domain → its map page.
+3. Close #260: add `build_forest_index(maps)` (union slug/alias→id, WITH duplicate-slug
+   detection — ULID keys disambiguate) + `validate_forest(maps)` (union prereq check +
+   forest-wide cycle check) to map_parser.py, and REWIRE the check-maps/verify gate to run
+   validate_forest per domain-map-set. This is the same forest union #155 needs anyway. The
+   4 cross-map prereqs (blender texture-audit/ramp-band-textures/wiring-the-shader,
+   mktoon configurable-banding → toon-banding/configurable-banding in siblings) are
+   INTENTIONAL forks (orientation prose confirms) → #260 decision = VALID (Option A).
+4. Extract shared helpers (`_overlay_status_map`, `.dag-*` CSS) so index + per-domain +
+   global map share one impl each.
+
+### Phase 2 (separate ticket) — concept-based connection detection
+YAKE shared-concept + first-mention prereq-bridge edges, as AUTHOR-CONFIRMED SUGGESTIONS
+(never auto-committed — research: high false-positive risk on small corpus; surface
+sub-threshold links as unverified). Needs cached `.concepts.json` + `cross_domain_edges.py`.
+
+### Phase 3 (separate ticket) — lazy/triggered detection + auto-regen
+Detect on domain completion / "where does this lead"; auto-regen policy.
+
+### Out of scope (Phase 1)
+Cross-map prereq EDGE SYNTHESIS for availability gating (functional change beyond validation
+— review flagged; defer). Concept similarity. Confidence thresholds/weights.
+
+### Answered open questions
+- Replace or complement index? → COMPLEMENT (keep index flat dashboard; add global-map.html
+  graph view; cross-link). Global map may become the default landing in a later ticket.
+- Sibling forks inline on parent vs global map? → Phase 1 renders them in the global/forest
+  view; inline-on-parent fork rendering is a nice-to-have deferred.
+
+## What to build (original)
 
 A **global map** that aggregates all domain MAPs into a single navigable graph with lazily-detected cross-domain edges.
 
@@ -91,14 +142,22 @@ global-map.html (interactive Preact page)
 
 ## Acceptance criteria
 
-- [ ] Generates global map HTML from all MAP.md files in a workspace
-- [ ] Detects shared-concept connections between domains (when they exist)
-- [ ] Surfaces topic islands without treating them as errors
+### Phase 1 (THIS ticket — structural + #260)
+- [ ] `tools/generate_global_map.py` generates a forest map HTML from all MAP.md in a
+      scan-dir (domains as nodes; parent/child + `leads_to` edges); `mise run map:global`
+- [ ] Domain nodes sized by topic count, colored by OVERLAY completion (matches index)
+- [ ] Surfaces topic islands without treating them as errors (component-packed + sidebar)
 - [ ] Clicking a domain navigates to its map page
-- [ ] Lazy detection: only computes connections when triggered (not O(n²) on every serve)
-- [ ] Works with 1 domain (just shows a single node), 5 domains, and 20+ domains
 - [ ] Handles the `leads_to` frontmatter field as explicit edges
-- [ ] Visual matches existing map page style (dagre layout, same color palette)
+- [ ] Works with 1 domain (single node), 5 domains, and 20+ domains
+- [ ] Visual matches existing map page style (dagre, same palette; new GlobalMapView/DomainCard)
+- [ ] **Closes #260:** `build_forest_index` + `validate_forest` in map_parser; check-maps/verify
+      gate runs forest validation; the 4 cross-map prereqs validate clean; `mise run verify` +
+      `check-maps` EXIT 0
+
+### Deferred (Phase 2/3 — separate tickets)
+- [ ] Detects shared-concept connections between domains (Phase 2 — author-confirmed suggestions)
+- [ ] Lazy detection: only computes connections when triggered (Phase 3)
 
 ## Concrete use case: sibling map fork (godot-toon-shaders ↔ godot-mktoon)
 
