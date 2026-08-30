@@ -1,7 +1,7 @@
 ---
 id: "155"
 title: "Feature: global map — unified view of all domain maps with lazy cross-domain connections"
-status: in_progress
+status: done
 blocked_by: ["150", "152"]
 priority: medium
 type: feature
@@ -143,21 +143,22 @@ global-map.html (interactive Preact page)
 ## Acceptance criteria
 
 ### Phase 1 (THIS ticket — structural + #260)
-- [ ] `tools/generate_global_map.py` generates a forest map HTML from all MAP.md in a
+- [x] `tools/generate_global_map.py` generates a forest map HTML from all MAP.md in a
       scan-dir (domains as nodes; parent/child + `leads_to` edges); `mise run map:global`
-- [ ] Domain nodes sized by topic count, colored by OVERLAY completion (matches index)
-- [ ] Surfaces topic islands without treating them as errors (component-packed + sidebar)
-- [ ] Clicking a domain navigates to its map page
-- [ ] Handles the `leads_to` frontmatter field as explicit edges
-- [ ] Works with 1 domain (single node), 5 domains, and 20+ domains
-- [ ] Visual matches existing map page style (dagre, same palette; new GlobalMapView/DomainCard)
-- [ ] **Closes #260:** `build_forest_index` + `validate_forest` in map_parser; check-maps/verify
-      gate runs forest validation; the 4 cross-map prereqs validate clean; `mise run verify` +
-      `check-maps` EXIT 0
+- [x] Domain nodes sized by topic count, colored by OVERLAY completion (matches index)
+- [x] Surfaces topic islands without treating them as errors (sidebar + separate placement)
+- [x] Clicking a domain navigates to its map page (href correct; cross-workspace resolution
+      is #198's job)
+- [x] Handles the `leads_to` frontmatter field as explicit edges
+- [x] Works with 1 domain (single node), 5 domains, and 20+ domains (tested 1/5/22)
+- [x] Visual matches existing map page style (dagre, same palette; new GlobalMapView/DomainCard)
+- [x] **Closes #260:** `build_forest_index` + `validate_forest` in map_parser; forest gate
+      (`check-maps-forest.py`) wired into verify; the 4 cross-map prereqs validate clean;
+      `mise run verify` + `check-maps` EXIT 0
 
-### Deferred (Phase 2/3 — separate tickets)
-- [ ] Detects shared-concept connections between domains (Phase 2 — author-confirmed suggestions)
-- [ ] Lazy detection: only computes connections when triggered (Phase 3)
+### Deferred (Phase 2/3 — separate tickets #266/#267)
+- [ ] Detects shared-concept connections between domains (Phase 2 — #266, author-confirmed)
+- [ ] Lazy detection: only computes connections when triggered (Phase 3 — #267)
 
 ## Concrete use case: sibling map fork (godot-toon-shaders ↔ godot-mktoon)
 
@@ -196,3 +197,7 @@ philosophies for the same problem: post-process filtering vs per-material author
 - ~~How to handle depth-1 child maps (e.g., sub-topics that expand into their own MAP)?~~ → Answered above: render fork points where siblings share prereqs.
 - Does this replace or complement the existing index page (generate_index_page.py)?
 - Should sibling-map forks show inline on the parent map, or require navigating to the global map?
+
+## Resolution (2026-08-30)
+
+Phase 1 (structural forest map + forest prereq validation) complete: generate_global_map.py + GlobalMapView/DomainCard + build_forest_index/validate_forest + check-maps-forest gate + overlay.status_map_for_map extraction. Also fixed a stale parent (storage-and-table-formats → data-analytics) the map exposed. All 8 Phase-1 AC met. The 2 Phase-2/3 AC (computed concept edges; lazy detection) are intentionally split into #266/#267 per the research (similarity edges are low-precision on a small corpus → author-confirmed suggestions, deferred). Closing this feature ticket at Phase-1 scope with follow-ups tracked.
