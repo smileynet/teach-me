@@ -1,7 +1,7 @@
 ---
 id: "183"
 title: "Public library: rename examples/ → library/ and serve it by default"
-status: open
+status: in_progress
 blocked_by: []
 priority: high
 tags: [platform]
@@ -34,26 +34,40 @@ this is frontier-ready.
 
 ### 2. Update every LIVE functional literal (verified blast radius, review 2026-08-29)
 
+> **Grep BOTH patterns** — the codebase builds paths as `Path / "examples"` (no slash),
+> so `examples/` alone misses ~6 files. Use `git grep -n '"examples"'` AND
+> `git grep -n 'examples/'` scoped to code/config (`':!*.md' ':!.tickets/'`).
+
 Each of these resolves to a real path and breaks after the move:
 
 - **`mise.toml`** — `verify` task (`--workspace examples/oidc-rust`,
   `examples/workout-fundamentals`, `examples/godot-gamedev` in the check-svg-vars
-  step); `maps:regenerate` task (`for map in examples/*/maps/*.MAP.md`). Leave the
+  step); `maps:regenerate` task (`for map in examples/*/maps/*.MAP.md`); **`:158`
+  `sources` watch glob `examples/*/maps/*.MAP.md` (added 2026-08-29 review)**. Leave the
   `workspace/maps` branch alone (that's the private live workspace, not renamed).
 - **`tools/serve.py:158`** — `MAPS_DIR` fallback `examples/iceberg-workspace/maps`.
-- **`tools/verify-interactive.py:65,66,313`**
-- **`tools/verify-links.py:67`** (3 globs)
+- **`tools/verify-interactive.py:65,66,320`** (was :313 — line drift)
+- **`tools/verify-links.py:69`** (3 globs; was :67)
 - **`tools/lint-html.py:29`**
 - **`tools/check-lesson-code.py:46`** (`DEFAULT_LESSONS_GLOB`)
 - **`tools/test_map_parser.py:14,15,16`**
 - **`tools/bake-export-oracle.py:26`**, **`tools/control-maps-oracle.py:32`**,
   **`tools/control-maps-drift.py:34`**
-- **`tools/ink-gd-sync.py:20,22,24,26,28`**
+- **`tools/ink-gd-sync.py:20,22,24,26,28,30,32,34`** (8 lines, not 5)
 - **`tools/verify-blender.py:44-47`**
+- **ADDED (missing from original §2, review 2026-08-29 — all LIVE, break on rename):**
+  - **`tools/generate_global_map.py:154`** — `scan_dir = PROJECT_ROOT / "examples"` default (post-#183 tool)
+  - **`tools/check-maps-forest.py:46`** — `scan = ROOT / "examples"` default (post-#183 tool)
+  - **`tools/migrate-add-lesson-actions.py:101`** — `(PROJECT_ROOT / "examples").iterdir()` `--all` loop (post-#183 tool)
+  - **`tools/check-map-edges.py:146`** — `glob("examples/*/lessons/*-map.html")`
+  - **`tools/migrate_strip_status.py:41`** — `glob("examples/**/*.MAP.md")`
+  - **`tools/migrate_map_ids.py:113`** — `glob("examples/**/*.MAP.md")`
 - Docstring/usage literals (non-blocking, fix for accuracy):
   check-lesson.py, check-svg-vars.py, check-topic-completeness.py,
   backfill-criteria.py, init_workspace.py, jargon-annotate.py,
-  migrate-add-breadcrumbs.py, generate_index_page.py:44 (comment).
+  migrate-add-breadcrumbs.py, generate_index_page.py:63 (comment),
+  generate_global_map.py:14, check-maps-forest.py:20, migrate-add-lesson-actions.py:18,
+  migrate_strip_status.py:14, questions.py:37.
 
 ### 3. Serve-default flip (ADR 0012)
 
