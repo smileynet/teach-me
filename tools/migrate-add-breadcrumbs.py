@@ -23,7 +23,7 @@ from lib.page_template import _breadcrumb, _esc
 def detect_page_type(path: Path, content: str) -> str | None:
     """Detect page type from path and content."""
     name = path.name
-    rel = str(path)
+    rel = str(path).replace("\\", "/")
     if "/quiz/" in rel or "-quiz.html" in name:
         return "quiz"
     if "/reference/" in rel:
@@ -33,8 +33,22 @@ def detect_page_type(path: Path, content: str) -> str | None:
     if name == "index.html":
         return "index"
     if "/lessons/" in rel:
+        # Lesson-family page (includes review/ and other lessons/ subfolders).
         return "lesson"
     return None
+
+
+def _levels_below_lessons(path: Path) -> int:
+    """How many folders `path` sits below its `lessons/` dir (0 = directly in it).
+
+    A lesson at lessons/0001-x.html → 0; lessons/{sub}/x.html → 1. Used to prefix
+    the "All Lessons" / {slug}-map.html crumbs, which live at the lessons/ root. #273.
+    """
+    parts = path.parts
+    if "lessons" not in parts:
+        return 0
+    i = len(parts) - 1 - parts[::-1].index("lessons")
+    return len(parts) - i - 2
 
 
 def extract_domain_from_map_files(workspace: Path) -> tuple[str, str]:
@@ -89,8 +103,11 @@ def inject_breadcrumb(path: Path, content: str, domain: str, domain_slug: str) -
     if page_type == "map":
         crumbs = [("All Lessons", "index.html"), (domain or title, None)]
     elif page_type == "lesson":
-        map_page = f"{domain_slug}-map.html" if domain_slug else ""
-        crumbs = [("All Lessons", "index.html")]
+        # Pages nested below lessons/ (e.g. lessons/{track}/ or lessons/review/)
+        # must climb back to the lessons/ root where index.html + {slug}-map.html live.
+        up = "../" * _levels_below_lessons(path)
+        map_page = f"{up}{domain_slug}-map.html" if domain_slug else ""
+        crumbs = [("All Lessons", f"{up}index.html")]
         if domain and map_page:
             crumbs.append((domain, map_page))
         crumbs.append((title, None))

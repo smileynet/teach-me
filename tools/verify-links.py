@@ -37,6 +37,10 @@ QUESTIONS_DIR = questions_dir_for(PROJECT_ROOT)
 # Patterns to extract relative asset links
 LINK_PATTERN = re.compile(r'<link[^>]+href="([^"]+)"', re.IGNORECASE)
 SCRIPT_PATTERN = re.compile(r'<script[^>]+src="([^"]+)"', re.IGNORECASE)
+# Breadcrumb nav block + the anchor links inside it (used by check_file for
+# <a href> existence, and by check_duplicate_links which strips the block).
+NAV_BLOCK_PATTERN = re.compile(r'<nav class="page-nav"[^>]*>.*?</nav>', re.DOTALL | re.IGNORECASE)
+NAV_LINK_PATTERN = re.compile(r'<a[^>]+href="([^"]+)"', re.IGNORECASE)
 
 
 def _resolve_via_assets_mount(href: str) -> Path | None:
@@ -96,11 +100,26 @@ def check_file(html_path: Path) -> list[tuple[str, str]]:
                 if asset_target is None or not asset_target.exists():
                     failures.append((href, f"file not found: {target}"))
 
+    # Breadcrumb nav targets: <a href> inside <nav class="page-nav"> must resolve
+    # from the page's own on-disk location. This is the ONLY existence check that
+    # covers <a href> (the loop above only checks <link>/<script>). Catches both
+    # wrong-depth crumbs (nested pages linking to nonexistent siblings) and missing
+    # targets (a domain with no lessons/index.html). #273.
+    for nav_match in NAV_BLOCK_PATTERN.finditer(content):
+        for a_match in NAV_LINK_PATTERN.finditer(nav_match.group(0)):
+            href = a_match.group(1)
+            if href.startswith(("http://", "https://", "data:", "#", "//", "javascript:", "mailto:")):
+                continue
+            href_path = href.split("#", 1)[0]  # drop fragment
+            if not href_path:
+                continue
+            target = (parent / href_path).resolve()
+            if target.is_dir():
+                target = target / "index.html"
+            if not target.exists():
+                failures.append((href, f"breadcrumb target not found: {target}"))
+
     return failures
-
-
-# Pattern for navigation links (a[href]) in HTML body
-NAV_LINK_PATTERN = re.compile(r'<a[^>]+href="([^"]+)"', re.IGNORECASE)
 
 
 def check_duplicate_links(html_path: Path) -> list[tuple[str, str]]:
