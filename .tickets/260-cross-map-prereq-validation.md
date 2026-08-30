@@ -1,7 +1,7 @@
 ---
 id: "260"
 title: "Cross-map prereq references fail single-map validate (dangling toon-banding/configurable-banding)"
-status: backlog
+status: done
 priority: medium
 blocked_by: []
 tags: ["platform"]
@@ -57,12 +57,16 @@ Is a cross-map prereq a VALID authoring construct, or a data error?
   single-map cycle/edge checks are unaffected.
 
 ## Acceptance criteria
-- [ ] Decision recorded (cross-map prereq valid vs data error), with rationale
-- [ ] Either `validate` resolves cross-map prereqs against the correct topic set, OR the 4
+- [x] Decision recorded (cross-map prereq valid vs data error), with rationale
+- [x] Either `validate` resolves cross-map prereqs against the correct topic set, OR the 4
       references are corrected — no spurious "undefined prereq" on the 9 committed maps
-- [ ] `mise run verify` (or a map-validate step) is clean across all committed maps
+- [x] `mise run verify` (or a map-validate step) is clean across all committed maps
 
 ## Notes
 The 4 dangling refs are currently benign (they don't crash generation — `load_map` just
 doesn't synthesize an edge for an unresolved slug, and single-map validate is not a hard
 gate in `verify`). Prioritize alongside the cross-domain/global-graph work.
+
+## Resolution (2026-08-30)
+
+Cross-map prereq references (blender texture-audit/ramp-band-textures/wiring-the-shader, mktoon configurable-banding → toon-banding/configurable-banding in sibling maps) are valid authoring constructs, not data errors. Added forest-scope validation (build_forest_index union slug→id with dup detection; validate_forest = per-map validate minus undefined-prereq + union check + forest-wide cycle check) and a check-maps-forest.py gate in verify. Single-map validate retained for authoring-time single-file checks. Cross-map prereq EDGE synthesis (for availability gating) intentionally deferred — validation-clean was the bar.
