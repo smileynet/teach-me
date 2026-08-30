@@ -157,8 +157,9 @@ global-map.html (interactive Preact page)
       `mise run verify` + `check-maps` EXIT 0
 
 ### Deferred (Phase 2/3 — separate tickets #266/#267)
-- [ ] Detects shared-concept connections between domains (Phase 2 — #266, author-confirmed)
-- [ ] Lazy detection: only computes connections when triggered (Phase 3 — #267)
+### Deferred to follow-up tickets (NOT ACs of this ticket — moved out per the phase split)
+- Detects shared-concept connections between domains → **#266** (Phase 2, author-confirmed)
+- Lazy detection: only computes connections when triggered → **#267** (Phase 3)
 
 ## Concrete use case: sibling map fork (godot-toon-shaders ↔ godot-mktoon)
 
