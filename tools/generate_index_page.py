@@ -60,7 +60,7 @@ def find_maps(scan_dirs: list[Path] | None = None) -> list[Path]:
         for f in sorted(d.glob("*.MAP.md")):
             if "--" not in f.stem:  # skip depth 2+ sub-maps
                 maps.append(f)
-        # Recursive: find *.MAP.md in subdirectories (e.g., examples/*/maps/)
+        # Recursive: find *.MAP.md in subdirectories (e.g., library/*/maps/)
         for f in sorted(d.rglob("*.MAP.md")):
             if "--" not in f.stem and f not in maps:
                 maps.append(f)

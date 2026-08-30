@@ -41,10 +41,10 @@ CHECK_CWD = PROJECT_ROOT
 
 # (artifact path relative to CHECK_CWD, success sentinel substring in stdout)
 ARTIFACTS = [
-    ("examples/godot-gamedev/reference/code/albedo-posterize/posterize_rgb.py", "posterize_rgb: node group OK"),
-    ("examples/godot-gamedev/reference/code/palette-snap/palette_snap.py", "palette_snap: both groups OK"),
-    ("examples/godot-gamedev/reference/code/toon-control-maps/control_maps.py", "control_maps: OK"),
-    ("examples/godot-gamedev/reference/code/bake-and-export/bake_export.py", "bake_export: OK"),
+    ("library/godot-gamedev/reference/code/albedo-posterize/posterize_rgb.py", "posterize_rgb: node group OK"),
+    ("library/godot-gamedev/reference/code/palette-snap/palette_snap.py", "palette_snap: both groups OK"),
+    ("library/godot-gamedev/reference/code/toon-control-maps/control_maps.py", "control_maps: OK"),
+    ("library/godot-gamedev/reference/code/bake-and-export/bake_export.py", "bake_export: OK"),
 ]
 
 

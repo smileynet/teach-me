@@ -15,8 +15,8 @@ maps (e.g. godot-gamedev has godot-gamedev / godot-toon-shaders / godot-mktoon /
 blender-texture-prep), and a lesson belongs to whichever map its breadcrumb links to.
 
 Usage:
-    python tools/migrate-add-lesson-actions.py --workspace examples/oidc-rust
-    python tools/migrate-add-lesson-actions.py --all              # every examples/* workspace
+    python tools/migrate-add-lesson-actions.py --workspace library/oidc-rust
+    python tools/migrate-add-lesson-actions.py --all              # every library/* workspace
     python tools/migrate-add-lesson-actions.py --all --dry-run
 """
 
@@ -98,7 +98,7 @@ def inject(path: Path) -> str | None:
 
 def _workspaces(args: list[str]) -> list[Path]:
     if "--all" in args:
-        return sorted(p for p in (PROJECT_ROOT / "examples").iterdir() if p.is_dir())
+        return sorted(p for p in (PROJECT_ROOT / "library").iterdir() if p.is_dir())
     if "--workspace" in args:
         i = args.index("--workspace")
         if i + 1 < len(args):

@@ -26,7 +26,7 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-LESSONS_DIR = PROJECT_ROOT / "examples" / "iceberg-workspace" / "lessons"
+LESSONS_DIR = PROJECT_ROOT / "library" / "iceberg-workspace" / "lessons"
 
 
 def check_contains(html: str, pattern: str, description: str) -> str | None:

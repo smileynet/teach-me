@@ -42,8 +42,8 @@ except ImportError:
 
 ROOT = Path(".").resolve()
 ALBEDO = ROOT / "test-scene/assets/polyhaven/Barrel_01/textures/Barrel_01_explosive_diff_1k.jpg"
-POSTERIZE_PY = ROOT / "examples/godot-gamedev/reference/code/albedo-posterize/posterize_rgb.py"
-PALETTE_PY = ROOT / "examples/godot-gamedev/reference/code/palette-snap/palette_snap.py"
+POSTERIZE_PY = ROOT / "library/godot-gamedev/reference/code/albedo-posterize/posterize_rgb.py"
+PALETTE_PY = ROOT / "library/godot-gamedev/reference/code/palette-snap/palette_snap.py"
 BAKE_SIZE = 1024
 SIDECAR = "bake-export-sidecar.json"
 GLB_NAME = "Barrel_01_toon.glb"

@@ -19,7 +19,7 @@ Orchestrates the full lesson generation pipeline for one topic. Ensures every do
 
 ## Input
 
-- A workspace path (e.g., `examples/oidc-rust`)
+- A workspace path (e.g., `library/oidc-rust`)
 - A topic slug from the workspace's MAP.md (e.g., `token-validation-middleware`)
 - The topic's prereqs should already be complete
 

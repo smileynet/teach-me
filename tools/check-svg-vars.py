@@ -5,9 +5,9 @@ Scans HTML files for SVG elements with hardcoded fill/stroke hex values.
 Reports violations with line numbers.
 
 Usage:
-    python tools/check-svg-vars.py examples/oidc-rust/lessons/0001-oidc-auth-flows.html
-    python tools/check-svg-vars.py --workspace examples/oidc-rust
-    python tools/check-svg-vars.py --workspace examples/oidc-rust --fix  # future: auto-migrate
+    python tools/check-svg-vars.py library/oidc-rust/lessons/0001-oidc-auth-flows.html
+    python tools/check-svg-vars.py --workspace library/oidc-rust
+    python tools/check-svg-vars.py --workspace library/oidc-rust --fix  # future: auto-migrate
 """
 
 import argparse

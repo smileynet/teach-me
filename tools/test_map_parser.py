@@ -11,7 +11,7 @@ from map_parser import (
     get_available_topics, get_next_suggestion,
 )
 
-EXAMPLES_DIR = Path(__file__).parent.parent / "examples"
+EXAMPLES_DIR = Path(__file__).parent.parent / "library"
 DATA_ANALYTICS_MAP = EXAMPLES_DIR / "iceberg-workspace" / "maps" / "data-analytics.MAP.md"
 GODOT_MAP = EXAMPLES_DIR / "godot-gamedev" / "maps" / "godot-gamedev.MAP.md"
 

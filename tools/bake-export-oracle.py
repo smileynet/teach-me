@@ -23,7 +23,7 @@ import json
 import sys
 from pathlib import Path
 
-SIDECAR = Path("examples/godot-gamedev/reference/code/bake-and-export/bake-export-sidecar.json")
+SIDECAR = Path("library/godot-gamedev/reference/code/bake-and-export/bake-export-sidecar.json")
 ALBEDO_RES = 1024
 MIN_GLB_BYTES = 1024   # a real GLB is far bigger; guard against an empty/failed export
 

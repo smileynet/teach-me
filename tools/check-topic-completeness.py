@@ -4,8 +4,8 @@
 Reports which artifacts are present, missing, or incomplete.
 
 Usage:
-    python tools/check-topic-completeness.py --workspace examples/oidc-rust --topic oidc-auth-flows
-    python tools/check-topic-completeness.py --workspace examples/workout-fundamentals --all
+    python tools/check-topic-completeness.py --workspace library/oidc-rust --topic oidc-auth-flows
+    python tools/check-topic-completeness.py --workspace library/workout-fundamentals --all
 """
 
 import argparse

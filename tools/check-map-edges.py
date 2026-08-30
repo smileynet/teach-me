@@ -143,8 +143,8 @@ def _check_one(page, url: str, expected: list[dict]) -> dict:
 def _committed_maps() -> list[tuple[Path, Path, str]]:
     """(map_md_path, workspace, url_path) for each committed example map."""
     out = []
-    for html in sorted(ROOT.glob("examples/*/lessons/*-map.html")):
-        workspace = html.parent.parent          # examples/{domain}
+    for html in sorted(ROOT.glob("library/*/lessons/*-map.html")):
+        workspace = html.parent.parent          # library/{domain}
         domain = html.stem[:-4]                  # strip '-map'
         mapmd = next(workspace.glob(f"maps/{domain}.MAP.md"), None)
         if mapmd:

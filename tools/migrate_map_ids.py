@@ -110,7 +110,7 @@ def migrate_file(path: str | Path, *, dry_run: bool = True) -> dict:
 
 
 def _default_maps() -> list[Path]:
-    return sorted(_PROJECT_ROOT.glob("examples/**/*.MAP.md"))
+    return sorted(_PROJECT_ROOT.glob("library/**/*.MAP.md"))
 
 
 def migrate_all(paths: list[Path] | None = None, *, dry_run: bool = True) -> int:

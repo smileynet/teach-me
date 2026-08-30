@@ -15,7 +15,7 @@ Validate lesson shaders by applying them to PBR-textured meshes in `test-scene/`
 
 - Project: `D:\code\teach-me\test-scene`
 - PBR assets: `test-scene/assets/polyhaven/` (Barrel_01, Camera_01, Lantern_01 — 1K textures)
-- Shaders: `test-scene/shaders/` (copied from `examples/godot-gamedev/reference/code/`)
+- Shaders: `test-scene/shaders/` (copied from `library/godot-gamedev/reference/code/`)
 - Screenshot output: `test-scene/.scratch/screenshots/`
 
 ## glTF Import Fix
@@ -84,7 +84,7 @@ For running/validating GDScript headlessly (e.g. `mise run ink:validate-gd`):
 
 2. **Cold `.godot/` cache emits benign parse-error noise on first import** (`SCRIPT ERROR: Parse Error: Could not preload ... icon.svg` from icon-bearing plugins like inkgd). **Double-import** (run `--import` twice) to warm the cache so the guarded run is clean.
 
-3. **When a harness runs COPIES of shipped files, edit the SHIPPED reference, not the copy.** `tools/ink-gd-sync.py` regenerates `ink-test-project/scenes/lesson0*_player.gd` from `examples/ink-godot/reference/code/*/story_player.gd` on each run — hand-edits to the copies are overwritten.
+3. **When a harness runs COPIES of shipped files, edit the SHIPPED reference, not the copy.** `tools/ink-gd-sync.py` regenerates `ink-test-project/scenes/lesson0*_player.gd` from `library/ink-godot/reference/code/*/story_player.gd` on each run — hand-edits to the copies are overwritten.
 
 ## Shader Toggle for A/B
 

@@ -22,7 +22,7 @@ blender -b --python control_maps.py -- --save control_maps.blend
 Bake both maps + the sidecar into a directory:
 
 ```
-blender -b --python control_maps.py -- --bake examples/godot-gamedev/reference/code/toon-control-maps
+blender -b --python control_maps.py -- --bake library/godot-gamedev/reference/code/toon-control-maps
 ```
 
 Validate the node wiring (used by the lesson's test tier):

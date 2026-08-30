@@ -11,7 +11,7 @@ that already have definitions in the glossary-data block.
 
 Usage:
     python tools/jargon-annotate.py lessons/0001-oidc-auth-flows.html
-    python tools/jargon-annotate.py --workspace examples/oidc-rust  # all lessons
+    python tools/jargon-annotate.py --workspace library/oidc-rust  # all lessons
     python tools/jargon-annotate.py --dry-run lessons/0001.html     # preview only
 """
 

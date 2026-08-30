@@ -31,7 +31,7 @@ except ImportError:
     print("⚠ Pillow not installed — skipping control-map drift check", file=sys.stderr)
     sys.exit(0)  # first-class dep, but don't block a pre-setup checkout
 
-MAPDIR = Path("examples/godot-gamedev/reference/code/toon-control-maps")
+MAPDIR = Path("library/godot-gamedev/reference/code/toon-control-maps")
 SIDECAR = MAPDIR / "control-maps-sidecar.json"
 FILES = {"noise": MAPDIR / "toon_noise.png", "threshold": MAPDIR / "toon_threshold.png"}
 

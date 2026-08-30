@@ -34,7 +34,7 @@ def _store_root_for(workspace: Path) -> Path:
     Per-user progress is private: prefer `<workspace>/.user/learning-records/`
     (gitignored). Fall back to `<workspace>/learning-records/` when the `.user/`
     store doesn't exist yet — this is where the COMMITTED example fixtures live
-    (examples/*/learning-records/, read-only demo data that must stay committed).
+    (library/*/learning-records/, read-only demo data that must stay committed).
 
     So: read from `.user/` if present, else the committed fixture path; writes/new
     workspaces scaffold under `.user/` (see init_workspace).

@@ -6,7 +6,7 @@ Just adds the <nav class="page-nav"> breadcrumb that the template now provides.
 
 Usage:
     python tools/migrate-add-breadcrumbs.py --workspace workspace
-    python tools/migrate-add-breadcrumbs.py --workspace examples/iceberg-workspace
+    python tools/migrate-add-breadcrumbs.py --workspace library/iceberg-workspace
 """
 
 from __future__ import annotations

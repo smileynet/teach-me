@@ -29,7 +29,7 @@ import json
 import sys
 from pathlib import Path
 
-SIDECAR = Path("examples/godot-gamedev/reference/code/toon-control-maps/control-maps-sidecar.json")
+SIDECAR = Path("library/godot-gamedev/reference/code/toon-control-maps/control-maps-sidecar.json")
 
 # Contract thresholds (documented in the lesson):
 NOISE_RES = 256

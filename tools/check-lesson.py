@@ -5,9 +5,9 @@ Enforces structural and convention compliance on lesson HTML files.
 Check IDs match the lesson-validation skill (G2, G3, Q1, Q3, Q6, Q9, Q11, CF).
 
 Usage:
-    python tools/check-lesson.py --workspace examples/godot-gamedev --lesson lessons/0005-triplanar-mapping.html
-    python tools/check-lesson.py --workspace examples/godot-gamedev --all
-    python tools/check-lesson.py --workspace examples/godot-gamedev --all --json
+    python tools/check-lesson.py --workspace library/godot-gamedev --lesson lessons/0005-triplanar-mapping.html
+    python tools/check-lesson.py --workspace library/godot-gamedev --all
+    python tools/check-lesson.py --workspace library/godot-gamedev --all --json
 """
 
 from __future__ import annotations

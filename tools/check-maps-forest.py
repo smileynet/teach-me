@@ -17,7 +17,7 @@ Structured JSON to stdout; exit 0 = all forests clean, 1 = a real dangling/cycle
 Usage:
     python tools/check-maps-forest.py            # all example workspaces
     python tools/check-maps-forest.py --json
-    python tools/check-maps-forest.py --scan-dir examples/godot-gamedev
+    python tools/check-maps-forest.py --scan-dir library/godot-gamedev
 """
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ def _maps_dirs(scan: Path) -> list[Path]:
 def main() -> int:
     args = sys.argv[1:]
     json_only = "--json" in args
-    scan = ROOT / "examples"
+    scan = ROOT / "library"
     if "--scan-dir" in args:
         i = args.index("--scan-dir")
         if i + 1 < len(args):

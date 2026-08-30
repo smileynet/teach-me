@@ -16,7 +16,7 @@ Downloadable artifacts for lesson 0019 (Emit Bake & glTF Export — Blender to G
 Bake the albedo, export the glTF, write the sidecar:
 
 ```
-blender -b --python bake_export.py -- --bake examples/godot-gamedev/reference/code/bake-and-export
+blender -b --python bake_export.py -- --bake library/godot-gamedev/reference/code/bake-and-export
 ```
 
 Validate the bake/export setup (Tier-2 gate, part of `mise run verify:blender`):

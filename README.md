@@ -69,10 +69,10 @@ python tools/ingest_source.py paper.pdf --workspace workspace --domain "machine-
 
 | Domain | Topics |
 |--------|--------|
-| [Data Engineering](examples/iceberg-workspace/) | Apache Iceberg metadata, ingestion, change capture |
-| [OIDC in Rust](examples/oidc-rust/) | Auth flows, PKCE, token validation, JWT anatomy |
-| [Fitness](examples/workout-fundamentals/) | Progressive overload, recovery science, program design |
-| [Game Dev](examples/godot-gamedev/) | Godot nodes, GDScript, scene composition |
+| [Data Engineering](library/iceberg-workspace/) | Apache Iceberg metadata, ingestion, change capture |
+| [OIDC in Rust](library/oidc-rust/) | Auth flows, PKCE, token validation, JWT anatomy |
+| [Fitness](library/workout-fundamentals/) | Progressive overload, recovery science, program design |
+| [Game Dev](library/godot-gamedev/) | Godot nodes, GDScript, scene composition |
 
 ## Agent Skills
 
