@@ -1,7 +1,7 @@
 ---
 id: "278"
 title: "Commit a library demo status-overlay so regen is idempotent (unblocks #276)"
-status: open
+status: done
 blocked_by: []
 tags: ["platform"]
 ---
@@ -42,14 +42,41 @@ the weakest possible satisfaction.
 
 ## Acceptance criteria
 
-- [ ] `.gitignore` commits `library/**/.user/status-overlay.json`; live `workspace/.user/` + real user overlays still ignored
-- [ ] Demo overlay committed per library domain, reproducing the current committed counts (ink 3/5, iceberg 2, godot 2)
-- [ ] Regenerating a library index on a clean checkout yields the SAME counts (not 0) — idempotent
-- [ ] `pages.yml` no longer deletes the committed library demo overlay (private-user strip still works)
-- [ ] `mise run verify` EXIT 0
+- [x] `.gitignore` commits `library/**/.user/status-overlay.json`; live `workspace/.user/` + real user overlays still ignored
+- [x] Demo overlay committed per library domain, reproducing the current committed counts (ink 3/5, iceberg 2, godot 2)
+- [x] Regenerating a library index on a clean checkout yields the SAME counts (not 0) — idempotent
+- [x] `pages.yml` no longer deletes the committed library demo overlay (private-user strip still works)
+- [x] `mise run verify` EXIT 0
 
 ## Validation
 
 On a clean checkout: `index:generate --scan-dir library/ink-godot` → page-data still shows
 `complete:3, inProgress:5` (not zeros). Deploy assembly keeps the demo overlay but excludes a
 real `.user/`. Blocks #276.
+
+## Resolution (2026-08-31, commit 455236d)
+
+**Approach A** (un-ignore + un-strip) — chosen over Approach B (a committed-fixture fallback in
+`Overlay` mirroring `questions.py:_store_root_for`). A is the smaller, more localized change and
+matches the ticket spec; B widens the "locked" `Overlay` interface for marginal benefit. B is
+recorded as the considered alternative for #277's ADR.
+
+- **.gitignore:** replaced bare `.user/` with `**/.user/*` (ignore CONTENTS, so git still
+  descends and the negation can take effect) + `!library/**/.user/` + `!library/**/.user/status-overlay.json`.
+  Empirically verified with `git check-ignore`: the demo overlay is committable while
+  `workspace/.user/`, private lessons (`.user/lessons/`, #184), and SR data
+  (`.user/learning-records/`) — including under `library/**/.user/` — all stay ignored. The
+  negation is scoped to the exact filename, so a future naive edit can't accidentally re-include
+  private content.
+- **Overlays:** authored per domain with the current persisted ULID node ids recovered from each
+  MAP.md — ink-godot (complete 01/02/03, in-progress 04–08), godot-gamedev (nodes-and-scenes,
+  gdscript-fundamentals), iceberg-workspace/data-analytics (ingestion, storage-and-table-formats).
+- **pages.yml:** scoped the deploy strip to `_site/.user` only (was `_site/library/.user _site/.user`).
+  `cp -rL library/. _site/library/` (earlier in the job) lands the committed overlay; nothing removes it.
+- **Idempotency proven:** regenerating each domain index + the aggregate re-bakes ink 3/5, godot 2,
+  data-analytics 2 (oidc/workout 0) — not zeros. Did NOT commit the regenerated pages (they carry an
+  unrelated `mapHref` drift, out of #278 scope — #276 will regenerate them).
+- **Known non-blocker:** the runtime write-API (`POST /api/map/.../status` → `Overlay.set`) could
+  mutate the committed overlay in place only if someone runs `serve --workspace library/{domain}`
+  AND POSTs a status — not a normal fresh-clone flow. Treat the committed overlay as read-only fixture.
+- `mise run verify` EXIT 0. Unblocks #276.
