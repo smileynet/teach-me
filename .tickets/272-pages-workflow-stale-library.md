@@ -130,3 +130,15 @@ breadcrumb depth calc — tracked in **#273**.
 Run the workflow (workflow_dispatch), inspect the artifact / deployed site at
 `smileynet.github.io/teach-me/`: landing shows all domains, a domain map renders with assets,
 lessons load styled, back-links resolve. No `/{repo}/`-subpath 404s on `../assets`.
+
+
+## Resolution
+
+Rewrote the stale Pages workflow (was looping the renamed-away `examples/`) to assemble `library/`
+into `_site/` (approach B): library copied verbatim under `_site/library/`, runtime assets
+replicated at `_site/assets/` + each `_site/library/{domain}/assets/` so every document-relative
+`../assets` resolves; root `_site/index.html` redirects to the aggregate; authoring-only asset
+subdirs excluded; static analogue of serve.py's index normalizer added. Verified by assembling
+`_site` locally, serving under a simulated `/teach-me/` subpath (0 asset misses, 0 root-relative),
+and `mise run verify` EXIT 0. Commit b1f6f6d. Spun off #273 for a pre-existing nested-page
+breadcrumb bug found during validation.

@@ -52,7 +52,6 @@ library/           — public topic library (shipped, growing; served by default
 | Migrate SVG colors | `python3 tools/check-svg-vars.py --workspace X` | Flags hardcoded hex in lesson SVGs |
 | Init workspace | `python tools/init_workspace.py [--default] [--path DIR]` | Scaffold workspace; --default for generic first-launch content (pure Python — no bash) |
 | Serve workspace | `mise run serve -- [--workspace PATH]` | Start server (default workspace/, auto-created). Add `:lan` for 0.0.0.0:8787; `:restart` to kill+restart |
-| Validate shaders | `godot --path test-scene --editor` (visual) or `--headless --editor --import --quit` (compile-only) | Apply shaders to meshes; headless catches compile errors, no visual check |
 | Validate ink stories | `mise run ink:validate` (add `:strict` to treat warnings as errors) | Compile all .ink via inklecate, report errors/warnings |
 | Validate ink GDScript | `mise run ink:validate-gd` | Headless Godot: run shipped lesson story_player.gd in the real inkgd runtime (needs Godot; skips if absent). `ink:validate` does NOT need Godot. |
 | Validate Blender artifacts | `mise run verify:blender` | Real Blender: run the bpy artifacts' `--check` node-group validators (Tier-2 for the Blender lesson track). Skips if Blender absent. NOT in core `verify` — run before closing Blender-track tickets. |
@@ -67,8 +66,7 @@ library/           — public topic library (shipped, growing; served by default
 | Open lesson | `mise run open-lesson` | Open latest lesson in browser |
 | Generate map / index | `mise run map:generate -- <MAP.md>` (one); `maps:regenerate` (all); `index:generate -- [--scan-dir path]` (dashboard); `map:global -- [--scan-dir path]` (forest map — all domains as nodes, parent/child + leads_to edges) | Map/index/forest HTML from MAP.md files |
 | Validate map forest | `python tools/check-maps-forest.py` (in `verify`) | Forest-scope prereq check — cross-map prereqs (sibling sub-maps) resolve against the union, not per-map (#155/#260) |
-| Ingest source | `python tools/ingest_source.py <file-or-url> --workspace W --domain D --title T` | Full pipeline: chunk → classify → MAP → enrich prereqs |
-| Match section | `python tools/match_section.py source-chunks/domain.json "query"` | Find chunks matching a section reference |
+| Ingest source | `python tools/ingest_source.py <file-or-url> --workspace W --domain D --title T` | Full pipeline: chunk → classify → MAP → enrich prereqs. Find matching chunks with `match_section.py source-chunks/domain.json "query"` |
 
 ## Workflow
 
