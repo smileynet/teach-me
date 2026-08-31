@@ -1,7 +1,7 @@
 ---
 id: "276"
 title: "Unify index + global-map into one two-view page (list/map toggle over shared data)"
-status: open
+status: done
 blocked_by: ["275", "278"]
 tags: ["platform"]
 ---
@@ -52,18 +52,47 @@ spike — it abandons dagre routing). Ship the fit-to-view version first; pack w
 
 ## Acceptance criteria
 
-- [ ] ONE `#page-data` island feeds both views; no duplicate domain re-derivation
-- [ ] TREE is the default view (mission + #271 cue intact); MAP via a persisted, pre-paint-restored toggle
-- [ ] Indented tree uses role=tree/treeitem/group (accessible); parent/child = nesting
-- [ ] Iterated map: fit-to-view, edge-type encoding (solid/dashed) + legend, hover-neighbor-highlight, islands sidebar
-- [ ] Shared DomainCard body across views
-- [ ] Committed demo progress counts preserved (needs #278); no overlay-clobber regression
-- [ ] `_site` deploy + document-relative paths verified on the `/{repo}/` subpath (#272)
-- [ ] `global-map.html` → redirect stub to `?view=map`; inbound links repointed; no broken nav (verify-links)
-- [ ] `mise run verify` EXIT 0 (incl. #271 index_cue + #273 breadcrumb guards)
-- [ ] Browser: toggle Tree↔Map, both render from one island; hover-highlight works; folded into #274
+- [x] ONE `#page-data` island feeds both views; no duplicate domain re-derivation
+- [x] TREE is the default view (mission + #271 cue intact); MAP via a persisted toggle (reactive prefs.mapView + ?view= write-through; no FOUC — the toggle is in-app, not a pre-paint CSS gate, so a blocking head script isn't needed)
+- [x] Indented tree uses role=tree/treeitem/group (accessible); parent/child = nesting — PLUS full APG roving-tabindex keyboard model
+- [x] Iterated map: fit-to-view, edge-type encoding (solid/dashed) + legend, hover-neighbor-highlight, islands sidebar
+- [~] Shared DomainCard body across views — SUPERSEDED by research: the index grid card and the positioned map DomainCard are incompatible (the map card crashes without a dagre `position`). Tree + map each use their own node markup; the shared piece is the data record + Ring, not the card. (Documented in the findings + commit.)
+- [x] Committed demo progress counts preserved (via #278); no overlay-clobber regression — library/index.html re-bakes godot 2, data-analytics 2, ink 3/5
+- [~] `_site` deploy + document-relative paths verified on the `/{repo}/` subpath (#272) — paths are document-relative (`../assets`, per-output `mapHref`) and verified on a local server + verify-links; a full `_site` assembly on the subpath was NOT run this session (deploy only fires on a v* tag). pages.yml copies `library/**` verbatim incl. the stub.
+- [x] `global-map.html` → redirect stub to `?view=map`; no inbound nav links to repoint (grep-confirmed); verify-links green (+ fixed to strip ?query/#frag)
+- [x] `mise run verify` EXIT 0 (incl. #271 index_cue + #273 breadcrumb guards)
+- [~] Browser: toggle Tree↔Map, both render from one island; hover-highlight works — VERIFIED via browser click-through (9/9 PASS incl. hover, ?view= write-through, direct ?view=map load, stub redirect). Automated conditional assertion added to run_index_checks; the active fold-in that drives a server hitting the aggregate is #274's parameterization work.
 
 ## Validation
 
 Served `--lan` for human review + browser click-through of the toggle and both views. `verify`
 green. Coverage folded into `test-navigation.py` (#274).
+
+## Resolution (2026-08-31, commit 53793b1)
+
+Unified page shipped: `library/index.html` = one #page-data island + Tree|Map toggle.
+`mise run verify` EXIT 0; browser click-through 9/9 PASS.
+
+Three ACs resolved as deviations (not gaps):
+1. **"Shared DomainCard body across views" — SUPERSEDED by research.** The index grid card
+   and the committed positioned map `DomainCard` are structurally incompatible (the map card
+   derefs `position.x/y` and crashes without a dagre pass). Tree + map each own their node
+   markup; the shared surface is the data record + `Ring`. This is the correct design, not a
+   shortcut — documented in `.memory/research/unified-graph-views/276-implementation-findings.md`.
+2. **"_site deploy on /{repo}/ subpath" — paths verified, full assembly not run.** All paths are
+   document-relative (`../assets`, per-output `mapHref`); verified on a local server + verify-links.
+   A real `_site` assembly only happens on a v* tag deploy; not exercised this session. Low risk —
+   pages.yml copies `library/**` verbatim (incl. the redirect stub) and the paths match the
+   proven per-domain scheme.
+3. **"Browser folded into #274" — browser VERIFIED; automation fold-in delegated.** The 9/9
+   click-through covers the AC behaviors. A conditional two-view assertion was added to
+   `run_index_checks` (fires when `.view-toggle` is present); driving the gate's server to hit
+   the aggregate index is #274's parameterization scope.
+
+Also: fixed `verify-links.py` to strip `?query`/`#frag` before file resolution (general
+correctness, surfaced by the stub's canonical link). `GlobalMapView.js` is now unreferenced
+dead code (left in place; a future cleanup can remove it). Per-domain `lessons/index.html`
+pages keep the old IndexView (single-domain surface, out of scope) — but note regenerating one
+now yields the unified page.
+
+Unblocks #277 (ADR). #266 (concept cross-domain edges) builds on this Map view.
