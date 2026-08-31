@@ -70,3 +70,19 @@ _Avoid_: optional research step
 teach-me is a discovery/exploration tool, not a retention optimization system. SR reinforces what was interesting, not maximizes recall. Features that add friction between "I'm curious" and "I'm learning" don't belong.
 _Avoid_: study tool, learning management system, course platform
 
+**Aggregate index** (a.k.a. landing page):
+The single cross-domain entry page (`library/index.html`) listing all domains. Since ADR 0016 it renders one domain-graph data island as two views (Tree default + Map), NOT a card grid. "Aggregate index", "landing page", and "the index" all mean this one page.
+_Avoid_: dashboard, home (too generic); do NOT conflate with a per-domain index
+
+**Tree view / Map view**:
+The two views of the aggregate index (ADR 0016). Tree = primary/default indented WAI-ARIA navigation. Map = secondary iterated-dagre relationship graph (the former "global/forest map"). They are VIEWS over one island, toggled via the `mapView` preference — not separate pages.
+_Avoid_: calling the Map view a separate "global-map page" (it's now a `?view=map` redirect stub)
+
+**Global / forest map**:
+Historical name for the cross-domain dagre graph. Since ADR 0016 it is the aggregate index's **Map view**, not a standalone page; `global-map.html` is a redirect stub to `index.html?view=map`.
+_Avoid_: treating it as a live separate page
+
+**Domain map**:
+A single domain's own topic map — `{workspace}/lessons/{domain}-map.html` (e.g. `data-analytics-map.html`). Per-domain, one graph of that domain's topics. Distinct from the aggregate index's Map VIEW (which is domains-as-nodes across the whole library).
+_Avoid_: confusing with the Map view of the aggregate index
+
