@@ -31,6 +31,8 @@ export const DEFAULTS = {
   maxWidth: '740px',
   sectionsCollapsed: false,
   mapView: 'tree',  // unified landing page (#276): 'tree' (default) | 'map'
+  hasOwnProgress: false,  // #279: false = show demo progress floor; true = user owns their
+                          // progress, demo is never shown again (empty overlay => empty view)
 };
 
 // --- Load + migrate ---

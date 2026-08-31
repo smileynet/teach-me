@@ -42,7 +42,22 @@ function ViewToggle({ view, onChange }) {
   </div>`;
 }
 
-export function UnifiedView({ domains, edges, islands, stats, mission }) {
+// Demo takeover control (#279). Shown ONLY when the page is displaying the demo progress
+// floor (no user overlay yet, not owning). Clicking sets hasOwnProgress and reloads so the
+// bootstrap re-resolves with an empty user overlay — demo counts clear to the user's own
+// (initially empty) progress. Labeled unmistakably so demo data is never mistaken for real.
+function DemoBanner() {
+  const startMine = () => {
+    setPref('hasOwnProgress', true);   // UI state (ADR 0016) — not a learner-state store
+    try { window.location.reload(); } catch {}
+  };
+  return html`<p class="index-demo-note">
+    Showing sample progress so you can explore.
+    ${' '}<button type="button" class="index-demo-start" onClick=${startMine}>Start my own progress</button>
+  </p>`;
+}
+
+export function UnifiedView({ domains, edges, islands, stats, mission, showingDemo }) {
   const view = prefs.value.mapView === 'map' ? 'map' : 'tree';
 
   const onChange = (next) => {
@@ -65,6 +80,7 @@ export function UnifiedView({ domains, edges, islands, stats, mission }) {
     </p>
 
     <${IndexCue} domains=${domains} />
+    ${showingDemo ? html`<${DemoBanner} />` : ''}
     <${ViewToggle} view=${view} onChange=${onChange} />
 
     <div class="view-pane" style=${view === 'tree' ? '' : 'display:none'}>

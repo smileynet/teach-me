@@ -135,6 +135,38 @@ def status_map_for_map(map_path) -> dict[str, str]:
     return Overlay(workspace).status_map()
 
 
+_DEMO_FILENAME = "demo-status.json"
+
+
+def demo_status_map_for_map(map_path) -> dict[str, str]:
+    """{node_id → status} from the COMMITTED demo fixture for a workspace (#279, Approach B).
+
+    The demo/showcase progress that ships with the library lives in a committed
+    `{workspace}/demo-status.json` — NOT under `.user/`. This decouples the shipped demo
+    seed from the private per-user overlay (`.user/status-overlay.json`, which is
+    gitignored again post-#279). The generator bakes counts + the inlined `demoOverlay`
+    from THIS; the client reads the real user overlay live and overrides it. Absent fixture
+    (a workspace with no demo) → empty map → zero baked counts, honestly.
+
+    Same on-disk schema as the overlay (`{schema, overlay:{id:{status,...}}}`) so the
+    fixture is just a committed overlay document; reuses Overlay's tolerant loader.
+    """
+    p = Path(map_path)
+    workspace = p.parent.parent if p.parent.name == "maps" else p.parent
+    fixture = workspace / _DEMO_FILENAME
+    if not fixture.exists():
+        return {}
+    try:
+        doc = json.loads(fixture.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+    overlay = doc.get("overlay") if isinstance(doc, dict) else None
+    if not isinstance(overlay, dict):
+        return {}
+    return {nid: rec.get("status", "not-started") for nid, rec in overlay.items()
+            if isinstance(rec, dict)}
+
+
 if __name__ == "__main__":
     # Self-test in a temp dir: sparse defaults, round-trip, validation, reset.
     import tempfile
@@ -162,4 +194,17 @@ if __name__ == "__main__":
             pass
         ov.reset()
         assert ov.get(nid) is None and not ov.path.exists(), "reset clears file"
+
+        # Demo fixture resolver (#279): reads committed {workspace}/demo-status.json, NOT
+        # .user/. Absent fixture → empty map (honest zeros); present → flat {id: status}.
+        maps_dir = Path(d) / "maps"
+        maps_dir.mkdir(parents=True, exist_ok=True)
+        fake_map = maps_dir / "x.MAP.md"
+        fake_map.write_text("# x", encoding="utf-8")
+        assert demo_status_map_for_map(fake_map) == {}, "absent demo fixture = empty"
+        did = ulid.new()
+        (Path(d) / _DEMO_FILENAME).write_text(
+            json.dumps({"schema": 1, "overlay": {did: {"status": "complete", "updated_at": "z"}}}),
+            encoding="utf-8")
+        assert demo_status_map_for_map(fake_map) == {did: "complete"}, demo_status_map_for_map(fake_map)
     print("tools/lib/overlay.py self-test OK")

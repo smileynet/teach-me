@@ -339,7 +339,18 @@ def run_index_checks(page, url: str) -> list[dict]:
     checks = []
     console_errors = []
     failed_requests = []
-    page.on("console", lambda m: console_errors.append(m.text) if m.type == "error" else None)
+
+    def _on_console(m):
+        if m.type != "error":
+            return
+        loc = ""
+        try:
+            loc = (m.location or {}).get("url", "") if isinstance(m.location, dict) else getattr(m.location, "url", "")
+        except Exception:
+            loc = ""
+        console_errors.append(f"{m.text} @ {loc}")
+
+    page.on("console", _on_console)
     page.on("response", lambda r: failed_requests.append(f"{r.status} {r.url}") if r.status >= 400 else None)
 
     page.goto(url, wait_until="networkidle")
@@ -362,9 +373,14 @@ def run_index_checks(page, url: str) -> list[dict]:
         "detail": f"exactly one .index-cue" if len(cues) == 1 else f"expected 1 .index-cue, found {len(cues)}",
     })
 
-    # c. No JS errors / no 4xx-5xx on the index (favicon excepted)
-    real_errors = [e for e in console_errors if "favicon" not in e.lower()]
-    real_failed = [f for f in failed_requests if "favicon" not in f.lower()]
+    # c. No JS errors / no 4xx-5xx on the index (favicon excepted). The /api/overlay
+    # probe (#279) is an INTENTIONAL optional fetch — it 404s on static hosts and on any
+    # non-root serve path, and the page handles that by keeping the demo floor. Not an error.
+    def _ignorable(s):
+        s = s.lower()
+        return "favicon" in s or "api/overlay" in s
+    real_errors = [e for e in console_errors if not _ignorable(e)]
+    real_failed = [f for f in failed_requests if not _ignorable(f)]
     ok = not real_errors and not real_failed
     checks.append({
         "name": "index_no_js_errors",
@@ -446,6 +462,96 @@ def run_index_checks(page, url: str) -> list[dict]:
             })
         except Exception as e:
             checks.append({"name": "index_tree_keyboard", "pass": False, "detail": f"keyboard test errored: {e}"})
+
+    # f–h. Load-time progress resolution (#279) — only on the unified aggregate page (it
+    # carries topicIds + demoOverlay + the resolveProgress bootstrap). We control the
+    # /api/overlay response with a route interceptor and the hasOwnProgress flag via
+    # localStorage, then read the baked-vs-resolved complete count from .index-meta.
+    if toggle and (page.query_selector(".index-meta") is not None):
+        import json as _json
+        import re as _re
+
+        def _complete_count():
+            meta = page.query_selector(".index-meta")
+            txt = meta.inner_text() if meta else ""
+            m = _re.search(r"(\d+)\s+complete", txt)
+            return int(m.group(1)) if m else None
+
+        # The baked demo floor (no override) — read straight from #page-data so the
+        # assertions are relative to THIS build's committed demo counts, not hardcoded.
+        island = page.evaluate(
+            "() => JSON.parse(document.getElementById('page-data').textContent)"
+        )
+        demo_complete = island["stats"]["completeCount"]
+        # A crafted user overlay: mark exactly ONE known topic complete, nothing else.
+        # Pick the first topic id of the first root domain from the island itself.
+        root = next((d for d in island["domains"] if d["depth"] == 0 and d["topicIds"]), None)
+        one_id = root["topicIds"][0] if root else None
+
+        def _set_owns(val: bool):
+            # Set/clear hasOwnProgress in the prefs localStorage key, then reload so
+            # preferences.js load() picks it up on the fresh module init.
+            page.evaluate(
+                "(v) => { const k='teach-me-prefs-v1';"
+                " const p = JSON.parse(localStorage.getItem(k) || '{}');"
+                " if (v) p.hasOwnProgress = true; else delete p.hasOwnProgress;"
+                " localStorage.setItem(k, JSON.stringify(p)); }",
+                val,
+            )
+
+        try:
+            # f. demo-shows-when-empty: not owning + empty overlay ⇒ baked demo floor stands.
+            page.route("**/api/overlay", lambda r: r.fulfill(
+                status=200, content_type="application/json", body=_json.dumps({"overlay": {}})))
+            _set_owns(False)
+            page.goto(url, wait_until="networkidle")
+            page.wait_for_timeout(400)
+            demo_shown = _complete_count()
+            demo_banner = page.query_selector(".index-demo-start") is not None
+            f_ok = demo_shown == demo_complete and demo_banner
+            checks.append({
+                "name": "index_demo_shows_when_empty",
+                "pass": f_ok,
+                "detail": f"empty overlay + not-owning shows demo floor ({demo_complete}) + takeover button"
+                          if f_ok else f"expected {demo_complete}+button, got count={demo_shown} button={demo_banner}",
+            })
+
+            # g. user-overlay-overrides: a non-empty overlay ⇒ counts recompute from it.
+            if one_id:
+                page.route("**/api/overlay", lambda r: r.fulfill(
+                    status=200, content_type="application/json",
+                    body=_json.dumps({"overlay": {one_id: "complete"}})))
+                page.goto(url, wait_until="networkidle")
+                page.wait_for_timeout(400)
+                overridden = _complete_count()
+                # Exactly one complete from our crafted overlay (demoOverlay is ignored).
+                g_ok = overridden == 1
+                checks.append({
+                    "name": "index_user_overlay_overrides",
+                    "pass": g_ok,
+                    "detail": "single-complete overlay overrides demo floor (1 complete)"
+                              if g_ok else f"expected 1, got {overridden} (demo floor was {demo_complete})",
+                })
+
+            # h. init-clears-demo: hasOwnProgress + empty overlay ⇒ 0 complete (demo gone).
+            page.route("**/api/overlay", lambda r: r.fulfill(
+                status=200, content_type="application/json", body=_json.dumps({"overlay": {}})))
+            _set_owns(True)
+            page.goto(url, wait_until="networkidle")
+            page.wait_for_timeout(400)
+            after_init = _complete_count()
+            banner_gone = page.query_selector(".index-demo-start") is None
+            h_ok = after_init == 0 and banner_gone
+            checks.append({
+                "name": "index_init_clears_demo",
+                "pass": h_ok,
+                "detail": "owning + empty overlay clears demo (0 complete, no banner)"
+                          if h_ok else f"expected 0+no-banner, got count={after_init} banner_gone={banner_gone}",
+            })
+        except Exception as e:
+            checks.append({"name": "index_progress_resolution", "pass": False, "detail": f"progress test errored: {e}"})
+        finally:
+            page.unroute("**/api/overlay")
 
     return checks
 

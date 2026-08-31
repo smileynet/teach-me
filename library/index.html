@@ -20,6 +20,13 @@
     }
     .index-cue-resume a:hover { border-color: var(--accent); }
 
+    /* Demo takeover note (#279) */
+    .index-demo-note { font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1rem;
+      display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .index-demo-start { background: none; border: 1px solid var(--border); color: var(--accent);
+      font: inherit; font-size: 0.8rem; cursor: pointer; padding: 0.25rem 0.7rem; border-radius: 6px; }
+    .index-demo-start:hover { border-color: var(--accent); }
+
     /* Tree | Map toggle */
     .view-toggle { display: inline-flex; gap: 0; margin: 0 0 1.5rem; border: 1px solid var(--border);
       border-radius: 8px; overflow: hidden; }
@@ -41,7 +48,7 @@
     .indented-tree .ti-twisty { background: none; border: none; color: var(--text-muted);
       cursor: pointer; font-size: 0.7rem; padding: 0 0.2rem; line-height: 1; }
     .indented-tree .ti-title { font-weight: 600; }
-    .indented-tree .ti-stat { font-size: 0.78rem; color: var(--text-faint); }
+    .indented-tree .ti-stat { font-size: 0.78rem; color: var(--text-faint); font-variant-numeric: tabular-nums; }
     .indented-tree .ti-leads { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
     .sc-section-title { font-size: 0.9rem; color: var(--text-muted); margin: 1.5rem 0 0.5rem; }
 
@@ -54,7 +61,7 @@
       transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box; }
     .im-card:hover, .im-card:focus-visible { border-color: var(--accent); box-shadow: 0 2px 12px rgba(203,166,247,0.12); }
     .im-card h3 { font-size: 0.95rem; margin: 0 0 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
-    .im-card .dc-meta { font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; }
+    .im-card .dc-meta { font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; font-variant-numeric: tabular-nums; }
     .im-card.is-child { border-left: 3px solid var(--accent); }
     .dc-sub-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 3px;
       background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
@@ -83,28 +90,67 @@
 
 <div id="app"></div>
 
-<script type="application/json" id="page-data">{"domains": [{"slug": "blender-texture-prep", "title": "Blender Texture Prep for Toon Shading", "description": "Toon shaders handle lighting procedurally — banding, specular, rim are all computed in real time.", "depth": 1, "parent": "godot-gamedev", "total": 7, "complete": 0, "inProgress": 0, "mapHref": "godot-gamedev/lessons/blender-texture-prep-map.html"}, {"slug": "godot-gamedev", "title": "Game Development with Godot", "description": "Godot is a free, open-source game engine whose node/scene architecture makes it unusually learnable — every game object is a composable tree of small, focused nodes.", "depth": 0, "parent": null, "total": 8, "complete": 2, "inProgress": 0, "mapHref": "godot-gamedev/lessons/godot-gamedev-map.html"}, {"slug": "godot-mktoon", "title": "Per-Material Toon Shading (MKToon)", "description": "Where the toon-shaders track simplifies lighting with post-process filters (outlines, Kuwahara), this track builds the look from scratch inside the material.", "depth": 1, "parent": "godot-gamedev", "total": 6, "complete": 0, "inProgress": 0, "mapHref": "godot-gamedev/lessons/godot-mktoon-map.html"}, {"slug": "godot-toon-shaders", "title": "Godot Toon Shaders", "description": "Toon (cel) shading replaces smooth realistic lighting with discrete brightness bands — the signature look of anime, comic-book games, and stylized 3D.", "depth": 1, "parent": "godot-gamedev", "total": 6, "complete": 0, "inProgress": 0, "mapHref": "godot-gamedev/lessons/godot-toon-shaders-map.html"}, {"slug": "data-analytics", "title": "Modern Data Analytics Stacks", "description": "Every organization sits on operational data that only becomes useful when it flows through a deliberate pipeline: captured, stored in queryable formats, transformed into business concepts, orchestrated reliably, and served to the people making decisions.", "depth": 0, "parent": null, "total": 7, "complete": 2, "inProgress": 0, "mapHref": "iceberg-workspace/lessons/data-analytics-map.html"}, {"slug": "storage-and-table-formats", "title": "Storage & Open Table Formats", "description": "Your data has to live somewhere, and HOW it's stored determines everything downstream: what queries are fast, what operations are possible, how much you pay, and how much operational burden you carry.", "depth": 1, "parent": "data-analytics", "total": 5, "complete": 0, "inProgress": 0, "mapHref": "iceberg-workspace/lessons/storage-and-table-formats-map.html"}, {"slug": "ink-godot", "title": "Ink + Godot: Narrative Scripting", "description": "Ink is a narrative scripting language by Inkle Studios — the engine behind 80 Days, Heaven's Vault, and Esoteric Ebb.", "depth": 0, "parent": null, "total": 8, "complete": 3, "inProgress": 5, "mapHref": "ink-godot/lessons/ink-godot-map.html"}, {"slug": "oidc-rust", "title": "OIDC Authentication in Rust", "description": "Every web service that says \"Sign in with Google\" is using OpenID Connect — an identity layer on top of OAuth 2.", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "oidc-rust/lessons/oidc-rust-map.html"}, {"slug": "workout-fundamentals", "title": "Workout Fundamentals", "description": "Strength training is governed by a small number of principles that explain 90% of results.", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "workout-fundamentals/lessons/workout-fundamentals-map.html"}], "edges": [{"source": "godot-gamedev", "target": "blender-texture-prep", "type": "parent"}, {"source": "blender-texture-prep", "target": "godot-mktoon", "type": "leads_to", "why": ""}, {"source": "godot-gamedev", "target": "godot-mktoon", "type": "parent"}, {"source": "godot-gamedev", "target": "godot-toon-shaders", "type": "parent"}, {"source": "godot-toon-shaders", "target": "godot-mktoon", "type": "leads_to", "why": ""}, {"source": "data-analytics", "target": "storage-and-table-formats", "type": "parent"}], "islands": ["ink-godot", "oidc-rust", "workout-fundamentals"], "mission": {"title": "Learning Workspace", "why": null, "criteria": []}, "stats": {"domainCount": 5, "topicCount": 35, "completeCount": 7}}</script>
+<script type="application/json" id="page-data">{"domains": [{"slug": "blender-texture-prep", "title": "Blender Texture Prep for Toon Shading", "description": "Toon shaders handle lighting procedurally — banding, specular, rim are all computed in real time.", "depth": 1, "parent": "godot-gamedev", "total": 7, "complete": 0, "inProgress": 0, "mapHref": "godot-gamedev/lessons/blender-texture-prep-map.html", "topicIds": ["01M174TQPB723EMSEZPECA55MC", "01M174TQPB8QFQZ6A8D4WQ3HAB", "01M174TQPBFQG4MTH62HANBFMD", "01M174TQPBTDFW2AAZZXKCCWKN", "01M174TQPBD4AXH3MSNAF1CNPS", "01M174TQPB4KRM72DXG8GAZ3KJ", "01M174TQPB5WJ7TT2EJ2YPXTZ4"]}, {"slug": "godot-gamedev", "title": "Game Development with Godot", "description": "Godot is a free, open-source game engine whose node/scene architecture makes it unusually learnable — every game object is a composable tree of small, focused nodes.", "depth": 0, "parent": null, "total": 8, "complete": 2, "inProgress": 0, "mapHref": "godot-gamedev/lessons/godot-gamedev-map.html", "topicIds": ["01M174TQPEWJXH0VZ88FMHYF3G", "01M174TQPE9JAPFN8JB1ERFEPE", "01M174TQPEZQMEFSVC2TMKVZAP", "01M174TQPEFPESE3GDEMACGS5M", "01M174TQPE5HAD87R8D409B9R7", "01M174TQPE5AAZKC0NR1JP1Y9W", "01M174TQPEB6J1NZ3QVM080KRY", "01M174TQPE0MZGBZKVXFS0GJ23"]}, {"slug": "godot-mktoon", "title": "Per-Material Toon Shading (MKToon)", "description": "Where the toon-shaders track simplifies lighting with post-process filters (outlines, Kuwahara), this track builds the look from scratch inside the material.", "depth": 1, "parent": "godot-gamedev", "total": 6, "complete": 0, "inProgress": 0, "mapHref": "godot-gamedev/lessons/godot-mktoon-map.html", "topicIds": ["01M174TQPHA2TWZBPKQN7NPG1E", "01M174TQPH8CD5PXM9BN2E86BY", "01M174TQPH2BVG3FT78A1AD3K6", "01M174TQPH2Y56YNJHW6E4CSMQ", "01M174TQPH5ZBRNCNF0ZB2TEP7", "01M174TQPHRS48N7909AXCZF24"]}, {"slug": "godot-toon-shaders", "title": "Godot Toon Shaders", "description": "Toon (cel) shading replaces smooth realistic lighting with discrete brightness bands — the signature look of anime, comic-book games, and stylized 3D.", "depth": 1, "parent": "godot-gamedev", "total": 6, "complete": 0, "inProgress": 0, "mapHref": "godot-gamedev/lessons/godot-toon-shaders-map.html", "topicIds": ["01M174TQPM0PYKA1JEB494GVSS", "01M174TQPM3VYT0E96F4B7735M", "01M174TQPM333KKHJYZHE7AE6E", "01M174TQPMSZ3ZBHD6DW3SGCD2", "01M174TQPMKFNCRGHCMNSSCNES", "01M174TQPMXHHWXY6QRP4CZADH"]}, {"slug": "data-analytics", "title": "Modern Data Analytics Stacks", "description": "Every organization sits on operational data that only becomes useful when it flows through a deliberate pipeline: captured, stored in queryable formats, transformed into business concepts, orchestrated reliably, and served to the people making decisions.", "depth": 0, "parent": null, "total": 7, "complete": 2, "inProgress": 0, "mapHref": "iceberg-workspace/lessons/data-analytics-map.html", "topicIds": ["01M174TQPPZFGSZT3DJNFGXHZ9", "01M174TQPPD0TDSBXSM79ZBZ73", "01M174TQPPQC00AS015ZGRV1R3", "01M174TQPP4NSA7HE1FG1ZHHYC", "01M174TQPPPS80V8ZSSXTHTSWK", "01M174TQPP4Z1ADE34PFAX1GWJ", "01M174TQPPM488YV8AA7M4TC7E"]}, {"slug": "storage-and-table-formats", "title": "Storage & Open Table Formats", "description": "Your data has to live somewhere, and HOW it's stored determines everything downstream: what queries are fast, what operations are possible, how much you pay, and how much operational burden you carry.", "depth": 1, "parent": "data-analytics", "total": 5, "complete": 0, "inProgress": 0, "mapHref": "iceberg-workspace/lessons/storage-and-table-formats-map.html", "topicIds": ["01M174TQPS85HE7F2EZ0R7KH09", "01M174TQPS2E30N1MYEGNRRZ8E", "01M174TQPS0PX6V614C6042P1Q", "01M174TQPSND5QFHZNG077E898", "01M174TQPSF6F95WXFXT0VAPRP"]}, {"slug": "ink-godot", "title": "Ink + Godot: Narrative Scripting", "description": "Ink is a narrative scripting language by Inkle Studios — the engine behind 80 Days, Heaven's Vault, and Esoteric Ebb.", "depth": 0, "parent": null, "total": 8, "complete": 3, "inProgress": 5, "mapHref": "ink-godot/lessons/ink-godot-map.html", "topicIds": ["01M174TQPVJ8DXJ9XHG6PYVSJC", "01M174TQPVXSXEVPRYM5QNNWT3", "01M174TQPV20MTTGH29SMYCZ24", "01M174TQPVTPB3VFTCRBX3KJFG", "01M174TQPVDXGR1JFAHZ15J7XH", "01M174TQPV6FWNWQJS1JRC5ADW", "01M174TQPV2FBSAMEKC0Z5DWGH", "01M174TQPV2WJXAXZGWJ2TJ0Q0"]}, {"slug": "oidc-rust", "title": "OIDC Authentication in Rust", "description": "Every web service that says \"Sign in with Google\" is using OpenID Connect — an identity layer on top of OAuth 2.", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "oidc-rust/lessons/oidc-rust-map.html", "topicIds": ["01M174TQPX1EZC8TA5KSZ4Q9WD", "01M174TQPXBH83XTK1HWTNY04R", "01M174TQPX4G6A5TMGD7MEEK2K", "01M174TQPX07QG13F5CPAFPC2P", "01M174TQPXSF617VN6Z02F3YM1", "01M174TQPXG8YAF3FWXRAQN92X"]}, {"slug": "workout-fundamentals", "title": "Workout Fundamentals", "description": "Strength training is governed by a small number of principles that explain 90% of results.", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "workout-fundamentals/lessons/workout-fundamentals-map.html", "topicIds": ["01M174TQQ06X4RPJSKFDP1WHKM", "01M174TQQ06SZ2KWDKZBZ7Y01R", "01M174TQQ0TC0KXPNJFKAM1JHC", "01M174TQQ0A8H2E0Y3NWFYND1M", "01M174TQQ0PKM5CA9PAMHCRMGW", "01M174TQQ0D8HCNG0GHJS2G6GX"]}], "edges": [{"source": "godot-gamedev", "target": "blender-texture-prep", "type": "parent"}, {"source": "blender-texture-prep", "target": "godot-mktoon", "type": "leads_to", "why": ""}, {"source": "godot-gamedev", "target": "godot-mktoon", "type": "parent"}, {"source": "godot-gamedev", "target": "godot-toon-shaders", "type": "parent"}, {"source": "godot-toon-shaders", "target": "godot-mktoon", "type": "leads_to", "why": ""}, {"source": "data-analytics", "target": "storage-and-table-formats", "type": "parent"}], "islands": ["ink-godot", "oidc-rust", "workout-fundamentals"], "mission": {"title": "Learning Workspace", "why": null, "criteria": []}, "demoOverlay": {"01M174TQPEWJXH0VZ88FMHYF3G": "complete", "01M174TQPE9JAPFN8JB1ERFEPE": "complete", "01M174TQPPZFGSZT3DJNFGXHZ9": "complete", "01M174TQPPD0TDSBXSM79ZBZ73": "complete", "01M174TQPVJ8DXJ9XHG6PYVSJC": "complete", "01M174TQPVXSXEVPRYM5QNNWT3": "complete", "01M174TQPV20MTTGH29SMYCZ24": "complete", "01M174TQPVTPB3VFTCRBX3KJFG": "in-progress", "01M174TQPVDXGR1JFAHZ15J7XH": "in-progress", "01M174TQPV6FWNWQJS1JRC5ADW": "in-progress", "01M174TQPV2FBSAMEKC0Z5DWGH": "in-progress", "01M174TQPV2WJXAXZGWJ2TJ0Q0": "in-progress"}, "stats": {"domainCount": 5, "topicCount": 35, "completeCount": 7, "inProgressCount": 5}}</script>
 <script type="module">
 
     import { h, render } from 'preact';
     import htm from 'htm';
     import { UnifiedView } from '../assets/components/UnifiedView.js';
+    import { prefs, set as setPref } from '../assets/preferences.js';
 
     const html = htm.bind(h);
     const data = JSON.parse(document.getElementById('page-data').textContent);
 
     // View selection: ?view=map wins, else the persisted pref, else 'tree'. Write the
     // resolved value through to prefs so a ?view= visit updates the saved default.
-    import { prefs, set as setPref } from '../assets/preferences.js';
     const urlView = new URLSearchParams(location.search).get('view');
     const resolved = urlView === 'map' ? 'map'
       : urlView === 'tree' ? 'tree'
       : (prefs.value.mapView || 'tree');
     if (resolved !== prefs.value.mapView) setPref('mapView', resolved);
 
+    // Load-time progress resolution (#279). The baked domains[*].{complete,inProgress} and
+    // stats are the DEMO / no-JS floor. If the user has their OWN overlay (served hosts
+    // only — GET /api/overlay), recompute counts from it and swap. Read-then-swap: keep the
+    // baked floor unless a real overlay actually resolves. Static hosts (GH Pages) 404 the
+    // fetch, so the demo counts stand (Option A: static = display-only demo).
+    async function resolveProgress() {
+      // hasOwnProgress means the user has taken over from the demo; from then on the demo
+      // seed is never shown — an absent/empty overlay yields all-not-started (empty view).
+      const owns = prefs.value.hasOwnProgress === true;
+      let overlay = null;
+      try {
+        const res = await fetch('api/overlay', { headers: { accept: 'application/json' } });
+        if (res.ok) overlay = (await res.json()).overlay || {};
+      } catch (_) { /* static host / no server — keep the demo floor */ }
+
+      // Only override when we have a real signal: either the user owns their progress, or a
+      // non-empty overlay came back. An empty overlay on a non-owning user = show the demo.
+      const hasReal = owns || (overlay && Object.keys(overlay).length > 0);
+      if (!hasReal) {
+        // Demo floor stands. Flag it so the view can offer the takeover action — but only
+        // if the demo actually shows progress (a zero demo has nothing to "take over").
+        const demoHasProgress = data.stats.completeCount > 0 || (data.stats.inProgressCount || 0) > 0;
+        return demoHasProgress;
+      }
+      const map = overlay || {};
+
+      let cComplete = 0, cInProgress = 0;
+      for (const d of data.domains) {
+        const ids = d.topicIds || [];
+        d.complete = ids.filter(id => map[id] === 'complete').length;
+        d.inProgress = ids.filter(id => map[id] === 'in-progress').length;
+        if (d.depth === 0) { cComplete += d.complete; cInProgress += d.inProgress; }
+      }
+      data.stats = { ...data.stats, completeCount: cComplete, inProgressCount: cInProgress };
+      return false;  // real data resolved — no demo banner
+    }
+
+    const showingDemo = await resolveProgress();
+
     render(
       html`<${UnifiedView} domains=${data.domains} edges=${data.edges} islands=${data.islands}
-        stats=${data.stats} mission=${data.mission} />`,
+        stats=${data.stats} mission=${data.mission} showingDemo=${showingDemo} />`,
       document.getElementById('app')
     );
 

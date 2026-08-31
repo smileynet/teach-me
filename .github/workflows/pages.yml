@@ -116,12 +116,12 @@ jobs:
           </html>
           HTML
 
-          # Do not publish a real user's private overlay. Keep the committed library demo
-          # status-overlay (library/**/.user/status-overlay.json, #278) — it's the ONLY
-          # thing the .gitignore negation commits under library/**/.user/, so on CI's clean
-          # checkout that dir holds only the demo overlay. Regeneration reads it to re-bake
-          # the demo progress counts idempotently; deleting it here would defeat #278.
-          rm -rf _site/.user 2>/dev/null || true
+          # Do not publish ANY private overlay. The `.user/` tree is always private (status
+          # overlay, SR data, private lessons) and never ships. Post-#279 the shipped demo
+          # progress lives in committed `library/*/demo-status.json` fixtures (baked into the
+          # page at generate time + inlined in #page-data), so stripping ALL `.user/` at any
+          # depth is safe — nothing under `.user/` is needed for the deployed demo counts.
+          find _site -type d -name .user -prune -exec rm -rf {} + 2>/dev/null || true
 
           # Bypass Jekyll (serve _-prefixed and .-prefixed files verbatim)
           touch _site/.nojekyll
