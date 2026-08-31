@@ -30,6 +30,7 @@ export const DEFAULTS = {
   lineHeight: '1.7',
   maxWidth: '740px',
   sectionsCollapsed: false,
+  mapView: 'tree',  // unified landing page (#276): 'tree' (default) | 'map'
 };
 
 // --- Load + migrate ---

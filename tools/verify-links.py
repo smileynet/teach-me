@@ -102,14 +102,22 @@ def check_file(html_path: Path) -> list[tuple[str, str]]:
             if href.startswith(("http://", "https://", "data:", "#", "//")):
                 continue
 
+            # Strip a query string / fragment before resolving to a file path — a URL
+            # like `index.html?view=map` (the #276 global-map redirect stub's canonical
+            # link) targets the file `index.html`; the `?query`/`#frag` are not part of
+            # the filename.
+            href_file = href.split("?", 1)[0].split("#", 1)[0]
+            if not href_file:
+                continue
+
             # Resolve relative path
-            target = (parent / href).resolve()
+            target = (parent / href_file).resolve()
             if not target.exists():
                 # `library/*/assets` is a git symlink checked out as a text stub
                 # on Windows, so assets links resolve under a non-directory and
                 # spuriously miss. serve.py mounts /assets from PROJECT_ROOT; try
                 # that mount before reporting a failure.
-                asset_target = _resolve_via_assets_mount(href)
+                asset_target = _resolve_via_assets_mount(href_file)
                 if asset_target is None or not asset_target.exists():
                     failures.append((href, f"file not found: {target}"))
 

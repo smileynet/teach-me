@@ -1,192 +1,128 @@
 #!/usr/bin/env python3
-"""Generate the All Lessons index page from MAP.md files.
+"""Generate the unified aggregate landing page — ONE page, two views (#276).
 
-Scans for MAP.md files (depth 0 only), extracts domain metadata and
-topic statuses, and produces a card grid dashboard at lessons/index.html.
+Scans MAP.md files, derives the domain graph ONCE via `tools/lib/domain_graph.py`, and
+emits a single page (`library/index.html` by default) with ONE `#page-data` island feeding
+two views: an indented WAI-ARIA Tree (primary/default nav) and an iterated dagre Map
+(secondary relationship view), toggled client-side and persisted to prefs.
+
+This retires the separate index derivation (the old card-grid) and subsumes the global
+forest map: `generate_global_map.py` now emits only a redirect stub → `index.html?view=map`.
 
 Usage:
-    python tools/generate_index_page.py                    # auto-scan
-    python tools/generate_index_page.py --scan-dir .scratch/spike-041  # custom scan dir
+    python tools/generate_index_page.py                              # auto-scan project root
+    python tools/generate_index_page.py --scan-dir library           # scan the library
+    python tools/generate_index_page.py --scan-dir library --output library/index.html
 """
 
 from __future__ import annotations
 
-import math
 import re
 import sys
 from pathlib import Path
 
-# Windows cp1252 stdout chokes on the ✓ this prints (AGENTS.md Constraints).
+# Windows cp1252 stdout chokes on the ✓ / — this prints (AGENTS.md Constraints).
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 OUTPUT = PROJECT_ROOT / "lessons" / "index.html"
 
-# Single canonical parser (#256).
-try:
-    from tools.map_parser import load_map as mp_load_map
-except ModuleNotFoundError:
-    from map_parser import load_map as mp_load_map  # type: ignore[no-redef]
+from lib.domain_graph import find_maps, build_domain_graph, build_forest_edges  # noqa: E402
+from lib.map_links import map_href  # noqa: E402
+from lib.page_template import render_index_page  # noqa: E402
 
 
-def _overlay_status_map(map_path: Path) -> dict:
-    """{node_id → status} from the per-user overlay for the map's workspace.
-
-    Thin wrapper over the shared `overlay.status_map_for_map` (#155 extraction) so the
-    index, per-domain, and global map share one resolution.
-    """
-    try:
-        from tools.lib.overlay import status_map_for_map
-    except ModuleNotFoundError:
-        from lib.overlay import status_map_for_map  # type: ignore[no-redef]
-    return status_map_for_map(map_path)
-
-
-def find_maps(scan_dirs: list[Path] | None = None) -> list[Path]:
-    """Find all depth-0 MAP.md files."""
-    if scan_dirs is None:
-        scan_dirs = [PROJECT_ROOT]
-
-    maps = []
-    for d in scan_dirs:
-        # Root MAP.md
-        root_map = d / "MAP.md"
-        if root_map.exists():
-            maps.append(root_map)
-        # Named *.MAP.md files directly in this dir (not sub-maps with -- separator)
-        for f in sorted(d.glob("*.MAP.md")):
-            if "--" not in f.stem:  # skip depth 2+ sub-maps
-                maps.append(f)
-        # Recursive: find *.MAP.md in subdirectories (e.g., library/*/maps/)
-        for f in sorted(d.rglob("*.MAP.md")):
-            if "--" not in f.stem and f not in maps:
-                maps.append(f)
-    return maps
-
-
-def parse_map_meta(path: Path) -> dict:
-    """Extract domain metadata + topic stats from a MAP.md.
-
-    Uses the canonical `map_parser.load_map` (#256 — single parser), preserving the
-    historical index behavior: skip depth>0 maps, title falls back to a title-cased
-    domain, description is the first sentence of the orientation.
-    """
-    dm = mp_load_map(path)
-
-    # Skip non-root maps
-    if dm.depth > 0:
-        return None
-
-    # Title: the '# Heading', else a title-cased domain
-    title = dm.title or dm.domain.replace("-", " ").title()
-
-    # Description = first sentence of the orientation (up to the first '.'), with a
-    # trailing '.'; fall back to the frontmatter description.
-    if dm.orientation:
-        first = dm.orientation.split(".", 1)[0].strip()
-        description = first + "."
-    else:
-        description = dm.description
-
-    total = len(dm.topics)
-    # Status lives in the per-user overlay (#258), keyed by ULID node id; absent =
-    # not-started. The overlay root is the map's workspace (maps dir's parent).
-    status_map = _overlay_status_map(path)
-    complete = sum(1 for t in dm.topics if status_map.get(t.id) == "complete")
-    in_progress = sum(1 for t in dm.topics if status_map.get(t.id) == "in-progress")
-
-    return {
-        "domain": dm.domain,
-        "title": title,
-        "description": description,
-        "total": total,
-        "complete": complete,
-        "in_progress": in_progress,
-        "path": path,
-    }
-
-
-def generate_page(domains: list[dict], scan_dir: Path | None = None, output_file: Path | None = None) -> str:
-    """Generate the Preact index page."""
-    sys.path.insert(0, str(PROJECT_ROOT / "tools"))
-    from lib.page_template import render_index_page
-
-    # Parse MISSION.md if it exists
-    mission = None
+def parse_mission(scan_dir: Path | None) -> dict | None:
+    """Parse MISSION.md (title/why/criteria) if a real one exists — index presentation
+    logic (kept out of domain_graph, which is view-agnostic). Falls back scan_dir → workspace."""
     mission_path = (scan_dir or PROJECT_ROOT) / "MISSION.md"
     if not mission_path.exists():
-        # Try workspace
         mission_path = PROJECT_ROOT / "workspace" / "MISSION.md"
-    if mission_path.exists():
-        content = mission_path.read_text(encoding="utf-8")
-        # Skip generic template content
-        if "Tell your AI assistant" not in content and "[Your Topic]" not in content:
-            # Extract title (# line)
-            title_m = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
-            # Extract Why section
-            why_m = re.search(r'## Why\n\n(.+?)(?=\n##|\Z)', content, re.DOTALL)
-            # Extract Success Criteria (bullet list)
-            criteria_m = re.search(r'## Success Criteria\n\n((?:- .+\n?)+)', content)
-            criteria = []
-            if criteria_m:
-                criteria = [line.lstrip('- ').strip() for line in criteria_m.group(1).strip().splitlines() if line.strip()]
-
-            mission = {
-                "title": title_m.group(1).strip() if title_m else None,
-                "why": why_m.group(1).strip() if why_m else None,
-                "criteria": criteria[:4],  # top 4 max
-            }
-
-    # Build data island
-    from lib.map_links import map_href
-    _out = output_file or OUTPUT
-    domain_data = []
-    for d in domains:
-        domain_data.append({
-            "domain": d["domain"],
-            "title": d["title"],
-            "description": d["description"],
-            "total": d["total"],
-            "complete": d["complete"],
-            "inProgress": d.get("in_progress", 0),
-            "mapHref": map_href(d["path"], _out, d["domain"]),
-        })
-
-    total_topics = sum(d["total"] for d in domains)
-    total_complete = sum(d["complete"] for d in domains)
-
-    data = {
-        "domains": domain_data,
-        "mission": mission,
-        "stats": {
-            "domainCount": len(domains),
-            "topicCount": total_topics,
-            "completeCount": total_complete,
-        }
+    if not mission_path.exists():
+        return None
+    content = mission_path.read_text(encoding="utf-8")
+    if "Tell your AI assistant" in content or "[Your Topic]" in content:
+        return None  # generic template placeholder
+    title_m = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+    why_m = re.search(r'## Why\n\n(.+?)(?=\n##|\Z)', content, re.DOTALL)
+    criteria_m = re.search(r'## Success Criteria\n\n((?:- .+\n?)+)', content)
+    criteria = []
+    if criteria_m:
+        criteria = [line.lstrip('- ').strip()
+                    for line in criteria_m.group(1).strip().splitlines() if line.strip()]
+    return {
+        "title": title_m.group(1).strip() if title_m else None,
+        "why": why_m.group(1).strip() if why_m else None,
+        "criteria": criteria[:4],
     }
 
-    module_script = """
+
+def build_page_data(records: list[dict], output_file: Path, mission: dict | None) -> dict:
+    """Project the superset domain-graph records into the ONE #page-data island feeding
+    both views. `mapHref` is computed HERE (per output file — it's document-relative to the
+    output path, so it can't live in the shared record). Domains carry ALL depths: the Tree
+    filters roots (depth==0 & !island) client-side; the Map lays out the whole graph.
+    Stats count depth-0 domains only (the index's historical meaning of "domains")."""
+    domains = [{
+        "slug": r["domain"],
+        "title": r["title"],
+        "description": r["description"],
+        "depth": r["depth"],
+        "parent": r["parent"],
+        "total": r["total"],
+        "complete": r["complete"],
+        "inProgress": r["in_progress"],
+        "mapHref": map_href(r["path"], output_file, r["domain"]),
+    } for r in records]
+
+    edges, islands = build_forest_edges(records)
+    roots = [r for r in records if r["depth"] == 0]
+    return {
+        "domains": domains,
+        "edges": edges,
+        "islands": islands,
+        "mission": mission,
+        "stats": {
+            "domainCount": len(roots),
+            "topicCount": sum(r["total"] for r in roots),
+            "completeCount": sum(r["complete"] for r in roots),
+        },
+    }
+
+
+_MODULE_SCRIPT = """
     import { h, render } from 'preact';
     import htm from 'htm';
-    import { IndexView } from '../assets/components/IndexView.js';
+    import { UnifiedView } from '../assets/components/UnifiedView.js';
 
     const html = htm.bind(h);
     const data = JSON.parse(document.getElementById('page-data').textContent);
 
+    // View selection: ?view=map wins, else the persisted pref, else 'tree'. Write the
+    // resolved value through to prefs so a ?view= visit updates the saved default.
+    import { prefs, set as setPref } from '../assets/preferences.js';
+    const urlView = new URLSearchParams(location.search).get('view');
+    const resolved = urlView === 'map' ? 'map'
+      : urlView === 'tree' ? 'tree'
+      : (prefs.value.mapView || 'tree');
+    if (resolved !== prefs.value.mapView) setPref('mapView', resolved);
+
     render(
-      html`<${IndexView} domains=${data.domains} stats=${data.stats} mission=${data.mission} />`,
+      html`<${UnifiedView} domains=${data.domains} edges=${data.edges} islands=${data.islands}
+        stats=${data.stats} mission=${data.mission} />`,
       document.getElementById('app')
     );
 """
 
-    css_extra = """
+_CSS_EXTRA = """
     body { max-width: 900px; margin: 0 auto; padding: 2rem; }
     .index-view h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
     .index-meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem; }
-    .index-cue { font-size: 0.9rem; margin: 0 0 1.5rem; }
+    .index-cue { font-size: 0.9rem; margin: 0 0 1rem; }
     .index-cue-start { color: var(--text-muted); }
     .index-cue-resume a {
       display: inline-block; color: var(--accent); font-weight: 600;
@@ -194,79 +130,89 @@ def generate_page(domains: list[dict], scan_dir: Path | None = None, output_file
       background: var(--bg-elevated); border: 1px solid var(--border);
     }
     .index-cue-resume a:hover { border-color: var(--accent); }
-    .mission-fold { margin-top: 0.75rem; border-top: 1px solid var(--border); padding-top: 0.5rem; }
-    .mission-fold summary { font-size: 0.8rem; color: var(--text-faint); cursor: pointer; }
-    .mission-fold summary:hover { color: var(--text-muted); }
-    .mission-why { font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; margin: 0.5rem 0; }
-    .mission-criteria { padding-left: 1.2rem; margin: 0; }
-    .mission-criteria li { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
-    .domain-grid { display: flex; flex-direction: column; gap: 1rem; }
-    .domain-card {
-      display: block; padding: 1.25rem; background: var(--bg-elevated);
-      border: 1px solid var(--border); border-radius: 10px; text-decoration: none;
-      color: var(--text); transition: border-color 0.15s, box-shadow 0.15s;
-    }
-    .domain-card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(203, 166, 247, 0.1); }
-    .domain-card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
-    .domain-card-header h2 { font-size: 1.1rem; margin: 0; }
-    .domain-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
-    .domain-stat { font-size: 0.8rem; color: var(--text-faint); }
-    .progress-ring { flex-shrink: 0; }
+
+    /* Tree | Map toggle */
+    .view-toggle { display: inline-flex; gap: 0; margin: 0 0 1.5rem; border: 1px solid var(--border);
+      border-radius: 8px; overflow: hidden; }
+    .vt-btn { background: var(--bg-elevated); color: var(--text-muted); border: none;
+      padding: 0.4rem 1.1rem; font-size: 0.85rem; cursor: pointer; font: inherit; }
+    .vt-btn + .vt-btn { border-left: 1px solid var(--border); }
+    .vt-btn.is-active { background: var(--accent); color: var(--bg); font-weight: 600; }
+    .vt-btn:hover:not(.is-active) { color: var(--text); }
+
+    /* Indented tree view */
+    .indented-tree .ti-root { list-style: none; padding-left: 0; margin: 0; }
+    .indented-tree .ti-group { list-style: none; margin: 0; padding-left: 1.4rem;
+      border-left: 1px solid var(--border); margin-left: 0.7rem; }
+    .indented-tree .ti-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.7rem;
+      border-radius: 8px; text-decoration: none; color: var(--text); outline-offset: 2px; }
+    .indented-tree .ti-row:hover { background: var(--bg-elevated); }
+    .indented-tree .ti-row:focus-visible { outline: 2px solid var(--accent); }
+    .indented-tree .ti-row.is-child { color: var(--text-muted); }
+    .indented-tree .ti-twisty { background: none; border: none; color: var(--text-muted);
+      cursor: pointer; font-size: 0.7rem; padding: 0 0.2rem; line-height: 1; }
+    .indented-tree .ti-title { font-weight: 600; }
+    .indented-tree .ti-stat { font-size: 0.78rem; color: var(--text-faint); }
+    .indented-tree .ti-leads { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
+    .sc-section-title { font-size: 0.9rem; color: var(--text-muted); margin: 1.5rem 0 0.5rem; }
+
+    /* Iterated map view */
+    .iterated-map .im-legend { display: flex; gap: 1.5rem; font-size: 0.78rem;
+      color: var(--text-muted); margin-bottom: 0.6rem; align-items: center; }
+    .iterated-map .im-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .im-card { display: block; padding: 0.8rem 1rem; background: var(--bg-elevated);
+      border: 1px solid var(--border); border-radius: 10px; text-decoration: none; color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box; }
+    .im-card:hover, .im-card:focus-visible { border-color: var(--accent); box-shadow: 0 2px 12px rgba(203,166,247,0.12); }
+    .im-card h3 { font-size: 0.95rem; margin: 0 0 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
+    .im-card .dc-meta { font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; }
+    .im-card.is-child { border-left: 3px solid var(--accent); }
+    .dc-sub-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 3px;
+      background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    .islands-panel { margin-top: 1.5rem; padding: 1rem; border: 1px dashed var(--border); border-radius: 8px; }
+    .islands-panel h2 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .islands-panel ul { list-style: none; padding: 0; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .islands-panel a { font-size: 0.8rem; padding: 0.3rem 0.6rem; border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text-muted); text-decoration: none; }
+    .islands-panel a:hover { border-color: var(--accent); color: var(--accent); }
 """
 
-    return render_index_page(
-        title="All Lessons",
+
+def _parse_args(argv: list[str]) -> tuple[list[Path], Path]:
+    scan_dirs = [PROJECT_ROOT]
+    output = OUTPUT
+    if "--scan-dir" in argv:
+        v = Path(argv[argv.index("--scan-dir") + 1])
+        scan_dirs = [v if v.is_absolute() else PROJECT_ROOT / v]
+    if "--output" in argv:
+        v = Path(argv[argv.index("--output") + 1])
+        output = v if v.is_absolute() else PROJECT_ROOT / v
+    return scan_dirs, output
+
+
+def main() -> int:
+    scan_dirs, output = _parse_args(sys.argv[1:])
+    paths = find_maps(scan_dirs)
+    records = build_domain_graph(paths)
+    mission = parse_mission(scan_dirs[0] if scan_dirs else None)
+    data = build_page_data(records, output, mission)
+
+    page = render_index_page(
         body_content='<div id="app"></div>',
         data=data,
-        module_script=module_script,
-        css_extra=css_extra,
+        module_script=_MODULE_SCRIPT,
+        css_extra=_CSS_EXTRA,
         depth=1,
+        include_dagre=True,  # the Map view's dagre layout needs window.dagre ready
     )
-
-
-def main() -> None:
-    args = sys.argv[1:]
-
-    scan_dirs = [PROJECT_ROOT]
-    if "--scan-dir" in args:
-        idx = args.index("--scan-dir")
-        if idx + 1 < len(args):
-            custom = Path(args[idx + 1])
-            if not custom.is_absolute():
-                custom = PROJECT_ROOT / custom
-            scan_dirs = [custom]
-
-    output = OUTPUT
-    if "--output" in args:
-        idx = args.index("--output")
-        if idx + 1 < len(args):
-            output = Path(args[idx + 1])
-            if not output.is_absolute():
-                output = PROJECT_ROOT / output
-
-    maps = find_maps(scan_dirs)
-    domains = []
-    for m in maps:
-        meta = parse_map_meta(m)
-        if meta:  # skip non-root maps
-            domains.append(meta)
-
-    if not domains:
-        print("No depth-0 MAP.md files found.")
-        # Still generate the page with empty state
-        output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(generate_page([], scan_dir=scan_dirs[0] if scan_dirs else None, output_file=output), encoding="utf-8")
-        print(f"✓ Generated {output.relative_to(PROJECT_ROOT)} (empty state)")
-        return
-
-    # Sort by title
-    domains.sort(key=lambda d: d["title"])
-
     output.parent.mkdir(parents=True, exist_ok=True)
-    page = generate_page(domains, scan_dir=scan_dirs[0] if scan_dirs else None, output_file=output)
     output.write_text(page, encoding="utf-8")
-    print(f"✓ Generated {output.relative_to(PROJECT_ROOT)} ({len(domains)} domains)")
+    n_roots = data["stats"]["domainCount"]
+    n_nodes, n_edges, n_isl = len(data["domains"]), len(data["edges"]), len(data["islands"])
+    print(f"✓ Generated {output.relative_to(PROJECT_ROOT)} "
+          f"({n_roots} domains, {n_nodes} nodes, {n_edges} edges, {n_isl} islands)")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
