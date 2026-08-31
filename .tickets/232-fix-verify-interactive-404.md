@@ -42,6 +42,27 @@ caused by #228 — the ink transcript step passes standalone under `uv run`.
 4. Likely related: this file has uncommitted pre-existing changes (see #233) that
    converted verify to `uv run` + added `smoke-draw-diagram.py`. Confirm whether
    the flake predates or was introduced by those changes.
+## Cross-session update (2026-08-31, from the #274 nav-suite rewrite)
+
+**The two remaining ACs are now satisfied by #274's `verify-interactive.py` changes** (commit
+e830077):
+
+- **"Failing 404 URL is logged"** — `run_checks` now registers a `page.on("response", …)`
+  handler that captures failed-request URLs (`verify-interactive.py`), so a 404 is attributable
+  by URL, not just the generic console string.
+- **"Fix applied (… or ignore-list with justification)"** — the gate now serves the multi-domain
+  `library/` ROOT, where a lesson under a NON-mounted domain legitimately 404s its
+  `/api/map/{domain}/{slug}/status` probe (a known serve.py multi-domain limitation). `no_js_errors`
+  now ignores that specific 404 **only when EVERY unexpected failed request is such a status probe**
+  — so a REAL missing-asset 404 is never masked. Justification is inline in the check.
+- Combined with the #230 quiz-path fix (below), `mise run verify` shows `no_js_errors: Clean
+  console` across this session's repeated runs (13/13 interactive checks green).
+
+**Recommendation:** close as resolved (root cause was the #230 quiz-path mismatch; the residual
+multi-domain status 404 is now handled + justified). The only unchecked AC is the formal "5
+consecutive runs" — run `uv run python tools/verify-interactive.py` 5× to tick it, or accept the
+repeated green runs already observed this session.
+
 ## Cross-session update (2026-08-27, from the #229/#230 session)
 
 **The 404 is NOT a race — it was a deterministic quiz-path mismatch, now fixed.**
@@ -56,7 +77,7 @@ Suggest closing #232 as resolved-by-#230 once confirmed on your end — the "add
 
 ## Acceptance criteria
 
-- [ ] Failing 404 URL is logged in the error message
-- [ ] Root cause identified (race vs bad path vs lazy asset)
-- [ ] Fix applied (wait-for-ready, correct path, or ignore-list with justification)
-- [ ] `verify-interactive.py` passes 5 consecutive runs
+- [x] Failing 404 URL is logged in the error message — #274 added a `page.on("response")` URL tracker
+- [x] Root cause identified (race vs bad path vs lazy asset) — deterministic quiz-path mismatch (#230), not a race
+- [x] Fix applied (wait-for-ready, correct path, or ignore-list with justification) — #230 path fix + #274 justified status-404 ignore
+- [ ] `verify-interactive.py` passes 5 consecutive runs — repeated green observed this session; run 5× to formally tick

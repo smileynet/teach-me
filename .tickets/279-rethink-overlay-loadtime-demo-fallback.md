@@ -52,10 +52,12 @@ Move progress resolution to **load time (client-side)** instead of build time:
 - **Relationship to build-time baking.** Do we drop build-time count baking entirely, or
   keep it as the no-JS fallback (progressive enhancement)? If kept, the baked numbers must
   be the DEMO numbers (so the static page is correct with JS off).
-- **Interaction with #276.** #276 unifies index + global-map and regenerates both. Whatever
-  load-time model we pick, #276's `build_domain_graph` should emit the demo overlay as data
-  the client can fall back to, not just baked counts. Coordinate so #276 doesn't cement the
-  build-time-only model right before we replace it.
+- **Interaction with #276 (NOW SHIPPED).** #276 unified index + global-map and shipped the
+  BUILD-TIME count-baking model (`build_domain_graph` in `tools/lib/domain_graph.py` bakes
+  counts into `#page-data` at generate time). This ticket REPLACES that model with a load-time
+  read. The unified `#page-data` island shape (`{domains, edges, islands, stats, mission}`) is
+  already structured so a client-side overlay read can be added WITHOUT reshaping it — see ADR
+  0016's #279 note. So the coordination worry is resolved: build against the shipped island.
 - **Does this let us stop committing the demo overlay / un-strip pages.yml (#278)?** Possibly
   — if the demo fallback is shipped as page data rather than a committed `.user/` file, the
   #278 gitignore/pages.yml special-casing could be retired. Evaluate.
@@ -79,6 +81,14 @@ Move progress resolution to **load time (client-side)** instead of build time:
 
 ## Notes
 
-Deferred from #278 (commit 455236d). Not blocking #276, but #276 should avoid cementing the
-build-time-only model — see the #276 interaction question above. Overlay mechanics documented
-in `tools/lib/overlay.py` (ULID-keyed, sparse, whole-doc rewrite; root = maps-dir parent).
+Deferred from #278 (commit 455236d). #276 shipped (commit 53793b1) with the build-time model
+this ticket replaces.
+
+**Key references / files to touch:**
+- `tools/lib/overlay.py` — overlay store (ULID-keyed, sparse, whole-doc rewrite; root = maps-dir parent).
+- `tools/lib/domain_graph.py` `build_domain_graph` + `tools/generate_index_page.py` `build_page_data` — where counts are baked today.
+- `assets/components/UnifiedView.js` / `assets/components/store.js` — client side that would read the overlay at load.
+- `assets/preferences.js` — the `teach-me-prefs-v1` signal store (where a user-init flag could live).
+- `.github/workflows/pages.yml:~120` — the `_site/.user` strip (may be retireable per the question above).
+- ADR 0016 (`.memory/adr/0016-unified-domain-graph-views.md`) — the #279 note + the UI-state-vs-learner-state line (ADR 0014 §B.6 keeps LEARNER state out of the browser; a *view* pref is UI state — do not blur when adding a client overlay read).
+- Design context: `.memory/research/unified-graph-views/276-implementation-findings.md` (#279 coordination section).
