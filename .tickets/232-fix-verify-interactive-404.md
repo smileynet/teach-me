@@ -2,7 +2,7 @@
 id: "232"
 title: "verify-interactive.py flaky no_js_errors failure on a 404 resource"
 type: bug
-status: open
+status: done
 priority: high
 blocked_by: []
 tags: ["validation", "flaky"]
@@ -80,4 +80,18 @@ Suggest closing #232 as resolved-by-#230 once confirmed on your end — the "add
 - [x] Failing 404 URL is logged in the error message — #274 added a `page.on("response")` URL tracker
 - [x] Root cause identified (race vs bad path vs lazy asset) — deterministic quiz-path mismatch (#230), not a race
 - [x] Fix applied (wait-for-ready, correct path, or ignore-list with justification) — #230 path fix + #274 justified status-404 ignore
-- [ ] `verify-interactive.py` passes 5 consecutive runs — repeated green observed this session; run 5× to formally tick
+- [x] `verify-interactive.py` passes 5 consecutive runs — verified 2026-08-31: 5/5 green, 13/13 interactive checks, `no_js_errors: Clean console` every run, no flakes, clean server teardown
+
+## Resolution (2026-08-31)
+
+Closed — all ACs met. Two-part fix across sessions:
+- **#230** fixed the root cause: the `no_js_errors` 404 was a deterministic quiz-path mismatch
+  (lesson derived `quiz/{id}-quiz.html` but the quiz lived in a flat dir), NOT a race.
+- **#274** (nav-suite rewrite, commit e830077) delivered the diagnostic + the residual handling:
+  a `page.on("response")` URL tracker in `run_checks` (so a 404 is attributable by URL), and a
+  scoped `no_js_errors` ignore for the `/api/map/{domain}/{slug}/status` probe that legitimately
+  404s under the multi-domain `library/` serve — applied ONLY when every unexpected failed request
+  is such a probe, so a real missing-asset 404 is never masked.
+
+Verified this session: `verify-interactive.py` run 5 consecutive times → 5/5 pass, 13/13 checks,
+`no_js_errors: Clean console` each run, no orphaned servers. The flake is gone.
