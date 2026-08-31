@@ -344,6 +344,28 @@ def run_index_checks(page, url: str) -> list[dict]:
         "detail": "Clean console + no failed requests" if ok else f"errors={real_errors[:2]} failed={real_failed[:2]}",
     })
 
+    # d. Two-view Tree|Map toggle (#276) — only on the UNIFIED aggregate page (a
+    # per-domain index has no .view-toggle, so this block is skipped there). Asserts
+    # the default Tree renders, clicking Map mounts the dagre map, and clicking Tree
+    # returns — all from ONE #page-data island (no reload).
+    toggle = page.query_selector(".view-toggle")
+    if toggle:
+        tree_default = bool(page.query_selector(".indented-tree"))
+        page.click(".view-toggle .vt-btn:has-text('Map')")
+        page.wait_for_timeout(400)
+        map_shown = bool(page.query_selector(".iterated-map .im-card"))
+        page.click(".view-toggle .vt-btn:has-text('Tree')")
+        page.wait_for_timeout(200)
+        tree_back = bool(page.query_selector(".indented-tree"))
+        two_view_ok = tree_default and map_shown and tree_back
+        checks.append({
+            "name": "index_two_view_toggle",
+            "pass": two_view_ok,
+            "detail": "Tree default, Map mounts on toggle, Tree returns"
+                      if two_view_ok
+                      else f"tree_default={tree_default} map_shown={map_shown} tree_back={tree_back}",
+        })
+
     return checks
 
 

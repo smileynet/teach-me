@@ -374,14 +374,21 @@ def render_index_page(
     module_script: str = "",
     css_extra: str = "",
     depth: int = 1,
+    include_dagre: bool = False,
 ) -> str:
-    """Render the All Lessons index page (root — no breadcrumb)."""
+    """Render the All Lessons index page (root — no breadcrumb).
+
+    `include_dagre` loads the vendored dagre layout lib in `<head>` (default off). The
+    unified two-view page (#276) sets it True so the Map view's dagre layout has
+    `window.dagre` ready before its module runs — same wiring render_map_page uses.
+    """
     return _base_page(
         title=f"{title} — teach-me",
         depth=depth,
         body_content=body_content,
         data_islands={"page-data": data} if data else None,
         include_page_shell=False,
+        include_dagre=include_dagre,
         module_script=module_script,
         css_extra=css_extra,
     )
