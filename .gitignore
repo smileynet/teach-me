@@ -15,17 +15,11 @@ __pycache__/
 .playwright-mcp/
 *.apkg
 /workspace/
-# Per-user status/SR overlay + private lessons (#258/#255/#184). Ignore .user/ CONTENTS
-# at any depth (not the dir itself — a bare `.user/` blocks git from descending, which
-# kills the negation below). The live workspace/.user/, private lessons (.user/lessons/),
-# and SR data (.user/learning-records/) all stay ignored.
+# Per-user status/SR overlay + private lessons (#258/#255/#184). The `.user/` tree is
+# ALWAYS private — status overlay, SR data, and private lessons never ship. The shipped
+# library demo progress now lives in committed `library/*/demo-status.json` fixtures
+# (#279, Approach B), so `.user/` no longer needs a negation exception.
 **/.user/*
-# EXCEPTION (#278): commit the shipped library demo status-overlay ONLY, so regenerating a
-# committed library page re-bakes the demo progress counts idempotently instead of zeroing
-# them on a clean checkout. Scoped to the exact filename — private lessons/SR under
-# library/**/.user/ stay ignored. Verified via `git check-ignore`.
-!library/**/.user/
-!library/**/.user/status-overlay.json
 test-results/
 *.png
 

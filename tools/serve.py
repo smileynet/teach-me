@@ -472,6 +472,19 @@ async def update_topic_status(domain: str, slug: str, req: StatusUpdateRequest) 
     return JSONResponse({"ok": True, "domain": domain, "slug": slug, "status": req.status})
 
 
+@app.get("/api/overlay")
+async def get_overlay() -> JSONResponse:
+    """Return the whole per-user status overlay as a flat {node_id → status} map (#279).
+
+    The aggregate landing page reads this at load to recompute per-domain progress counts
+    from the user's OWN overlay, overriding the baked demo/no-JS floor in #page-data. This
+    is a READ of the single-source-of-truth `.user/` file (ADR 0014 §B.6 permits "simple
+    status read"), not a new browser store of learner state. Absent overlay → empty map →
+    the demo floor stands. Static hosts (GH Pages) have no server, so this 404s there and
+    the page keeps the baked demo counts (Option A: static = display-only demo)."""
+    return JSONResponse({"overlay": _overlay().status_map()})
+
+
 # Mount static files: workspace content + project assets
 # Serve workspace (lessons, quiz, etc.) and assets from project root
 app.mount("/assets", StaticFiles(directory=str(PROJECT_ROOT / "assets")), name="assets")

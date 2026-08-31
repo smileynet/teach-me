@@ -77,19 +77,32 @@ def build_page_data(records: list[dict], output_file: Path, mission: dict | None
         "complete": r["complete"],
         "inProgress": r["in_progress"],
         "mapHref": map_href(r["path"], output_file, r["domain"]),
+        # Join key for the load-time overlay read (#279): the topic ULIDs this domain
+        # owns. The client counts statuses from the user's overlay against these ids to
+        # override the baked demo counts above. Absent a real overlay, the baked values
+        # stand (demo / no-JS floor).
+        "topicIds": r["topic_ids"],
     } for r in records]
 
     edges, islands = build_forest_edges(records)
     roots = [r for r in records if r["depth"] == 0]
+    # Demo seed (#279): flat {topic_id → status} union across ALL domains, inlined so the
+    # demo floor travels IN page-data. The client seeds the demo view from this map and,
+    # on user takeover (hasOwnProgress), ignores it in favour of the user's own overlay.
+    demo_overlay: dict[str, str] = {}
+    for r in records:
+        demo_overlay.update(r["demo_status"])
     return {
         "domains": domains,
         "edges": edges,
         "islands": islands,
         "mission": mission,
+        "demoOverlay": demo_overlay,
         "stats": {
             "domainCount": len(roots),
             "topicCount": sum(r["total"] for r in roots),
             "completeCount": sum(r["complete"] for r in roots),
+            "inProgressCount": sum(r["in_progress"] for r in roots),
         },
     }
 
@@ -98,22 +111,61 @@ _MODULE_SCRIPT = """
     import { h, render } from 'preact';
     import htm from 'htm';
     import { UnifiedView } from '../assets/components/UnifiedView.js';
+    import { prefs, set as setPref } from '../assets/preferences.js';
 
     const html = htm.bind(h);
     const data = JSON.parse(document.getElementById('page-data').textContent);
 
     // View selection: ?view=map wins, else the persisted pref, else 'tree'. Write the
     // resolved value through to prefs so a ?view= visit updates the saved default.
-    import { prefs, set as setPref } from '../assets/preferences.js';
     const urlView = new URLSearchParams(location.search).get('view');
     const resolved = urlView === 'map' ? 'map'
       : urlView === 'tree' ? 'tree'
       : (prefs.value.mapView || 'tree');
     if (resolved !== prefs.value.mapView) setPref('mapView', resolved);
 
+    // Load-time progress resolution (#279). The baked domains[*].{complete,inProgress} and
+    // stats are the DEMO / no-JS floor. If the user has their OWN overlay (served hosts
+    // only — GET /api/overlay), recompute counts from it and swap. Read-then-swap: keep the
+    // baked floor unless a real overlay actually resolves. Static hosts (GH Pages) 404 the
+    // fetch, so the demo counts stand (Option A: static = display-only demo).
+    async function resolveProgress() {
+      // hasOwnProgress means the user has taken over from the demo; from then on the demo
+      // seed is never shown — an absent/empty overlay yields all-not-started (empty view).
+      const owns = prefs.value.hasOwnProgress === true;
+      let overlay = null;
+      try {
+        const res = await fetch('api/overlay', { headers: { accept: 'application/json' } });
+        if (res.ok) overlay = (await res.json()).overlay || {};
+      } catch (_) { /* static host / no server — keep the demo floor */ }
+
+      // Only override when we have a real signal: either the user owns their progress, or a
+      // non-empty overlay came back. An empty overlay on a non-owning user = show the demo.
+      const hasReal = owns || (overlay && Object.keys(overlay).length > 0);
+      if (!hasReal) {
+        // Demo floor stands. Flag it so the view can offer the takeover action — but only
+        // if the demo actually shows progress (a zero demo has nothing to "take over").
+        const demoHasProgress = data.stats.completeCount > 0 || (data.stats.inProgressCount || 0) > 0;
+        return demoHasProgress;
+      }
+      const map = overlay || {};
+
+      let cComplete = 0, cInProgress = 0;
+      for (const d of data.domains) {
+        const ids = d.topicIds || [];
+        d.complete = ids.filter(id => map[id] === 'complete').length;
+        d.inProgress = ids.filter(id => map[id] === 'in-progress').length;
+        if (d.depth === 0) { cComplete += d.complete; cInProgress += d.inProgress; }
+      }
+      data.stats = { ...data.stats, completeCount: cComplete, inProgressCount: cInProgress };
+      return false;  // real data resolved — no demo banner
+    }
+
+    const showingDemo = await resolveProgress();
+
     render(
       html`<${UnifiedView} domains=${data.domains} edges=${data.edges} islands=${data.islands}
-        stats=${data.stats} mission=${data.mission} />`,
+        stats=${data.stats} mission=${data.mission} showingDemo=${showingDemo} />`,
       document.getElementById('app')
     );
 """
@@ -130,6 +182,13 @@ _CSS_EXTRA = """
       background: var(--bg-elevated); border: 1px solid var(--border);
     }
     .index-cue-resume a:hover { border-color: var(--accent); }
+
+    /* Demo takeover note (#279) */
+    .index-demo-note { font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1rem;
+      display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .index-demo-start { background: none; border: 1px solid var(--border); color: var(--accent);
+      font: inherit; font-size: 0.8rem; cursor: pointer; padding: 0.25rem 0.7rem; border-radius: 6px; }
+    .index-demo-start:hover { border-color: var(--accent); }
 
     /* Tree | Map toggle */
     .view-toggle { display: inline-flex; gap: 0; margin: 0 0 1.5rem; border: 1px solid var(--border);
@@ -152,7 +211,7 @@ _CSS_EXTRA = """
     .indented-tree .ti-twisty { background: none; border: none; color: var(--text-muted);
       cursor: pointer; font-size: 0.7rem; padding: 0 0.2rem; line-height: 1; }
     .indented-tree .ti-title { font-weight: 600; }
-    .indented-tree .ti-stat { font-size: 0.78rem; color: var(--text-faint); }
+    .indented-tree .ti-stat { font-size: 0.78rem; color: var(--text-faint); font-variant-numeric: tabular-nums; }
     .indented-tree .ti-leads { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
     .sc-section-title { font-size: 0.9rem; color: var(--text-muted); margin: 1.5rem 0 0.5rem; }
 
@@ -165,7 +224,7 @@ _CSS_EXTRA = """
       transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box; }
     .im-card:hover, .im-card:focus-visible { border-color: var(--accent); box-shadow: 0 2px 12px rgba(203,166,247,0.12); }
     .im-card h3 { font-size: 0.95rem; margin: 0 0 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
-    .im-card .dc-meta { font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; }
+    .im-card .dc-meta { font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; font-variant-numeric: tabular-nums; }
     .im-card.is-child { border-left: 3px solid var(--accent); }
     .dc-sub-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 3px;
       background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }

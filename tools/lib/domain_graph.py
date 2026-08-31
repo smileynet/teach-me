@@ -17,6 +17,11 @@ to the OUTPUT file (`map_links.map_href` = `os.relpath(target, output_file.paren
 same domain yields a different href per output path — the caller computes it at data-island
 build time. The real MAP.md `path` DOES live in the record because both the overlay-root
 inference and the href depend on the `maps/`-parent rule.
+
+The record also carries `topic_ids` (#279): the ULIDs this domain owns, so a load-time
+overlay read in the browser can recompute counts against the ULID-keyed overlay. The baked
+`complete`/`in_progress` integers remain the demo/no-JS floor — the client overrides them
+only when a real user overlay exists.
 """
 
 from __future__ import annotations
@@ -25,10 +30,10 @@ from pathlib import Path
 
 try:
     from tools.map_parser import load_map
-    from tools.lib.overlay import status_map_for_map
+    from tools.lib.overlay import demo_status_map_for_map as status_map_for_map
 except ModuleNotFoundError:  # tools/ on sys.path directly (script style)
     from map_parser import load_map  # type: ignore[no-redef]
-    from lib.overlay import status_map_for_map  # type: ignore[no-redef]
+    from lib.overlay import demo_status_map_for_map as status_map_for_map  # type: ignore[no-redef]
 
 
 def find_maps(scan_dirs: list[Path]) -> list[Path]:
@@ -83,6 +88,16 @@ def build_domain_graph(paths: list[Path]) -> list[dict]:
             "total": len(dm.topics),
             "complete": sum(1 for t in dm.topics if status_map.get(t.id) == "complete"),
             "in_progress": sum(1 for t in dm.topics if status_map.get(t.id) == "in-progress"),
+            # Client join key (#279): the topic ULIDs this domain owns, so a load-time
+            # overlay read in the browser can recompute counts exactly as this server-side
+            # join does. Baked complete/in_progress stay as the demo/no-JS floor.
+            "topic_ids": [t.id for t in dm.topics],
+            # Demo seed (#279): the resolved {topic_id → status} for topics this domain owns
+            # that are present in the overlay used at generate time. Inlined into the island
+            # so the demo floor travels IN page-data (off-disk) — the client seeds the demo
+            # view from this and clears it on user takeover. Absent/not-started ids omitted
+            # (sparse), matching the overlay contract.
+            "demo_status": {t.id: status_map[t.id] for t in dm.topics if t.id in status_map},
         })
     return records
 
