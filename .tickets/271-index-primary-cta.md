@@ -90,3 +90,13 @@ matching the sibling `DomainCard.js` used by the global map. Minor, consistent v
 - Browser: served index with empty overlay → orientation present; regenerate with an in-progress
   overlay → resume link appears at the right domain.
 - `mise run verify` EXIT 0.
+
+
+## Resolution
+
+Added a single orientation cue to the index between the stats line and domain grid: first-time
+"New here? Pick a domain..." (empty state) XOR "Continue where you left off → {domain}" (progress
+exists), driven by counts already in the island. Surfaced `inProgress` in the DomainCard stat line.
+CSS applied surgically (not regenerated) to preserve committed demo counts. Verified via
+cue-selection fixtures + browser (empty + resume states) + `mise run verify` EXIT 0. Commit 5f2ebdd;
+index-page smoke guard added to verify-interactive.py (commit 1fb147d).
