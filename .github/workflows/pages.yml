@@ -116,8 +116,12 @@ jobs:
           </html>
           HTML
 
-          # Do not publish the private overlay if present.
-          rm -rf _site/library/.user _site/.user 2>/dev/null || true
+          # Do not publish a real user's private overlay. Keep the committed library demo
+          # status-overlay (library/**/.user/status-overlay.json, #278) — it's the ONLY
+          # thing the .gitignore negation commits under library/**/.user/, so on CI's clean
+          # checkout that dir holds only the demo overlay. Regeneration reads it to re-bake
+          # the demo progress counts idempotently; deleting it here would defeat #278.
+          rm -rf _site/.user 2>/dev/null || true
 
           # Bypass Jekyll (serve _-prefixed and .-prefixed files verbatim)
           touch _site/.nojekyll
