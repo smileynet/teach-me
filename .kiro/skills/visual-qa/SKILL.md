@@ -23,6 +23,27 @@ This produces `.scratch/visual-qa/manifest.json` + screenshots per page. If it e
 
 The tool is a *behavioral* check. It answers "does this work?" not "does this look right?"
 
+## Navigation Journey (per-domain)
+
+`mise run visual-qa` exercises components on a page. To verify the cross-page USER JOURNEY
+(does clicking through actually navigate?), run the navigation suite:
+
+```bash
+mise run test:nav
+```
+
+It discovers all library domains from the aggregate index `#page-data` island (no hardcoded
+slugs), self-serves the `library/` root headless, and for EACH domain walks
+aggregate → domain map → a lesson → its quiz → breadcrumb back-nav, plus the index resume
+cue. Navigation is asserted by act-then-verify (click → URL changes → landed `<h1>`), not by
+link-presence. Per-domain pass/fail + screenshots land in `test-results/` (`navigation-report.md`
++ `screenshots/nav-*`). Exit 0 = every domain's journey navigates correctly.
+
+NOT in core `mise run verify` (slower browser journey) — run it after nav/breadcrumb/map/quiz
+changes, or when adding a domain. The two-view Tree|Map toggle + tree keyboard model are
+covered separately by `mise run verify`'s interactive gate (`index_two_view_toggle`,
+`index_tree_keyboard`).
+
 ## Feature-Specific Visual Review
 
 After building or modifying a specific feature, run the tool with `--focus` to scope screenshots, then analyze those screenshots against the feature's design intent.
