@@ -36,6 +36,16 @@ under budget. Linked from AGENTS.md.
 - **Blender bpy `img.save()` SILENTLY fails** (no error, no file) when `img.filepath_raw` is a RELATIVE
   path in headless mode. Always `Path(outdir).resolve()` to an absolute path before assigning
   `filepath_raw`, and set `img.file_format` explicitly. Hit by every bake script (#219/#220/#221).
+- **glTF has NO per-image color-space flag** — Godot infers it from the material SLOT (baseColor/emissive
+  → sRGB; normal/metallicRoughness/occlusion → linear). A control/data map (noise, threshold) has no
+  correct slot, so NEVER embed it in a glTF (an sRGB slot corrupts it; a `.glb`-embedded texture has no
+  `.import` to fix) — ship data maps as separate Non-Color PNGs.
+
+## Godot shader track
+
+- **`light()` ATTENUATION is a float combining distance falloff AND shadow state** (0.0 = fully shadowed,
+  1.0 = fully lit at range) — NOT just distance. The `+ (ATTENUATION - 1.0)` pattern (FlexibleToonShader)
+  bakes both into the banding calc.
 
 ## Ink / Godot track
 
@@ -68,3 +78,11 @@ under budget. Linked from AGENTS.md.
   session — line counts, hash compares, `$_`-in-catch). Prefer `.venv\Scripts\python.exe -c`,
   `git`, or the grep/read tools for anything with variables; reserve PowerShell for simple
   single-expression calls. Never use `$_` inside a `catch {}` in a `-Command` string.
+
+## GitHub Pages CI / deploy
+
+- **GitHub Pages rejects symlinks in deploy artifacts** — use `cp -rL` (dereference) when assembling
+  `_site/` or `upload-pages-artifact` fails.
+- **GitHub Pages environment rules reject deploys from tag refs** — only `main` is allowed. Trigger on
+  push to main with a tag-detection step (`git tag --points-at HEAD`), skip build+deploy if no `v*` tag;
+  `workflow_dispatch` always works. Do NOT trigger from `on: push: tags:`.

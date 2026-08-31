@@ -115,7 +115,7 @@ Lesson-authoring rules (page-shell.js, narrative framing around code blocks, dow
 
 ## Environment
 
-Deep track-specific gotchas (Blender bake internals, inkgd cache noise, transcript UTF-8, Windows Python quirks) live in `.memory/specs/environment-gotchas.md`. Always-on facts:
+Deep track-specific gotchas (Blender bake internals, inkgd cache noise, transcript UTF-8, Windows Python quirks, Godot shader coordinate/lighting traps, glTF color-space, GitHub-Pages CI/deploy) live in `.memory/specs/environment-gotchas.md`. Always-on facts:
 
 - Codex sandbox (bwrap) fails: `bwrap: loopback: Failed RTM_NEWADDR`. Use `codex exec --dangerously-bypass-approvals-and-sandbox`.
 - Playwright MCP requires headless mode (no X server).
@@ -123,13 +123,9 @@ Deep track-specific gotchas (Blender bake internals, inkgd cache noise, transcri
 - Mise shim recursion: `mise run` may fail with "recursive shim invocation detected". Workaround: invoke `.venv\Scripts\python.exe` directly instead of `python` or `mise run`.
 - PowerShell mangles complex inline shell-arg strings — inline JSON (`curl -d '{...}'`), `->`, backslashes, and long `git commit -m`/`tkt close --resolution` bodies get corrupted or misparsed. Use a file instead: `--data "@body.json"` for curl; `git commit -F msg.txt`; write long ticket resolutions to a temp file. Confirmed 3x (curl status POST, commit `->` arrows, tkt close).
 - serve.py serves ONE workspace at a time. To view a different domain, restart: `mise run serve -- --workspace library/{domain}`. Git symlinks on Windows are text files — serve.py mounts `/assets` from project root automatically (no junctions). Serving a multi-domain root (`library/`, the fresh-clone default) works: serve.py normalizes any-depth `**/assets` + nested `index.html` back-links to the shared root (ADR-0015 unifying root, #198). Pages stay document-relative (`../assets`) — never root-relative `/assets` (breaks anchors/SVG under GitHub project-page `<base>`).
-- glTF has NO per-image color-space flag — Godot infers it from the material SLOT (baseColor/emissive → sRGB; normal/metallicRoughness/occlusion → linear). A control/data map (noise, threshold) has no correct slot, so NEVER embed it in a glTF (an sRGB slot corrupts it; a `.glb`-embedded texture has no `.import` to fix) — ship data maps as separate Non-Color PNGs.
 - All Preact packages must resolve to ONE instance or signals silently stop triggering re-renders. Vendored locally in `assets/vendor/` (import map resolves it); on a CDN (esm.sh) add `?external=preact`.
-- GitHub Pages rejects symlinks in deploy artifacts — use `cp -rL` (dereference) when assembling `_site/` or `upload-pages-artifact` fails.
-- GitHub Pages environment rules reject deploys from tag refs — only `main` is allowed. Trigger on push to main with a tag-detection step (`git tag --points-at HEAD`), skip build+deploy if no `v*` tag; `workflow_dispatch` always works. Do NOT trigger from `on: push: tags:`.
 - FOUC prevention: a synchronous `<script>` in `<head>` (currently `typography-prefs.js`) reads prefs from localStorage and applies CSS custom properties BEFORE CSS paints. Must stay blocking/in-head — deferring it reintroduces the flash.
-- Regenerating a committed library page (`index:generate`, `map:global`) re-bakes progress counts from `.user/status-overlay.json` — which is gitignored (and deleted at deploy), so on a clean checkout the overlay is empty and counts re-bake to 0, CLOBBERING committed demo progress (ink 3/8, iceberg 2/7, godot 2/8). Until #278 commits a library demo overlay, do NOT regenerate committed library pages to pick up unrelated changes — patch surgically instead (the #271 lesson). Verify a diff has zero page-data/count changes before committing a regen.
-- Godot `light()` ATTENUATION is a float combining distance falloff AND shadow state (0.0 = fully shadowed, 1.0 = fully lit at range) — NOT just distance. The `+ (ATTENUATION - 1.0)` pattern (FlexibleToonShader) bakes both into the banding calc.
+- Regenerating a committed library page (`index:generate`, `map:global`) re-bakes progress counts from `.user/status-overlay.json`. #278 committed a demo overlay under `library/**/.user/` (un-gitignored, kept at deploy), so regen is now IDEMPOTENT — counts re-bake to the committed values (ink 3/8, iceberg 2/7, godot 2/8), not 0. Still verify a regen diff before committing; a future move to load-time overlay reads is tracked in #279.
 
 ## Skill Format (kiro-cli)
 
