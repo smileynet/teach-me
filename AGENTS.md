@@ -130,6 +130,7 @@ Deep track-specific gotchas (Blender bake internals, inkgd cache noise, transcri
 - GitHub Pages rejects symlinks in deploy artifacts — use `cp -rL` (dereference) when assembling `_site/` or `upload-pages-artifact` fails.
 - GitHub Pages environment rules reject deploys from tag refs — only `main` is allowed. Trigger on push to main with a tag-detection step (`git tag --points-at HEAD`), skip build+deploy if no `v*` tag; `workflow_dispatch` always works. Do NOT trigger from `on: push: tags:`.
 - FOUC prevention: a synchronous `<script>` in `<head>` (currently `typography-prefs.js`) reads prefs from localStorage and applies CSS custom properties BEFORE CSS paints. Must stay blocking/in-head — deferring it reintroduces the flash.
+- Regenerating a committed library page (`index:generate`, `map:global`) re-bakes progress counts from `.user/status-overlay.json` — which is gitignored (and deleted at deploy), so on a clean checkout the overlay is empty and counts re-bake to 0, CLOBBERING committed demo progress (ink 3/8, iceberg 2/7, godot 2/8). Until #278 commits a library demo overlay, do NOT regenerate committed library pages to pick up unrelated changes — patch surgically instead (the #271 lesson). Verify a diff has zero page-data/count changes before committing a regen.
 - Godot `light()` ATTENUATION is a float combining distance falloff AND shadow state (0.0 = fully shadowed, 1.0 = fully lit at range) — NOT just distance. The `+ (ATTENUATION - 1.0)` pattern (FlexibleToonShader) bakes both into the banding calc.
 
 ## Skill Format (kiro-cli)
