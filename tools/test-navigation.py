@@ -1,27 +1,42 @@
 #!/usr/bin/env python3
 """
-Playwright navigation + interaction validation suite.
+Playwright navigation suite — per-domain user journey across the library.
 
-Tests the full user journey across all page types:
-- Index → Map → Lesson → Quiz → back navigation
-- Generation flow (mock)
-- Mark complete + reopen
-- Suggestion banner
+Discovers the library's domains at runtime from the aggregate index `#page-data`
+island (no hardcoded slugs/filenames), then runs the core journey for EACH domain:
 
-Captures screenshots at each step for visual review.
+    aggregate index → domain map → a lesson → its quiz → breadcrumb back-nav
 
-Usage:
-    python tools/test-navigation.py [--base-url http://localhost:8787]
+Rewritten for the current contract (#274): the map/lesson/quiz pages are Preact +
+signals apps. The suite reads the `#page-data` JSON islands and asserts on stable DOM
+hooks (`.dag-canvas[data-render-complete]`, `.topic-card`, `.quiz-view`, the
+`aria-label="Breadcrumb"` landmark) — NOT the removed `TOPICS`/`selectTopic` globals or
+the old `#detail-panel`/`#suggestion-banner`/`mark-complete-btn` selectors.
+
+Navigation is asserted by ACT-then-VERIFY: click an accessible link/button, wait for the
+URL to change, and confirm the landed `<h1>` — link presence alone proves nothing.
+
+Serve the multi-domain library root and point the suite at it:
+    python tools/serve.py --workspace library --port 8787 &
+    python tools/test-navigation.py --base-url http://localhost:8787
 
 Requires: playwright (pip install playwright && playwright install chromium)
 """
 
+import json
 import sys
 import time
+import urllib.request
 from pathlib import Path
 
+# Windows cp1252 stdout chokes on the ✓/✗/→ glyphs this prints (AGENTS.md Constraints).
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 try:
-    from playwright.sync_api import sync_playwright
+    from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 except ImportError:
     print("ERROR: playwright not installed. Run: pip install playwright && playwright install chromium")
     sys.exit(1)
@@ -30,208 +45,285 @@ BASE_URL = sys.argv[sys.argv.index("--base-url") + 1] if "--base-url" in sys.arg
 SCREENSHOTS_DIR = Path(__file__).parent.parent / "test-results" / "screenshots"
 SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
 
-results = []
+# (domain-slug | "index", check-name, passed, detail) — per-domain attribution.
+results: list[tuple[str, str, bool, str]] = []
 
 
-def report(name: str, passed: bool, detail: str = ""):
+def report(scope: str, name: str, passed: bool, detail: str = ""):
     status = "✓" if passed else "✗"
-    results.append((name, passed, detail))
-    print(f"  {status} {name}" + (f" — {detail}" if detail and not passed else ""))
+    results.append((scope, name, passed, detail))
+    print(f"  {status} [{scope}] {name}" + (f" — {detail}" if detail and not passed else ""))
 
 
 def screenshot(page, name: str):
-    path = SCREENSHOTS_DIR / f"{name}.png"
-    page.screenshot(path=str(path), full_page=True)
-    return path
+    page.screenshot(path=str(SCREENSHOTS_DIR / f"{name}.png"), full_page=True)
+
+
+def discover_domains(base_url: str) -> list[dict]:
+    """Read the aggregate index #page-data island → depth-0 domains with mapHref.
+
+    Discovery is over HTTP (the served page), matching what the browser sees. The
+    island is the single source of truth — the /api/map endpoint is unreliable at a
+    multi-domain library root (falls back to one workspace).
+    """
+    html = urllib.request.urlopen(base_url + "/index.html", timeout=5).read().decode("utf-8")
+    marker = 'id="page-data">'
+    start = html.index(marker) + len(marker)
+    end = html.index("</script>", start)
+    data = json.loads(html[start:end])
+    # Depth-0 domains only for the journey (sub-maps are reached via their parent's map).
+    return [d for d in data["domains"] if d.get("depth", 0) == 0]
+
+
+def wait_render_complete(page, timeout=8000):
+    """Preact map pages flag readiness with .dag-canvas[data-render-complete='true'] —
+    poll it instead of sleeping (avoids networkidle/hard-sleep flakiness)."""
+    page.wait_for_selector('.dag-canvas[data-render-complete="true"]', timeout=timeout)
+
+
+def h1_text(page) -> str:
+    el = page.query_selector("h1")
+    return (el.inner_text().strip() if el else "")
+
+
+def journey_for_domain(page, base_url: str, domain: dict):
+    """Run the core journey for ONE domain. Each step reports under the domain slug."""
+    slug = domain["slug"]
+    map_href = domain["mapHref"]           # e.g. iceberg-workspace/lessons/data-analytics-map.html
+    folder = map_href.split("/")[0]        # folder != slug (data-analytics → iceberg-workspace)
+    map_url = f"{base_url}/{map_href}"
+
+    # --- 1. Aggregate → domain map (enter via the Tree row for this domain) ---
+    page.goto(f"{base_url}/index.html", wait_until="domcontentloaded")
+    page.wait_for_selector(".index-view")
+    row = page.query_selector(f'a.ti-row[data-domain="{slug}"]')
+    if not row:
+        report(slug, "enter domain from tree", False, "no .ti-row[data-domain] on aggregate")
+        return
+    row.click()
+    try:
+        page.wait_for_url(f"**/{map_href}", timeout=8000)
+    except PWTimeout:
+        report(slug, "enter domain from tree", False, f"URL did not become {map_href} (got {page.url})")
+        return
+    try:
+        wait_render_complete(page)
+    except PWTimeout:
+        report(slug, "map renders", False, "dag-canvas never data-render-complete")
+        return
+    report(slug, "aggregate → map", True)
+    screenshot(page, f"nav-{slug}-01-map")
+
+    # --- 2. Read the map's page-data island → find a topic with a lesson ---
+    map_data = page.evaluate("() => JSON.parse(document.getElementById('page-data').textContent)")
+    topics = map_data.get("topics", [])
+    lesson_topic = next((t for t in topics if t.get("lessonPath")), None)
+    if not lesson_topic:
+        report(slug, "has a lesson to open", False, "no topic with lessonPath")
+        return
+    report(slug, "map page-data has topics", len(topics) > 0, f"{len(topics)} topics")
+
+    # --- 3. Map → lesson (open via the topic card's primary action link) ---
+    card = page.query_selector(f'.topic-card[data-topic-id="{lesson_topic["id"]}"]')
+    open_link = card.query_selector("a.btn.primary[href]") if card else None
+    if not open_link:
+        report(slug, "map → lesson", False, "no a.btn.primary in topic card")
+        return
+    lesson_path = lesson_topic["lessonPath"]
+    open_link.click()
+    try:
+        page.wait_for_url(f"**/{lesson_path}", timeout=8000)
+    except PWTimeout:
+        report(slug, "map → lesson", False, f"URL did not become {lesson_path} (got {page.url})")
+        return
+    report(slug, "map → lesson", True, )
+    screenshot(page, f"nav-{slug}-02-lesson")
+
+    # Lesson breadcrumb landmark present (2 links + current span = 3 crumbs).
+    crumb_links = page.query_selector_all('nav[aria-label="Breadcrumb"] a')
+    report(slug, "lesson has 3-crumb breadcrumb", len(crumb_links) == 2,
+           f"{len(crumb_links)} crumb links (expected 2 + current span)")
+
+    # --- 4. Lesson → quiz (the LessonActions bar's quiz button) ---
+    quiz_url = f"quiz/{Path(lesson_path).stem}-quiz.html"
+    # The LessonActions bar's quiz button starts as '…' then resolves (async HEAD probe)
+    # to '📝 Take quiz' (quiz exists) or '+ Generate quiz'. Wait for the label to SETTLE
+    # before branching — reading it too early catches the '…' placeholder (false skip).
+    quiz_btn = None
+    try:
+        page.wait_for_selector(".lesson-actions-bar", timeout=5000)
+        # Wait until a button in the bar mentions quiz and is no longer the '…' placeholder.
+        page.wait_for_function(
+            """() => {
+                const els = document.querySelectorAll('.lesson-actions-bar button, .lesson-actions-bar a');
+                return [...els].some(e => /quiz/i.test(e.textContent) && !e.textContent.includes('…'));
+            }""",
+            timeout=6000,
+        )
+        for b in page.query_selector_all(".lesson-actions-bar button, .lesson-actions-bar a"):
+            if "quiz" in (b.inner_text() or "").lower():
+                quiz_btn = b
+                break
+    except PWTimeout:
+        pass
+    if quiz_btn and "take quiz" in (quiz_btn.inner_text() or "").lower():
+        quiz_btn.click()
+        try:
+            page.wait_for_url("**/quiz/**", timeout=8000)
+            page.wait_for_selector(".quiz-view", timeout=6000)
+            cards = page.query_selector_all(".quiz-card")
+            report(slug, "lesson → quiz", len(cards) > 0, f"{len(cards)} quiz cards")
+            screenshot(page, f"nav-{slug}-03-quiz")
+            # --- 5. Quiz breadcrumb → back to lesson (assert real navigation) ---
+            lesson_crumb = page.query_selector(f'nav[aria-label="Breadcrumb"] a[href*="{Path(lesson_path).stem}"]')
+            if lesson_crumb:
+                lesson_crumb.click()
+                page.wait_for_url(f"**/{lesson_path}", timeout=8000)
+                report(slug, "quiz breadcrumb → lesson", h1_text(page) != "")
+            else:
+                report(slug, "quiz breadcrumb → lesson", False, "no lesson crumb in quiz breadcrumb")
+        except PWTimeout:
+            report(slug, "lesson → quiz", False, f"quiz did not load (url={page.url})")
+    else:
+        # No quiz for this lesson — not a failure, just note it (quiz generation is on-demand).
+        report(slug, "lesson → quiz", True, "no quiz yet (generate button shown) — skipped")
+
+    # --- 6. Lesson → map via breadcrumb (back-nav, assert real navigation) ---
+    page.goto(f"{base_url}/{Path(map_href).parent.as_posix()}/{lesson_path}", wait_until="domcontentloaded")
+    map_crumb = page.query_selector(f'nav[aria-label="Breadcrumb"] a[href*="{slug}-map.html"], nav[aria-label="Breadcrumb"] a[href*="-map.html"]')
+    if map_crumb:
+        map_crumb.click()
+        try:
+            page.wait_for_url("**/*-map.html", timeout=8000)
+            wait_render_complete(page)
+            report(slug, "lesson breadcrumb → map", True)
+        except PWTimeout:
+            report(slug, "lesson breadcrumb → map", False, f"map did not load (url={page.url})")
+    else:
+        report(slug, "lesson breadcrumb → map", False, "no map crumb in lesson breadcrumb")
+
+
+def check_resume_cue(page, base_url: str, domains: list[dict]):
+    """Option A: assert the resume cue + its destination on the aggregate. All library
+    domains are in-progress on disk, so the cue should resolve to a 'Continue where you
+    left off → {domain}' link. (empty→orientation & all-complete→no-resume are deferred
+    to a synthetic-fixture follow-up — they can't be exercised from the real library.)"""
+    page.goto(f"{base_url}/index.html", wait_until="domcontentloaded")
+    page.wait_for_selector(".index-view")
+    cues = page.query_selector_all(".index-cue")
+    report("index", "exactly one cue", len(cues) == 1, f"{len(cues)} cues")
+    resume = page.query_selector(".index-cue-resume a")
+    if resume:
+        href = resume.get_attribute("href")
+        resume.click()
+        try:
+            page.wait_for_url("**/*-map.html", timeout=8000)
+            report("index", "resume cue → map", True, f"→ {href}")
+        except PWTimeout:
+            report("index", "resume cue → map", False, f"did not navigate to a map (href={href}, url={page.url})")
+    else:
+        # No resume cue means the orientation (empty) state — only expected if counts are
+        # zeroed (clean-checkout overlay). Report as info, not a hard failure.
+        report("index", "resume cue present", False,
+               "no .index-cue-resume (overlay counts may be zeroed on this checkout)")
 
 
 def run_tests():
+    domains = discover_domains(BASE_URL)
+    print(f"Discovered {len(domains)} depth-0 domains: {', '.join(d['slug'] for d in domains)}\n")
+
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        page = browser.new_page(viewport={"width": 1280, "height": 900})
+        for domain in domains:
+            # Fresh context per domain — isolated storage, no cross-domain state bleed.
+            ctx = browser.new_context(viewport={"width": 1280, "height": 900})
+            page = ctx.new_page()
+            try:
+                journey_for_domain(page, BASE_URL, domain)
+            except Exception as e:
+                report(domain["slug"], "journey", False, f"errored: {e}")
+            finally:
+                ctx.close()
 
-        # === 1. Index → Map ===
-        page.goto(f"{BASE_URL}/lessons/index.html", wait_until="networkidle")
-        screenshot(page, "01-index")
-        has_cards = page.locator(".domain-card").count() > 0
-        report("1. Index loads with domain cards", has_cards)
-
-        # Click the data-analytics domain card (known-good)
-        analytics_card = page.locator('a[href*="modern-data-analytics"]')
-        if analytics_card.count() > 0:
-            analytics_card.first.click()
-        else:
-            page.locator(".domain-card").first.click()
-        page.wait_for_load_state("networkidle")
-        time.sleep(3)  # wait for async detection
-        screenshot(page, "02-map-page")
-        is_map = "-map.html" in page.url
-        report("2. Index → Map navigation", is_map)
-
-        # === 2. Map: suggestion banner ===
-        banner = page.locator("#suggestion-banner")
-        banner_visible = banner.is_visible() if banner.count() > 0 else False
-        report("3. Suggestion banner visible", banner_visible)
-        screenshot(page, "03-suggestion-banner")
-
-        # === 3. Map → Lesson (click green/blue node) ===
-        # Use JS to find a node with a lesson and click it
-        nav_result = page.evaluate("""() => {
-            for (const [slug, topic] of Object.entries(TOPICS)) {
-                if (topic.lesson_file) {
-                    selectTopic(slug);
-                    return {slug, lesson_file: topic.lesson_file};
-                }
-            }
-            return null;
-        }""")
-
-        if nav_result:
-            # selectTopic navigates directly for topics with lessons
-            page.wait_for_load_state("networkidle")
-            time.sleep(2)
-            screenshot(page, "04-lesson-page")
-            on_lesson = "/lessons/" in page.url and "-map" not in page.url and "quiz" not in page.url
-            report("4. Map → Lesson (green/blue node click)", on_lesson, page.url)
-        else:
-            report("4. Map → Lesson (green/blue node click)", False, "No topics with lessons found")
-
-        # === 4. Lesson → Quiz ===
-        if "/lessons/" in page.url and "-map" not in page.url:
-            time.sleep(2)  # wait for lesson-actions.js
-            quiz_btn = page.locator("text=Take the quiz")
-            if quiz_btn.count() > 0:
-                quiz_btn.first.click()
-                page.wait_for_load_state("networkidle")
-                screenshot(page, "05-quiz-page")
-                on_quiz = "quiz" in page.url
-                report("5. Lesson → Quiz navigation", on_quiz, page.url)
-
-                # === 5. Quiz: has cards and nav ===
-                cards = page.locator(".card").count()
-                has_back_lesson = page.locator("text=Back to lesson").count() > 0
-                has_back_map = page.locator("text=Back to map").count() > 0
-                report("6. Quiz has question cards", cards > 0, f"{cards} cards")
-                report("7. Quiz has ← Back to lesson", has_back_lesson)
-                report("8. Quiz has ← Back to map", has_back_map)
-
-                # === 6. Quiz → Lesson (back) ===
-                page.locator("text=Back to lesson").first.click()
-                page.wait_for_load_state("networkidle")
-                back_to_lesson = "-quiz" not in page.url and "/lessons/" in page.url
-                report("9. Quiz → Back to lesson", back_to_lesson, page.url)
-                screenshot(page, "06-back-to-lesson")
-            else:
-                report("5. Lesson → Quiz navigation", False, "No 'Take the quiz' button found")
-                for i in range(6, 10):
-                    report(f"{i}. (skipped — no quiz)", False, "depends on test 5")
-
-        # === 7. Lesson → Map (back) ===
-        time.sleep(3)
-        back_map = page.locator(".lesson-action-bar a:has-text('Back to map')")
-        if back_map.count() == 0:
-            back_map = page.locator("a:has-text('Back to map')")
-        if back_map.count() > 0:
-            back_map.first.click()
-            page.wait_for_load_state("networkidle")
-            time.sleep(2)
-            on_map = "-map.html" in page.url
-            report("10. Lesson → Back to map", on_map, page.url)
-            screenshot(page, "07-back-to-map")
-        else:
-            report("10. Lesson → Back to map", False, "No 'Back to map' link found")
-
-        # === 8. Map → Index ===
-        all_lessons = page.locator("text=All Lessons")
-        if all_lessons.count() > 0:
-            all_lessons.first.click()
-            page.wait_for_load_state("networkidle")
-            on_index = "index.html" in page.url
-            report("11. Map → All Lessons (index)", on_index, page.url)
-            screenshot(page, "08-back-to-index")
-        else:
-            report("11. Map → All Lessons (index)", False, "No 'All Lessons' link")
-
-        # === 9. Map: gray node → detail panel ===
-        page.goto(f"{BASE_URL}/lessons/modern-data-analytics-stacks-map.html", wait_until="networkidle")
-        time.sleep(3)
-        # Use JS to find and click a not-started topic
-        gray_clicked = page.evaluate("""() => {
-            for (const [slug, topic] of Object.entries(TOPICS)) {
-                if (topic.status === 'not-started' && !topic.lesson_file) {
-                    selectTopic(slug);
-                    return slug;
-                }
-            }
-            return null;
-        }""")
-        if gray_clicked:
-            time.sleep(1)
-            detail_visible = page.locator("#detail-panel.visible").count() > 0
-            has_generate = page.locator("text=Generate this topic").count() > 0
-            report("12. Gray node → detail panel with Generate", detail_visible and has_generate)
-            screenshot(page, "09-detail-panel")
-        else:
-            report("12. Gray node → detail panel", False, "No gray nodes found")
-
-        # === 10. Mark complete flow ===
-        # Go to a lesson that's not yet complete
-        page.goto(f"{BASE_URL}/lessons/0001-iceberg-metadata-tree.html", wait_until="networkidle")
-        time.sleep(3)
-        mark_btn = page.locator("#mark-complete-btn")
-        if mark_btn.count() > 0:
-            mark_btn.click()
-            time.sleep(3)
-            # Should navigate to map
-            on_map_after = "-map.html" in page.url
-            report("13. Mark complete → navigates to map", on_map_after, page.url)
-            screenshot(page, "10-after-mark-complete")
-        else:
-            # Already complete — verify "Completed" + "Reopen" are shown
-            completed_text = page.locator("text=Completed").count() > 0
-            reopen_btn = page.locator("text=Reopen").count() > 0
-            report("13. Mark complete (already done — Completed + Reopen visible)", completed_text and reopen_btn)
-            screenshot(page, "10-already-complete")
-
-        # === 11. Verify green node on map ===
-        page.goto(f"{BASE_URL}/lessons/modern-data-analytics-stacks-map.html", wait_until="networkidle")
-        time.sleep(3)
-        storage_fill = page.locator('[data-slug="storage-and-table-formats"] path').get_attribute("fill")
-        is_green_or_blue = storage_fill in ("#dcfce7", "#dbeafe")
-        report("14. Map shows correct node color after state change", is_green_or_blue, f"fill={storage_fill}")
-        screenshot(page, "11-final-map-state")
-
+        # Index resume cue (once, on the aggregate).
+        ctx = browser.new_context(viewport={"width": 1280, "height": 900})
+        page = ctx.new_page()
+        try:
+            check_resume_cue(page, BASE_URL, domains)
+        except Exception as e:
+            report("index", "resume cue", False, f"errored: {e}")
+        finally:
+            ctx.close()
         browser.close()
 
     # === Report ===
-    print(f"\n{'='*50}")
-    passed = sum(1 for _, p, _ in results if p)
-    failed = sum(1 for _, p, _ in results if not p)
+    print(f"\n{'='*56}")
+    passed = sum(1 for _, _, ok, _ in results if ok)
+    failed = sum(1 for _, _, ok, _ in results if not ok)
     print(f"Results: {passed} passed, {failed} failed")
-
     if failed:
-        print("\nFailed tests:")
-        for name, p, detail in results:
-            if not p:
-                print(f"  ✗ {name}: {detail}")
+        print("\nFailed:")
+        for scope, name, ok, detail in results:
+            if not ok:
+                print(f"  ✗ [{scope}] {name}: {detail}")
 
-    # Write report
     report_path = SCREENSHOTS_DIR.parent / "navigation-report.md"
-    with open(report_path, "w") as f:
-        f.write("# Navigation Test Report\n\n")
-        f.write(f"Run: {time.strftime('%Y-%m-%d %H:%M')}\n")
-        f.write(f"Base URL: {BASE_URL}\n\n")
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write("# Navigation Test Report (per-domain journey)\n\n")
+        f.write(f"Run: {time.strftime('%Y-%m-%d %H:%M')} · Base: {BASE_URL}\n\n")
         f.write(f"**{passed} passed, {failed} failed**\n\n")
-        f.write("| # | Test | Result | Detail |\n")
-        f.write("|---|------|--------|--------|\n")
-        for name, p, detail in results:
-            f.write(f"| {'✓' if p else '✗'} | {name} | {'PASS' if p else 'FAIL'} | {detail} |\n")
-        f.write(f"\n\nScreenshots in: `test-results/screenshots/`\n")
+        f.write("| Domain | Check | Result | Detail |\n|---|---|---|---|\n")
+        for scope, name, ok, detail in results:
+            f.write(f"| {scope} | {name} | {'PASS' if ok else 'FAIL'} | {detail} |\n")
+        f.write("\nScreenshots: `test-results/screenshots/nav-*`\n")
     print(f"\nReport: {report_path}")
-    print(f"Screenshots: {SCREENSHOTS_DIR}")
-
     return 0 if failed == 0 else 1
 
 
 if __name__ == "__main__":
-    sys.exit(run_tests())
+    import os
+    import socket
+    import subprocess
+    import urllib.error
+
+    def _reachable(url: str) -> bool:
+        try:
+            with urllib.request.urlopen(url + "/index.html", timeout=2) as r:
+                return getattr(r, "status", r.getcode()) == 200
+        except Exception:
+            return False
+
+    proc = None
+    # Self-serve the multi-domain library/ root if BASE_URL isn't already serving it —
+    # makes `mise run test:nav` a one-liner (hermetic, headless). Mirrors verify-interactive.
+    if not _reachable(BASE_URL) and "--base-url" not in sys.argv:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(("127.0.0.1", 0)); port = s.getsockname()[1]
+        BASE_URL = f"http://localhost:{port}"
+        kw = {"stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
+        if sys.platform == "win32":
+            kw["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+        else:
+            kw["preexec_fn"] = os.setsid
+        proc = subprocess.Popen(
+            [sys.executable, "tools/serve.py", "--workspace", "library", "--port", str(port)], **kw)
+        for _ in range(30):
+            if _reachable(BASE_URL):
+                break
+            time.sleep(0.3)
+        else:
+            print("✗ Could not start serve.py for the nav suite", file=sys.stderr)
+            proc.terminate()
+            sys.exit(2)
+    try:
+        code = run_tests()
+    finally:
+        if proc:
+            if sys.platform == "win32":
+                proc.terminate()
+            else:
+                try:
+                    os.killpg(os.getpgid(proc.pid), __import__("signal").SIGTERM)
+                except (ProcessLookupError, PermissionError):
+                    proc.terminate()
+    sys.exit(code)

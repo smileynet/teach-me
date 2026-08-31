@@ -265,6 +265,11 @@ description = "Play through all .ink stories to verify they reach an ending (cat
 depends = ["setup"]
 run = "python tools/play-ink.py --dir ink-test-project/stories"
 
+[tasks."test:nav"]
+description = "Per-domain Playwright navigation journey (aggregate → map → lesson → quiz → back-nav) over all library domains. Self-serves the library/ root headless. NOT in core verify (slower browser journey)."
+depends = ["setup"]
+run = "python tools/test-navigation.py"
+
 [tasks."ink:transcripts"]
 description = "Replay committed golden .transcript fixtures and diff (catches wrong-output bugs). Capture: mise run ink:transcripts -- --story NN_name.ink --choices 0,1,2"
 depends = ["setup"]
