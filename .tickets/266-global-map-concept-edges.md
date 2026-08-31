@@ -28,8 +28,9 @@ networks go near-complete and thresholds are unstable → high false-positive ri
 - `tools/cross_domain_edges.py`: detect shared-concept overlap + first-mention prereq
   bridges across domains; emit candidate edges with evidence + confidence.
 - High confidence threshold; sub-threshold links shown as unverified suggestions only.
-- Render suggestion edges distinctly in GlobalMapView (dashed/muted, hover-to-explain,
-  "confirm" affordance).
+- Render suggestion edges distinctly in the Map view — `IteratedMapView` (the unified
+  page's Map, #276; GlobalMapView was retired) — dashed/muted, hover-to-explain,
+  "confirm" affordance.
 
 ## Acceptance criteria
 

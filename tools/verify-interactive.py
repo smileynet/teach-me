@@ -56,12 +56,19 @@ def _terminate_server(proc: "subprocess.Popen") -> None:
 
 
 # Lesson pages we probe to (a) validate a server serves this project's content and
-# (b) pick a test target. Workspace-root paths first, then example-workspace paths.
+# (b) pick a test target. Ordering: workspace-root paths (serve.py on a single workspace),
+# then library-root-relative paths (serve.py on the multi-domain library/ root — the gate's
+# default → contents exposed at /{domain}/..., no /library/ prefix), then project-root paths.
 _CANDIDATE_PAGES = [
     "/lessons/0001-esoteric-ebb-breakdown.html",
     "/lessons/0002-blender-npr-shaders.html",
     "/lessons/blender-texture-prep/01-texture-audit.html",
     "/lessons/0004-toon-banding.html",
+    # library/ root serve (gate default): contents at /{domain}/... . Prefer the iceberg
+    # metadata lesson — it has glossary .term spans + a diagram, so tooltip_hover +
+    # svg_diagrams_visible have something to assert (a term-less page would fail them).
+    "/iceberg-workspace/lessons/0001-iceberg-metadata-tree.html",
+    "/godot-gamedev/lessons/0004-toon-banding.html",
     "/library/iceberg-workspace/lessons/0001-iceberg-metadata-tree.html",
     "/library/oidc-rust/lessons/0001-oidc-auth-flows.html",
 ]
@@ -108,8 +115,10 @@ def run_checks(page, url: str) -> list[dict]:
     """Run all interactive checks, return list of {name, pass, detail}."""
     checks = []
     console_errors = []
+    failed_requests = []
 
     page.on("console", lambda msg: console_errors.append(msg.text) if msg.type == "error" else None)
+    page.on("response", lambda r: failed_requests.append(r.url) if r.status >= 400 else None)
 
     page.goto(url, wait_until="networkidle")
 
@@ -275,7 +284,25 @@ def run_checks(page, url: str) -> list[dict]:
     })
 
     # 8. No JS errors (ignore favicon 404 and quiz 404)
-    real_errors = [e for e in console_errors if "favicon" not in e.lower() and "quiz" not in e.lower()]
+    # 8. No JS errors. Ignore: favicon + quiz 404s (expected), and the LessonActions
+    # status probe (/api/map/{domain}/{slug}/status) — the gate serves the multi-domain
+    # library/ ROOT, where serve.py only mounts one workspace's /api, so a lesson under a
+    # NON-mounted domain 404s that probe. That's a known serve.py multi-domain limitation,
+    # not a page defect (the status bar degrades gracefully). Only suppress the resource-load
+    # console errors if EVERY unexpected failed request is such a status probe — so a REAL
+    # 404 (missing asset/module) is never masked. Match by URL (precise).
+    def _expected_fail(u: str) -> bool:
+        lu = u.lower()
+        if "favicon" in lu or "quiz" in lu:
+            return True
+        return "/api/map/" in u and u.rstrip("/").endswith("/status")
+    only_expected_fails = all(_expected_fail(u) for u in failed_requests)
+    real_errors = [
+        e for e in console_errors
+        if "favicon" not in e.lower()
+        and "quiz" not in e.lower()
+        and not (only_expected_fails and "failed to load resource" in e.lower())
+    ]
     checks.append({
         "name": "no_js_errors",
         "pass": len(real_errors) == 0,
@@ -285,8 +312,9 @@ def run_checks(page, url: str) -> list[dict]:
     return checks
 
 
-# Index pages we probe (domain-workspace serve → /lessons/index.html; multi-domain
-# root serve → /index.html). The gate serves library/godot-gamedev, so the first hits.
+# Index pages we probe. The gate serves the multi-domain library/ ROOT, where serve.py
+# normalizes /lessons/index.html back to the root /index.html (ADR-0015) — the unified
+# #276 two-view aggregate. So the first candidate that 200s is the unified page.
 _INDEX_PAGES = ["/lessons/index.html", "/index.html", "/library/index.html"]
 
 
@@ -366,6 +394,59 @@ def run_index_checks(page, url: str) -> list[dict]:
                       else f"tree_default={tree_default} map_shown={map_shown} tree_back={tree_back}",
         })
 
+        # e. Tree keyboard model (#276 — roving tabindex, WAI-ARIA APG). We're back on the
+        # Tree view. Focus the first roving item (tabindex=0), then drive the key handlers
+        # and assert observable state: ArrowDown moves focus to a different row; ArrowRight
+        # on a parent sets aria-expanded=true; ArrowLeft collapses it; End/Home jump.
+        def _focused_domain():
+            return page.evaluate(
+                "() => (document.activeElement && document.activeElement.getAttribute('data-domain')) || null"
+            )
+        try:
+            first = page.query_selector(".indented-tree .ti-row[tabindex='0']")
+            first.focus()
+            start = _focused_domain()
+            page.keyboard.press("ArrowDown")
+            page.wait_for_timeout(120)
+            after_down = _focused_domain()
+            moved = bool(start) and bool(after_down) and after_down != start
+
+            # Find a parent treeitem (has aria-expanded) and toggle it via keys.
+            page.keyboard.press("End")
+            page.wait_for_timeout(80)
+            at_end = _focused_domain()
+            page.keyboard.press("Home")
+            page.wait_for_timeout(80)
+            at_home = _focused_domain()
+            home_end_ok = bool(at_end) and bool(at_home) and at_end != at_home and at_home == start
+
+            # Expand/collapse: focus a parent row, ArrowRight → expanded, ArrowLeft → collapsed.
+            parent = page.query_selector(".indented-tree .ti[aria-expanded] > .ti-row")
+            expand_ok = True  # default pass if the forest has no parent (single-domain)
+            if parent:
+                parent.focus()
+                parent_li = page.query_selector(".indented-tree .ti[aria-expanded]")
+                page.keyboard.press("ArrowLeft")   # ensure collapsed baseline
+                page.wait_for_timeout(80)
+                page.keyboard.press("ArrowRight")  # expand
+                page.wait_for_timeout(120)
+                expanded = parent_li.get_attribute("aria-expanded")
+                page.keyboard.press("ArrowLeft")   # collapse
+                page.wait_for_timeout(120)
+                collapsed = parent_li.get_attribute("aria-expanded")
+                expand_ok = expanded == "true" and collapsed == "false"
+
+            kbd_ok = moved and home_end_ok and expand_ok
+            checks.append({
+                "name": "index_tree_keyboard",
+                "pass": kbd_ok,
+                "detail": "roving focus: ArrowDown moves, Home/End jump, ArrowRight/Left expand/collapse"
+                          if kbd_ok
+                          else f"moved={moved} home_end_ok={home_end_ok} expand_ok={expand_ok}",
+            })
+        except Exception as e:
+            checks.append({"name": "index_tree_keyboard", "pass": False, "detail": f"keyboard test errored: {e}"})
+
     return checks
 
 
@@ -395,13 +476,16 @@ def main():
         # serve.py defaults to workspace/, which may not exist OR may be a freshly
         # scaffolded workspace with only an index.html and no lesson pages. Serve
         # workspace/ ONLY if it actually contains a lesson page one of our candidates
-        # can hit; otherwise fall back to library/godot-gamedev (always has lessons).
+        # can hit; otherwise serve the multi-domain library/ ROOT — serve.py normalizes
+        # it (ADR-0015), so the `/library/{domain}/lessons/...` candidates resolve AND
+        # `/index.html` serves the unified aggregate (so run_index_checks exercises the
+        # #276 two-view page, not just a per-domain index).
         project_root = Path(__file__).resolve().parent.parent
         ws_lessons = project_root / "workspace" / "lessons"
         ws_has_lesson = ws_lessons.exists() and any(
             p.name != "index.html" for p in ws_lessons.rglob("*.html")
         )
-        serve_ws = "workspace" if ws_has_lesson else "library/godot-gamedev"
+        serve_ws = "workspace" if ws_has_lesson else "library"
         server_proc = subprocess.Popen(
             [sys.executable, "tools/serve.py", "--workspace", serve_ws, "--port", str(port)],
             **popen_kwargs,
