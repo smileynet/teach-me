@@ -46,3 +46,12 @@ Then verify:
 - [ ] Document-relative asset paths from the aggregate + domain lesson pages resolve
 - [ ] Root redirect works
 - [ ] `mise run verify` EXIT 0 (unchanged)
+
+## References
+- `.github/workflows/pages.yml` — the "Assemble deploy directory" step (the shell block to run
+  locally); `copy_assets()` helper, `cp -rL library/. _site/library/`, the per-domain assets +
+  missing-index loops, the root redirect heredoc, and the `rm -rf _site/.user` strip (scoped by #278).
+- ADR 0015 (`.memory/adr/0015-unifying-root-document-relative-assets.md`) — the document-relative
+  `../assets` invariant this dry-run confirms on the `/{repo}/` subpath.
+- #278 resolution (`.tickets/278-*.md`) — why only `_site/.user` (not `_site/library/.user`) is stripped.
+- serve.py `/{domain}/...` path convention (AGENTS.md Env) — how the same pages resolve when served locally.

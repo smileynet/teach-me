@@ -42,3 +42,19 @@ still work. Cost: none now, but drift accumulates if IndexView and UnifiedView d
 - [ ] A decision is made and documented (ADR or ticket resolution)
 - [ ] Per-domain `lessons/index.html` pages are in the chosen style
 - [ ] No verify regression
+
+## References
+- `tools/generate_index_page.py` — the unified generator (`build_page_data`, `main`); a
+  single-domain branch (Option A) would gate on `len(roots) <= 1 and not edges` here.
+- `assets/components/IndexView.js` — the old card-grid still used by per-domain pages (would be
+  kept for Option A/C, retired for Option B).
+- `assets/components/UnifiedView.js` — the two-view component per-domain pages would adopt for Option B.
+- The 5 per-domain pages: `library/{godot-gamedev,iceberg-workspace,ink-godot,oidc-rust,workout-fundamentals}/lessons/index.html`.
+- ADR 0016 Consequences ("grid retirement is AGGREGATE-only; per-domain deferred to #281") — the
+  decision this ticket owns; record the outcome as an ADR 0016 amendment or a new ADR.
+- Lesson breadcrumbs' "All Lessons" crumb lands on these per-domain `lessons/index.html` (verify-links #273 guard) — whatever style is chosen must keep that target valid.
+
+**Leaning (not decided):** Option A (single-domain branch → keep the clean grid) avoids a
+one-node Tree|Map toggle that adds no value for a single domain; but Option C (leave as-is) is
+zero-cost if the cosmetic inconsistency is acceptable. Decide against the #279 direction first —
+if #279 moves to load-time rendering, the generator changes anyway.

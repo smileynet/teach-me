@@ -48,3 +48,15 @@ Add these assertions to `test-navigation.py` (a `--fixture` mode) or a sibling s
 - [ ] All-complete fixture → no resume cue asserted
 - [ ] Fixture is throwaway (gitignored scratch or test-only), does NOT touch the real library
 - [ ] Runnable via `mise run test:nav` (fixture mode) or a documented sibling task
+
+## References
+- Cue logic: `assets/components/UnifiedView.js` `IndexCue` (resume = first domain with in-progress,
+  else first partial-complete; else orientation). Markup: `.index-cue-resume a` / `.index-cue-start`.
+- `tools/test-navigation.py` — `check_resume_cue()` asserts the resume state today; add a
+  `--fixture` mode (or sibling) here. It self-serves `library/`; a fixture mode serves the fixture dir.
+- Generate a fixture aggregate: `python tools/generate_index_page.py --scan-dir <fixture> --output <fixture>/index.html`.
+- Overlay authoring: `tools/lib/overlay.py` schema (`{schema:1, overlay:{ULID:{status,updated_at}}}`);
+  ULID ids come from each fixture MAP.md's `- **id:**` field. See #278's committed overlays for the exact shape.
+- Client-drive alternative: `assets/components/store.js` `setTopicStatus(id, status)` (keyed by ULID).
+- Context: `.memory/research/unified-graph-views/274-implementation-findings.md` (cue-matrix caveat);
+  #271 (the cue feature); #274 resolution (why only resume is covered by the real library).
