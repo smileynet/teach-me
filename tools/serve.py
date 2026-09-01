@@ -543,6 +543,18 @@ if _SERVING_MULTI_DOMAIN:
     async def _root_index(prefix: str):
         from fastapi.responses import FileResponse
 
+        # #284: prefer the COMMITTED per-domain page when it exists on disk (mirrors the
+        # deploy — pages.yml serves it as-is, synthesizing a redirect only when absent). This
+        # keeps `mise run serve` consistent with GitHub Pages AND makes per-domain landings
+        # locally reachable / QA-able. Path-traversal guarded via resolve()+containment.
+        ws_root = WORKSPACE.resolve()
+        candidate = (WORKSPACE / prefix / "index.html").resolve()
+        within = candidate == ws_root or ws_root in candidate.parents
+        if within and candidate.is_file() and candidate != (ws_root / "index.html"):
+            return FileResponse(str(candidate))
+
+        # Fallback: bare `index.html` back-links from domain-map / lesson pages that have NO
+        # per-domain index resolve to the aggregate root index (the original normalizer intent).
         root_index = WORKSPACE / "index.html"
         if root_index.is_file():
             return FileResponse(str(root_index))

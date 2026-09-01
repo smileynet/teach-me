@@ -556,6 +556,130 @@ def run_index_checks(page, url: str) -> list[dict]:
     return checks
 
 
+# Per-domain pages we probe (#281 validation). Only reachable under a multi-domain library/
+# root serve AFTER #284 (serve.py _root_index serves the committed per-domain page). Probed
+# relative to base_url; a domain whose page 404s (single-workspace serve) is skipped.
+_PERDOMAIN_SINGLE = "/oidc-rust/lessons/index.html"      # single domain, no edges → IndexView
+_PERDOMAIN_SUBMAP = "/godot-gamedev/lessons/index.html"  # has sub-maps → UnifiedView (toggle)
+
+
+def _url_ok(base_url: str, path: str) -> bool:
+    try:
+        with urllib.request.urlopen(base_url + path, timeout=2) as r:
+            return getattr(r, "status", r.getcode()) == 200
+    except Exception:
+        return False
+
+
+def run_per_domain_checks(page, base_url: str) -> list[dict]:
+    """Validate the #281 content-driven per-domain landing on the REAL per-domain pages.
+
+    Closes the gap that #281 shipped with: the aggregate was gated, but per-domain pages
+    (a) render the right component by content (single → IndexView no-toggle; sub-map →
+    UnifiedView toggle) and (b) apply the #279 live-overlay count override. Requires #284
+    (per-domain pages reachable under the multi-domain root). Skips gracefully if the pages
+    aren't served (e.g. single-workspace serve)."""
+    import json as _json
+    import re as _re
+    checks = []
+
+    single_url = base_url + _PERDOMAIN_SINGLE
+    submap_url = base_url + _PERDOMAIN_SUBMAP
+    if not _url_ok(base_url, _PERDOMAIN_SINGLE):
+        return checks  # per-domain pages not reachable in this serve mode — skip (not a fail)
+
+    console_errors = []
+
+    def _on_console(m):
+        if m.type != "error":
+            return
+        loc = ""
+        try:
+            loc = (m.location or {}).get("url", "") if isinstance(m.location, dict) else getattr(m.location, "url", "")
+        except Exception:
+            loc = ""
+        console_errors.append(f"{m.text} @ {loc}")
+
+    page.on("console", _on_console)
+
+    def _ignorable(s):
+        s = s.lower()
+        return "favicon" in s or "api/overlay" in s
+
+    def _complete_count():
+        meta = page.query_selector(".index-meta")
+        m = _re.search(r"(\d+)\s+complete", meta.inner_text() if meta else "")
+        return int(m.group(1)) if m else None
+
+    # a. single-domain → clean IndexView: mounted, NO Tree|Map toggle, exactly one cue.
+    page.goto(single_url, wait_until="networkidle")
+    page.wait_for_timeout(400)
+    mounted = bool(page.query_selector(".index-view"))
+    no_toggle = page.query_selector(".view-toggle") is None
+    cue = len(page.query_selector_all(".index-cue"))
+    a_ok = mounted and no_toggle and cue == 1
+    checks.append({
+        "name": "perdomain_single_is_indexview",
+        "pass": a_ok,
+        "detail": "single-domain page: IndexView mounted, no toggle, one cue"
+                  if a_ok else f"mounted={mounted} no_toggle={no_toggle} cue={cue}",
+    })
+
+    # b. sub-map domain → UnifiedView: the Tree|Map toggle is present (content-driven).
+    page.goto(submap_url, wait_until="networkidle")
+    page.wait_for_timeout(400)
+    submap_mounted = bool(page.query_selector(".index-view"))
+    has_toggle = page.query_selector(".view-toggle") is not None
+    b_ok = submap_mounted and has_toggle
+    checks.append({
+        "name": "perdomain_submap_is_unifiedview",
+        "pass": b_ok,
+        "detail": "sub-map domain page: UnifiedView with toggle"
+                  if b_ok else f"mounted={submap_mounted} has_toggle={has_toggle}",
+    })
+
+    # c. live overlay override on the single-domain IndexView page: route api/overlay to a
+    # crafted single-complete overlay, reload, assert the count reflects it (proves the
+    # #281 trimmed bootstrap's #279 resolveProgress works on a per-domain page, not just the
+    # aggregate). Pull one topic id from the page's own island.
+    try:
+        island = page.evaluate("() => JSON.parse(document.getElementById('page-data').textContent)")
+        # back on the single-domain page for the override test
+        page.route("**/api/overlay", lambda r: r.fulfill(
+            status=200, content_type="application/json", body=_json.dumps({"overlay": {}})))
+        page.goto(single_url, wait_until="networkidle")
+        page.wait_for_timeout(300)
+        island = page.evaluate("() => JSON.parse(document.getElementById('page-data').textContent)")
+        dom = next((d for d in island["domains"] if d.get("topicIds")), None)
+        one_id = dom["topicIds"][0] if dom else None
+        if one_id:
+            page.route("**/api/overlay", lambda r: r.fulfill(
+                status=200, content_type="application/json",
+                body=_json.dumps({"overlay": {one_id: "complete"}})))
+            page.goto(single_url, wait_until="networkidle")
+            page.wait_for_timeout(400)
+            overridden = _complete_count()
+            c_ok = overridden == 1
+            checks.append({
+                "name": "perdomain_live_overlay_override",
+                "pass": c_ok,
+                "detail": "single-complete overlay overrides count on per-domain IndexView (1)"
+                          if c_ok else f"expected 1, got {overridden}",
+            })
+    except Exception as e:
+        checks.append({"name": "perdomain_live_overlay_override", "pass": False, "detail": f"errored: {e}"})
+    finally:
+        page.unroute("**/api/overlay")
+
+    real_errors = [e for e in console_errors if not _ignorable(e)]
+    checks.append({
+        "name": "perdomain_no_js_errors",
+        "pass": not real_errors,
+        "detail": "clean console on per-domain pages" if not real_errors else f"errors={real_errors[:2]}",
+    })
+    return checks
+
+
 def main():
     base_url = None
     server_proc = None
@@ -638,6 +762,10 @@ def main():
             index_url = find_index_page(base_url)
             if index_url:
                 checks += run_index_checks(context.new_page(), index_url)
+
+            # Per-domain landing pages (#281 validation, needs #284). Only reachable under a
+            # multi-domain root serve; skips gracefully otherwise (returns []).
+            checks += run_per_domain_checks(context.new_page(), base_url)
 
             browser.close()
 
