@@ -158,6 +158,12 @@ depends = ["setup"]
 run = "python tools/check-map-edges.py"
 sources = ["assets/components/{MapView,GraphView,TopicCard}.js", "library/*/maps/*.MAP.md", "tools/check-map-edges.py"]
 
+[tasks."site-dry-run"]
+description = "Dry-run the GitHub Pages _site assembly locally (via the shared tools/assemble-site.sh) + assert deploy invariants: subpath-safe assets, demo fixtures ship, .user stripped, redirect stubs, no symlinks (#280). Needs bash (git-bash on Windows)."
+depends = ["setup"]
+run = "python tools/site-dry-run.py"
+sources = ["tools/assemble-site.sh", "tools/site-dry-run.py", "library/**/*.html", "assets/**/*"]
+
 [tasks.theme-preview]
 description = "Preview a color palette (usage: mise run theme-preview -- --palette palettes/purple-night.json)"
 depends = ["setup"]
