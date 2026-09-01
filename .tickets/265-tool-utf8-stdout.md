@@ -1,7 +1,7 @@
 ---
 id: "265"
 title: "Windows cp1252 crash: ~21 tools print emoji/glyphs without the UTF-8 stdout guard"
-status: open
+status: done
 blocked_by: []
 tags: ["platform"]
 ---
@@ -65,13 +65,34 @@ grep -l 'stdout.reconfigure' tools/*.py
 
 ## Acceptance criteria
 
-- [ ] Every tool that prints non-ASCII to stdout/stderr has the reconfigure guard
+- [x] Every tool that prints non-ASCII to stdout/stderr has the reconfigure guard
       (grep: prints-glyphs set ⊆ guarded set)
-- [ ] `mise run sr` (sr-status) runs on a cp1252 console without UnicodeEncodeError
-- [ ] `mise run verify` EXIT 0 (no regression)
-- [ ] Spot-check 2-3 SR tools (`sr:status`, `sr:analytics`, `quick-check`) run clean
+- [x] `mise run sr` (sr-status) runs on a cp1252 console without UnicodeEncodeError
+- [x] `mise run verify` EXIT 0 (no regression)
+- [x] Spot-check 2-3 SR tools (`sr:status`, `sr:analytics`, `quick-check`) run clean
 
 ## Validation
 
 On a Windows console (or `PYTHONIOENCODING` unset + `chcp 1252`): run `mise run sr`,
 `sr:analytics`, `quick-check`, `export_anki` — none crash with `charmap` codec errors.
+
+## Resolution
+
+Added the UTF-8 stdout/stderr reconfigure guard to the 27-tool gap set (26 from the #265
+list + `visual-qa.py`, which the original glyph-grep missed but crashed on `✓` — the bug
+that surfaced this in the #283 session). 22 files took the guard right after their
+`from __future__` line; 5 without a `__future__` line (`check-topic-completeness`,
+`play-ink`, `test_map_parser`, `theme-preview`, `visual-qa`) took it after their docstring.
+
+**Guard form:** self-contained `import sys as _sys` + the reconfigure block. Using `_sys`
+(not `sys`) makes the guard work BEFORE the file's own `import sys` (which often comes
+later) with no NameError and no shadowing. A first mechanical pass referenced bare `sys`
+and crashed with `NameError` on tools whose `import sys` sat below the guard — caught by
+running sr-status under cp1252, reverted, and fixed to self-import. The one-shot applier
+script was removed after use (not a durable tool; inline guard matches precedent).
+
+**Verification (cited):**
+- Gap check: prints-glyph 39 ⊆ guarded 43 → GAP EMPTY.
+- `PYTHONIOENCODING=cp1252`: sr-status, sr-analytics, quick-check, visual-qa all run clean
+  (visual-qa prints `✓` and completes — the original crash, fixed).
+- `mise run verify` EXIT 0 (exercises the guarded play-ink among others).

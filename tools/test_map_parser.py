@@ -1,5 +1,12 @@
 """Tests for tools/map_parser.py."""
 
+# Windows consoles default to cp1252; force UTF-8 so ✓/→/emoji glyphs don't crash (#265).
+import sys as _sys
+if hasattr(_sys.stdout, "reconfigure"):
+    _sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(_sys.stderr, "reconfigure"):
+    _sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 import tempfile
 from pathlib import Path
 

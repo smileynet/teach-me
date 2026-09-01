@@ -21,6 +21,13 @@ Exit codes: 0 = PNGs match sidecar (or skipped: Pillow absent / maps not baked y
 """
 from __future__ import annotations
 
+# Windows consoles default to cp1252; force UTF-8 so ✓/→/emoji glyphs don't crash (#265).
+import sys as _sys
+if hasattr(_sys.stdout, "reconfigure"):
+    _sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(_sys.stderr, "reconfigure"):
+    _sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 import json
 import sys
 from pathlib import Path

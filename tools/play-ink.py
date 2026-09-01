@@ -31,6 +31,13 @@ Requires: bink (installed via the mise setup task).
 Exit codes: 0=all pass, 1=one or more fail, 2=setup error.
 """
 
+# Windows consoles default to cp1252; force UTF-8 so ✓/→/emoji glyphs don't crash (#265).
+import sys as _sys
+if hasattr(_sys.stdout, "reconfigure"):
+    _sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(_sys.stderr, "reconfigure"):
+    _sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 import os
 import random
 import sys
