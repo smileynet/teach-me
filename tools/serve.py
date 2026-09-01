@@ -13,6 +13,13 @@ Endpoints:
 
 from __future__ import annotations
 
+# Windows consoles default to cp1252; force UTF-8 so ✓/→/emoji glyphs don't crash (#265).
+import sys as _sys
+if hasattr(_sys.stdout, "reconfigure"):
+    _sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(_sys.stderr, "reconfigure"):
+    _sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 import asyncio
 import json as json_mod
 import os
