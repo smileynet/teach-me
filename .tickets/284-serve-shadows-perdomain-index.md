@@ -1,7 +1,7 @@
 ---
 id: "284"
 title: "serve.py _root_index shadows per-domain lessons/index.html under multi-domain root"
-status: open
+status: done
 blocked_by: []
 tags: [platform]
 ---
@@ -42,11 +42,33 @@ bare-`index.html` back-link case (the reason the normalizer exists) still resolv
 
 ## Acceptance criteria
 
-- [ ] `mise run serve` (multi-domain `library/` root) serves the committed per-domain
+- [x] `mise run serve` (multi-domain `library/` root) serves the committed per-domain
       `lessons/index.html` when present (matches pages.yml deploy behavior)
-- [ ] Bare `index.html` back-links from domain-map / lesson pages still resolve (no 404)
-- [ ] Decision recorded (ADR 0015 amendment or ticket resolution)
-- [ ] `mise run verify` EXIT 0
+- [x] Bare `index.html` back-links from domain-map / lesson pages still resolve (no 404)
+- [x] Decision recorded (ADR 0015 amendment or ticket resolution)
+- [x] `mise run verify` EXIT 0
+
+## Resolution
+
+Fixed `_root_index` (`tools/serve.py`): when serving a multi-domain root, a
+`/{prefix}/index.html` request now serves the COMMITTED `{prefix}/index.html` when it exists
+on disk (path-traversal guarded via resolve()+containment, and excluding the aggregate root
+itself), falling back to the aggregate root index only when absent — mirroring the deploy
+(pages.yml). Per-domain pages are now reachable via `mise run serve` on `library/`, matching
+GitHub Pages, so the #281 content-driven landing is locally observable AND gate-testable.
+
+This unblocked closing the #281 validation gap: added `run_per_domain_checks` to
+`verify-interactive.py` (needs this fix to reach the pages) — 4 checks now in the gate:
+`perdomain_single_is_indexview` (single domain → IndexView, no toggle), 
+`perdomain_submap_is_unifiedview` (sub-map domain → UnifiedView toggle),
+`perdomain_live_overlay_override` (crafted overlay drives the count → the behavioral proof
+that #281's trimmed bootstrap live-override works on a per-domain page), `perdomain_no_js_errors`.
+
+**Verification:**
+- Served `library/` root: `/oidc-rust/lessons/index.html` → IndexView, `/godot-gamedev/...`
+  → UnifiedView, `/index.html` → UnifiedView (aggregate), and a bare `index.html` from a
+  domain without a per-domain page still falls back to the aggregate (no 404).
+- `mise run verify` EXIT 0 — 20 interactive checks (incl. the 4 per-domain), 41 unit, 5/5 ink.
 
 ## References
 - `tools/serve.py` `_root_index` (`@app.get("/{prefix:path}/index.html")`, gated on `_SERVING_MULTI_DOMAIN`).
