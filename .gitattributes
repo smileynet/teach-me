@@ -1,0 +1,4 @@
+# Shell scripts MUST use LF — they run on the Linux CI runner (bash chokes on CRLF).
+# assemble-site.sh is the deploy-critical one (#280): a CRLF checkout would break the
+# GitHub Pages build. Pin all .sh to LF regardless of a contributor's core.autocrlf.
+*.sh text eol=lf
