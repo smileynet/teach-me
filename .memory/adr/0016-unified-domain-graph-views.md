@@ -110,6 +110,20 @@ domain-graph data island as two coordinated views, behind a persisted toggle.** 
   `library/*/lessons/index.html` pages still render the old `IndexView`; regenerating one now
   yields the unified page. That per-domain style decision is deferred to #281 — do NOT read
   this ADR as retiring the grid codebase-wide.
+  - **#281 RESOLVED (2026-09-01):** the generator now CONTENT-DRIVES the choice — a
+    single-domain page with no cross-domain edges (`domainCount <= 1 and not edges`) renders the
+    clean `IndexView` (no Tree|Map toggle — chrome for one zero-edge node); a domain WITH
+    sub-maps (real internal `parent` edges — e.g. godot-gamedev, iceberg-workspace) renders the
+    `UnifiedView` because the toggle then navigates real structure. The discriminator is
+    **edge-presence, not node count**, and it's derived from content (add a sub-map → the page
+    auto-gains the relationship view; no per-page config). NOT a style toggle (that would be the
+    modal-switch anti-pattern the "Single-Axis Preferences" steering warns against). `IndexView`
+    stays live for the single-domain path. A `tools/check-index-drift.py` gate (in `verify`)
+    regenerates all index pages in place + `git diff` to prevent the stale-artifact drift that
+    motivated #281. KNOWN LIMITATION (follow-up): serve.py's `_root_index` normalizer shadows
+    per-domain pages under a multi-domain root serve — they're live on the deployed static host
+    but unreachable via `mise run serve` on `library/`. Tracked separately (serve routing, not
+    page style).
 - **View preference is UI state, NOT the learner state ADR 0014 keeps out of the browser.**
   ADR 0014 §B.6 bars a browser store for LEARNER state (progress/overlay). The `mapView`
   preference in `teach-me-prefs-v1` localStorage is UI presentation state — a distinct

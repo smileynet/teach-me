@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>All Lessons — teach-me</title>
   <script src="../assets/typography-prefs.js"></script>
@@ -11,7 +11,7 @@
     body { max-width: 900px; margin: 0 auto; padding: 2rem; }
     .index-view h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
     .index-meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem; }
-    .index-cue { font-size: 0.9rem; margin: 0 0 1.5rem; }
+    .index-cue { font-size: 0.9rem; margin: 0 0 1rem; }
     .index-cue-start { color: var(--text-muted); }
     .index-cue-resume a {
       display: inline-block; color: var(--accent); font-weight: 600;
@@ -19,58 +19,142 @@
       background: var(--bg-elevated); border: 1px solid var(--border);
     }
     .index-cue-resume a:hover { border-color: var(--accent); }
-    .mission-fold { margin-top: 0.75rem; border-top: 1px solid var(--border); padding-top: 0.5rem; }
-    .mission-fold summary { font-size: 0.8rem; color: var(--text-faint); cursor: pointer; }
-    .mission-fold summary:hover { color: var(--text-muted); }
-    .mission-why { font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; margin: 0.5rem 0; }
-    .mission-criteria { padding-left: 1.2rem; margin: 0; }
-    .mission-criteria li { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
-    .domain-grid { display: flex; flex-direction: column; gap: 1rem; }
-    .domain-card {
-      display: block; padding: 1.25rem; background: var(--bg-elevated);
-      border: 1px solid var(--border); border-radius: 10px; text-decoration: none;
-      color: var(--text); transition: border-color 0.15s, box-shadow 0.15s;
-    }
-    .domain-card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(203, 166, 247, 0.1); }
-    .domain-card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
-    .domain-card-header h2 { font-size: 1.1rem; margin: 0; }
-    .domain-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
-    .domain-stat { font-size: 0.8rem; color: var(--text-faint); }
-    .progress-ring { flex-shrink: 0; }
+
+    /* Demo takeover note (#279) */
+    .index-demo-note { font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1rem;
+      display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .index-demo-start { background: none; border: 1px solid var(--border); color: var(--accent);
+      font: inherit; font-size: 0.8rem; cursor: pointer; padding: 0.25rem 0.7rem; border-radius: 6px; }
+    .index-demo-start:hover { border-color: var(--accent); }
+
+    /* Tree | Map toggle */
+    .view-toggle { display: inline-flex; gap: 0; margin: 0 0 1.5rem; border: 1px solid var(--border);
+      border-radius: 8px; overflow: hidden; }
+    .vt-btn { background: var(--bg-elevated); color: var(--text-muted); border: none;
+      padding: 0.4rem 1.1rem; font-size: 0.85rem; cursor: pointer; font: inherit; }
+    .vt-btn + .vt-btn { border-left: 1px solid var(--border); }
+    .vt-btn.is-active { background: var(--accent); color: var(--bg); font-weight: 600; }
+    .vt-btn:hover:not(.is-active) { color: var(--text); }
+
+    /* Indented tree view */
+    .indented-tree .ti-root { list-style: none; padding-left: 0; margin: 0; }
+    .indented-tree .ti-group { list-style: none; margin: 0; padding-left: 1.4rem;
+      border-left: 1px solid var(--border); margin-left: 0.7rem; }
+    .indented-tree .ti-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.7rem;
+      border-radius: 8px; text-decoration: none; color: var(--text); outline-offset: 2px; }
+    .indented-tree .ti-row:hover { background: var(--bg-elevated); }
+    .indented-tree .ti-row:focus-visible { outline: 2px solid var(--accent); }
+    .indented-tree .ti-row.is-child { color: var(--text-muted); }
+    .indented-tree .ti-twisty { background: none; border: none; color: var(--text-muted);
+      cursor: pointer; font-size: 0.7rem; padding: 0 0.2rem; line-height: 1; }
+    .indented-tree .ti-title { font-weight: 600; }
+    .indented-tree .ti-stat { font-size: 0.78rem; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+    .indented-tree .ti-leads { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
+    .sc-section-title { font-size: 0.9rem; color: var(--text-muted); margin: 1.5rem 0 0.5rem; }
+
+    /* Iterated map view */
+    .iterated-map .im-legend { display: flex; gap: 1.5rem; font-size: 0.78rem;
+      color: var(--text-muted); margin-bottom: 0.6rem; align-items: center; }
+    .iterated-map .im-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .im-card { display: block; padding: 0.8rem 1rem; background: var(--bg-elevated);
+      border: 1px solid var(--border); border-radius: 10px; text-decoration: none; color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box; }
+    .im-card:hover, .im-card:focus-visible { border-color: var(--accent); box-shadow: 0 2px 12px rgba(203,166,247,0.12); }
+    .im-card h3 { font-size: 0.95rem; margin: 0 0 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
+    .im-card .dc-meta { font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; font-variant-numeric: tabular-nums; }
+    .im-card.is-child { border-left: 3px solid var(--accent); }
+    .dc-sub-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 3px;
+      background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    .islands-panel { margin-top: 1.5rem; padding: 1rem; border: 1px dashed var(--border); border-radius: 8px; }
+    .islands-panel h2 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .islands-panel ul { list-style: none; padding: 0; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .islands-panel a { font-size: 0.8rem; padding: 0.3rem 0.6rem; border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text-muted); text-decoration: none; }
+    .islands-panel a:hover { border-color: var(--accent); color: var(--accent); }
 
   </style>
   <script type="importmap">
 {
-  "imports": {
-    "preact": "../assets/vendor/preact.module.js",
-    "preact/hooks": "../assets/vendor/preact-hooks.module.js",
-    "@preact/signals": "../assets/vendor/preact-signals.module.js",
-    "@preact/signals-core": "../assets/vendor/signals-core.module.js",
-    "htm": "../assets/vendor/htm.module.js"
-  }
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
 }
   </script>
+  <script src="../assets/vendor/dagre.min.js"></script>
 </head>
 <body>
-  <script type="application/json" id="page-data">{"domains": [{"domain": "data-analytics", "title": "Modern Data Analytics Stacks", "description": "Every organization sits on operational data that only becomes useful when it flows through a deliberate pipeline: captured, stored in queryable formats, transformed into business concepts, orchestrated reliably, and served to the people making decisions.", "total": 7, "complete": 2, "inProgress": 0}], "mission": {"title": "Mission: Apache Iceberg Data Lakehouse on AWS", "why": null, "criteria": []}, "stats": {"domainCount": 1, "topicCount": 7, "completeCount": 2}}</script>
-  
-  <div id="app"></div>
-  
 
-  <script type="module">
+<div id="app"></div>
+
+<script type="application/json" id="page-data">{"domains": [{"slug": "data-analytics", "title": "Modern Data Analytics Stacks", "description": "Every organization sits on operational data that only becomes useful when it flows through a deliberate pipeline: captured, stored in queryable formats, transformed into business concepts, orchestrated reliably, and served to the people making decisions.", "depth": 0, "parent": null, "total": 7, "complete": 2, "inProgress": 0, "mapHref": "data-analytics-map.html", "topicIds": ["01M174TQPPZFGSZT3DJNFGXHZ9", "01M174TQPPD0TDSBXSM79ZBZ73", "01M174TQPPQC00AS015ZGRV1R3", "01M174TQPP4NSA7HE1FG1ZHHYC", "01M174TQPPPS80V8ZSSXTHTSWK", "01M174TQPP4Z1ADE34PFAX1GWJ", "01M174TQPPM488YV8AA7M4TC7E"]}, {"slug": "storage-and-table-formats", "title": "Storage & Open Table Formats", "description": "Your data has to live somewhere, and HOW it's stored determines everything downstream: what queries are fast, what operations are possible, how much you pay, and how much operational burden you carry.", "depth": 1, "parent": "data-analytics", "total": 5, "complete": 0, "inProgress": 0, "mapHref": "storage-and-table-formats-map.html", "topicIds": ["01M174TQPS85HE7F2EZ0R7KH09", "01M174TQPS2E30N1MYEGNRRZ8E", "01M174TQPS0PX6V614C6042P1Q", "01M174TQPSND5QFHZNG077E898", "01M174TQPSF6F95WXFXT0VAPRP"]}], "edges": [{"source": "data-analytics", "target": "storage-and-table-formats", "type": "parent"}], "islands": [], "mission": {"title": "Mission: Apache Iceberg Data Lakehouse on AWS", "why": null, "criteria": []}, "demoOverlay": {"01M174TQPPZFGSZT3DJNFGXHZ9": "complete", "01M174TQPPD0TDSBXSM79ZBZ73": "complete"}, "stats": {"domainCount": 1, "topicCount": 7, "completeCount": 2, "inProgressCount": 0}}</script>
+<script type="module">
 
     import { h, render } from 'preact';
     import htm from 'htm';
-    import { IndexView } from '../assets/components/IndexView.js';
+    import { UnifiedView } from '../assets/components/UnifiedView.js';
+    import { prefs, set as setPref } from '../assets/preferences.js';
 
     const html = htm.bind(h);
     const data = JSON.parse(document.getElementById('page-data').textContent);
 
+    // View selection: ?view=map wins, else the persisted pref, else 'tree'. Write the
+    // resolved value through to prefs so a ?view= visit updates the saved default.
+    const urlView = new URLSearchParams(location.search).get('view');
+    const resolved = urlView === 'map' ? 'map'
+      : urlView === 'tree' ? 'tree'
+      : (prefs.value.mapView || 'tree');
+    if (resolved !== prefs.value.mapView) setPref('mapView', resolved);
+
+    // Load-time progress resolution (#279). The baked domains[*].{complete,inProgress} and
+    // stats are the DEMO / no-JS floor. If the user has their OWN overlay (served hosts
+    // only — GET /api/overlay), recompute counts from it and swap. Read-then-swap: keep the
+    // baked floor unless a real overlay actually resolves. Static hosts (GH Pages) 404 the
+    // fetch, so the demo counts stand (Option A: static = display-only demo).
+    async function resolveProgress() {
+      // hasOwnProgress means the user has taken over from the demo; from then on the demo
+      // seed is never shown — an absent/empty overlay yields all-not-started (empty view).
+      const owns = prefs.value.hasOwnProgress === true;
+      let overlay = null;
+      try {
+        const res = await fetch('api/overlay', { headers: { accept: 'application/json' } });
+        if (res.ok) overlay = (await res.json()).overlay || {};
+      } catch (_) { /* static host / no server — keep the demo floor */ }
+
+      // Only override when we have a real signal: either the user owns their progress, or a
+      // non-empty overlay came back. An empty overlay on a non-owning user = show the demo.
+      const hasReal = owns || (overlay && Object.keys(overlay).length > 0);
+      if (!hasReal) {
+        // Demo floor stands. Flag it so the view can offer the takeover action — but only
+        // if the demo actually shows progress (a zero demo has nothing to "take over").
+        const demoHasProgress = data.stats.completeCount > 0 || (data.stats.inProgressCount || 0) > 0;
+        return demoHasProgress;
+      }
+      const map = overlay || {};
+
+      let cComplete = 0, cInProgress = 0;
+      for (const d of data.domains) {
+        const ids = d.topicIds || [];
+        d.complete = ids.filter(id => map[id] === 'complete').length;
+        d.inProgress = ids.filter(id => map[id] === 'in-progress').length;
+        if (d.depth === 0) { cComplete += d.complete; cInProgress += d.inProgress; }
+      }
+      data.stats = { ...data.stats, completeCount: cComplete, inProgressCount: cInProgress };
+      return false;  // real data resolved — no demo banner
+    }
+
+    const showingDemo = await resolveProgress();
+
     render(
-      html`<${IndexView} domains=${data.domains} stats=${data.stats} mission=${data.mission} />`,
+      html`<${UnifiedView} domains=${data.domains} edges=${data.edges} islands=${data.islands}
+        stats=${data.stats} mission=${data.mission} showingDemo=${showingDemo} />`,
       document.getElementById('app')
     );
 
-  </script>
+</script>
+
 </body>
 </html>

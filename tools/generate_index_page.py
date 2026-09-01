@@ -170,6 +170,52 @@ _MODULE_SCRIPT = """
     );
 """
 
+# Single-domain landing (#281). A per-domain lessons/index.html is ONE domain's overview,
+# not a multi-item index — so it renders the clean IndexView card (no Tree|Map toggle, which
+# carries no value for a single zero-edge node). Keeps the #279 load-time count override
+# (resolveProgress against the one domain's topicIds) so live progress still works on served
+# hosts; drops the view-resolution block (no toggle) and the demo-takeover banner (a
+# library-wide action — aggregate-only). include_dagre is False on this path (no Map view).
+_INDEX_MODULE_SCRIPT = """
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { IndexView } from '../assets/components/IndexView.js';
+    import { prefs } from '../assets/preferences.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    // Load-time progress resolution (#279/#281). Baked domains[*].{complete,inProgress} are
+    // the demo/no-JS floor; override from the user's own overlay (served hosts) against each
+    // domain's topicIds. Read-then-swap: keep the floor unless a real overlay resolves.
+    async function resolveProgress() {
+      const owns = prefs.value.hasOwnProgress === true;
+      let overlay = null;
+      try {
+        const res = await fetch('api/overlay', { headers: { accept: 'application/json' } });
+        if (res.ok) overlay = (await res.json()).overlay || {};
+      } catch (_) { /* static host / no server — keep the demo floor */ }
+      const hasReal = owns || (overlay && Object.keys(overlay).length > 0);
+      if (!hasReal) return;
+      const map = overlay || {};
+      let cComplete = 0, cInProgress = 0;
+      for (const d of data.domains) {
+        const ids = d.topicIds || [];
+        d.complete = ids.filter(id => map[id] === 'complete').length;
+        d.inProgress = ids.filter(id => map[id] === 'in-progress').length;
+        cComplete += d.complete; cInProgress += d.inProgress;
+      }
+      data.stats = { ...data.stats, completeCount: cComplete, inProgressCount: cInProgress };
+    }
+
+    await resolveProgress();
+
+    render(
+      html`<${IndexView} domains=${data.domains} stats=${data.stats} mission=${data.mission} />`,
+      document.getElementById('app')
+    );
+"""
+
 _CSS_EXTRA = """
     body { max-width: 900px; margin: 0 auto; padding: 2rem; }
     .index-view h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
@@ -256,19 +302,27 @@ def main() -> int:
     mission = parse_mission(scan_dirs[0] if scan_dirs else None)
     data = build_page_data(records, output, mission)
 
+    # Single-domain landing (#281): one root domain, no cross-domain edges → the Tree|Map
+    # toggle carries no value (nothing to navigate BETWEEN). Emit the clean IndexView card
+    # instead of the unified two-view page. The aggregate (multiple domains / any edges)
+    # keeps UnifiedView. Presence-of-edges is the discriminator, not node count alone.
+    single = data["stats"]["domainCount"] <= 1 and not data["edges"]
+    module_script = _INDEX_MODULE_SCRIPT if single else _MODULE_SCRIPT
+
     page = render_index_page(
         body_content='<div id="app"></div>',
         data=data,
-        module_script=_MODULE_SCRIPT,
+        module_script=module_script,
         css_extra=_CSS_EXTRA,
         depth=1,
-        include_dagre=True,  # the Map view's dagre layout needs window.dagre ready
+        include_dagre=not single,  # only the Map view needs window.dagre
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(page, encoding="utf-8")
     n_roots = data["stats"]["domainCount"]
     n_nodes, n_edges, n_isl = len(data["domains"]), len(data["edges"]), len(data["islands"])
-    print(f"✓ Generated {output.relative_to(PROJECT_ROOT)} "
+    kind = "single-domain IndexView" if single else "unified Tree|Map"
+    print(f"✓ Generated {output.relative_to(PROJECT_ROOT)} [{kind}] "
           f"({n_roots} domains, {n_nodes} nodes, {n_edges} edges, {n_isl} islands)")
     return 0
 
