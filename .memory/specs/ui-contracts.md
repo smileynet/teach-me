@@ -34,11 +34,14 @@ lesson pages — components register with the shell rather than self-mounting. N
 The map graph carries `data-*` attributes that are the contract `tools/check-map-edges.py`
 asserts against — dropping them silently breaks the gate:
 
-- `EdgeLayer` `<path>`: `data-source`, `data-target` (ULID node ids), `data-type`
-  (`prereq`|`leads_to`|`related`).
+- `GraphView` edge `<path>` (in the caller's edge-layer SVG — `edge-layer` for the topic map,
+  `im-edges` for the domain forest): `data-source`, `data-target` (node ids in the caller's
+  key space — ULID for topics, slug for domains), `data-type` (`prereq`|`leads_to`|`related`
+  |`parent`). Solid edges emit `stroke-dasharray="none"` (NOT `"0"`) — the gate keys on `none`.
 - `TopicCard` root `.topic-card`: `data-topic-id` (the node ULID).
-- `MapView` `.dag-canvas` container: `data-render-complete="true"` and `data-edge-count`
-  (set after dagre layout — the gate `waitForFunction`s on `data-render-complete`, never a sleep).
+- `GraphView` canvas (class caller-owned — `dag-canvas` for the topic map, `im-canvas` for the
+  domain forest): `data-render-complete="true"` and `data-edge-count` (set after dagre layout —
+  the gate `waitForFunction`s on `data-render-complete`, never a sleep).
 
 The gate is identity-first: rendered edges must match `load_map(MAP.md).edges` by
 `(source, target, type)` + count (Tier 1), then endpoints must land on the correct

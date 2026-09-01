@@ -1,104 +1,52 @@
+// MapView (#283) — the topic map: delegates layout to the unified GraphView, injecting the
+// stateful TopicCard as renderNode. Topic-level config: nodeKey=id, viewport='scroll', prereq
+// synthesis upstream of the layout core, leadsTo grid as caller-side chrome.
 import { h } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
 import htm from 'htm';
 import { initTopicStates } from './store.js';
 import { TopicCard } from './TopicCard.js';
-import { EdgeLayer } from './EdgeLayer.js';
+import { GraphView } from './GraphView.js';
 
 const html = htm.bind(h);
 
-const CARD_WIDTH = 420;
-const CARD_PAD = 60;
+// Topic edge styling: prereq/leads_to solid + arrow; related dashed, no arrow (signaling —
+// symmetric adjacency). GraphView emits dasharray="none" for solid (oracle contract).
+const TOPIC_EDGE_STYLES = {
+  prereq: { stroke: 'var(--border)', dashed: false, arrow: true },
+  leads_to: { stroke: 'var(--border)', dashed: false, arrow: true },
+  related: { stroke: 'var(--border)', dashed: true, arrow: false },
+};
 
-function computeLayout(topics, edges) {
-  // Measure card heights by rendering offscreen
-  const measurements = {};
-  const measContainer = document.createElement('div');
-  measContainer.style.cssText = 'position:absolute;visibility:hidden;left:-9999px;width:' + CARD_WIDTH + 'px';
-  document.body.appendChild(measContainer);
+export function MapView({ topics, leadsTo, edges }) {
+  if (topics && topics.length) initTopicStates(topics);
 
-  topics.forEach(t => {
-    const div = document.createElement('div');
-    div.className = 'topic-card';
-    div.style.width = CARD_WIDTH + 'px';
-    div.innerHTML = `
-      <h3>${t.title} <span class="badge">not started</span></h3>
-      <p class="why">${t.why}</p>
-      <p class="prereq-label">${t.prereqs.length ? 'After: ...' : 'Start here'}</p>
-      <div class="actions"><button class="btn primary">Generate</button><button class="btn">Quiz</button><button class="btn">Subtopics</button></div>
-    `;
-    measContainer.appendChild(div);
-    measurements[t.id] = div.offsetHeight;
-  });
-  document.body.removeChild(measContainer);
-
-  const nodeIds = new Set(topics.map(t => t.id));
-  // Prefer the explicit typed edge list (id-keyed). Fall back to per-topic prereqs
-  // (also ids post-#257) so a map without an edges array still renders. The filter
-  // guarantees both endpoints are real node ids → dagre never invents a phantom node.
-  let graphEdges = (edges || []).filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
-  if (graphEdges.length === 0) {
+  // Edge source: explicit typed list (id-keyed) if present, else synthesize from prereqs
+  // UPSTREAM of GraphView (the core carries no fallback). Both are id-keyed.
+  let graphEdges = edges && edges.length ? edges : [];
+  if (!graphEdges.length && topics) {
+    const ids = new Set(topics.map(t => t.id));
     graphEdges = [];
     topics.forEach(t => (t.prereqs || []).forEach(p => {
-      if (nodeIds.has(p)) graphEdges.push({ source: p, target: t.id, type: 'prereq' });
+      if (ids.has(p)) graphEdges.push({ source: p, target: t.id, type: 'prereq' });
     }));
   }
 
-  // dagre layout
-  const g = new dagre.graphlib.Graph();
-  g.setGraph({ rankdir: 'TB', nodesep: CARD_PAD, ranksep: 60, marginx: 24, marginy: 24 });
-  g.setDefaultEdgeLabel(() => ({}));
-
-  topics.forEach(t => {
-    g.setNode(t.id, { width: CARD_WIDTH, height: measurements[t.id] || 200 });
-  });
-  graphEdges.forEach(e => g.setEdge(e.source, e.target, { type: e.type }));
-
-  dagre.layout(g);
-
-  const positions = {};
-  topics.forEach(t => {
-    const node = g.node(t.id);
-    positions[t.id] = { x: node.x - CARD_WIDTH / 2, y: node.y - (measurements[t.id] || 200) / 2 };
-  });
-
-  const laidEdges = [];
-  g.edges().forEach(e => {
-    // e = {v, w} are the node ids; carry them for data-source/data-target instrumentation.
-    laidEdges.push({ points: g.edge(e).points, type: g.edge(e).type || 'prereq', source: e.v, target: e.w });
-  });
-
-  const graphData = g.graph();
-  return { positions, edges: laidEdges, width: graphData.width, height: graphData.height };
-}
-
-export function MapView({ topics, leadsTo, edges }) {
-  const [layout, setLayout] = useState(null);
-
-  useEffect(() => {
-    if (!topics || !topics.length) return;
-    initTopicStates(topics);
-    const result = computeLayout(topics, edges);
-    setLayout(result);
-  }, []);
-
-  if (!layout) return html`<div class="loading">Computing layout...</div>`;
+  const renderNode = (topic, position) => html`
+    <${TopicCard} key=${topic.id} topic=${topic} allTopics=${topics} position=${position} />`;
 
   return html`
-    <div class="dag-container">
-      <div class="dag-canvas" style="width:${layout.width}px;height:${layout.height}px;position:relative"
-           data-render-complete="true" data-edge-count=${layout.edges.length}>
-        <${EdgeLayer} edges=${layout.edges} width=${layout.width} height=${layout.height} />
-        ${topics.map(t => html`
-          <${TopicCard}
-            key=${t.id}
-            topic=${t}
-            allTopics=${topics}
-            position=${layout.positions[t.id]}
-          />
-        `)}
-      </div>
-    </div>
+    <${GraphView}
+      nodes=${topics}
+      edges=${graphEdges}
+      nodeKey=${t => t.id}
+      renderNode=${renderNode}
+      viewport="scroll"
+      edgeStyles=${TOPIC_EDGE_STYLES}
+      cardWidth=${420}
+      graphOpts=${{ nodesep: 60, marginx: 24, marginy: 24 }}
+      canvasClass="dag-canvas"
+      edgeLayerClass="edge-layer"
+    />
 
     ${leadsTo && leadsTo.length > 0 && html`
       <div class="leads-to">
