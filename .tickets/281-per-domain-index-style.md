@@ -1,7 +1,7 @@
 ---
 id: "281"
 title: "Decide per-domain lessons/index.html style (old IndexView vs unified two-view)"
-status: open
+status: done
 blocked_by: []
 tags: [platform]
 ---
@@ -39,9 +39,44 @@ still work. Cost: none now, but drift accumulates if IndexView and UnifiedView d
 
 ## Acceptance criteria
 
-- [ ] A decision is made and documented (ADR or ticket resolution)
-- [ ] Per-domain `lessons/index.html` pages are in the chosen style
-- [ ] No verify regression
+- [x] A decision is made and documented (ADR or ticket resolution)
+- [x] Per-domain `lessons/index.html` pages are in the chosen style
+- [x] No verify regression
+
+## Resolution
+
+**Option A, content-driven.** `generate_index_page.py` `main()` now branches on
+`single = data["stats"]["domainCount"] <= 1 and not data["edges"]`:
+- single (no cross-domain edges) → clean `IndexView` via a trimmed `_INDEX_MODULE_SCRIPT`
+  (keeps the #279 load-time `resolveProgress` count override against the domain's `topicIds`;
+  drops the Tree|Map view-resolution block + the demo-takeover banner), `include_dagre=False`.
+- has edges (sub-maps) → `UnifiedView` unchanged.
+
+The discriminator is **edge-presence, not node count** — and it's content-driven (add a
+sub-map → the page auto-gains the relationship view; no per-page config, no style toggle —
+the modal-switch anti-pattern the "Single-Axis Preferences" steering warns against). Of the 5
+regenerated per-domain pages: oidc-rust, workout-fundamentals, ink-godot → IndexView (no
+toggle); godot-gamedev (4 nodes/5 edges) + iceberg-workspace (2 nodes/1 edge) → UnifiedView
+(they have real sub-map structure the toggle navigates). `IndexView` stays live.
+
+Added `tools/check-index-drift.py` (in `mise run verify`): regenerates the aggregate + all
+per-domain index pages IN PLACE + `git diff` — non-empty = drift, fail. In-place (not temp)
+is required because `map_href` is document-relative to the output's real `../maps/` sibling; a
+temp copy can't reproduce the committed hrefs (and cross-drive temp breaks `os.path.relpath`
+on Windows — both found + fixed during impl). This prevents the exact stale-artifact drift
+that motivated #281.
+
+Decision recorded as an ADR 0016 amendment (Consequences → per-domain resolution).
+
+**Verification:**
+- Render (single-workspace serve, no root-normalization): oidc-rust `mounted, toggle=False,
+  cue=1`; godot-gamedev `mounted, toggle=True, cue=1` — both correct.
+- `mise run check-maps` 10/10; `mise run verify` EXIT 0 (drift guard clean once pages committed).
+
+**Follow-up filed — #284:** serve.py's `_root_index` normalizer shadows per-domain pages
+under a multi-domain root serve (they're live on the deployed static host but unreachable via
+`mise run serve` on `library/`). Serve-routing concern (ADR 0015 territory), out of #281's
+style scope.
 
 ## References
 - `tools/generate_index_page.py` — the unified generator (`build_page_data`, `main`); a

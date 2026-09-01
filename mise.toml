@@ -136,6 +136,7 @@ run = [
   "uv run python tools/bake-export-oracle.py",
   "uv run python tools/verify-links.py",
   "uv run python tools/check-maps-forest.py",
+  "uv run python tools/check-index-drift.py",
   "uv run python tools/lint-html.py",
   "uv run python tools/check-lesson-code.py",
   "uv run python tools/check-svg-vars.py --workspace library/oidc-rust --workspace library/workout-fundamentals --workspace library/godot-gamedev",
