@@ -1,7 +1,7 @@
 ---
 id: "280"
 title: "Local _site deploy assembly dry-run (verify subpath + overlay survival)"
-status: open
+status: done
 blocked_by: []
 tags: [platform]
 ---
@@ -41,11 +41,41 @@ Then verify:
 
 ## Acceptance criteria
 
-- [ ] `_site` assembly script runs locally without error
-- [ ] Unified page, redirect stub, and demo overlays all present + correct
-- [ ] Document-relative asset paths from the aggregate + domain lesson pages resolve
-- [ ] Root redirect works
-- [ ] `mise run verify` EXIT 0 (unchanged)
+- [x] `_site` assembly script runs locally without error
+- [x] Unified page, redirect stub, and demo overlays all present + correct
+- [x] Document-relative asset paths from the aggregate + domain lesson pages resolve
+- [x] Root redirect works
+- [x] `mise run verify` EXIT 0 (unchanged)
+
+## Resolution
+
+Went beyond a one-shot dry-run: **extracted the `_site` assembly into a single-source script**
+`tools/assemble-site.sh` (Option B — the "Uniform Build" pattern; research-backed). `pages.yml`
+now calls `bash tools/assemble-site.sh _site` (control plane in YAML, assembly logic in the
+script), and `tools/site-dry-run.py` runs that SAME script into a temp dir — so the dry-run
+exercises the EXACT deploy logic, no re-implementation to drift.
+
+**Reconciled the stale (pre-#279/#281) ticket expectations:**
+- The ticket's ".user survived the strip" AC was INVERTED by #279 — the dry-run now asserts
+  the opposite (correctly): `demo-status.json` fixtures ship (3), NO `.user/` anywhere.
+- #281 made all 5 per-domain indexes exist → the missing-index redirect loop is dormant; the
+  dry-run asserts 0 stubs written + all 5 indexes present.
+- **Fixed a latent bug** the review found: the missing-index redirect target lacked `../` to
+  escape `lessons/` (would 404 for a future index-less domain). Now `../{domain}-map.html`.
+
+`tools/site-dry-run.py` (mise task `site-dry-run`, NOT core verify — needs git-bash) asserts
+12 invariants: root redirect, `.nojekyll`, shared + per-domain assets, aggregate + global-map,
+5 per-domain indexes, 0 stubs, 3 demo fixtures, no `.user/`, **no root-relative `/assets`
+refs** (the ADR-0015 subpath invariant — which verify-links does NOT enforce, per review), no
+symlinks, and the `../` redirect fix.
+
+ADR 0015 amended (the assembler is the single source of the document-relative invariant; the
+dry-run enforces it pre-release, not only on a `v*` tag).
+
+**Verification:** `mise run site-dry-run` → 12/12 assertions pass; `mise run verify` EXIT 0
+(unchanged — one flaky 3-check timeout during a 253s run, confirmed transient by a clean 71s
+re-run; my changes don't touch verify-interactive). Extracted script validated byte-faithful
+via git-bash (5 per-domain indexes, 3 demo fixtures, 0 `.user/`, assets at root + 5 domains).
 
 ## References
 - `.github/workflows/pages.yml` — the "Assemble deploy directory" step (the shell block to run

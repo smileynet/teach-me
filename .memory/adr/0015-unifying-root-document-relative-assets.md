@@ -90,5 +90,15 @@ NOT the page.**
   generated pages; a future contributor "simplifying" to `/assets` would reintroduce the
   project-page 404 + force `<base>`. If the deploy target ever becomes a root/user page or
   custom domain, this ADR should be revisited (root-relative becomes viable then).
+  - **#280 amendment (2026-09-01):** the `_site` assembly is now the SINGLE-SOURCE script
+    `tools/assemble-site.sh` (pages.yml calls `bash tools/assemble-site.sh _site` — control
+    plane in YAML, assembly logic in the script; the "Uniform Build" pattern). `tools/site-dry-run.py`
+    (mise task `site-dry-run`, NOT core `verify` — needs git-bash) runs that SAME script into
+    a temp dir and asserts the invariants this ADR names — **no root-relative `/assets` refs**
+    (grep gate), plus post-#279/#281 deploy facts (demo-status.json fixtures ship, `.user/`
+    stripped at any depth, all 5 per-domain indexes present, root redirect, `.nojekyll`, no
+    symlinks) and the `../`-prefixed missing-index redirect fix. The dry-run exercises the
+    real deploy logic, so the document-relative invariant is now enforced pre-release, not
+    only on a `v*` tag.
 - **Supersedes** the ad-hoc depth handling rationale in #163/#229/#230/#242/#261 by naming
   the invariant; complements ADR 0003 (shared asset contract) and ADR 0012 (library default).
