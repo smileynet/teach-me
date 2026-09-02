@@ -1,0 +1,14 @@
+[remap]
+
+importer="inkgd.ink"
+type="Resource"
+uid="uid://4ii8l3mpytx5"
+path="res://.godot/imported/05_first_godot_integration.ink-9c64af1c8831fceb4d0d547a5a21ec4a.res"
+
+[deps]
+
+source_file="res://stories/05_first_godot_integration.ink"
+dest_files=["res://.godot/imported/05_first_godot_integration.ink-9c64af1c8831fceb4d0d547a5a21ec4a.res"]
+
+[params]
+

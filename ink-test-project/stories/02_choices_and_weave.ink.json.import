@@ -1,0 +1,15 @@
+[remap]
+
+importer="inkgd.ink.json"
+type="Resource"
+uid="uid://bkwjmx3r2n4of"
+path="res://.godot/imported/02_choices_and_weave.ink.json-da3b644eed5ec94891b6a049d69b985a.res"
+
+[deps]
+
+source_file="res://stories/02_choices_and_weave.ink.json"
+dest_files=["res://.godot/imported/02_choices_and_weave.ink.json-da3b644eed5ec94891b6a049d69b985a.res"]
+
+[params]
+
+compress=true

@@ -1,0 +1,15 @@
+[remap]
+
+importer="inkgd.ink.json"
+type="Resource"
+uid="uid://cov0xssdhf7tb"
+path="res://.godot/imported/08_production_patterns.ink.json-5b13cba5aff5ae10eafae9b8cbffde3c.res"
+
+[deps]
+
+source_file="res://stories/08_production_patterns.ink.json"
+dest_files=["res://.godot/imported/08_production_patterns.ink.json-5b13cba5aff5ae10eafae9b8cbffde3c.res"]
+
+[params]
+
+compress=true

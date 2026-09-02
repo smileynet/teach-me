@@ -1,0 +1,15 @@
+[remap]
+
+importer="inkgd.ink.json"
+type="Resource"
+uid="uid://3rauhux24e0l"
+path="res://.godot/imported/03_variables_and_conditionals.ink.json-0013afef174cefd6fe76ee5afb063152.res"
+
+[deps]
+
+source_file="res://stories/03_variables_and_conditionals.ink.json"
+dest_files=["res://.godot/imported/03_variables_and_conditionals.ink.json-0013afef174cefd6fe76ee5afb063152.res"]
+
+[params]
+
+compress=true

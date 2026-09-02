@@ -1,0 +1,15 @@
+[remap]
+
+importer="inkgd.ink.json"
+type="Resource"
+uid="uid://cijmthtg6lyqp"
+path="res://.godot/imported/05_first_godot_integration.ink.json-8fc3aa6cd51ce667604844558feec707.res"
+
+[deps]
+
+source_file="res://stories/05_first_godot_integration.ink.json"
+dest_files=["res://.godot/imported/05_first_godot_integration.ink.json-8fc3aa6cd51ce667604844558feec707.res"]
+
+[params]
+
+compress=true

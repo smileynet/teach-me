@@ -1,0 +1,15 @@
+[remap]
+
+importer="inkgd.ink.json"
+type="Resource"
+uid="uid://dwd6c4sje8gx1"
+path="res://.godot/imported/01_flow_and_knots.ink.json-a01c4bb1b005cde645cab1a4bff66fa5.res"
+
+[deps]
+
+source_file="res://stories/01_flow_and_knots.ink.json"
+dest_files=["res://.godot/imported/01_flow_and_knots.ink.json-a01c4bb1b005cde645cab1a4bff66fa5.res"]
+
+[params]
+
+compress=true

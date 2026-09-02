@@ -1,0 +1,15 @@
+[remap]
+
+importer="inkgd.ink.json"
+type="Resource"
+uid="uid://b36dn05yd5lr6"
+path="res://.godot/imported/04_functions_and_tunnels.ink.json-0c30ea0a5f70ba0749bfc9841ce78e9c.res"
+
+[deps]
+
+source_file="res://stories/04_functions_and_tunnels.ink.json"
+dest_files=["res://.godot/imported/04_functions_and_tunnels.ink.json-0c30ea0a5f70ba0749bfc9841ce78e9c.res"]
+
+[params]
+
+compress=true
