@@ -1,7 +1,7 @@
 ---
 id: "234"
 title: "Reconcile ink-test-project version control: vendor addons, untrack stale compiled ink, gitignore .godot"
-status: open
+status: done
 priority: medium
 blocked_by: []
 tags: ["ink"]
@@ -28,12 +28,33 @@ Split from #233 — the ink-test-project portion of the uncommitted-worktree rec
 
 ## Acceptance criteria
 
-- [ ] ink-test-project addons vendored + committed (parity with test-scene) OR a documented rehydrate entry added
-- [ ] `ink-test-project/.godot/` gitignored
-- [ ] Stale `stories/*.ink.json` untracked (`git rm --cached`) + gitignored
-- [ ] `.import` policy applied consistently with the addon-commit decision
-- [ ] #212 Lesson 06 deliverables committed
-- [ ] `git status` for `ink-test-project/` is clean or only deliberate
+- [x] ink-test-project addons vendored + committed (inkgd, parity with test-scene; godot_ai excluded as MCP tooling; gut deleted as unused)
+- [x] `ink-test-project/.godot/` gitignored
+- [x] ~~Stale `stories/*.ink.json` untracked~~ → REVERSED: lesson `.ink.json` COMMITTED (Godot players `load()` them at runtime); orphan `test_fallback.*`/`exercise_0*_answer.*` gitignored instead
+- [x] `.import` policy applied consistently with the addon-commit decision (all per-asset `.import` committed; addon `.gitignore` neutralized)
+- [x] #212 Lesson 06 deliverables committed (already landed pre-ticket)
+- [x] `git status` for `ink-test-project/` is clean or only deliberate (only untracked `addons/godot_ai/` remains, by design)
+
+## Resolution (2026-09-02)
+
+Committed `a431fce` (206 files, +17,479). Applied the corrected Godot-4.4 policy matching
+test-scene precedent:
+- Vendored `addons/inkgd` in full (ephread/inkgd godot4 @ fea9098, v0.6.0); removed the
+  upstream addon-local `.gitignore` so root policy owns ignores + committed the 2 editor-icon
+  `.import` sidecars. Deviation noted in VENDOR.md.
+- Committed lesson stories (07/08 `.ink` sources + 02–08 `.ink.json` + all `.import`) — the
+  Godot players `load("res://stories/NN.ink.json")` at runtime, so these are runtime deps,
+  NOT stale byproducts (reversed the original item-3 premise after load-path review).
+- Committed scene `.gd.uid` + `script_templates/`.
+- `project.godot`: kept `__InkRuntime` autoload + inkgd plugin; dropped `_mcp_game_helper`
+  autoload + `godot_ai` plugin entry.
+- Excluded: `addons/godot_ai/` (MCP tooling, left untracked), `addons/gut/` (unused
+  speculative install — deleted), orphan `test_fallback.*`/`exercise_0*_answer.*` (no tracked
+  `.ink` source — gitignored).
+
+Verified: `mise run ink:validate` 9/9 ok (incl. new 07/08); `mise run verify` EXIT 0 (20
+interactive checks, 5 transcripts match). `git status` clean except the by-design untracked
+`addons/godot_ai/`.
 
 ## Note
 
@@ -88,3 +109,67 @@ inkgd) + inkgd plugin enablement; REVERT the `_mcp_game_helper` autoload (MCP sc
 handoff rule: never commit MCP-saved artifacts).
 
 **Bump status backlog → open** — scope is now unblocked and fully specified.
+
+## ROUND-2 refinements (2026-09-02) — precedent alignment + new exclusions
+
+Second review pass (`.scratch/reconcile-233/r2-*.md`) — test-scene precedent + commit
+runbook + gitignore-conflict check. Four refinements:
+
+**A. `addons/godot_ai/` is EXCLUDED (new — round 1 missed this).** It's the MCP
+game-helper tooling, not a lesson dep. The `project.godot` `_mcp_game_helper` autoload
+points at `res://addons/godot_ai/runtime/game_helper.gd`, and `godot_ai/plugin.cfg` is in
+the enabled editor_plugins array. Vendor ONLY `inkgd` (+ decide `gut` separately). Do NOT
+stage `addons/godot_ai/`.
+
+**B. `project.godot` partial revert — drop TWO godot_ai references, not one:**
+- KEEP: `[autoload] __InkRuntime`, `res://addons/inkgd/plugin.cfg` in enabled plugins,
+  `[inkgd] register_templates=true`.
+- DROP: `_mcp_game_helper` autoload line AND `res://addons/godot_ai/plugin.cfg` from the
+  enabled array. Edit the WORKTREE to the desired end-state (a committed project.godot
+  referencing an un-committed autoload path is broken on clone), then `git add` + verify
+  `git diff --cached | Select-String "godot_ai|_mcp_game_helper"` returns nothing.
+
+**C. CRITICAL divergence — `addons/inkgd/.gitignore` (`*.import`) vs test-scene.**
+test-scene has ZERO addon-level `.gitignore` and commits all 79 `.import`. inkgd's
+vendored `.gitignore` actively hides 2 real icon sidecars (`editor/icons/compile.svg.import`,
+`ink_player.svg.import`) — a fresh-clone reimport-churn risk test-scene avoids. Options:
+(1) neutralize/delete `addons/inkgd/.gitignore` so root policy owns ignores + force-add the
+2 `.svg.import`; or (2) keep upstream's ignore, let the icons reimport locally (harmless,
+but diverges from precedent). If (1): note the deviation in VENDOR.md so re-vendor doesn't
+reintroduce it. Confirmed the addon `*.import` is scoped to `addons/inkgd/` only — it does
+NOT block `stories/*.import` (those `git add` cleanly).
+
+**D. DECISION items — RESOLVED by round-3 provenance check (2026-09-02):**
+
+Round-3 (`.scratch/reconcile-233/r3-*.md`) traced provenance via git-history + load-path
+grep. All four resolved:
+
+- **`stories/test_fallback.*` → DROP** (unconditional). Never tracked (no git history on
+  any branch), no `.ink` source exists anywhere, no player/harness/task references it. Pure
+  spike scratch, no revival path.
+- **`stories/exercise_0{2,3,4}_answer.ink.json` (+`.import`) → DROP.** Never tracked, NO
+  tracked-or-untracked `.ink` source exists, not referenced by any lesson HTML or player.
+  Committing = orphan artifacts nobody can regenerate or diff-review. Conditional revival:
+  author the `exercise_0N_answer.ink` SOURCES first + wire into a player, THEN commit
+  source+JSON+.import together. Until then, exclude.
+- **`addons/gut/` → DROP** (delete, don't just exclude). GUT v9.1.1 was installed
+  speculatively via editor AssetLib on 2026-08-24 (same batch as inkgd + godot_ai). It is
+  DISABLED (not in project.godot enabled-plugins), never committed, zero test files extend
+  `GutTest`, no mise/CI task invokes it, and test-scene does NOT vendor it. The real runtime
+  gate (`ink:validate-gd`) uses the bespoke `validate_runtime.gd` harness, not GUT. Safe to
+  `Remove-Item -Recurse -Force ink-test-project/addons/gut/`.
+- **`script_templates/` → INCLUDE if intentional** (small project-local editor templates;
+  low risk). Otherwise exclude.
+
+**⚠️ CORRECTION to this ticket's own round-1 item 3′:** round 1 listed
+`exercise_02/03/04_answer` and `test_fallback` among ".ink.json to COMMIT (runtime deps)."
+That was WRONG — it assumed they were loaded fixtures without checking the load path. No
+player `load()`s them (verified). Item 3′ COMMIT scope is ONLY the lesson stories `02`–`08`
+(which players DO load) + `01`/`hello` (already tracked). The orphans are DROP, per D above.
+
+**Suggested scoped `.gitignore`** (narrow — won't catch legit lesson `.ink.json`):
+`ink-test-project/stories/test_fallback.*` + `ink-test-project/stories/exercise_0*_answer.*`
+
+**test-scene precedent confirms** (449 tracked): commit sources + `.uid` (153) + per-asset
+`.import` (79) + whole vendored addon; ignore only `.godot/` + build products. Full runbook:
+`.scratch/reconcile-233/r2-commit-runbook.md`.
