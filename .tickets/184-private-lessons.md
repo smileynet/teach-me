@@ -59,18 +59,37 @@ unified index generator (`tools/generate_index_page.py`).
    MUST NOT reference a `.user/` topic id. Add a check (extend `check-maps-forest.py`): fail if
    any committed map's prereq/leads_to resolves only within `.user/`.
 
+## Data model — visibility (locked 2026-09-02, data-modeling lens)
+
+Single source of truth: a topic's visibility is its **discovery provenance**, not a stored
+flag. Do NOT add `private: bool` to `Topic`/`DomainMap` (`map_parser.py`) — those parse
+committed MAP.md content and must stay visibility-agnostic; a committed MAP.md is
+unconditionally shared, so a flag beside a `.user/`-sourced path would be a second source
+that can drift.
+
+Tag visibility ONCE, at the domain-graph record level, from where the map was discovered
+(`find_maps` = shared, `find_private_maps` = private). Model it as a small carried-data
+variant, not a bare bool — it gates THREE behaviors (badge render, prereq-direction rule,
+never-bake-into-committed-page), so it clears the "don't over-model a lone binary" bar:
+
+    source = Shared(committed_path) | Private(overlay_path, promote_target)
+
+Discovery is the single parse point that assigns it (parse-at-boundary); nothing downstream
+re-derives or re-checks. Aligns with `serve.py::_block_private_overlay` (serve already treats
+`.user/` as never-leak).
+
 ## Implementation plan
 
-- **A. `find_maps` private overlay** — new `find_private_maps(scan_dirs)` returns
-  `.user/maps/*.MAP.md`; `build_domain_graph` merges private topics into the owning domain
-  record (marks them `private: true`, adds `private_topic_ids`). Wholly-private domain → its
-  own record flagged private.
+- **A. `find_private_maps` + graph merge** — new `find_private_maps(scan_dirs)` returns
+  `.user/maps/*.MAP.md`; `build_domain_graph` tags each record's `source` variant and merges
+  private topics into the owning domain record, adding `private_topic_ids`. Wholly-private
+  domain → its own record with a `Private` source.
 - **B. Never committed** — `.gitignore` already has `**/.user/*`; private maps + lessons land
   there. Add `.user/maps/` + `.user/lessons/` to the private-lesson generation path. Verify no
   `git add -f` needed and MAP.md-under-library stays clean.
-- **C. Index/map integration** — `build_page_data` carries `private` through to each
-  domain/topic; `UnifiedView`/`IndexView` render the badge. Private counts fold into the local
-  view only (never into committed demo-status).
+- **C. Index/map integration** — `build_page_data` carries the visibility variant through to
+  each domain/topic; `UnifiedView`/`IndexView` render the badge. Private counts fold into the
+  local view only (never into committed demo-status).
 - **D. No MAP.md pollution** — committed `{domain}.MAP.md` files never gain private topic
   entries (they live only in `.user/maps/`). Regen of a committed page must not bake private
   content (private is a serve/local-render overlay, like the user status overlay).
