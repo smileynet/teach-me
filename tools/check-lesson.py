@@ -367,6 +367,44 @@ def check_q15_glossary_coverage(html: str) -> list[dict]:
     return [result("Q15", PASS, f"All {len(data)} glossary term(s) annotated in body")]
 
 
+# estimate-read-time.py has a hyphen (not importable directly) — load it once by path.
+_rt_module = None
+
+
+def _load_read_time_module():
+    global _rt_module
+    if _rt_module is None:
+        import importlib.util
+
+        rt_path = Path(__file__).resolve().parent / "estimate-read-time.py"
+        spec = importlib.util.spec_from_file_location("estimate_read_time", rt_path)
+        _rt_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_rt_module)
+    return _rt_module
+
+
+def check_rt_read_time(html: str) -> list[dict]:
+    """RT: declared '~N min read' should be within 30% of the computed estimate.
+
+    Warning-only — read time is advisory, not a compliance gate.
+    """
+    rt = _load_read_time_module()
+    declared = rt.declared_read_time(html)
+    if declared is None:
+        return [result("RT", SKIP, "no '~N min read' declared in lesson-meta")]
+    est = rt.estimate_read_time(html)
+    # 30% drift threshold (min 2 min floor so tiny lessons don't warn on ±1)
+    tolerance = max(2, round(declared * 0.30))
+    if abs(declared - est) > tolerance:
+        return [result(
+            "RT", WARN,
+            f"declared ~{declared} min read but content estimates ~{est} min "
+            f"(drift > {tolerance} min); update via "
+            f"`python tools/estimate-read-time.py --update <lesson>`",
+        )]
+    return [result("RT", PASS, f"read time ~{declared} min matches estimate ~{est} min")]
+
+
 def lint_lesson(lesson_path: Path, workspace: Path) -> list[dict]:
     """Run all checks on a single lesson."""
     html = lesson_path.read_text(encoding="utf-8")
@@ -389,6 +427,7 @@ def lint_lesson(lesson_path: Path, workspace: Path) -> list[dict]:
     all_results.extend(check_q14_decision_callouts(html))
     all_results.extend(check_q15_glossary_coverage(html))
     all_results.extend(check_cf_code_files_section(html))
+    all_results.extend(check_rt_read_time(html))
 
     return all_results
 
