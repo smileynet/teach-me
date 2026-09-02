@@ -1,0 +1,15 @@
+[remap]
+
+importer="inkgd.ink.json"
+type="Resource"
+uid="uid://c15siifsu7uoy"
+path="res://.godot/imported/07_state_bridge.ink.json-cc4f375dd23ac1d10c615821170bbce2.res"
+
+[deps]
+
+source_file="res://stories/07_state_bridge.ink.json"
+dest_files=["res://.godot/imported/07_state_bridge.ink.json-cc4f375dd23ac1d10c615821170bbce2.res"]
+
+[params]
+
+compress=true

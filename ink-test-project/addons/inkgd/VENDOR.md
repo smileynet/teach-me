@@ -14,7 +14,17 @@ upstream maintainer's string, not a release we can pin against.
 | Commit subject | Re-enable inkgd plugin |
 | Fetched / vendored | 2026-08-24 |
 | License | MIT (see `LICENSE`) |
-| Local patches | none — verified byte-identical to branch HEAD (SHA-256 of `ink_player.gd` matches) |
+| Local patches | `.gitignore` removed (see below); otherwise byte-identical to branch HEAD (SHA-256 of `ink_player.gd` matches) |
+
+## Local deviation from upstream (do not reintroduce on re-vendor)
+
+Upstream ships `addons/inkgd/.gitignore` containing `*.import`, which hides the two editor
+icon sidecars (`editor/icons/compile.svg.import`, `ink_player.svg.import`). This project
+**removed** that file so the repo-root `.gitignore` owns all ignore policy (ignore `.godot/`
+only), and the icon `.import` sidecars are committed like every other `.import` — matching
+the `test-scene` precedent (449 tracked, zero addon-level `.gitignore`, all `.import`
+committed). Committing the `.import` avoids per-machine UID/reimport churn on fresh clone.
+When re-vendoring a newer `godot4` commit, delete the incoming `.gitignore` again. (#234)
 
 `ink_player.gd` itself last changed upstream at `88441d6` (2024-01-25); the two later
 `godot4` commits do not touch it.

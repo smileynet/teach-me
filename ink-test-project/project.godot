@@ -14,6 +14,14 @@ config/name="ink-test-project"
 run/main_scene="res://scenes/spike_story.tscn"
 config/features=PackedStringArray("4.7")
 
+[autoload]
+
+__InkRuntime="*res://addons/inkgd/ink_runtime.gd"
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/inkgd/plugin.cfg")
+
+[inkgd]
+
+register_templates=true

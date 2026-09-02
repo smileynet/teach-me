@@ -1,0 +1,14 @@
+[remap]
+
+importer="inkgd.ink"
+type="Resource"
+uid="uid://c37yj4jdd24kc"
+path="res://.godot/imported/hello.ink-d3d1f97130684aa1e0024577a448ea72.res"
+
+[deps]
+
+source_file="res://stories/hello.ink"
+dest_files=["res://.godot/imported/hello.ink-d3d1f97130684aa1e0024577a448ea72.res"]
+
+[params]
+

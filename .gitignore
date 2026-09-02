@@ -26,3 +26,12 @@ test-results/
 # mise machine-local config (paths, tool overrides — never committed)
 mise.local.toml
 **/mise.local.toml
+
+# Godot editor cache — the only Godot artifact excluded for ink-test-project.
+# .uid/.import/addons are COMMITTED per Godot 4.4 guidance (matches test-scene). (#234)
+ink-test-project/.godot/
+
+# Orphan compiled-ink scratch with no tracked .ink source — spike/answer-key byproducts
+# nobody can regenerate or diff-review. Narrow patterns; do NOT catch lesson .ink.json. (#234)
+ink-test-project/stories/test_fallback.*
+ink-test-project/stories/exercise_0*_answer.*

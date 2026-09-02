@@ -1,0 +1,15 @@
+[remap]
+
+importer="inkgd.ink.json"
+type="Resource"
+uid="uid://drdrcf3jwp4ln"
+path="res://.godot/imported/06_tags_as_commands.ink.json-a51c414ef413043504b7a80d9f27d398.res"
+
+[deps]
+
+source_file="res://stories/06_tags_as_commands.ink.json"
+dest_files=["res://.godot/imported/06_tags_as_commands.ink.json-a51c414ef413043504b7a80d9f27d398.res"]
+
+[params]
+
+compress=true
