@@ -30,32 +30,68 @@ topic-differentiation is only ~20-30% — the hints don't help write THAT specif
 
 ## What to build
 
-1. **Topic-local salience ranking** (highest-leverage fix): score each concept by
-   `freq_in_topic / freq_in_domain` (TF-IDF-style), not global frequency. This inverts the
-   non-differentiation — topic-specific terms rise, pervasive domain terms fall.
-2. **Fix domain-name leakage**: the current filter compares against the domain SLUG
-   (`rust-fundamentals`), so `Rust` slips through in 8/10 topics. Stem/token-match the domain
-   name (and common short forms) instead of exact-slug compare.
-3. **Collapse restatement clusters**: `owner / single owner / ownership / Rust safety` occupy 4
-   of 5 top slots for one concept — dedup should merge these harder.
-4. **Minimum-salience floor + stoplist expansion**: drop tail entries scoring 0.033-0.05 that
-   pad the top-5; add extraction noise (`important factor`, `difficulties`, `provide powerful`)
-   to the generic stoplist.
+## RESEARCH REFRAME (2026-09-02) — goal is anchors+hooks, NOT pure distinctiveness
+
+Two research passes (`.scratch/reconcile-233/r286-casual-learning.md`, `r286-salience.md`)
+changed the objective. teach-me is an INTEREST-DRIVEN discovery tool (CONTEXT.md "casual
+exploration posture"), not academic extraction — and the learning science says pure
+per-topic distinctiveness is the WRONG sole goal:
+
+- **Curiosity/interest follow an inverted-U with prior knowledge** (Loewenstein 1994; Kang
+  2009; Donnellan 2022). A hint sparks only when the learner has enough footing to feel a
+  gap. A maximally-distinctive/obscure term sits at the "know nothing" tail → no gap felt →
+  inert. Pure distinctiveness surfaces exactly those inert terms (rarity ↔ obscurity).
+- **The right 5-hint shape = 2-3 pervasive ANCHORS + 1-2 distinctive HOOKS.** Anchors
+  supply the "I already know something here" footing that interest requires; hooks open the
+  closeable gap. Anchors are NOT wasted coverage — they're the precondition for hooks to land.
+- **The ticket's original `freq_in_topic/freq_in_domain` ratio is the worst form** for a
+  ~10-chunk corpus: it's word-doc PMI, with unbounded rare-term over-weighting (a once-only
+  term scores maximal on one observation). Must be smoothed + count-floored.
+
+So the fix is NOT "rank by distinctiveness." It's: **keep a few high-in-topic anchors,
+ADD a small number of distinctive hooks scored by a SMOOTHED salience with a count floor,
+and gate everything so obscure single-mention noise can't fill slots.**
+
+## What to build (revised)
+
+1. **Two-band selection for the top-5** (replaces "rank purely by salience"):
+   - **Anchors (≈3):** concepts with the highest presence WITHIN the topic's own chunks
+     (topic document-frequency), regardless of domain-wide spread — the footing.
+   - **Hooks (≈2):** concepts with the highest SMOOTHED salience — distinctive to this topic
+     — subject to a minimum count/df floor so single-mention trivia can't qualify.
+   - Ratio is a tunable (start 3:2); dedup so an anchor and hook aren't the same concept.
+2. **Smoothed salience for the hook band** (NOT raw ratio): smoothed log-ratio
+   `log((topic+α)/(topic_total+αV)) − log((rest+α)/(rest_total+αV))`, α≈0.1, gated by
+   "appears in ≥2 of the topic's chunks OR raw count ≥2". Pure stdlib (`math.log`). (Weighted
+   log-odds w/ Dirichlet prior is the gold standard but likely over-engineered at ~10 chunks
+   — start with smoothed log-ratio; note the upgrade path.)
+3. **Fix domain-name leakage**: token/stem-match the domain name (`rust` from
+   `rust-fundamentals`), not exact-slug compare, so `Rust` stops appearing as a "concept".
+4. **Harder restatement dedup + stoplist**: merge `owner`/`single owner`/`ownership`
+   clusters; add extraction noise (`important factor`, `difficulties`, `provide powerful`).
 
 ## Acceptance criteria
 
-- [ ] Concepts ranked by topic-local salience (freq_in_topic / freq_in_domain), not global freq
-- [ ] Re-run the #176 corpus (3 domains × 10 topics): >60% of topics have a top-5 that includes
-      at least one topic-specific concept absent from sibling topics (differentiation, not just
-      domain-relevance)
-- [ ] `smart-pointers-box-rc-arc` surfaces Box/Rc/Arc; `choosing-names` surfaces a naming concept;
-      `triplanar-mapping-algorithm` surfaces triplanar/projection — spot-check the 3 worst cases
+- [ ] Top-5 uses two-band selection: ~3 in-topic anchors + ~2 smoothed-salience hooks (tunable ratio)
+- [ ] Hook salience is SMOOTHED (log-ratio w/ α) + count-floored (≥2 chunks or count≥2) — no raw ratio, no single-mention trivia in the top-5
+- [ ] Re-run the #176 corpus (3 domains × 10 topics): >60% of topics have ≥1 hook concept absent from sibling topics, WHILE still showing shared anchors (differentiation via hooks, footing via anchors — not every slot distinct)
+- [ ] Spot-check the 3 worst cases now surface a hook: `smart-pointers-box-rc-arc` → Box/Rc/Arc; `choosing-names` → a naming concept; `triplanar-mapping-algorithm` → triplanar/projection
 - [ ] Domain name (`Rust`, etc.) no longer appears as a top concept
-- [ ] Existing concept-extraction tests still pass (46+); add a topic-differentiation regression test
+- [ ] Good cases don't regress (`smoothstep`, `deep-modules`, `move-semantics` keep their specific hooks)
+- [ ] Existing concept-extraction tests still pass (46); add an anchors+hooks regression test (two sibling topics: shared anchors, differing hooks)
 - [ ] `mise run verify` passes
 
 ## References
 
 - Validation evidence: `.scratch/reconcile-233/concept-digest.txt`, `r-concept-review.md`
+- Research (reframe): `.scratch/reconcile-233/r286-casual-learning.md` (anchors+hooks, inverted-U),
+  `r286-salience.md` (smoothed log-ratio > raw ratio; count floor; weighted-log-odds upgrade path)
+- Code reality: `.scratch/reconcile-233/r286-code-review.md` — salience computable from
+  `Concept.defined_in/used_in` ∩ `target_indices`, NO change to extract_concepts.py; ranking
+  is the sort at `concept_hints.py:353`; `assign_levels_by_percentile` is order-independent
+  (main path); 46 tests, none assert sort order.
+- Consumers: `.scratch/reconcile-233/r286-consumers.md` — output is ephemeral (`.scratch/`),
+  no consumer keys off slot/order; invariants to keep: `level ∈ {L1,L2,L3}`, ≥1
+  `relevant_to_target` survives truncation, top-level keys stable.
 - Prior limitation note: #179 "Known Limitation"; original quality fixes: #175
-- Tool: `tools/concept_hints.py` (ranking in `compute_composite_score` + `generate_concept_hints`)
+- Tool: `tools/concept_hints.py` (ranking in `generate_concept_hints`, sort at line ~353)
