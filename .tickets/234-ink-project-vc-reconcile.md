@@ -1,7 +1,7 @@
 ---
 id: "234"
 title: "Reconcile ink-test-project version control: vendor addons, untrack stale compiled ink, gitignore .godot"
-status: backlog
+status: open
 priority: medium
 blocked_by: []
 tags: ["ink"]
@@ -49,3 +49,42 @@ Split from #233 — the ink-test-project portion of the uncommitted-worktree rec
 - New untracked compiled ink since this ticket was filed: `stories/{02,03,04,05,06}_*.ink.json`
   (harness/validate byproducts) — same untrack+gitignore treatment as item 3.
 - `mise.lock` (new, committed by #244) pins inklecate; not a reconciliation concern.
+
+## CORRECTION (2026-09-02) — item 3 policy REVERSED; `.ink.json` must be COMMITTED, not ignored
+
+Research + code review (`.scratch/reconcile-233/`) overturned item 3's premise. The
+claim "committed `.ink.json` are never read" is true ONLY for the headless bink tools
+(`play-ink.py` / `validate-ink.py` recompile to temp). It is FALSE for the Godot path:
+
+- Every lesson player does `load("res://stories/NN.ink.json")` at runtime — e.g.
+  `lesson05_player.gd:27`, `lesson06_player.gd:32`, `lesson07_player.gd:32`,
+  `lesson08_player.gd:36`, `spike_story.gd:18`. They load the COMPILED JSON directly,
+  they do NOT recompile from `.ink`.
+- `mise run ink:validate-gd` (real Godot headless) exercises exactly this load path.
+- inkgd research [L4:established]: `InkPlayer` "takes a resource as its input"; runtime
+  never executes raw `.ink`. A clone-and-run fixture with no committed `.ink.json` and no
+  inklecate on the machine has no story to load.
+
+**Reversed policy:**
+- **Item 3 is CANCELLED.** Do NOT `git rm --cached` the `.ink.json`; do NOT gitignore
+  `stories/*.ink.json`. Doing so would break the Godot lesson players.
+- **New item 3′ (COMMIT the compiled JSON):** track the `.ink.json` the players load —
+  the 12 currently-untracked ones (`02`–`08`, `exercise_02/03/04_answer`, `test_fallback`)
+  and keep the 2 tracked (`01`, `hello`). These are runtime deps of the fixture.
+- **07/08 `.ink` SOURCES also untracked** (`07_state_bridge.ink`, `08_production_patterns.ink`)
+  — commit them alongside their `.ink.json`.
+
+**Godot 4.4 VC guidance confirmed** (official docs, `research-godot-vc.md`) — reinforces
+items 1, 2, 4: commit `.uid` (MUST — 4.4 blog), commit per-asset `.import`, vendor
+`addons/` for clone-and-run; gitignore ONLY `.godot/`.
+
+**`01`/`hello.ink.json` recompile drift:** both show as modified — the in-place
+`ink-test-project/mise.toml` compile (`$INKLECATE -o stories/hello.ink.json ...`)
+regenerated them with newer compiler flags (`#f`, auto `g-0` gather). Regenerate all
+`.ink.json` canonically once, then commit, so the tree is deterministic.
+
+**`project.godot` (modified):** commit the `[autoload] __InkRuntime` line (REQUIRED for
+inkgd) + inkgd plugin enablement; REVERT the `_mcp_game_helper` autoload (MCP scratch,
+handoff rule: never commit MCP-saved artifacts).
+
+**Bump status backlog → open** — scope is now unblocked and fully specified.
