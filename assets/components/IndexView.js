@@ -79,6 +79,20 @@ function IndexCue({ domains }) {
     `;
   }
 
+  // All-complete (#282): every domain fully done. A DISTINCT affirming cue — never fall
+  // through to the first-time "New here?" orientation (that asserts a false status to
+  // someone who finished everything — a known empty-state anti-pattern). Reached only
+  // after resume failed, so no in-progress/partial domain exists.
+  const allComplete = domains.length > 0
+    && domains.every(d => (d.total || 0) > 0 && (d.complete || 0) >= d.total);
+  if (allComplete) {
+    return html`
+      <p class="index-cue index-cue-done">
+        You've completed every topic here. Explore a new domain or revisit one to go deeper.
+      </p>
+    `;
+  }
+
   return html`
     <p class="index-cue index-cue-start">
       New here? Pick a domain below to start — each one opens a map of topics.

@@ -1,7 +1,7 @@
 ---
 id: "282"
 title: "Index cue matrix: empty→orientation + all-complete→no-resume via synthetic fixture"
-status: open
+status: done
 blocked_by: []
 tags: [platform]
 ---
@@ -43,11 +43,43 @@ Add these assertions to `test-navigation.py` (a `--fixture` mode) or a sibling s
 
 ## Acceptance criteria
 
-- [ ] Empty-state fixture → orientation cue asserted
-- [ ] Partial-state fixture → resume cue + click destination asserted
-- [ ] All-complete fixture → no resume cue asserted
-- [ ] Fixture is throwaway (gitignored scratch or test-only), does NOT touch the real library
-- [ ] Runnable via `mise run test:nav` (fixture mode) or a documented sibling task
+- [x] Empty-state fixture → orientation cue asserted
+- [x] Partial-state fixture → resume cue + click destination asserted
+- [x] All-complete fixture → no resume cue asserted (now a DISTINCT `.index-cue-done`, not fall-through)
+- [x] Fixture is throwaway (gitignored scratch or test-only), does NOT touch the real library
+- [x] Runnable via `mise run test:nav` (fixture mode) or a documented sibling task
+
+## Resolution
+
+Two parts (research made the first non-optional):
+
+**1. Feature — distinct all-complete cue.** The UX research (NN/g system-status; UXPin/Toptal
+empty-state taxonomy) showed falling all-complete through to the first-time "New here?"
+orientation is an anti-pattern (false status → distrust). Added a third `IndexCue` branch →
+`.index-cue-done` ("You've completed every topic here. Explore a new domain or revisit one to
+go deeper.") between resume and orientation, in BOTH copies (`UnifiedView.js` + `IndexView.js`
+— independent duplicates) + a `.index-cue-done` CSS rule. So all-complete is now DOM-distinct
+from empty (was identical `.index-cue-start`).
+
+**2. Test — state-matrix via 3 isolated fixtures.** `tools/test-cue-matrix.py` builds THREE
+throwaway single-domain fixtures under `.scratch/cue-fixture/` (gitignored, torn down), one
+per state, because N domains in one page yield ONE cue (`Array.find`) → states would
+interfere. Each fixture: a minimal MAP.md with 3 explicit valid ULIDs (else `load_map` mints
+ephemeral ids that wouldn't match the overlay → silent 0 counts) + a per-state
+`demo-status.json` (post-#279 source, NOT `.user/status-overlay.json`). Single-domain →
+generator's IndexView path (IndexCue identical to UnifiedView's). Asserts: empty→orientation,
+partial→resume+map-destination, all-complete→done cue.
+
+Also factored `tools/lib/serve_harness.py` (the cross-platform serve.py bootstrap) out of
+`test-navigation.py` — both suites now share it (research: split tools, share the library).
+
+**Verification:**
+- `mise run test:cue-matrix` — 6/6 (empty→orientation, partial→resume+nav, all-complete→done).
+- `mise run test:nav` — 36/36 (unchanged after the serve_harness refactor — no behavior change).
+- `mise run verify` — EXIT 0 (IndexCue change + regenerated pages; `index_cue_present` holds;
+  drift guard clean).
+
+New mise task `test:cue-matrix` (mirrors `test:nav` — browser test, NOT in core verify).
 
 ## References
 - Cue logic: `assets/components/UnifiedView.js` `IndexCue` (resume = first domain with in-progress,

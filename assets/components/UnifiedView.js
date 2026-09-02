@@ -28,6 +28,15 @@ function IndexCue({ domains }) {
       <a href=${mapUrl}>Continue where you left off → ${resume.title}</a>
     </p>`;
   }
+  // All-complete (#282): distinct affirming cue — never fall through to first-time
+  // orientation (false status → distrust). Reached only after resume failed.
+  const allComplete = domains.length > 0
+    && domains.every(d => (d.total || 0) > 0 && (d.complete || 0) >= d.total);
+  if (allComplete) {
+    return html`<p class="index-cue index-cue-done">
+      You've completed every topic here. Explore a new domain or revisit one to go deeper.
+    </p>`;
+  }
   return html`<p class="index-cue index-cue-start">
     New here? Pick a domain below to start — each one opens a map of topics.
   </p>`;
