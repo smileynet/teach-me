@@ -16,6 +16,14 @@ under budget. Linked from AGENTS.md.
   at module top: `if hasattr(sys.stdout, "reconfigure"): sys.stdout.reconfigure(encoding="utf-8", errors="replace")`
   (same for stderr). Six tools + verify-blender.py hit this (#237). Not a shared helper (single-use) —
   inline the guard.
+- **Driving git-bash from a Python subprocess (#280):** a tool that shells out to bash
+  (e.g. `assemble-site.sh`) MUST pass REPO-RELATIVE paths with `cwd=PROJECT_ROOT` — absolute
+  Windows paths mangle (`D:codeteach-me...`), MSYS form (`/d/...`) hits `mkdir: /d: Permission
+  denied` (drive not auto-mounted in non-interactive git-bash), and `os.path.relpath` across
+  drive letters (system temp on C:, project on D:) raises `ValueError: path is on mount 'D:'…`.
+  Write temp output to a repo-relative `.scratch/…` dir (not `tempfile.TemporaryDirectory()`,
+  which is on C:). Locate bash at `C:\Program Files\Git\bin\bash.exe`. Deploy-critical `.sh`
+  needs `*.sh text eol=lf` in `.gitattributes` (CRLF breaks the Linux CI bash runner).
 - **maps:regenerate uses bash for-loop syntax** (fails on Windows). Use manual Python calls per-MAP:
   `.venv\Scripts\python.exe tools/generate_map_page.py {MAP} --workspace {ws} --output {out}` then
   `tools/generate_index_page.py --scan-dir {ws} --output {ws}/lessons/index.html` (both carry the
