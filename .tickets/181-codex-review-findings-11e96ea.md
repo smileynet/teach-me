@@ -1,7 +1,7 @@
 ---
 id: "181"
 title: "Confirm and address Codex review findings through 11e96ea"
-status: open
+status: done
 blocked_by: []
 priority: high
 tags: [platform]
@@ -86,7 +86,7 @@ each finding against current code before changing it.
 - [x] Confirmed findings are corrected
 - [x] Regression tests cover confirmed defects where practical
 - [x] Relevant build, test, and lint checks pass
-- [ ] Corrected changes receive a fresh review
+- [x] Corrected changes receive a fresh review
 
 ## Resolution
 
@@ -124,3 +124,13 @@ F2/F3 already covered by `test_enrich_from_source.py` (23 pass). F4 re-verified 
 
 Evidence: `pytest -q` → 230 passed; `mise run verify` → EXIT 0 (20 interactive checks, 5
 transcripts match). Only remaining AC is the external fresh-review pass.
+
+## Fresh review (2026-09-02) — APPROVE
+
+Dispatched an independent reviewer subagent to audit commit `32e3a88`. Verdict: **APPROVE**,
+no changes needed. Confirmed: (1) `raw_path` is the correct in-scope param (traced from
+`_resolve_source` → call site line 59/72), no other scope bugs in `_enrich_existing_domain`;
+(2) the regression test genuinely routes through the enrichment path and asserts the F1
+concern (not a tautology); (3) `pytest tests/test_ingest_source.py tests/test_enrich_from_source.py`
+→ 49 passed; (4) F2 (scikit-learn mise.toml:32), F3 (encoding utf-8 line 360), F4 (JSON
+array, 19-element list) all still fixed. Evidence: `.scratch/reconcile-233/r-fresh-review-181.md`.
