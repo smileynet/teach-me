@@ -86,3 +86,12 @@ _Avoid_: treating it as a live separate page
 A single domain's own topic map (`{domain}-map.html`) — distinct from the aggregate index's Map view, which is domains-as-nodes across the whole library.
 _Avoid_: confusing with the Map view of the aggregate index
 
+**Status overlay**:
+The PRIVATE per-user progress store `{workspace}/.user/status-overlay.json` (learner state; gitignored, never ships). Distinct from the committed **demo-status.json** (see below).
+_Avoid_: conflating with the demo fixture; calling either just "the overlay"
+
+**Demo-status fixture**:
+The COMMITTED per-domain `{workspace}/demo-status.json` (ADR 0016/#279) that bakes the shipped showcase progress counts — read at generate time, never a user's real progress.
+_Avoid_: putting it under `.user/`; calling it a "status overlay"
+
+
