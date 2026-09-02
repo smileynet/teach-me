@@ -305,3 +305,58 @@ class TestF2ExtractedTextFormat:
         )
         chunks = chunk_plaintext(text)
         assert len(chunks) >= 3, f"Expected ≥3 chunks, got {len(chunks)}"
+
+
+class TestF1EnrichmentPreservesOriginal:
+    """Regression for #181 F1: enriching an existing domain with a second source
+    must NOT overwrite the preserved original, and the enrichment path must not
+    raise NameError (it referenced an undefined `file_path` instead of `raw_path`).
+    """
+
+    _CONTENT = (
+        "# {title} Introduction\n\n"
+        "This is a substantial introduction with enough words to pass the filter. "
+        "We need at least fifty words of content to make it through the noise detection. "
+        "So here are more words to fill up the chunk and make it a proper section that "
+        "the system will accept as real content worth indexing.\n\n"
+        "## {title} First Topic\n\n"
+        "More substantial content about the first topic. Again we need enough words "
+        "to pass the filter threshold. This section discusses important concepts that "
+        "build on the introduction and provide real learning value for the reader.\n\n"
+        "## {title} Second Topic\n\n"
+        "Content about the second topic that references concepts from the first. "
+        "As we discussed in the introduction, these foundations matter. This section "
+        "has enough content to be meaningful and to generate proper prereq edges.\n"
+    )
+
+    def test_second_source_does_not_overwrite_first(self):
+        import shutil
+        workspace = Path(tempfile.mkdtemp())
+        first = Path(tempfile.mktemp(suffix=".md"))
+        second = Path(tempfile.mktemp(suffix=".md"))
+        first_content = self._CONTENT.format(title="First Source")
+        second_content = self._CONTENT.format(title="Second Source")
+        first.write_text(first_content)
+        second.write_text(second_content)
+        try:
+            r1 = ingest(str(first), workspace, "enrich-test", "First")
+            assert "error" not in r1, r1
+
+            # Second ingest into the SAME domain → enrichment path (_enrich_existing_domain).
+            # Pre-fix this raised NameError: name 'file_path' is not defined.
+            r2 = ingest(str(second), workspace, "enrich-test", "Second")
+            assert "error" not in r2, r2
+
+            src_dir = workspace / "sources" / "enrich-test"
+            # Original preserved, unchanged
+            assert (src_dir / "raw.md").read_text() == first_content
+            # Enrichment source written to a distinct hashed path, not over raw.md
+            enrichment_files = list(src_dir.glob("raw-*.md"))
+            assert len(enrichment_files) == 1, (
+                f"expected one hashed enrichment source, got {enrichment_files}"
+            )
+            assert enrichment_files[0].read_text() == second_content
+        finally:
+            first.unlink()
+            second.unlink()
+            shutil.rmtree(workspace)

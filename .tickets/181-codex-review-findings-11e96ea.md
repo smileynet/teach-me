@@ -84,7 +84,7 @@ each finding against current code before changing it.
 - [x] Every finding is independently marked confirmed, rejected, or obsolete
 - [x] Rejected or obsolete findings include evidence and rationale
 - [x] Confirmed findings are corrected
-- [ ] Regression tests cover confirmed defects where practical
+- [x] Regression tests cover confirmed defects where practical
 - [x] Relevant build, test, and lint checks pass
 - [ ] Corrected changes receive a fresh review
 
@@ -99,3 +99,28 @@ each finding against current code before changing it.
 | F5 (quick quiz closure) | **Confirmed, deferred** | Known gap — tracked in #159 ingest-polish |
 | F6 (ingest closure) | **Confirmed, deferred** | Known gap — 4 ACs tracked in #159 ingest-polish |
 | F7 (unchecked boxes) | **Confirmed, fixed** | AC boxes checked (work was done, boxes missed) |
+
+## Follow-up (2026-09-02) — regression coverage + latent bug from the F1 fix
+
+Verifying the F1 fix, found the fix itself introduced a **latent `NameError`**: the F1
+rewrite of `_enrich_existing_domain` (`tools/ingest_source.py:277`) copied the file-copy
+pattern from `_preserve_source` but kept its `file_path` variable name — a name that does
+not exist in `_enrich_existing_domain`'s scope (its parameter is `raw_path`). Any second
+source ingested into an existing domain from a FILE would crash with
+`NameError: name 'file_path' is not defined`. The prior `test_enrich_from_source.py` suite
+(23 tests) passed because it never drives the full `ingest()` file→enrichment path.
+
+Fixed: `file_path` → `raw_path` (the actual param, which is the resolved source file path).
+
+Regression coverage added — `tests/test_ingest_source.py::TestF1EnrichmentPreservesOriginal`:
+ingests two sources into one domain and asserts (a) the enrichment path does not raise, (b)
+the original `raw.md` is preserved byte-for-byte, (c) the second source lands at a distinct
+`raw-<id>.md` hashed path — the exact F1 concern. **Tamper-verified**: reverting to the
+buggy `file_path` makes the test fail with the `NameError`; restoring `raw_path` passes.
+
+F2/F3 already covered by `test_enrich_from_source.py` (23 pass). F4 re-verified by piping
+`check-lesson.py --workspace library/godot-gamedev --all --json` into a single `json.load`
+→ parses as a 19-element list.
+
+Evidence: `pytest -q` → 230 passed; `mise run verify` → EXIT 0 (20 interactive checks, 5
+transcripts match). Only remaining AC is the external fresh-review pass.

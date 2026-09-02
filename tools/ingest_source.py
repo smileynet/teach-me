@@ -275,8 +275,8 @@ def _enrich_existing_domain(
     ext_map = {"pdf": ".pdf", "markdown": ".md", "html": ".html", "text": ".txt"}
     ext = ext_map.get(fmt, ".txt")
     enrichment_dest = source_dir / f"raw-{source_id}{ext}"
-    if file_path and file_path.exists():
-        shutil.copy2(file_path, enrichment_dest)
+    if raw_path and raw_path.exists():
+        shutil.copy2(raw_path, enrichment_dest)
     else:
         enrichment_dest.write_text(raw_content, encoding="utf-8")
     preserved_path = enrichment_dest
