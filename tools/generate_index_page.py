@@ -31,7 +31,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 OUTPUT = PROJECT_ROOT / "lessons" / "index.html"
 
-from lib.domain_graph import find_maps, build_domain_graph, build_forest_edges  # noqa: E402
+from lib.domain_graph import find_maps, find_private_maps, build_domain_graph, build_forest_edges  # noqa: E402
 from lib.map_links import map_href  # noqa: E402
 from lib.page_template import render_index_page  # noqa: E402
 
@@ -82,6 +82,13 @@ def build_page_data(records: list[dict], output_file: Path, mission: dict | None
         # override the baked demo counts above. Absent a real overlay, the baked values
         # stand (demo / no-JS floor).
         "topicIds": r["topic_ids"],
+        # Private-overlay flags (#184): `private` = the whole domain is local-only;
+        # `hasPrivate` = a committed domain carries some private topics; `privateTopicIds`
+        # lets the view badge exactly those. Private content never ships — these are only
+        # ever non-empty when a local `.user/` overlay was present at generate/serve time.
+        "private": r.get("private", False),
+        "hasPrivate": r.get("has_private", False),
+        "privateTopicIds": r.get("private_topic_ids", []),
     } for r in records]
 
     edges, islands = build_forest_edges(records)
@@ -275,6 +282,11 @@ _CSS_EXTRA = """
     .im-card.is-child { border-left: 3px solid var(--accent); }
     .dc-sub-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 3px;
       background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    /* Private overlay badge (#184) — distinct from sub-map; text label carries the meaning
+       (WCAG: not color-alone), amber border signals "local, not shipped". */
+    .dc-private-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 3px;
+      border: 1px solid var(--warning, #d08770); color: var(--warning, #d08770);
+      background: color-mix(in srgb, var(--warning, #d08770) 12%, transparent); }
     .islands-panel { margin-top: 1.5rem; padding: 1rem; border: 1px dashed var(--border); border-radius: 8px; }
     .islands-panel h2 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; }
     .islands-panel ul { list-style: none; padding: 0; display: flex; gap: 0.5rem; flex-wrap: wrap; }
@@ -299,7 +311,8 @@ def _parse_args(argv: list[str]) -> tuple[list[Path], Path]:
 def main() -> int:
     scan_dirs, output = _parse_args(sys.argv[1:])
     paths = find_maps(scan_dirs)
-    records = build_domain_graph(paths)
+    private_paths = find_private_maps(scan_dirs)  # .user/ overlay (#184) — local-only
+    records = build_domain_graph(paths, private_paths)
     mission = parse_mission(scan_dirs[0] if scan_dirs else None)
     data = build_page_data(records, output, mission)
 

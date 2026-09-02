@@ -36,8 +36,14 @@ from map_parser import load_map, validate_forest  # noqa: E402
 
 
 def _maps_dirs(scan: Path) -> list[Path]:
-    """Every `maps/` dir under scan that holds at least one *.MAP.md."""
-    return sorted({p.parent for p in scan.rglob("maps/*.MAP.md")})
+    """Every committed `maps/` dir under scan that holds at least one *.MAP.md.
+
+    Excludes the private `.user/` overlay (#184): private topic maps are validated in
+    isolation and are NEVER part of a committed forest. This also means a committed map
+    that prereqs a private-only topic fails here as an 'undefined prereq' — which IS the
+    shared->private prereq ban (a committed topic cannot depend on private content).
+    """
+    return sorted({p.parent for p in scan.rglob("maps/*.MAP.md") if ".user" not in p.parts})
 
 
 def main() -> int:

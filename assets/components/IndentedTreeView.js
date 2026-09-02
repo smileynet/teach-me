@@ -69,6 +69,7 @@ function TreeItem({ domain, childrenOf, byslug, leadsFrom, level, posinset, sets
       <${Ring} complete=${domain.complete} total=${domain.total} />
       <span class="ti-title">${domain.title}</span>
       ${domain.depth > 0 && html`<span class="dc-sub-badge">sub-map</span>`}
+      ${(domain.private || domain.hasPrivate) && html`<span class="dc-private-badge" title="Local-only — not committed">private</span>`}
       <span class="ti-stat">${stat}</span>
       ${leads && leads.length > 0 && html`<span class="ti-leads">→ also leads to ${leads.join(', ')}</span>`}
     </a>
