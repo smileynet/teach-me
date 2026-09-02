@@ -26,6 +26,7 @@ only when a real user overlay exists.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 
 try:
@@ -36,13 +37,43 @@ except ModuleNotFoundError:  # tools/ on sys.path directly (script style)
     from lib.overlay import demo_status_map_for_map as status_map_for_map  # type: ignore[no-redef]
 
 
+# --- Visibility (single source of truth: discovery provenance, not a stored flag) ---
+#
+# A topic's visibility IS where its MAP.md was discovered — committed `library/` vs the
+# gitignored `.user/` overlay (#184, ADR 0012). We do NOT store `private: bool` on Topic
+# (map_parser.py); a flag beside a `.user/`-sourced path is a second source that can drift.
+# The domain-graph record carries a carried-data variant assigned ONCE at discovery
+# (parse-at-boundary). Variant not bool because it gates three behaviours: the private
+# badge, the shared->private prereq ban, and never baking private content into a committed page.
+
+
+@dataclass(frozen=True)
+class Shared:
+    """A committed, versioned topic under `library/` — the default, everyone gets on clone."""
+    path: Path  # the committed MAP.md
+
+
+@dataclass(frozen=True)
+class Private:
+    """A local-only topic under `.user/` — never committed, overlaid at render/serve time."""
+    path: Path            # the `.user/maps/*.MAP.md` overlay source
+    promote_target: Path  # where a `--promote` move would land it (the committed sibling)
+
+
+Visibility = Shared | Private
+
+
+def is_private(v: Visibility) -> bool:
+    return isinstance(v, Private)
+
+
 def find_maps(scan_dirs: list[Path]) -> list[Path]:
-    """All `*.MAP.md` under the scan dirs (root + direct + recursive), skipping depth-2+
-    sub-maps (identified by the `--` stem separator).
+    """All committed `*.MAP.md` under the scan dirs (root + direct + recursive), skipping
+    depth-2+ sub-maps (the `--` stem separator) and the private `.user/` overlay.
 
     One canonical implementation (adopts the index's fuller version — root `MAP.md`, a
-    direct-dir `*.MAP.md` glob, then a recursive `rglob` — replacing the forest's thinner
-    rglob-only copy).
+    direct-dir `*.MAP.md` glob, then a recursive `rglob`). Private overlays are found
+    separately by `find_private_maps` (#184).
     """
     maps: list[Path] = []
     for d in scan_dirs:
@@ -53,6 +84,24 @@ def find_maps(scan_dirs: list[Path]) -> list[Path]:
             if "--" not in f.stem and f not in maps:
                 maps.append(f)
         for f in sorted(d.rglob("*.MAP.md")):
+            if "--" not in f.stem and ".user" not in f.parts and f not in maps:
+                maps.append(f)
+    return maps
+
+
+def find_private_maps(scan_dirs: list[Path]) -> list[Path]:
+    """All private-overlay `*.MAP.md` under `.user/maps/` (#184).
+
+    Private topic maps live at `{scan}/.user/maps/{domain}.MAP.md` (gitignored) — the ONLY
+    place private topics appear. Committed `library/` maps never reference them. Same
+    depth-2+ skip as `find_maps`.
+    """
+    maps: list[Path] = []
+    for d in scan_dirs:
+        user_maps = d / ".user" / "maps"
+        if not user_maps.exists():
+            continue
+        for f in sorted(user_maps.rglob("*.MAP.md")):
             if "--" not in f.stem and f not in maps:
                 maps.append(f)
     return maps
@@ -66,40 +115,69 @@ def _description(dm) -> str:
     return dm.description
 
 
-def build_domain_graph(paths: list[Path]) -> list[dict]:
+def _build_record(p: Path, source: Visibility) -> dict:
+    """One superset record for a single MAP.md (`p`), tagged with its visibility `source`."""
+    dm = load_map(p)
+    status_map = status_map_for_map(p)
+    private = is_private(source)
+    return {
+        "path": p,  # source MAP.md — needed for map_href + overlay root (maps/-parent rule)
+        "source": source,  # Shared | Private — visibility, assigned ONCE here (#184)
+        "private": private,  # convenience flag DERIVED from source (not a second source)
+        "domain": dm.domain,
+        "title": dm.title or dm.domain.replace("-", " ").title(),
+        "description": _description(dm),
+        "depth": dm.depth,
+        "parent": dm.parent,
+        "leads_to": list(dm.leads_to),
+        "total": len(dm.topics),
+        "complete": sum(1 for t in dm.topics if status_map.get(t.id) == "complete"),
+        "in_progress": sum(1 for t in dm.topics if status_map.get(t.id) == "in-progress"),
+        "topic_ids": [t.id for t in dm.topics],
+        # Private topics NEVER seed the committed demo (they don't ship); shared topics do.
+        "demo_status": {} if private else {t.id: status_map[t.id] for t in dm.topics if t.id in status_map},
+        # Private prereq targets, for the shared->private guard (E) + private-only detection.
+        "prereq_ids": [pr for t in dm.topics for pr in t.prereqs],
+    }
+
+
+def build_domain_graph(paths: list[Path], private_paths: list[Path] | None = None) -> list[dict]:
     """Load each MAP.md once and return one SUPERSET record per map (ALL depths).
 
-    Completion is computed once here (killing the duplicated `parse_map_meta` /
-    `_completion` math). Depth filtering is left to each view: the index keeps
-    `depth == 0`, the forest keeps depth-0 AND depth-1 sub-maps as nodes.
+    Committed `paths` (from `find_maps`) become `Shared` records. Optional `private_paths`
+    (from `find_private_maps`, #184) become `Private` records. A private map whose `domain`
+    matches a committed one is MERGED into that committed record (its topics extend the
+    domain locally, marked private); a private map with no committed sibling becomes its own
+    `Private` domain record. Completion is computed once here.
     """
-    records: list[dict] = []
-    for p in paths:
-        dm = load_map(p)
-        status_map = status_map_for_map(p)
-        records.append({
-            "path": p,  # source MAP.md — needed for map_href + overlay root (maps/-parent rule)
-            "domain": dm.domain,
-            "title": dm.title or dm.domain.replace("-", " ").title(),
-            "description": _description(dm),
-            "depth": dm.depth,
-            "parent": dm.parent,
-            "leads_to": list(dm.leads_to),
-            "total": len(dm.topics),
-            "complete": sum(1 for t in dm.topics if status_map.get(t.id) == "complete"),
-            "in_progress": sum(1 for t in dm.topics if status_map.get(t.id) == "in-progress"),
-            # Client join key (#279): the topic ULIDs this domain owns, so a load-time
-            # overlay read in the browser can recompute counts exactly as this server-side
-            # join does. Baked complete/in_progress stay as the demo/no-JS floor.
-            "topic_ids": [t.id for t in dm.topics],
-            # Demo seed (#279): the resolved {topic_id → status} for topics this domain owns
-            # that are present in the overlay used at generate time. Inlined into the island
-            # so the demo floor travels IN page-data (off-disk) — the client seeds the demo
-            # view from this and clears it on user takeover. Absent/not-started ids omitted
-            # (sparse), matching the overlay contract.
-            "demo_status": {t.id: status_map[t.id] for t in dm.topics if t.id in status_map},
-        })
+    records: list[dict] = [_build_record(p, Shared(p)) for p in paths]
+
+    for pp in private_paths or []:
+        # promote target: the committed sibling this private map would move to on --promote.
+        # `.user/maps/{name}.MAP.md` -> `{workspace}/{name}.MAP.md` (workspace = .user's parent).
+        workspace = pp.parent.parent.parent if pp.parent.name == "maps" else pp.parent
+        prec = _build_record(pp, Private(pp, promote_target=workspace / pp.name))
+        host = next((r for r in records if r["domain"] == prec["domain"] and not r["private"]), None)
+        if host is not None:
+            _merge_private_into(host, prec)
+        else:
+            records.append(prec)  # wholly-private domain
     return records
+
+
+def _merge_private_into(host: dict, prec: dict) -> None:
+    """Extend a committed domain record with a private overlay's topics (local-only).
+
+    The committed record's OWN counts/topic_ids stay first (shared truth); private topics
+    append and are tracked separately in `private_topic_ids` so the client/badge can mark
+    them without polluting the shared `topic_ids` join key or the demo seed.
+    """
+    host["total"] += prec["total"]
+    host["complete"] += prec["complete"]
+    host["in_progress"] += prec["in_progress"]
+    host["topic_ids"] = host["topic_ids"] + prec["topic_ids"]
+    host.setdefault("private_topic_ids", []).extend(prec["topic_ids"])
+    host["has_private"] = True
 
 
 def build_forest_edges(records: list[dict]) -> tuple[list[dict], list[str]]:

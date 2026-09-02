@@ -35,7 +35,7 @@ export function IteratedMapView({ domains, edges, islands }) {
        style="position:absolute;left:${position.x}px;top:${position.y}px;width:${CARD_W}px;opacity:${ui.dimmed ? 0.25 : 1}"
        onMouseEnter=${() => ui.setHover(d.slug)} onMouseLeave=${() => ui.setHover(null)}
        onFocus=${() => ui.setHover(d.slug)} onBlur=${() => ui.setHover(null)}>
-      <h3>${d.title}${d.depth > 0 && html`<span class="dc-sub-badge">sub-map</span>`}</h3>
+      <h3>${d.title}${d.depth > 0 && html`<span class="dc-sub-badge">sub-map</span>`}${(d.private || d.hasPrivate) && html`<span class="dc-private-badge" title="Local-only — not committed">private</span>`}</h3>
       <div class="dc-meta"><${Ring} complete=${d.complete} total=${d.total} /> ${d.total} topics${d.inProgress ? `, ${d.inProgress} in progress` : ''}</div>
     </a>`;
 

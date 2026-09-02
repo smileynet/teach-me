@@ -97,11 +97,45 @@ re-derives or re-checks. Aligns with `serve.py::_block_private_overlay` (serve a
 
 ## Acceptance criteria
 
-- [ ] User can generate a lesson marked as "private"
-- [ ] Private lessons are gitignored
-- [ ] Private lessons appear in the local map/index view
-- [ ] Private lessons are visually distinguished from shared lessons
-- [ ] MAP.md files do not contain references to private lessons
-- [ ] Private lessons can reference shared prerequisites
-- [ ] Shared lessons never depend on private lessons
-- [ ] Optional: promote a private lesson to shared (move + commit)
+- [x] User can generate a lesson marked as "private"
+- [x] Private lessons are gitignored
+- [x] Private lessons appear in the local map/index view
+- [x] Private lessons are visually distinguished from shared lessons
+- [x] MAP.md files do not contain references to private lessons
+- [x] Private lessons can reference shared prerequisites
+- [x] Shared lessons never depend on private lessons
+- [x] Optional: promote a private lesson to shared (move + commit)
+
+## Resolution (2026-09-02)
+
+Implemented steps A–E on the locked visibility model (provenance, not a stored flag).
+
+- **A. Discovery + merge** (`tools/lib/domain_graph.py`): added the `Shared | Private`
+  carried-data variant, `find_private_maps()` (scans `.user/maps/*.MAP.md`), and made
+  `build_domain_graph(paths, private_paths)` tag each record's `source`, merge a private
+  overlay into its committed domain (`private_topic_ids` + `has_private`), or create a
+  wholly-`Private` domain record. `find_maps` now excludes `.user/`.
+- **B. Never committed**: `.gitignore`'s `**/.user/*` already covers `.user/maps/` +
+  `.user/lessons/` (verified via `git check-ignore`). Generating a private lesson writes
+  there; no `git add -f`, so it can't be committed accidentally. (Lesson generation itself
+  is skill-driven, per AGENTS.md "don't script creative work".)
+- **C. Index/map integration** (`generate_index_page.py` + components): `build_page_data`
+  carries `private`/`hasPrivate`/`privateTopicIds`; `IndentedTreeView`, `DomainCard`,
+  `IteratedMapView` render a `.dc-private-badge` ("private" pill, amber, text-labeled — not
+  color-alone, WCAG). Private counts fold into the local view only.
+- **D. No MAP.md pollution**: private topics live ONLY in `.user/maps/`; committed maps
+  never gain them, and `demo_status` is empty for private records so regen never bakes
+  private content. Verified: with no overlay, generated pages contain zero private refs.
+- **E. Prereq guard** (`check-maps-forest.py`): `_maps_dirs` excludes `.user/`, so the
+  committed forest never sees private topics — a committed topic prereq-ing a private one
+  fails as an 'undefined prereq' (structurally bans shared→private). private→shared is fine
+  (the private overlay resolves against committed topics at merge time).
+- **Optional promote**: `tools/promote-private-topic.py` moves `.user/maps` + `.user/lessons`
+  for a domain into the committed tree; refuses to overwrite an existing committed map; never
+  auto-commits (git-safety). `--dry-run` supported.
+
+**Tests**: `tests/test_private_lessons.py` (13) — visibility variant, discovery isolation,
+merge, wholly-private record, shared→private ban, index-generation integration (badge +
+count merge + no-overlay-no-pollution), promote (move/refuse-overwrite/dry-run). Full suite
+254 passed; `mise run verify` EXIT 0 (regenerated all 6 committed index pages to absorb the
+badge CSS; drift guard clean).

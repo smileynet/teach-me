@@ -33,6 +33,7 @@ export function DomainCard({ domain, position }) {
       <h3>
         ${domain.title}
         ${isChild && html`<span class="dc-sub-badge">sub-map</span>`}
+        ${(domain.private || domain.hasPrivate) && html`<span class="dc-private-badge" title="Local-only — not committed">private</span>`}
       </h3>
       <div class="dc-meta">
         <${Ring} complete=${domain.complete} total=${domain.total} />

@@ -66,6 +66,11 @@
     .im-card.is-child { border-left: 3px solid var(--accent); }
     .dc-sub-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 3px;
       background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    /* Private overlay badge (#184) — distinct from sub-map; text label carries the meaning
+       (WCAG: not color-alone), amber border signals "local, not shipped". */
+    .dc-private-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 3px;
+      border: 1px solid var(--warning, #d08770); color: var(--warning, #d08770);
+      background: color-mix(in srgb, var(--warning, #d08770) 12%, transparent); }
     .islands-panel { margin-top: 1.5rem; padding: 1rem; border: 1px dashed var(--border); border-radius: 8px; }
     .islands-panel h2 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; }
     .islands-panel ul { list-style: none; padding: 0; display: flex; gap: 0.5rem; flex-wrap: wrap; }
@@ -90,7 +95,7 @@
 
 <div id="app"></div>
 
-<script type="application/json" id="page-data">{"domains": [{"slug": "workout-fundamentals", "title": "Workout Fundamentals", "description": "Strength training is governed by a small number of principles that explain 90% of results.", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "workout-fundamentals-map.html", "topicIds": ["01M174TQQ06X4RPJSKFDP1WHKM", "01M174TQQ06SZ2KWDKZBZ7Y01R", "01M174TQQ0TC0KXPNJFKAM1JHC", "01M174TQQ0A8H2E0Y3NWFYND1M", "01M174TQQ0PKM5CA9PAMHCRMGW", "01M174TQQ0D8HCNG0GHJS2G6GX"]}], "edges": [], "islands": ["workout-fundamentals"], "mission": {"title": "Mission", "why": null, "criteria": []}, "demoOverlay": {}, "stats": {"domainCount": 1, "topicCount": 6, "completeCount": 0, "inProgressCount": 0}}</script>
+<script type="application/json" id="page-data">{"domains": [{"slug": "workout-fundamentals", "title": "Workout Fundamentals", "description": "Strength training is governed by a small number of principles that explain 90% of results.", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "workout-fundamentals-map.html", "topicIds": ["01M174TQQ06X4RPJSKFDP1WHKM", "01M174TQQ06SZ2KWDKZBZ7Y01R", "01M174TQQ0TC0KXPNJFKAM1JHC", "01M174TQQ0A8H2E0Y3NWFYND1M", "01M174TQQ0PKM5CA9PAMHCRMGW", "01M174TQQ0D8HCNG0GHJS2G6GX"], "private": false, "hasPrivate": false, "privateTopicIds": []}], "edges": [], "islands": ["workout-fundamentals"], "mission": {"title": "Mission", "why": null, "criteria": []}, "demoOverlay": {}, "stats": {"domainCount": 1, "topicCount": 6, "completeCount": 0, "inProgressCount": 0}}</script>
 <script type="module">
 
     import { h, render } from 'preact';
