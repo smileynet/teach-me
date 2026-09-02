@@ -1,7 +1,7 @@
 ---
 id: "184"
 title: "Optional private lessons (uncommitted, linked to shared map)"
-status: open
+status: done
 blocked_by: ["183"]
 priority: high
 tags: [platform]
