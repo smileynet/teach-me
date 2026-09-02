@@ -2,7 +2,7 @@
 id: "233"
 title: "Reconcile pre-existing uncommitted working-tree changes"
 type: chore
-status: open
+status: done
 priority: high
 blocked_by: []
 tags: ["hygiene"]
@@ -89,7 +89,38 @@ Evidence: `.scratch/subagent-review/gitignore-state.md`, `session-scope.md`;
 
 - [x] Every modified/untracked file triaged (committed, gitignored, or reverted) — see split above
 - [x] .gitignore policy decided: `__pycache__/` + `ink-test-project/.godot/` + stale `.ink.json` ignore; `.uid`/addons COMMIT (Godot 4.4)
-- [ ] `git status` is clean or contains only deliberately-tracked work (mktoon slice done here; ink slice → new ticket)
+- [x] `git status` is clean or contains only deliberately-tracked work (mktoon slice done here; ink slice → #234, now DONE)
 - [x] #232 relationship confirmed (deterministic quiz-path bug, not the verify rework; fixed by #230)
-- [ ] mktoon/#217 slice reconciled (this session)
-- [ ] ink-session reconciliation tracked in its own ticket
+- [x] mktoon/#217 slice reconciled (this session)
+- [x] ink-session reconciliation tracked in its own ticket
+
+## Resolution (2026-09-02)
+
+Mktoon slice reconciled and committed (`869ba70`): reverted the 3 `test-scene/*.png.import`
+detect_3d reimport-churn files (no tracked refs — transient MCP editor churn) and committed
+`test-scene/validate_claims.gd.uid` (legit sidecar for tracked `validate_claims.gd`). The
+ink-test-project slice was split to #234 and completed in the same session (`a431fce`).
+`git status` now shows only the intentionally-untracked `addons/godot_ai/` (MCP tooling) +
+scratch. `mise run verify` EXIT 0 (20 interactive checks, 5 transcripts match); `ink:validate`
+9/9 ok.
+
+## Update (2026-09-02) — mktoon slice: confirmed disposition, ready to close
+
+Fresh tree review + research (`.scratch/reconcile-233/`) resolved the two open ACs:
+
+**The 3 `test-scene/*.png.import` changes = editor churn → REVERT** (confirms the
+original triage). Diff is a Godot auto-reimport: `detect_3d/compress_to 1→0` +
+`compress/mode 0→2` (lossless→S3TC VRAM) + `mipmaps/generate false→true`. `detect_3d=1→0`
+is the tell — Godot flipped these when a texture was pulled into a 3D material by a
+transient MCP-opened scene. NO tracked `.tscn`/`.tres`/material references treeA,
+truck_alien, or wall_lines (`git grep` = 0 hits), so this is not a committed deliverable.
+Action: `git checkout -- test-scene/assets/kenney-retro-urban/Textures/{treeA,truck_alien,wall_lines}.png.import`.
+
+**`test-scene/validate_claims.gd.uid` (untracked):** commit if `validate_claims.gd` is
+tracked (Godot 4.4 requires the `.uid`); else remove with the stray script.
+
+**Remaining AC "ink reconciliation tracked in own ticket"** is already satisfied — #234
+exists (and was corrected 2026-09-02: `.ink.json` must be COMMITTED, reversing its item 3).
+
+**#233 closes** once the 3 `.png.import` reverts + `validate_claims.gd.uid` disposition
+land; the ink tree is #234's scope, not this ticket's.
