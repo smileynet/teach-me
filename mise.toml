@@ -277,6 +277,11 @@ description = "Per-domain Playwright navigation journey (aggregate → map → l
 depends = ["setup"]
 run = "python tools/test-navigation.py"
 
+[tasks."test:cue-matrix"]
+description = "State-matrix test for the index orientation/resume/done cue (#282): builds throwaway single-domain fixtures (empty/partial/all-complete) and asserts each cue in isolation. Self-serves each fixture headless. NOT in core verify (browser test, like test:nav)."
+depends = ["setup"]
+run = "python tools/test-cue-matrix.py"
+
 [tasks."ink:transcripts"]
 description = "Replay committed golden .transcript fixtures and diff (catches wrong-output bugs). Capture: mise run ink:transcripts -- --story NN_name.ink --choices 0,1,2"
 depends = ["setup"]

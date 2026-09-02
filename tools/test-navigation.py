@@ -281,49 +281,16 @@ def run_tests():
 
 
 if __name__ == "__main__":
-    import os
-    import socket
-    import subprocess
-    import urllib.error
+    from lib.serve_harness import serve_workspace
 
-    def _reachable(url: str) -> bool:
-        try:
-            with urllib.request.urlopen(url + "/index.html", timeout=2) as r:
-                return getattr(r, "status", r.getcode()) == 200
-        except Exception:
-            return False
-
-    proc = None
-    # Self-serve the multi-domain library/ root if BASE_URL isn't already serving it —
-    # makes `mise run test:nav` a one-liner (hermetic, headless). Mirrors verify-interactive.
-    if not _reachable(BASE_URL) and "--base-url" not in sys.argv:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(("127.0.0.1", 0)); port = s.getsockname()[1]
-        BASE_URL = f"http://localhost:{port}"
-        kw = {"stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
-        if sys.platform == "win32":
-            kw["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
-        else:
-            kw["preexec_fn"] = os.setsid
-        proc = subprocess.Popen(
-            [sys.executable, "tools/serve.py", "--workspace", "library", "--port", str(port)], **kw)
-        for _ in range(30):
-            if _reachable(BASE_URL):
-                break
-            time.sleep(0.3)
-        else:
-            print("✗ Could not start serve.py for the nav suite", file=sys.stderr)
-            proc.terminate()
-            sys.exit(2)
-    try:
+    # Reuse an explicitly-passed --base-url as-is; otherwise serve the multi-domain library/
+    # root on an ephemeral port via the shared harness (hermetic, headless, auto-teardown).
+    explicit = "--base-url" in sys.argv
+    prefer = BASE_URL if explicit else "http://localhost:8787"
+    if explicit:
         code = run_tests()
-    finally:
-        if proc:
-            if sys.platform == "win32":
-                proc.terminate()
-            else:
-                try:
-                    os.killpg(os.getpgid(proc.pid), __import__("signal").SIGTERM)
-                except (ProcessLookupError, PermissionError):
-                    proc.terminate()
+        sys.exit(code)
+    with serve_workspace("library", prefer_url=prefer) as served:
+        BASE_URL = served
+        code = run_tests()
     sys.exit(code)
