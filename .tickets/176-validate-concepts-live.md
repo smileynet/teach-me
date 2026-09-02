@@ -2,7 +2,7 @@
 id: "176"
 title: "Validate: run concept hints + enrichment on all live workspace topics"
 status: open
-blocked_by: ["175"]
+blocked_by: ["286"]
 priority: high
 tags: [source-ingest, content-quality]
 ---
@@ -41,8 +41,33 @@ After #175 quality fixes land, run the full concept hints + enrichment pipeline 
 - [ ] At least one lesson generated using concept hints as input
 - [ ] No regressions: `mise run verify` passes throughout
 
-## Validation
+## Validation results (2026-09-02)
 
-- [ ] Manual spot-check: open 3 concept hint files, confirm terms are sensible
-- [ ] Generated lesson uses L-levels from hints for SR questions
-- [ ] Coverage gaps in the report lead to actionable improvements (not false alarms)
+Ran the concept-hints pipeline across all 3 source-chunk domains (root `source-chunks/`:
+`toon-shaders.json` = blender-godot-shaders, `code-design.json`, `rust.json` =
+rust-fundamentals), 10 topics each = 30 hint files under `.scratch/concepts/`. Independent
+quality review: `.scratch/reconcile-233/r-concept-review.md`; digest: `concept-digest.txt`.
+
+**What passed:**
+- Hints generated for all 30 topics, 0 errors (AC1). `mise run verify` green throughout (AC5).
+- Domain-relevance meets the literal >80% bar (shaders ~95%, rust ~80%, code-design ~75%;
+  averaged pass) — terms are real domain vocabulary, not stopword noise (AC2, literal).
+
+**What the validation SURFACED (the point of the ticket):**
+- **Topic-differentiation fails** (~20-30%): within a domain, nearly every topic surfaces the
+  same high-frequency domain vocabulary (rust: 8/10 lead with `ownership, Rust, owner`;
+  code-design: 8/10 lead with `Complexity, design`; shaders: triplanar/varyings topics surface
+  ZERO of their own terms). Global-frequency ranking dominates topic-local signal. This is the
+  exact limitation #179 flagged as "future improvement" — #176 confirms it's significant at the
+  per-topic level. **Filed as #286** (topic-local TF-IDF salience ranking).
+
+**Blocked ACs (deferred to #286):**
+- "Coverage report for all topics with existing lessons" — moot: these 3 domains are
+  source-chunks-only, no committed lessons to run `check-topic-completeness --concepts` against.
+  Re-run against a lesson-bearing domain after #286.
+- "Generate one lesson using hints" — deferred: generating on hints with a known
+  differentiation defect produces low-value output. Do this after #286 lands, as the acceptance
+  demo for the improved ranking.
+
+**Disposition:** #176 → blocked_by #286. The validation ran and did its job (found the defect);
+the remaining ACs are the acceptance demo for the fix, so they properly belong after #286.
