@@ -1,7 +1,7 @@
 ---
 id: "286"
 title: "concept_hints: topic-local salience ranking (fix per-topic differentiation)"
-status: open
+status: done
 blocked_by: []
 priority: high
 tags: [source-ingest, content-quality]
