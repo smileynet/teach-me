@@ -2,7 +2,7 @@
 id: "176"
 title: "Validate: run concept hints + enrichment on all live workspace topics"
 status: open
-blocked_by: ["286"]
+blocked_by: []
 priority: high
 tags: [source-ingest, content-quality]
 ---
