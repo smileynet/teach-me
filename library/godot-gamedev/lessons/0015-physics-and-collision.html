@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 15: Physics &amp; Collision Systems</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+<script type="importmap">
+  {
+    "imports": {
+      "preact": "../assets/vendor/preact.module.js",
+      "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+      "@preact/signals": "../assets/vendor/preact-signals.module.js",
+      "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+      "htm": "../assets/vendor/htm.module.js"
+    }
+  }
+  </script>
+</head>
+<body>
+
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-gamedev-map.html">Game Development with Godot</a> <span class="nav-sep">›</span> <span>Physics &amp; Collision Systems</span></nav>
+<h1>Physics &amp; Collision Systems</h1>
+<div class="lesson-meta">
+  Lesson 15 · Game Development with Godot · ~8 min read<br>
+  <strong>Win:</strong> You can pick the right body type for an object, wire up collision layers and masks so the right things collide, move a character with the correct method, and cast a ray to sense the world — and explain why each choice is the right one.
+</div>
+
+<div class="key-concept">
+  <strong>After this lesson:</strong> You know Godot's four collision-object node types and when to use each, how <span class="term" data-term="collision-layer">collision layers</span> and <span class="term" data-term="collision-mask">masks</span> decide what collides, the difference between <code>move_and_slide()</code> and <code>move_and_collide()</code> for moving a <span class="term" data-term="characterbody">CharacterBody</span>, and how <span class="term" data-term="raycasting">raycasting</span> lets an object sense the world without touching it.
+</div>
+
+<h2>The Problem: Which Node Enforces Physical Rules?</h2>
+
+<p>Everything in Godot is a node, but a bare node has no notion of "solid." To make a floor a character can stand on, a crate that tumbles when hit, or a coin that vanishes on touch, you need a <em>collision object</em>. Godot offers four of them, and picking the wrong one is the most common beginner mistake — a player built as a RigidBody fights your input; a falling crate built as a CharacterBody just floats. The choice comes down to one question: <strong>how should this object move and react?</strong> <a href="https://docs.godotengine.org/en/stable/tutorials/physics/physics_introduction.html" class="citation">[Godot Docs: Physics Introduction]</a></p>
+
+<svg role="img" aria-labelledby="body-types-title" viewBox="0 0 520 240" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="body-types-title">The four collision-object types by how they move: StaticBody (never moves), RigidBody (engine-simulated), CharacterBody (code-driven), Area (detection only)</title>
+  <rect x="10" y="10" width="240" height="100" rx="8" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5"/>
+  <text x="20" y="30" font-size="13" font-weight="bold" fill="var(--svg-neutral-text)">StaticBody3D</text>
+  <text x="20" y="50" font-size="10" fill="var(--svg-neutral-text)">Never moved by the engine.</text>
+  <text x="20" y="66" font-size="10" fill="var(--svg-neutral-text)">Floors, walls, platforms.</text>
+  <text x="20" y="90" font-size="10" fill="var(--svg-neutral-text)">You: leave it still.</text>
+
+  <rect x="270" y="10" width="240" height="100" rx="8" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="280" y="30" font-size="13" font-weight="bold" fill="var(--svg-primary-text)">RigidBody3D</text>
+  <text x="280" y="50" font-size="10" fill="var(--svg-primary-text)">Fully simulated by forces.</text>
+  <text x="280" y="66" font-size="10" fill="var(--svg-primary-text)">Falling, stacking, bouncing.</text>
+  <text x="280" y="90" font-size="10" fill="var(--svg-primary-text)">You: apply forces, not position.</text>
+
+  <rect x="10" y="128" width="240" height="100" rx="8" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="1.5"/>
+  <text x="20" y="148" font-size="13" font-weight="bold" fill="var(--svg-success-text)">CharacterBody3D</text>
+  <text x="20" y="168" font-size="10" fill="var(--svg-success-text)">Code-driven, no auto response.</text>
+  <text x="20" y="184" font-size="10" fill="var(--svg-success-text)">Players, precise movers.</text>
+  <text x="20" y="208" font-size="10" fill="var(--svg-success-text)">You: call a movement method.</text>
+
+  <rect x="270" y="128" width="240" height="100" rx="8" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="1.5"/>
+  <text x="280" y="148" font-size="13" font-weight="bold" fill="var(--svg-warning-text)">Area3D</text>
+  <text x="280" y="168" font-size="10" fill="var(--svg-warning-text)">Detection &amp; region influence.</text>
+  <text x="280" y="184" font-size="10" fill="var(--svg-warning-text)">Triggers, hitboxes, pickups.</text>
+  <text x="280" y="208" font-size="10" fill="var(--svg-warning-text)">You: connect entered signals.</text>
+</svg>
+
+<div class="note">
+  <strong>When to use which:</strong>
+  <ul>
+    <li><strong>StaticBody3D</strong> — level geometry that never moves dynamically. Default for the world.</li>
+    <li><strong>RigidBody3D</strong> — you want "realistic" motion for free (debris, dropped props). Apply forces; never set position directly.</li>
+    <li><strong>CharacterBody3D</strong> — a player or NPC needing precise, code-controlled movement with slope/wall detection.</li>
+    <li><strong>Area3D</strong> — you only need to <em>detect</em> overlap or override gravity in a region, not block movement.</li>
+  </ul>
+  <strong>Rule of thumb:</strong> if you write the movement, use CharacterBody; if the engine should, use RigidBody; if it never moves, StaticBody; if it only senses, Area.
+</div>
+
+<p>All four extend <code>CollisionObject3D</code>, and every one needs at least one <code>CollisionShape3D</code> child holding a shape — the node itself has no size until you give it one. The three that are physics bodies (Static, Rigid, Character) also share <code>PhysicsBody3D</code>. A RigidBody even goes to <em>sleep</em> when it comes to rest, so a pile of settled crates costs almost nothing.</p>
+
+<h2>Collision Layers and Masks: What Is Allowed to Collide</h2>
+
+<p>Having the right body type is only half the story. Two objects only interact if the layer system says they may. Every collision object has 32 physics <span class="term" data-term="collision-layer">layers</span> controlled by two properties, and confusing them is the second-most-common beginner trap.</p>
+
+<p>The <strong>collision_layer</strong> is the set of layers this object <em>appears in</em> — it answers <em>"who am I?"</em> The <strong>collision_mask</strong> is the set of layers this object <em>scans</em> — it answers <em>"what do I look for?"</em> For object A to detect object B, B must appear in a layer that A's <span class="term" data-term="collision-mask">mask</span> includes. <a href="https://docs.godotengine.org/en/stable/tutorials/physics/physics_introduction.html" class="citation">[Godot Docs: Physics Introduction]</a></p>
+
+<p>Say your game has four kinds of thing: <strong>Walls</strong>, a <strong>Player</strong>, an <strong>Enemy</strong>, and a <strong>Coin</strong>. You want Player and Enemy to collide with Walls, the Player to detect the Enemy and the Coin, and the Enemy and Coin to ignore each other. Name layers 1–4 in <em>Project Settings → Layer Names → 3D Physics</em> ("walls", "player", "enemies", "coins"), put each node in its own layer, then set each node's mask to only the layers it should react to:</p>
+
+<pre data-file="collision_setup.gd" data-mode="fragment"><code># The Player scans for walls (1), enemies (3), and coins (4).
+# Bit-shift form: layer N is bit N-1, combined with binary OR.
+collision_mask = (1 &lt;&lt; 1 - 1) | (1 &lt;&lt; 3 - 1) | (1 &lt;&lt; 4 - 1)   # = 1 + 4 + 8 = 13
+
+# Clearer, per-layer form — does the same thing:
+set_collision_mask_value(1, true)  # walls
+set_collision_mask_value(3, true)  # enemies
+set_collision_mask_value(4, true)  # coins</code></pre>
+
+<p>The bitmask <code>13</code> and the three <code>set_collision_mask_value</code> calls are equivalent — the second is just readable. That single property is why the Player notices the Coin but the Coin never reacts to the Enemy: the Coin's mask simply doesn't include the enemy layer.</p>
+
+<h2>Moving a Character: slide vs collide</h2>
+
+<p>A <span class="term" data-term="characterbody">CharacterBody</span> won't move on its own — you drive it in code. It gives you two <span class="term" data-term="movement-method">movement methods</span>, and both must be called inside <code>_physics_process()</code> (never set <code>position</code> directly). The difference is who handles the response when you hit something.</p>
+
+<p><code>move_and_collide()</code> is the general one: you hand it a motion vector, it moves until it hits something, then <em>stops</em> and returns a <span class="term" data-term="kinematic-collision">collision object</span> (or <code>null</code>). You decide what happens next — perfect for a bullet that ricochets off the surface it hits:</p>
+
+<pre data-file="ricochet.gd" data-mode="fragment"><code>var collision = move_and_collide(velocity * delta)
+if collision:
+    # Reflect off the surface we hit and keep going.
+    velocity = velocity.bounce(collision.get_normal())</code></pre>
+
+<p>Most of the time, though, you want a character to <em>slide</em> along walls and floors instead of stopping dead. That's what <code>move_and_slide()</code> automates. Notice what changes: it reads the node's <code>velocity</code> property instead of taking an argument, and it applies the slide response for you.</p>
+
+<pre data-file="player.gd"><code>extends CharacterBody3D
+
+@export var speed: float = 5.0
+@export var gravity: float = 9.8
+
+func _physics_process(delta: float) -> void:
+    # Gravity is an acceleration, so it IS multiplied by delta.
+    if not is_on_floor():
+        velocity.y -= gravity * delta
+
+    var input := Input.get_vector("left", "right", "forward", "back")
+    velocity.x = input.x * speed
+    velocity.z = input.y * speed
+
+    # move_and_slide() already accounts for the timestep —
+    # do NOT multiply velocity by delta here.
+    move_and_slide()</code></pre>
+
+<div class="note">
+  <strong>Why no <code>* delta</code> on velocity?</strong> This is the single most common physics bug in Godot. <code>move_and_slide()</code> already includes the timestep internally, so multiplying <code>velocity</code> by <code>delta</code> makes your character crawl at 1/60th speed. Gravity is different — it's an acceleration, so it <em>must</em> be scaled by <code>delta</code>. <a href="https://docs.godotengine.org/en/stable/tutorials/physics/physics_introduction.html" class="citation">[Godot Docs: the move_and_slide warning]</a></p>
+</div>
+
+<p>Because <code>move_and_slide()</code> also updates <code>velocity</code> on impact (zeroing your downward speed the instant you land), the helpers <code>is_on_floor()</code>, <code>is_on_wall()</code>, and <code>is_on_ceiling()</code> become reliable right after the call. The docs frame it plainly: slide is the <em>special case</em>, collide is the <em>general</em> one — anything slide does, collide can do with a few more lines. <a href="https://docs.godotengine.org/en/stable/tutorials/physics/using_character_body_2d.html" class="citation">[Godot Docs: Using CharacterBody]</a></p>
+
+<h2>Raycasting: Sensing Without Touching</h2>
+
+<p>Sometimes an object needs to know what's <em>ahead</em> of it without moving there — is the ground still under my feet? is the player in my line of sight? what did the mouse click on? That's <span class="term" data-term="raycasting">raycasting</span>: fire an invisible <span class="term" data-term="ray">ray</span> and report the first thing it hits.</p>
+
+<p>The simplest approach is the <code>RayCast3D</code> node — drop it in the scene, point it, and it reports every frame what it hit. For a one-off query in code, ask the <span class="term" data-term="physics-space">physics space</span> directly. The catch: the space is <em>locked</em> outside <code>_physics_process()</code>, so the query only works there.</p>
+
+<pre data-file="ground_probe.gd"><code>extends CharacterBody3D
+
+func _physics_process(delta: float) -> void:
+    var space_state := get_world_3d().direct_space_state
+    var from := global_position
+    var to := from + Vector3.DOWN * 2.0
+
+    var query := PhysicsRayQueryParameters3D.create(from, to)
+    query.exclude = [self]              # don't let our own body block the ray
+    query.collide_with_areas = true     # Area3D is off by default
+
+    var result := space_state.intersect_ray(query)
+    if result:
+        # Dictionary is EMPTY on a miss; on a hit it has these keys.
+        print("Standing on: ", result.collider)
+        print("Ground normal: ", result.normal)</code></pre>
+
+<p>The result is a plain dictionary — empty when the ray hits nothing, otherwise carrying <code>position</code>, <code>normal</code>, and the <span class="term" data-term="collider">collider</span> it struck (plus its id, rid, and shape index). Two details save hours of debugging: set <code>exclude = [self]</code> so a body's ray doesn't hit its own collider, and enable <code>collide_with_areas</code> when you need to detect an Area3D. To pick an object under the mouse, build the ray from a <code>Camera3D</code> with <code>project_ray_origin()</code> and <code>project_ray_normal()</code>. <a href="https://docs.godotengine.org/en/stable/tutorials/physics/ray-casting.html" class="citation">[Godot Docs: Ray-casting]</a></p>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A teammate is building a floating platform that carries the player. They chose a <strong>RigidBody3D</strong> and are calling <code>move_and_slide()</code> on it every frame to make it travel. It behaves erratically — jittering, sometimes launching the player. What did they get wrong, and which body type and control approach should they use instead?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Match the body type to <em>who controls the motion</em>. <code>move_and_slide()</code> is a CharacterBody method. What is a RigidBody controlled by? And for a platform that follows a fixed path, does the engine need to simulate it at all?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>Should mention: (1) <code>move_and_slide()</code> is a CharacterBody movement method — calling it on a RigidBody is the category error; a RigidBody is controlled by forces/impulses the engine simulates, not by direct movement calls, so fighting the simulation causes the jitter. (2) A platform on a fixed path shouldn't be physics-simulated at all — the right choice is an <strong>AnimatableBody3D</strong> (a StaticBody subclass), moved by code or animation, which cleanly imparts its motion to bodies riding on it. (3) A CharacterBody could also work if you drive it manually, but AnimatableBody is simpler for a scripted path. Key insight: pick the body type by asking "who moves this?" — engine (Rigid), my code with collision response (Character), a fixed path (Animatable/Static), or nothing (Static).</p>
+  </details>
+</div>
+
+<h2>Code Files</h2>
+<p>Download the final-state files from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/physics-and-collision/player.gd" download><code>player.gd</code></a> — CharacterBody3D driven with <code>move_and_slide()</code> (correct delta handling)</li>
+  <li><a href="../reference/code/physics-and-collision/ground_probe.gd" download><code>ground_probe.gd</code></a> — raycast a physics-space query to detect the ground</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next lesson:</strong> 3D Fundamentals — the spatial upgrade that builds on movement and collision.</p>
+  <p><strong>Questions?</strong> Ask me anything that's unclear.</p>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "collision-layer": "The set of physics layers a collision object appears in — answers 'who am I?'. There are 32 layers; another object only reacts to this one if its mask includes one of these layers.",
+  "collision-mask": "The set of physics layers a collision object scans for collisions — answers 'what do I look for?'. For A to detect B, B must be in a layer A's mask includes.",
+  "characterbody": "A code-driven physics body with collision detection but no automatic physics response. You move it by calling move_and_slide() or move_and_collide() in _physics_process(); never set its position directly.",
+  "movement-method": "A CharacterBody call that moves the body and handles collision: move_and_slide() auto-slides along surfaces using the node's velocity, move_and_collide() stops on the first hit and returns the collision for you to handle.",
+  "kinematic-collision": "The KinematicCollision object returned by move_and_collide() (and readable after move_and_slide()). Carries the collision position, normal, collider, and depth.",
+  "raycasting": "Firing an invisible ray to detect the first collider along it — sensing the world without moving into it. Done with a RayCast node or a physics-space intersect_ray query.",
+  "ray": "A line segment from an origin to an end point used in a raycast query. What it hits is reported as a collider, position, and surface normal.",
+  "physics-space": "The low-level physics world holding all collision data. Access it via get_world_3d().direct_space_state, but only inside _physics_process() — it is locked elsewhere.",
+  "collider": "The object a ray or movement hit. Returned in the raycast result dictionary alongside the hit position and surface normal."
+}
+</script>
+<script type="application/json" id="lesson-actions-config" data-domain="godot-gamedev" data-lesson-id="0015-physics-and-collision" data-map-page="godot-gamedev-map.html" data-topic-title="Physics &amp; Collision Systems"></script>
+<script type="module" src="../assets/page-shell.js"></script>
+</body>
+</html>
