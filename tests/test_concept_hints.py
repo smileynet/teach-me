@@ -6,6 +6,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 
 from concept_hints import (
@@ -224,6 +226,42 @@ class TestExtractConceptsFromHtml:
             assert result.concepts == []
         finally:
             tmp.unlink(missing_ok=True)
+
+
+# ---------------------------------------------------------------------------
+# TestTopicDifferentiation (#286) — sibling topics must surface different hooks
+# ---------------------------------------------------------------------------
+
+
+class TestTopicDifferentiation:
+    """Two sibling topics in the same domain must NOT produce identical top-5 concepts.
+    The two-band selection surfaces topic-distinctive hooks (#286). Uses the real committed
+    corpus (source-chunks/) — the tiny synthetic SAMPLE_CHUNKS above is too small/overlapping
+    to exercise per-topic differentiation (every chunk is ~intro-level caching prose)."""
+
+    _RUST = Path(__file__).resolve().parents[1] / "source-chunks" / "rust.json"
+
+    def _terms(self, chunks, topic_slug):
+        hints = generate_concept_hints(chunks, topic_slug, "rust-fundamentals", top_n=5)
+        return [c["term"] for c in hints["concepts"]]
+
+    @pytest.mark.skipif(not _RUST.exists(), reason="rust corpus fixture absent")
+    def test_siblings_have_distinct_hooks(self):
+        chunks = json.loads(self._RUST.read_text(encoding="utf-8"))
+        # Two sibling Rust topics that BEFORE #286 both surfaced only "ownership, owner, ...".
+        a = self._terms(chunks, "smart-pointers-box-rc-arc")
+        b = self._terms(chunks, "lifetimes")
+        assert a and b, (a, b)
+        assert set(a) - set(b), f"smart-pointers had no distinctive concept vs lifetimes: {a}"
+        assert set(b) - set(a), f"lifetimes had no distinctive concept vs smart-pointers: {b}"
+
+    @pytest.mark.skipif(not _RUST.exists(), reason="rust corpus fixture absent")
+    def test_domain_name_not_a_concept(self):
+        # "rust" (a domain token) must not appear as a concept (#286 token filter).
+        chunks = json.loads(self._RUST.read_text(encoding="utf-8"))
+        terms = [t.lower() for t in self._terms(chunks, "smart-pointers-box-rc-arc")]
+        assert "rust" not in terms, terms
+
 
 
 # ---------------------------------------------------------------------------

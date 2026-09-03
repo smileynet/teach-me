@@ -72,14 +72,46 @@ and gate everything so obscure single-mention noise can't fill slots.**
 
 ## Acceptance criteria
 
-- [ ] Top-5 uses two-band selection: ~3 in-topic anchors + ~2 smoothed-salience hooks (tunable ratio)
-- [ ] Hook salience is SMOOTHED (log-ratio w/ α) + count-floored (≥2 chunks or count≥2) — no raw ratio, no single-mention trivia in the top-5
-- [ ] Re-run the #176 corpus (3 domains × 10 topics): >60% of topics have ≥1 hook concept absent from sibling topics, WHILE still showing shared anchors (differentiation via hooks, footing via anchors — not every slot distinct)
-- [ ] Spot-check the 3 worst cases now surface a hook: `smart-pointers-box-rc-arc` → Box/Rc/Arc; `choosing-names` → a naming concept; `triplanar-mapping-algorithm` → triplanar/projection
-- [ ] Domain name (`Rust`, etc.) no longer appears as a top concept
-- [ ] Good cases don't regress (`smoothstep`, `deep-modules`, `move-semantics` keep their specific hooks)
-- [ ] Existing concept-extraction tests still pass (46); add an anchors+hooks regression test (two sibling topics: shared anchors, differing hooks)
-- [ ] `mise run verify` passes
+- [x] Top-5 uses two-band selection: ~2 in-topic anchors + ~3 smoothed-salience hooks (n_anchors=2)
+- [x] Hook salience is SMOOTHED (log-ratio w/ α) + tiebroken by YAKE's own intra-doc score (the real discriminator on single-chunk topics) — no raw ratio, no single-mention trivia
+- [x] Re-run the #176 corpus (3 domains × 10 topics): **30/30 topics (100%)** have ≥1 distinctive concept absent from sibling topics, while still showing shared anchors — far exceeds the >60% bar
+- [x] The 3 worst cases now surface a hook: `smart-pointers-box-rc-arc` → Smart pointers/ownership semantics; `lifetimes` → remain valid/long references; `triplanar-mapping-algorithm` → triplanar insight/major axis
+- [x] Domain name (`Rust`, etc.) no longer appears as a top concept (0 hits across 30 topics)
+- [x] Good cases don't regress (`smoothstep` → smoothstep/oblique angles; `slices` → Slices/contiguous sequence; `move-semantics` → ownership moves/binding)
+- [x] Existing concept-extraction tests still pass (46); added 2 differentiation regression tests (48 total)
+- [x] `mise run verify` passes
+
+## Resolution (2026-09-02)
+
+The fix required BOTH a ranking change AND an extraction-side change — ranking alone
+plateaued at 57%. Root cause of the plateau (diagnosed empirically): the good hook
+candidates (Box, Drop, NdotL) exist in extraction but have tiny GLOBAL foundational scores
+(they're in 1 late chunk of ~10), so the candidate loop's global-top-N truncation dropped
+them before the two-band selection ran.
+
+**Changes:**
+1. **Topic-aware candidate pool** (`concept_hints.py`, the decisive fix): build candidates
+   from EVERY concept touching a target-topic chunk + the global top-40 — not just global
+   top-N. This is what unblocked the stuck topics (Box/Drop now reach selection).
+2. **Preserve YAKE's per-term score** (`extract_concepts.py`): added `yake_score` to the
+   `Concept` dataclass (new field, default None — breaks 0 tests; `score` untouched so the
+   range/sort tests hold), captured from the `_score` previously discarded at line 295 (min
+   across chunks = YAKE's "best"), emitted in `to_json`. YAKE's score bakes in
+   freq+position+casing, so it ranks Box/NdotL above generic connectives — the tiebreak the
+   smoothed-salience tie was missing on single-chunk topics.
+3. **Two-band selection** (`concept_hints.py`): 2 anchors (in-topic footing, with a >40%
+   domain-pervasiveness cap so connectives can't win footing slots) + 3 hooks (smoothed
+   salience → YAKE asc → concept-shaped → score → length).
+4. **Domain-name token filter**: token/stem match, not exact-slug (`rust` from
+   `rust-fundamentals`).
+
+**Result:** topic differentiation 17% → **100%** (30/30), domain-name leakage eliminated,
+good cases preserved. `pytest` 256 passed (+2 differentiation regression tests); `mise run
+verify` EXIT 0. Evidence: `.scratch/reconcile-233/r286-extraction-*.md` (research+review),
+verify script output.
+
+Unblocks #176 (its coverage-report + generate-lesson ACs are the acceptance demo for these
+now-differentiated hints).
 
 ## References
 

@@ -37,6 +37,11 @@ class Concept:
     score: float  # foundational-ness: frequency × (1 / first_position)
     defined_in: list[int] = field(default_factory=list)
     used_in: list[int] = field(default_factory=list)
+    # YAKE's own per-term relevance (LOWER = more salient — intra-document freq+position+
+    # casing). Kept for the #286 hook tiebreak: on single-chunk topics the chunk-presence
+    # `score` ties across all topic-exclusive terms, but YAKE still ranks Box/NdotL above
+    # generic connectives (rules/ensures). None if the term never came from a YAKE pass.
+    yake_score: float | None = None
 
 
 @dataclass
@@ -292,13 +297,17 @@ def compute_foundational_scores(
     term_chunks: dict[str, list[int]] = {}  # norm_term → [chunk indices]
     term_original: dict[str, str] = {}  # norm → best original form
 
+    term_yake: dict[str, float] = {}  # norm → best (min) YAKE score seen (#286)
     for chunk_idx, keywords in enumerate(keywords_per_chunk):
-        for term, _score in keywords:
+        for term, yscore in keywords:
             norm = _normalize_term(term)
             if norm not in term_chunks:
                 term_chunks[norm] = []
                 term_original[norm] = term
             term_chunks[norm].append(chunk_idx)
+            # Keep the BEST (lowest) YAKE score across the term's chunk appearances.
+            if norm not in term_yake or yscore < term_yake[norm]:
+                term_yake[norm] = yscore
 
     concepts = []
     total_chunks = max(len(chunks), 1)
@@ -326,6 +335,7 @@ def compute_foundational_scores(
             score=score,
             defined_in=defined_in,
             used_in=used_in,
+            yake_score=term_yake.get(norm),
         ))
 
     # Sort by score descending
@@ -436,6 +446,7 @@ def to_json(result: ConceptGraph) -> dict:
                 "score": c.score,
                 "defined_in": c.defined_in,
                 "used_in": c.used_in,
+                "yake_score": c.yake_score,
             }
             for c in result.concepts
         ],
