@@ -24,6 +24,7 @@ if hasattr(_sys.stderr, "reconfigure"):
     _sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 import json
+import math
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -255,6 +256,77 @@ def compute_prerequisite_depth(graph, node: int) -> int:
         return 0
 
 
+def _topic_salience(defined_in, used_in, target_indices, total_chunks, alpha=0.1):
+    """Smoothed log-ratio of in-topic vs rest chunk-appearance (#286).
+
+    Add-alpha smoothed so a single-chunk term can't score unbounded-high — the raw
+    freq_in_topic/freq_in_domain ratio's documented failure mode on ~10-chunk corpora
+    (rare-term over-weighting). Higher = more distinctive to this topic.
+    """
+    app = set(defined_in + used_in)
+    tgt = set(target_indices)
+    topic = len(app & tgt)
+    rest = len(app - tgt)
+    topic_total = max(len(tgt), 1)
+    rest_total = max(total_chunks - len(tgt), 1)
+    v = 2  # smoothing vocab size (in-topic vs rest)
+    return (math.log((topic + alpha) / (topic_total + alpha * v))
+            - math.log((rest + alpha) / (rest_total + alpha * v)))
+
+
+def _select_anchors_and_hooks(concepts_out, target_indices, total_chunks, top_n,
+                              n_anchors=2):
+    """Pick ~n_anchors in-topic ANCHORS (footing) + the rest as distinctive HOOKS (#286).
+
+    2 anchors + (top_n-2) hooks: enough pervasive footing for a learner to recognize the
+    topic, but a majority of slots go to distinctive hooks so sibling topics don't look
+    identical. Anchors: highest in-topic appearance (tiebreak global score). Hooks: highest
+    smoothed topic-salience (tiebreak global score, then term length to favor real concepts
+    over fragments). Falls back to score-desc if the topic had no matchable chunks.
+    """
+    tgt = set(target_indices)
+
+    def in_topic_count(c):
+        return len(set(c["defined_in"] + c["used_in"]) & tgt)
+
+    def pervasiveness(c):
+        # Fraction of ALL chunks the term appears in — high = domain-wide connective,
+        # a bad anchor (footing should be topic-central, not everywhere).
+        return len(set(c["defined_in"] + c["used_in"])) / max(total_chunks, 1)
+
+    relevant = [c for c in concepts_out if in_topic_count(c) > 0]
+    if not relevant:
+        return sorted(concepts_out, key=lambda c: -c["score"])[:top_n]
+
+    # Anchors: topic-central footing. Exclude domain-pervasive terms (>40% of all chunks)
+    # so connectives like "rules"/"ensures" can't win footing slots (#286). Fall back to
+    # the full relevant set if the cap would starve the anchor band.
+    anchor_pool = [c for c in relevant if pervasiveness(c) <= 0.4] or relevant
+    anchors = sorted(anchor_pool, key=lambda c: (-in_topic_count(c), -c["score"]))[:n_anchors]
+    anchor_terms = {c["term"] for c in anchors}
+
+    def hook_key(c):
+        # On single-chunk topics every topic-exclusive term ties on smoothed salience, so
+        # YAKE's own intra-document relevance (LOWER=better: freq+position+casing) is the
+        # real discriminator — it ranks Box/Drop/NdotL above generic connectives. Order:
+        # (1) salience desc, (2) YAKE asc (None last), (3) concept-shaped, (4) score, (5) len.
+        term = c["term"]
+        concept_shaped = (" " in term) or (term[:1].isupper() and term.lower() != term)
+        yake = c.get("_yake")
+        return (
+            -_topic_salience(c["defined_in"], c["used_in"], target_indices, total_chunks),
+            yake if yake is not None else float("inf"),
+            not concept_shaped,
+            -c["score"],
+            -len(term),
+        )
+
+    hooks = sorted(
+        (c for c in relevant if c["term"] not in anchor_terms), key=hook_key
+    )[: max(0, top_n - len(anchors))]
+    return anchors + hooks
+
+
 def generate_concept_hints(
     chunks: list[dict],
     topic_slug: str,
@@ -272,8 +344,10 @@ def generate_concept_hints(
     Returns:
         Dict ready to serialize as JSON.
     """
-    # Run concept extraction on all chunks
-    result = extract_concepts(chunks, top_n=max(top_n, 8))
+    # Run concept extraction on all chunks. Pull a WIDE candidate pool (not just the
+    # global top-N): the two-band selection (#286) needs low-global-score but
+    # topic-distinctive concepts to survive as hook candidates — a narrow cap starves them.
+    result = extract_concepts(chunks, top_n=max(top_n * 8, 40))
 
     # Quality filters: deduplicate near-synonyms, remove generic terms
     result_concepts = deduplicate_concepts(result.concepts)
@@ -283,10 +357,14 @@ def generate_concept_hints(
         c for c in result_concepts
         if c.term.lower().strip() not in GENERIC_EDGE_TERMS
     ]
-    # Filter the domain/language name itself — it's not a concept to learn
+    # Filter the domain/language name itself — it's not a concept to learn.
+    # Token/stem match, not exact-slug: "rust" from "rust-fundamentals" must be caught
+    # so `Rust` stops appearing as a top concept (#286).
+    domain_tokens = set(domain.lower().replace("-", " ").split()) | {domain.lower()}
     result_concepts = [
         c for c in result_concepts
-        if c.term.lower().strip() != domain.lower()
+        if c.term.lower().strip() not in domain_tokens
+        and _normalize_term(c.term) not in domain_tokens
     ]
 
     # Find the chunk index for the target topic
@@ -299,7 +377,21 @@ def generate_concept_hints(
     # Build concept list with composite scoring
     total_chunks = max(len(chunks), 1)
     concepts_out = []
-    for concept in result_concepts[:top_n * 2]:
+    # Candidate pool must be TOPIC-AWARE (#286), not just the global top-N. Hook candidates
+    # like Box/Drop are in ONE late chunk, so their global foundational score is tiny and a
+    # rank-N truncation drops them before the two-band selection can surface them. Include
+    # EVERY concept that touches a target-topic chunk, plus the global top-40 (for anchors).
+    _tgt = set(target_indices)
+    _topic_relevant = [c for c in result_concepts
+                       if _tgt & set(c.defined_in + c.used_in)]
+    _global_top = result_concepts[:40]
+    _seen = set()
+    candidate_pool = []
+    for c in _topic_relevant + _global_top:
+        if id(c) not in _seen:
+            _seen.add(id(c))
+            candidate_pool.append(c)
+    for concept in candidate_pool:
         # Check if concept is relevant to target topic
         relevant_to_target = any(
             idx in target_indices
@@ -344,6 +436,7 @@ def generate_concept_hints(
             "score": round(concept.score, 3),
             "level": "L2",  # placeholder — assigned by percentile below
             "_composite": composite,
+            "_yake": concept.yake_score,  # internal, for the #286 hook tiebreak; popped before write
             "defined_in": concept.defined_in,
             "used_in": concept.used_in,
             "prerequisite_of": prereq_of[:5],
@@ -353,13 +446,17 @@ def generate_concept_hints(
     # Assign L-levels by percentile of composite scores
     assign_levels_by_percentile(concepts_out)
 
-    # Sort: target-relevant first, then by score
-    concepts_out.sort(key=lambda c: (not c["relevant_to_target"], -c["score"]))
-    concepts_out = concepts_out[:top_n]
+    # Two-band selection (#286): a few pervasive ANCHORS (footing) + a couple distinctive
+    # HOOKS (the gap). Interest-driven discovery wants both, not pure distinctiveness — an
+    # obscure top-salience term with no footing is inert (inverted-U of curiosity).
+    concepts_out = _select_anchors_and_hooks(
+        concepts_out, target_indices, total_chunks, top_n
+    )
 
-    # Remove internal _composite field
+    # Remove internal fields
     for c in concepts_out:
         c.pop("_composite", None)
+        c.pop("_yake", None)
 
     # Build edge suggestions for question framing — domain-specific only
     generic_terms = {
