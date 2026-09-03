@@ -1,7 +1,7 @@
 ---
 id: "176"
 title: "Validate: run concept hints + enrichment on all live workspace topics"
-status: open
+status: done
 blocked_by: []
 priority: high
 tags: [source-ingest, content-quality]
@@ -35,11 +35,11 @@ After #175 quality fixes land, run the full concept hints + enrichment pipeline 
 
 ## Acceptance criteria
 
-- [ ] Concept hints generated for all 3 domains without errors
-- [ ] Top-5 concepts per topic are domain-relevant (manual review, >80% useful)
-- [ ] Coverage report produced for all topics with existing lessons
-- [ ] At least one lesson generated using concept hints as input
-- [ ] No regressions: `mise run verify` passes throughout
+- [x] Concept hints generated for all 3 domains without errors
+- [x] Top-5 concepts per topic are domain-relevant (manual review, >80% useful)
+- [x] Coverage report produced for all topics with existing lessons
+- [x] At least one lesson generated using concept hints as input
+- [x] No regressions: `mise run verify` passes throughout
 
 ## Validation results (2026-09-02)
 
@@ -71,3 +71,43 @@ quality review: `.scratch/reconcile-233/r-concept-review.md`; digest: `concept-d
 
 **Disposition:** #176 → blocked_by #286. The validation ran and did its job (found the defect);
 the remaining ACs are the acceptance demo for the fix, so they properly belong after #286.
+
+## Resolution (2026-09-03) — acceptance demo for #286
+
+The 2026-09-02 run surfaced the differentiation defect (→ #286). With #286 landed, this
+run is the acceptance demo for the improved ranking. Split into two halves because on the
+one lesson-bearing domain with source chunks (godot-gamedev via toon-shaders.json), the
+chunks back only *already-written* topics — no unwritten topic is chunk-backed.
+
+**Half A — #286 holds on live content** (scripts in `.scratch/`, gitignored, re-runnable):
+- Regenerated hints for all 10 toon-shader topics: 0 errors, all non-empty targets (AC1).
+- Differentiation gate: 10/10 topics score highest on their own source, mean margin +0.74,
+  corpus mean DF 1.62/10 — per-topic proof, stronger than the aggregate 17%→100% figure.
+- Relevance gate: mean 94% faithful, all topics ≥80% (AC2).
+- Coverage reports: 7 topics across godot-gamedev/iceberg/ink-godot, 0 crashes (AC3).
+
+**Half B — generate a lesson from hints + prove it:**
+- `library/godot-gamedev/lessons/0015-physics-and-collision.html` authored from a
+  concept_hints.py scaffold built on cited Godot-docs research (AC4).
+- New `tools/hint-coverage-oracle.py` (stdlib, deterministic) proves consumption:
+  **100% coverage (12/12)** on 0015 at strict threshold; **8%** on an unrelated lesson —
+  the pass is meaningful, not trivial.
+
+**AC5:** `mise run verify` EXIT 0 throughout (41 pytest, 20 interactive, 5 ink transcripts).
+
+**Independent review** (2 subagents, commit 338c5bf): both verdict READY — oracle clean of
+the 9 banned patterns + stdlib-only; lesson passes 12/13 checks (Q11 nav-chain is an
+expected artifact — 0015 is a parent-track topic inserted amid the 0003–0014 sub-track
+numbering). Cosmetic nits fixed (stray `</p>`, dead stemmer entry); oracle re-verified 100%.
+
+**Follow-ups filed separately (not #176):**
+- FT-1 (medium): `check-topic-completeness --concepts` extracts lesson *chrome*
+  ("read win", "min") as concepts → reports 0% on every topic. Its coverage% is unreliable;
+  fix by reusing the oracle's `strip_chrome()`. Prefer the oracle for "did the lesson use
+  its concepts" until fixed.
+- FT-2 (low): orphaned source-chunks — `code-design.json` (no domain) and `rust.json`
+  (mismatched vs oidc-rust lessons) validate at hints level only. Decide: generate or prune.
+
+**Artifacts:** commit 338c5bf (oracle + 0015 lesson + code files);
+`.scratch/concepts/*.json`, `.scratch/{differentiation,relevance,coverage}_*.py`,
+`.scratch/research/176-*.md`, `.scratch/review/176-*.md` (gitignored evidence).

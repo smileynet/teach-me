@@ -38,7 +38,7 @@ from pathlib import Path
 
 # Minimal Porter-ish suffix stemmer (stdlib only — no nltk dependency).
 _SUFFIXES = ("ational", "tional", "ization", "iveness", "fulness", "ousness",
-             "ations", "ings", "ies", "sses", " ", "ness", "ment", "ing", "ers",
+             "ations", "ings", "ies", "sses", "ness", "ment", "ing", "ers",
              "ed", "es", "s", "ly", "er")
 
 
