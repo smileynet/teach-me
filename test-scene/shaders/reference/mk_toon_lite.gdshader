@@ -15,7 +15,7 @@ uniform bool use_threshold_map = false;
 uniform sampler2D threshold_map;
 uniform float threshold_map_scale = 1.0;
 uniform bool use_normal_map = false;
-uniform sampler2D normal_map;
+uniform sampler2D normal_map : hint_normal;
 uniform float normal_map_intensity : hint_range(0.0, 2.0) = 1.0;
 uniform float normal_map_scale = 1.0;
 uniform float wrapped_lighting : hint_range(0.0, 1.0) = 1.0;
