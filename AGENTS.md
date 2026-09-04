@@ -62,7 +62,7 @@ library/           — public topic library (shipped, growing; served by default
 | Theme preview | `mise run theme-preview -- --palette palettes/purple-night.json` | Preview + contrast validation |
 | Health check | `mise run doctor` | Verify tools, venv, references |
 | Smoke test | `mise run verify` | Links + lint + SVG var check |
-| Clone references | `mise run rehydrate` | Clone repos from REFERENCES.md — greps `^git clone` lines, skips dirs that exist. Every `.references/` repo MUST have a `git clone … .references/<dir>` line in REFERENCES.md or it won't rehydrate. On Windows the task's `mkdir -p .references` errors if the dir exists (bash-ism); clone lines still work — clone missing repos manually or `rm .references` first. |
+| Clone references | `mise run rehydrate` | Clone repos from REFERENCES.md — runs `tools/rehydrate.py` (cross-platform: parses `^git clone` lines, skips existing dirs, clones the rest). Every `.references/` repo MUST have a `git clone … .references/<dir>` line in REFERENCES.md or it won't rehydrate. |
 | Open lesson | `mise run open-lesson` | Open latest lesson in browser |
 | Generate map / index | `mise run map:generate -- <MAP.md>` (one); `maps:regenerate` (all); `index:generate -- [--scan-dir path]` (dashboard); `map:global -- [--scan-dir path]` (forest map — all domains as nodes, parent/child + leads_to edges) | Map/index/forest HTML from MAP.md files |
 | Validate map forest | `python tools/check-maps-forest.py` (in `verify`) | Forest-scope prereq check — cross-map prereqs (sibling sub-maps) resolve against the union, not per-map (#155/#260) |

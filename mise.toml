@@ -87,17 +87,7 @@ run = "python tools/init_workspace.py"
 
 [tasks.rehydrate]
 description = "Clone reference repos from REFERENCES.md"
-run = """
-mkdir -p .references
-grep '^git clone' REFERENCES.md | while IFS= read -r line; do
-  dir=$(echo "$line" | awk '{print $NF}')
-  if [ -d "$dir" ]; then
-    echo "  skip: $dir (exists)"
-  else
-    eval "$line"
-  fi
-done
-"""
+run = "uv run python tools/rehydrate.py"
 
 [tasks."update:check"]
 description = "Check if a newer release of teach-me is available"
