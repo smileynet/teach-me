@@ -1,10 +1,13 @@
-[gd_scene load_steps=8 format=3 uid="uid://bmktoon_test_scene"]
+[gd_scene load_steps=11 format=3 uid="uid://bmktoon_test_scene"]
 
 [ext_resource type="PackedScene" uid="uid://cd23sgo16xf4i" path="res://assets/polyhaven/Barrel_01/Barrel_01_1k.gltf" id="1_barrel"]
 [ext_resource type="Shader" path="res://shaders/reference/mk_toon_lite.gdshader" id="2_shader"]
 [ext_resource type="Shader" path="res://shaders/reference/mk_toon_lite_outline.gdshader" id="3_outline"]
 [ext_resource type="Texture2D" uid="uid://bifq8ujd57bgd" path="res://assets/polyhaven/Barrel_01/textures/Barrel_01_explosive_diff_1k.jpg" id="4_diff"]
 [ext_resource type="Texture2D" uid="uid://hdeqeffdyg2n" path="res://assets/polyhaven/Barrel_01/textures/Barrel_01_explosive_nor_gl_1k.jpg" id="5_nor"]
+[ext_resource type="Texture2D" uid="uid://ceg7qpv31baae" path="res://assets/toon-export/Barrel_01_toon_albedo_warm.png" id="6_toon_albedo"]
+[ext_resource type="Texture2D" uid="uid://cp7rqbhap07fj" path="res://assets/masks/toon_noise.png" id="7_noise"]
+[ext_resource type="Texture2D" uid="uid://eue5r3r17eti" path="res://assets/masks/toon_threshold.png" id="8_threshold"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mktoon_outline"]
 shader = ExtResource("3_outline")
@@ -16,7 +19,7 @@ shader = ExtResource("2_shader")
 next_pass = SubResource("ShaderMaterial_mktoon_outline")
 shader_parameter/albedo_color = Color(0.85, 0.65, 0.4, 1.0)
 shader_parameter/use_albedo_texture = true
-shader_parameter/albedo_texture = ExtResource("4_diff")
+shader_parameter/albedo_texture = ExtResource("6_toon_albedo")
 shader_parameter/albedo_texture_intensity = 1.0
 shader_parameter/use_normal_map = true
 shader_parameter/normal_map = ExtResource("5_nor")
@@ -27,6 +30,13 @@ shader_parameter/light_bands_scale = 0.5
 shader_parameter/light_threshold = 0.5
 shader_parameter/diffuse_threshold_offset = 0.0
 shader_parameter/diffuse_smoothness = 0.0
+shader_parameter/use_threshold_map = true
+shader_parameter/threshold_map = ExtResource("8_threshold")
+shader_parameter/threshold_map_scale = 1.0
+shader_parameter/use_noise_map = true
+shader_parameter/noise_map = ExtResource("7_noise")
+shader_parameter/noise_strength = 0.08
+shader_parameter/noise_scale = 1.0
 shader_parameter/wrapped_lighting = 1.0
 shader_parameter/wrapped_lighting_scale = 0.35
 shader_parameter/gooch_bright_color = Color(1, 1, 1, 1)

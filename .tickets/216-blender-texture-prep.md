@@ -2,7 +2,7 @@
 id: "216"
 title: "Blender texture prep pipeline — rebake PBR textures to toon-friendly style for mktoon shader"
 type: feature
-status: open
+status: done
 priority: high
 blocked_by: []
 parent: "186"
@@ -86,13 +86,13 @@ This is the EPIC/tracking ticket for the blender-texture-prep track. Concrete le
 - [x] `mktoon_test.tscn` wired: albedo texture ON, normal map connected (shared fixture for all lessons)
 - [x] Before/after + progressive-isolation screenshots captured (shared lesson assets)
 - [x] Validated raking light angle for visible toon bands (shared fixture)
-- [ ] #217 texture-audit lesson complete
-- [ ] #218 albedo-posterize lesson complete (owns "Toon Prep" node group)
-- [ ] #219 palette-snap lesson complete
-- [ ] #220 toon-control-maps lesson complete (owns ramp/noise/threshold textures)
-- [ ] #221 bake-and-export lesson complete (owns glTF round-trip)
-- [ ] #222 wiring-the-shader lesson complete (owns final mktoon_test population)
-- [ ] Track validated end-to-end: a PBR asset flows through the full pipeline to a toon-prepped Godot render
+- [x] #217 texture-audit lesson complete
+- [x] #218 albedo-posterize lesson complete (owns "Toon Prep" node group)
+- [x] #219 palette-snap lesson complete
+- [x] #220 toon-control-maps lesson complete (owns ramp/noise/threshold textures)
+- [x] #221 bake-and-export lesson complete (owns glTF round-trip)
+- [x] #222 wiring-the-shader lesson complete (owns final mktoon_test population)
+- [x] Track validated end-to-end: a PBR asset flows through the full pipeline to a toon-prepped Godot render (Barrel_01: raw PBR → posterize → palette-snap → Emit bake → wired into mk_toon_lite, rendered + independently verified in #222)
 
 ## Context
 
@@ -156,3 +156,18 @@ All 9 texture samplers are guarded by `use_*` booleans (all default `false`). Te
 | Normals in vertex colors or texture? | **Texture maps for normals** (standard tangent-space). Vertex colors reserved for outline smooth normals (separate concern). | Existing toon-outlines lesson pattern |
 | What about roughness/metallic? | **Discard entirely** — toon shaders use `specular_disabled` render mode; roughness/metallic irrelevant | mk_toon_lite shader review |
 | AO channel useful? | **Yes** — extract from ARM texture R channel → use as threshold_map seed | Test-scene review (ARM = R:AO, G:Roughness, B:Metallic) |
+
+
+## Resolution (2026-09-04)
+
+Epic closed. The blender-texture-prep track ships 6 lessons (01 texture-audit → 06
+wiring-the-shader), each with a runnable/validated artifact, and the pipeline is proven
+end-to-end on Barrel_01: raw PBR → posterize (16) → palette-snap (17) → control maps (18) →
+Emit bake + glTF (19) → wired into mk_toon_lite with before/after proof (20/#222).
+
+Child tickets #217–#222 all done. Shared infrastructure (MAP, mktoon_test.tscn wiring, capture
+fixtures) delivered. The capstone lesson (#222) surfaced and taught a real palette-hue pitfall
+(luminance-only snapping drains hue → muddy render) with a hue-preserving re-bake as the fix.
+
+One follow-up filed: #290 (demo the pipeline on a 2nd asset — Camera_01/Lantern_01), descoped
+from #222 to keep it bounded. Track is complete and usable without it.

@@ -75,7 +75,7 @@ The reference implementation is `mk_toon_lite.gdshader` — which declares unifo
 - **why:** The pipeline isn't proven until every texture slot is populated and the scene renders correctly — this lesson takes the exported assets and connects them to the full mk_toon_lite shader with before/after proof
 - **scope:** substantial
 - **prereqs:** [bake-and-export, configurable-banding]
-- **lesson_file:** 0020-wiring-the-shader.html
+- **lesson_file:** blender-texture-prep/06-wiring-the-shader.html
 
 ## Expansion Opportunities
 
