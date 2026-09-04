@@ -70,7 +70,7 @@ In AGENTS.md or a steering file, state:
 - [x] `mise run serve` with no args serves `workspace/` if it exists, prints helpful message if not
 - [x] Shared assets resolve at `/assets/` regardless of workspace location
 - [x] LAN URL printed on startup (e.g., `http://192.168.x.x:8787/lessons/01-...`)
-- [ ] Toon shader lessons renumbered to 01/02 (per-domain) — deferred to #166
+- [ ] Toon shader lessons renumbered to 01/02 (per-domain) — STILL OUTSTANDING (verified 2026-09-04 under #285): `0003-spatial-shader-anatomy.html` / `0004-toon-banding.html` were NOT renamed. The deferral pointed at #166, but #166 was script-subfolder-support, not this rename. The godot-toon-shaders track keeps global 0003–0014 numbering while newer tracks (blender-texture-prep 01–06) use per-domain numbering — an inconsistency, tracked as a follow-up. Left unchecked (honest); does not reopen #163 (the serve-tool deliverable shipped).
 - [x] Convention documented: per-domain numbering, NN-slug.html format
 - [x] Works on Windows without symlinks/junctions (the whole point)
 

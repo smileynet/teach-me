@@ -1,0 +1,6 @@
+# tkt project config for teach-me.
+# Forward-enforcement of the "done tickets carry a Resolution" convention (#285):
+# new closes require a Resolution section. Historical pre-convention tickets are
+# accepted as a documented baseline (see #285) — this gate stops the debt regrowing.
+[close]
+require_resolution = true

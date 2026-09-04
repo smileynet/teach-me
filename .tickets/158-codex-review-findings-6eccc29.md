@@ -53,4 +53,4 @@ each finding against current code before changing it.
 - [x] Confirmed findings are corrected
 - [x] Regression tests cover confirmed defects where practical
 - [x] Relevant build, test, and lint checks pass
-- [ ] Corrected changes receive a fresh review
+- [ ] Corrected changes receive a fresh review — NOT dispatched (annotated 2026-09-04 under #285). The F1/F2 fixes shipped with regression tests (`TestF1PathTraversal`, `TestF2ExtractedTextFormat`) and have been on `main` passing `mise run verify` (256 tests) since. A formal fresh review of months-old, test-covered, shipped corrections is low-value; accepted as an informational gap rather than reopening. Re-dispatch only if these files are materially changed again.
