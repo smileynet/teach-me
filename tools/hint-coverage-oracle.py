@@ -30,11 +30,13 @@ Exit codes: 0 = coverage gate met, 1 = below gate (hints dropped), 2 = error.
 from __future__ import annotations
 
 import argparse
-import html
 import json
 import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.html_prose import html_to_prose  # noqa: E402 — shared chrome-strip (#288)
 
 # Minimal Porter-ish suffix stemmer (stdlib only — no nltk dependency).
 _SUFFIXES = ("ational", "tional", "ization", "iveness", "fulness", "ousness",
@@ -57,17 +59,6 @@ def _content_words(term: str) -> list[str]:
     return [_stem(w) for w in cleaned.split() if len(w) > 2]
 
 
-def strip_chrome(html_text: str) -> str:
-    """Return lesson teaching prose: drop scripts/styles, unwrap tags, strip nav/chrome."""
-    text = re.sub(r"<script\b[^>]*>.*?</script>", " ", html_text, flags=re.DOTALL | re.IGNORECASE)
-    text = re.sub(r"<style\b[^>]*>.*?</style>", " ", text, flags=re.DOTALL | re.IGNORECASE)
-    # Drop obvious chrome containers (nav, header, footer, the lesson-actions bar).
-    text = re.sub(r"<(nav|header|footer)\b[^>]*>.*?</\1>", " ", text, flags=re.DOTALL | re.IGNORECASE)
-    text = re.sub(r"<[^>]+>", " ", text)               # unwrap remaining tags
-    text = html.unescape(text)
-    return re.sub(r"\s+", " ", text).lower()
-
-
 def _stemmed_haystack(prose: str) -> set[str]:
     return {_stem(w) for w in re.findall(r"[a-z0-9]+", prose) if len(w) > 2}
 
@@ -88,7 +79,7 @@ def evaluate(hints_path: Path, lesson_path: Path, core_threshold: float) -> dict
     if not core_terms:  # fall back to the top-half by rank as the core set
         core_terms = terms[: max(1, len(terms) // 2)]
 
-    haystack = _stemmed_haystack(strip_chrome(lesson_path.read_text(encoding="utf-8")))
+    haystack = _stemmed_haystack(html_to_prose(lesson_path.read_text(encoding="utf-8")))
 
     found = [t for t in terms if term_present(t, haystack)]
     missing = [t for t in terms if t not in found]

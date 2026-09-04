@@ -122,76 +122,104 @@ def check_sr_questions(workspace: Path, topic_slug: str) -> dict:
 
 
 def check_concept_coverage(workspace: Path, topic_slug: str, lesson_path: Path) -> dict:
-    """Check concept coverage: do extracted concepts appear in glossary/questions?
+    """Check concept coverage: are the lesson's OWN authored concepts taught + reinforced?
 
-    Requires extract_concepts + chunk_text (gated behind --concepts flag to avoid
-    forcing networkx+yake dependency on simple runs).
+    Realigned in #288. The old metric compared FREE YAKE-extracted concepts against the
+    glossary — but free extraction (generic surface words like "files", "data") and the
+    curated hyphenated glossary keys ("manifest-file", "partition-spec") are different
+    vocabularies, so overlap was ~0 regardless of lesson quality (and chrome like the
+    "Win:" statement leaked in as fake concepts).
 
-    Returns dict with coverage percentage and gap list.
+    The authored concepts (glossary-data keys + `class="term"`/`<dfn>` spans) ARE the
+    lesson's declared domain vocabulary. This metric asks the question that reflects
+    quality: is each authored concept actually PRESENT in the teaching prose, and is it
+    REINFORCED by an SR question? A defined-but-never-explained term, or one with no SR
+    card, is a real gap.
+
+    Requires chunk_text via lib.html_prose (gated behind --concepts). Returns coverage +
+    gap list (authored concepts that are absent from prose).
     """
-    from extract_concepts import extract_concepts_from_html, _normalize_term
+    from lib.html_prose import html_to_prose
 
-    # Extract concepts from the lesson
-    result = extract_concepts_from_html(lesson_path, top_n=10)
-    if not result.concepts:
-        return {"coverage": 1.0, "total": 0, "covered": 0, "gaps": []}
-
-    top_concepts = result.concepts[:10]
-    concept_terms = {_normalize_term(c.term) for c in top_concepts}
-
-    # Check glossary-data coverage
     lesson_content = lesson_path.read_text(encoding="utf-8")
+
+    # --- The lesson's AUTHORED concepts: glossary-data keys + term/dfn spans ---
+    # Keep the RAW lowercased form (hyphens intact) so slug keys like "manifest-file"
+    # can be split into words for matching against spaced prose.
+    authored: set[str] = set()
     glossary_match = re.search(
         r'<script\s+type="application/json"\s+id="glossary-data">\s*(\{.*?\})\s*</script>',
         lesson_content, re.DOTALL,
     )
-    glossary_terms = set()
     if glossary_match:
         try:
-            glossary = json.loads(glossary_match.group(1))
-            glossary_terms = {_normalize_term(k) for k in glossary.keys()}
+            authored |= {k.strip().lower() for k in json.loads(glossary_match.group(1)).keys()}
         except json.JSONDecodeError:
             pass
-
-    # Check term spans in lesson
-    term_spans = set()
     for match in re.finditer(r'class="term"[^>]*data-term="([^"]*)"', lesson_content):
-        term_spans.add(_normalize_term(match.group(1)))
-    # Also check inline <dfn> tags
+        authored.add(match.group(1).strip().lower())
     for match in re.finditer(r'<dfn[^>]*>(.*?)</dfn>', lesson_content):
-        term_spans.add(_normalize_term(match.group(1)))
+        authored.add(re.sub(r"<[^>]+>", "", match.group(1)).strip().lower())
 
-    # Check SR questions
-    question_terms = set()
+    authored.discard("")
+    if not authored:
+        # No declared concepts to check — not a failure, just nothing to measure.
+        return {"coverage": 1.0, "total": 0, "covered": 0, "gaps": [],
+                "reinforced_by_questions": [], "absent_from_prose": []}
+
+    # --- Is each authored concept PRESENT in the teaching prose? ---
+    # Split the concept into words on hyphens/underscores/spaces (glossary keys are
+    # hyphenated slugs like "manifest-file" but the prose says "manifest file"), then
+    # require all content words to appear — so slug ↔ prose forms match.
+    prose = html_to_prose(lesson_content)
+
+    def _words(term: str) -> list[str]:
+        return [w for w in re.split(r"[\s\-_]+", term.lower()) if len(re.sub(r"[^\w]", "", w)) > 2]
+
+    def _present(term: str) -> bool:
+        words = [re.sub(r"[^\w]", "", w) for w in _words(term)]
+        return all(w in prose for w in words) if words else term.replace("-", "") in prose
+
+    present = {t for t in authored if _present(t)}
+    absent = authored - present
+
+    # --- Is each authored concept REINFORCED by an SR question? ---
+    # Mirror check_sr_questions' resolution: the topic's own {slug}.jsonl if present, else
+    # scan all domain SR files for cards whose lesson_id matches this topic.
+    reinforced: set[str] = set()
     questions_dir = questions_dir_for(workspace)
+    prompts: list[str] = []
     topic_file = questions_dir / f"{topic_slug}.jsonl"
-    if topic_file.exists():
-        for line in topic_file.read_text(encoding="utf-8").splitlines():
+    sr_files = [topic_file] if topic_file.exists() else (
+        list(questions_dir.glob("*.jsonl")) if questions_dir.exists() else [])
+    for f in sr_files:
+        for line in f.read_text(encoding="utf-8").splitlines():
             if not line.strip():
                 continue
             try:
                 q = json.loads(line)
-                prompt = q.get("prompt", "").lower()
-                for term in concept_terms:
-                    if term in prompt:
-                        question_terms.add(term)
             except (json.JSONDecodeError, KeyError):
                 continue
+            # When scanning the whole domain, keep only this topic's cards.
+            if topic_file.exists() or topic_slug in q.get("lesson_id", ""):
+                prompts.append(q.get("prompt", "").lower())
+    blob = " ".join(prompts)
+    if blob:
+        for t in authored:
+            words = [re.sub(r"[^\w]", "", w) for w in _words(t)]
+            if (all(w in blob for w in words) if words else t.replace("-", "") in blob):
+                reinforced.add(t)
 
-    # Compute coverage
-    all_covered = glossary_terms | term_spans | question_terms
-    covered = concept_terms & all_covered
-    gaps = concept_terms - all_covered
-
-    coverage = len(covered) / len(concept_terms) if concept_terms else 1.0
+    # Coverage = fraction of authored concepts actually taught in the prose.
+    coverage = len(present) / len(authored) if authored else 1.0
 
     return {
         "coverage": round(coverage, 2),
-        "total": len(concept_terms),
-        "covered": len(covered),
-        "gaps": sorted(gaps),
-        "covered_by_glossary": sorted(concept_terms & glossary_terms),
-        "covered_by_questions": sorted(concept_terms & question_terms),
+        "total": len(authored),
+        "covered": len(present),
+        "gaps": sorted(absent),                        # authored but absent from prose
+        "reinforced_by_questions": sorted(reinforced),
+        "absent_from_prose": sorted(absent),
     }
 
 
@@ -269,7 +297,7 @@ def main():
     parser.add_argument("--topic", help="Single topic slug to check")
     parser.add_argument("--all", action="store_true", help="Check all complete topics in MAP.md")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
-    parser.add_argument("--concepts", action="store_true", help="Also check concept coverage (requires yake+networkx)")
+    parser.add_argument("--concepts", action="store_true", help="Also check concept coverage: are the lesson's authored glossary/term concepts present in prose + reinforced by SR (#288)")
     args = parser.parse_args()
 
     workspace = Path(args.workspace)
