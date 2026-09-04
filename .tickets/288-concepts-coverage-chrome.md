@@ -1,7 +1,7 @@
 ---
 id: "288"
 title: "Fix: check-topic-completeness --concepts extracts lesson chrome as concepts"
-status: open
+status: done
 blocked_by: []
 priority: medium
 tags: [content-quality, tooling]
@@ -40,7 +40,41 @@ extracted FROM the lesson → in the glossary?). Prefer the oracle until this la
 
 ## Acceptance criteria
 
-- [ ] `check_concept_coverage` strips chrome (script/style/nav/header/footer + meta) before extraction
-- [ ] Re-run on the 7 #176 topics produces non-trivial, non-zero coverage that reflects real glossary overlap (not `read win`/`min` boilerplate)
-- [ ] No regression: `mise run verify` passes
-- [ ] Coverage gaps reported are real domain terms, not chrome
+- [x] `check_concept_coverage` strips chrome (script/style/nav/header/footer + untagged `.lesson-meta`/`.page-nav` classes) before extraction — via the shared `tools/lib/html_prose.py::html_to_prose`
+- [x] Re-run on the 7 #176 topics produces non-trivial, non-zero coverage reflecting real concept presence (was 0.0 everywhere → now 0.83–1.0; two topics show real 1-concept gaps)
+- [x] No regression: `mise run verify` passes; 256 pytest pass; oracle still 100% on the #222 lesson
+- [x] Coverage gaps reported are real authored concepts absent from prose, not chrome (`read win`/`min` gone)
+
+
+## Resolution (2026-09-04) — Option A (chrome fix + metric realignment)
+
+Investigation showed the ticket's premise was only half the cause. Two independent
+problems made coverage 0.0 everywhere:
+1. **Chrome leak** — `chunk_html` stripped semantic chrome (nav/header/footer) but the
+   untagged `<div class="lesson-meta">` "Win:" statement + "~N min read" leaked in, so YAKE
+   surfaced `read win`, `min` as "concepts."
+2. **Vocabulary mismatch** — even chrome-clean, free YAKE extraction yields generic surface
+   words (`files`, `Iceberg`, `AWS`) while the glossary keys are curated slugs
+   (`manifest-file`, `partition-spec`). Measured overlap: 0/10. Chrome-strip ALONE still
+   left coverage at ~0% — so the metric itself was measuring the wrong thing.
+
+**Fix (both halves):**
+- **Shared helper** `tools/lib/html_prose.py` (`strip_chrome_blocks` + `html_to_prose`,
+  stdlib-only) — single source of truth for chrome removal, extended to drop untagged
+  `.lesson-meta`/`.page-nav` by class. Repointed the two divergent copies at it:
+  `hint-coverage-oracle.py` (dropped its local `strip_chrome`) and
+  `chunk_text.py::chunk_html` (dropped its inline regex). 3 copies → 1 (SSoT, per the
+  data-modeling lens).
+- **Realigned metric** — `check_concept_coverage` now scores the lesson's OWN authored
+  concepts (glossary-data keys + `data-term`/`<dfn>` spans): is each PRESENT in the teaching
+  prose, and REINFORCED by an SR question? Hyphenated slug keys are split into words so
+  `manifest-file` matches "manifest file" in prose; SR lookup mirrors `check_sr_questions`
+  (topic file or `lesson_id` fallback). The coverage path no longer imports yake/networkx.
+
+**Result (7 #176 topics):** coverage went from 0.0 everywhere to 0.83–1.0, with two topics
+(triplanar 5/6, ink-flow 7/8) showing a real 1-concept gap (authored but under-explained) —
+exactly the honest signal the metric should surface. iceberg reinforced 4 concepts via SR.
+
+**Validation:** `mise run verify` EXIT 0; 256 pytest pass; oracle still 100% on 0015; help
+text updated (no longer claims yake/networkx). Files: `tools/lib/html_prose.py` (new),
+`tools/hint-coverage-oracle.py`, `tools/chunk_text.py`, `tools/check-topic-completeness.py`.

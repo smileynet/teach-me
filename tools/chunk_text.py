@@ -59,11 +59,11 @@ def chunk_markdown(text: str) -> list[dict]:
 
 def chunk_html(html: str) -> list[dict]:
     """Split HTML on heading tags (h1-h3). Strips tags from content."""
-    # Remove script, style, nav, footer, header
-    cleaned = re.sub(
-        r"<(script|style|nav|footer|header|aside)[^>]*>.*?</\1>",
-        "", html, flags=re.DOTALL | re.IGNORECASE
-    )
+    # Remove chrome blocks (semantic tags + lesson-meta/nav classes) via the shared
+    # single-source helper (#288) — this also drops the untagged .lesson-meta "Win:" +
+    # read-time chrome that used to leak into concept extraction.
+    from lib.html_prose import strip_chrome_blocks
+    cleaned = strip_chrome_blocks(html)
 
     # Extract body/main/article if present
     for tag in ("main", "article", "body"):
