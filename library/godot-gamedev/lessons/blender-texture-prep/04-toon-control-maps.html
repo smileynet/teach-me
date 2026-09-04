@@ -25,7 +25,7 @@
 <h1>Authoring Toon Control Maps — Noise &amp; Threshold</h1>
 
 <div class="lesson-meta">
-  Lesson 18 · Blender to Godot Texture Prep · ~15 min read<br>
+  Lesson 18 · Blender to Godot Texture Prep · ~8 min read<br>
   <strong>Win:</strong> You can bake the two control maps <code>mk_toon_lite</code> samples — a tileable noise map that breaks up band edges and a <span class="term" data-term="threshold-map">threshold map</span> seeded from AO that shifts shadows per-pixel — and explain exactly how each perturbs the shader's banding.
 </div>
 <div class="key-concept">
@@ -125,14 +125,20 @@ def build_noise_group():
      ═══════════════════════════════════════════════════════════════ -->
 <h2>What each map does, on the barrel</h2>
 
-<p>These are real captures of <code>mk_toon_lite</code> on the barrel with a raking light and three light bands — the setup that makes band boundaries visible enough to see the maps working.</p>
+<p>These are real captures of <code>mk_toon_lite</code> on the barrel with a raking light and three light bands — the setup that makes band boundaries visible enough to see each map working <em>in isolation</em>. Each map is toggled on alone (then both together) so you can tell them apart.</p>
 
 <figure>
-  <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-    <div style="flex:1 1 240px;"><img src="../../assets/img/control-maps-off.png" alt="Barrel with mk_toon_lite, no control maps: clean straight band edges, shadow falls uniformly by surface angle only." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Maps off — clean straight bands</p></div>
-    <div style="flex:1 1 240px;"><img src="../../assets/img/control-maps-on.png" alt="Same barrel with noise + threshold maps on: band edges wobble organically, and shadow deepens in the barrel's rim and gear creases while flat faces are unchanged." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Maps on — jittered edges + crease shadow</p></div>
+  <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+    <div style="flex:1 1 160px;"><img src="../../assets/img/control-maps-off.png" alt="Barrel terminator crop, no control maps: a clean straight band boundary down the shaded face." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.8rem;">A · off — clean boundary</p></div>
+    <div style="flex:1 1 160px;"><img src="../../assets/img/control-maps-noise.png" alt="Same crop with noise only: the shaded region is speckled with grain; the boundary is in the same place but its edge is broken up." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.8rem;">B · noise only — grainy edge</p></div>
+    <div style="flex:1 1 160px;"><img src="../../assets/img/control-maps-threshold.png" alt="Same crop with threshold only: no grain, but the shadow boundary has retreated — the terminator moved." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.8rem;">C · threshold only — moved boundary</p></div>
+    <div style="flex:1 1 160px;"><img src="../../assets/img/control-maps-both.png" alt="Same crop with both maps: grainy edge and the shifted boundary together." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.8rem;">D · both — superposition</p></div>
   </div>
-  <figcaption style="color:var(--text-muted);font-size:0.9rem;margin-top:0.5rem;">Same lighting, same albedo, real <code>mk_toon_lite</code> captures. With the maps on, the shaded regions break up more organically along the barrel's ridges (noise perturbing the band boundary) and the creases around the rim and label sit deeper in shadow (the AO threshold). The effect is intentionally subtle at these strengths — control maps refine an existing look, they don't repaint it.</figcaption>
+  <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.6rem;">
+    <div style="flex:1 1 200px;"><img src="../../assets/img/control-maps-diff-noise.png" alt="Difference between the noise panel and off, amplified and shown on a magma ramp: a field of scattered speckle concentrated at the terminator." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.8rem;">|B − A| ×6 — scattered speckle</p></div>
+    <div style="flex:1 1 200px;"><img src="../../assets/img/control-maps-diff-threshold.png" alt="Difference between the threshold panel and off, amplified on a magma ramp: a broad coherent region where the whole shaded face shifted, with a clean boundary stripe." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.8rem;">|C − A| ×6 — coherent boundary shift</p></div>
+  </div>
+  <figcaption style="color:var(--text-muted);font-size:0.9rem;margin-top:0.5rem;">Same lighting, same albedo, real <code>mk_toon_lite</code> captures (cropped to the terminator; strengths pushed to <code>noise_strength = 0.25</code>, the shader max, for legibility — production values are lower). The one-line intuition: <strong>noise jitters the edge you already have; threshold decides where the edge is.</strong> Raw, the threshold shift (C) is subtle. The difference panels make it unambiguous — they amplify each effect ×6 over the maps-off baseline and reveal two structurally distinct signatures: noise (B) is <em>scattered speckle</em> at the seam, threshold (C) is a <em>broad, coherent region</em> where the whole boundary moved. Difference-image comparison follows the FLIP method (Andersson et al., NVIDIA 2020). If grain appeared it's noise; if the boundary moved it's threshold.</figcaption>
 </figure>
 
 <!-- ═══════════════════════════════════════════════════════════════
