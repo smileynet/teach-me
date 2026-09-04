@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 20: Wiring It All Up — Populate mk_toon_lite in Godot</title>
+  <script src="../../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../../assets/vendor/preact.module.js",
+        "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
+        "htm": "../../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="../index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../blender-texture-prep-map.html">Blender to Godot Texture Prep</a> <span class="nav-sep">›</span> <span>Wiring It All Up</span></nav>
+<h1>Wiring It All Up — Populate mk_toon_lite in Godot</h1>
+
+<div class="lesson-meta">
+  Lesson 20 · Blender to Godot Texture Prep · ~7 min read<br>
+  <strong>Win:</strong> You can wire every slot of <code>mk_toon_lite</code> — baked albedo, normal map, and the noise + threshold control maps — into a Godot material, rank which slots are essential vs polish, and diagnose why a toon-prepped asset can render <em>worse</em> than raw PBR when the palette loses the source hue.
+</div>
+
+<div class="key-concept">
+  <strong>After this lesson:</strong> Wiring the shader is mechanical — assign textures to slots. The <em>quality</em> lives in the assets you feed it. You'll see the same barrel render three ways under the identical shader and lighting, and understand exactly which choice makes it look good.
+</div>
+
+<h2>The Problem: A Shader Is Only As Good As Its Inputs</h2>
+
+<p>Five lessons of prep built a toon-ready barrel: a posterized, palette-snapped albedo (lessons 16–17), authored <span class="term" data-term="control-map">control maps</span> (18), and a baked glTF (19). But <code>mk_toon_lite</code> ships with every texture slot <em>empty</em> — <code>use_albedo_texture = false</code>, flat color only. A toon shader with no populated slots is a synthesizer with every knob at zero: technically running, producing nothing distinctive. This lesson populates the slots and proves the pipeline end-to-end — including an honest look at how it can go wrong.</p>
+
+<h2>Wiring the Slots</h2>
+
+<p>The material is a <code>ShaderMaterial</code> using <code>mk_toon_lite.gdshader</code>. Each texture is guarded by a <code>use_*</code> boolean, so a slot does nothing until you toggle it on. We wire three inputs: the baked albedo (surface color), the normal map (surface contour), and the two control maps (band-edge variation). Here is the material state that populates them — the diff is against the flat-color starting scene:</p>
+
+<pre data-file="mktoon_test.tscn" data-mode="fragment"><code> [sub_resource type="ShaderMaterial" id="ShaderMaterial_mktoon"]
+ shader = ExtResource("2_shader")
+ shader_parameter/use_albedo_texture = true
+<span style="color:var(--error)">-shader_parameter/albedo_texture = ExtResource("4_diff")      # raw Poly Haven PBR</span>
+<span style="color:var(--success)">+shader_parameter/albedo_texture = ExtResource("6_toon_albedo") # baked toon albedo</span>
+ shader_parameter/use_normal_map = true
+ shader_parameter/normal_map = ExtResource("5_nor")
+<span style="color:var(--success)">+shader_parameter/use_threshold_map = true</span>
+<span style="color:var(--success)">+shader_parameter/threshold_map = ExtResource("8_threshold")</span>
+<span style="color:var(--success)">+shader_parameter/use_noise_map = true</span>
+<span style="color:var(--success)">+shader_parameter/noise_map = ExtResource("7_noise")</span>
+<span style="color:var(--success)">+shader_parameter/noise_strength = 0.08</span>
+ shader_parameter/gooch_ramp_intensity = 0.5</code></pre>
+
+<p>That is the entire wiring. The albedo swaps from the raw PBR JPG to the baked toon PNG; the noise and threshold control maps switch on. Note <code>gooch_ramp_intensity = 0.5</code> stays — in <code>mk_toon_lite</code> the bands only render as <em>distinct colors</em> when the gooch ramp is non-zero, so leaving it at zero collapses every band to flat albedo. With the slots populated, the barrel becomes a cel-shaded object. But <em>which</em> albedo you baked decides whether that's a win.</p>
+
+<h2>Three Barrels, One Shader</h2>
+
+<p>Here is the same mesh under the same <code>mk_toon_lite</code> shader and the same light, changing only the albedo texture. This is the whole point of the pipeline — and its most important lesson.</p>
+
+<div style="display:flex;flex-wrap:wrap;gap:1rem;margin:1.5rem 0;">
+  <div style="flex:1 1 240px;"><img src="../../assets/img/06-wiring-pbr-raw.png" alt="Barrel with the raw Poly Haven PBR albedo under the toon shader: red, but covered in high-frequency rust detail that fights the flat bands." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Raw PBR albedo — busy, detail fights the bands</p></div>
+  <div style="flex:1 1 240px;"><img src="../../assets/img/06-wiring-muddy.png" alt="Barrel with the luminance-snapped albedo on a cool violet palette: dark, muddy, near-black — reads worse than the raw PBR." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Toon-prep, cool palette — muddy (the pitfall)</p></div>
+  <div style="flex:1 1 240px;"><img src="../../assets/img/06-wiring-warm.png" alt="Barrel with the hue-preserving warm-palette albedo: a clean, bright orange cel-shaded barrel with readable flat regions and the hazard triangle intact." style="width:100%;height:auto;border-radius:6px;"><p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Toon-prep, warm palette — clean cel look (the fix)</p></div>
+</div>
+
+<p>The raw PBR barrel (left) is recognizably red, but its photographic rust detail creates noise inside every band — the busy look the whole track set out to fix. The middle barrel is the toon-prepped albedo from a naive palette snap, and it's <em>worse</em>: near-black and lifeless. Only the right barrel — same pipeline, one palette changed — delivers the clean cel-shaded result the shader is capable of.</p>
+
+<div class="note">
+  <strong>Why the middle barrel is muddy (the palette pitfall):</strong> the palette-snap step (lesson 17) converts each pixel to its <em>luminance</em> and looks that up in a fixed palette — it throws hue away. Two things then conspire: (1) the barrel's diffuse is <strong>dark</strong> — 94% of its pixels fall in the lowest luminance slot — so almost the whole surface maps to a single swatch; and (2) that shipped palette's darkest swatch is a cool <em>violet-black</em>. A warm red barrel snapped by luminance onto a cool shadow color comes out muddy purple-black. The shader then multiplies banded light against that dark base and the barrel reads as near-black.
+</div>
+
+<p>The fix is not a shader setting — it's the palette. Re-baking with a <span class="term" data-term="hue-preserving-palette">hue-preserving palette</span> (the barrel's own ~40° orange held across the luminance ramp, with the dark slot lifted to a usable warm brown) gives the right-hand result. Same posterize, same snap, same Emit bake, same wiring — only the six swatches changed.</p>
+
+<div class="note">
+  <strong>When to use which (palette design for luminance snapping):</strong>
+  <ul>
+    <li><strong>Match the palette's hue family to the asset.</strong> A warm asset needs warm shadows; a cool asset needs cool shadows. A generic palette applied blindly will fight some assets.</li>
+    <li><strong>Check the asset's luminance distribution first.</strong> If most pixels cluster in one slot (a dark or bright asset), spread the palette's <em>values</em> around that cluster, or posterize to lift midtones before snapping — otherwise the whole surface collapses to one swatch.</li>
+    <li><strong>Rule of thumb:</strong> luminance snapping is safe only when your palette preserves the source's hue AND its swatch values span where the asset's pixels actually live.</li>
+  </ul>
+</div>
+
+<h2>Essential vs Polish: What Each Slot Buys You</h2>
+
+<p>Not every slot earns its place on every asset. Ranked by how much they change the result:</p>
+
+<table>
+  <tr><th>Priority</th><th>Slot</th><th>What it buys</th></tr>
+  <tr><td>Essential</td><td><code>albedo_texture</code></td><td>The surface color. Everything else modulates this — and as the three barrels show, its palette decides the whole look.</td></tr>
+  <tr><td>Essential</td><td>band parameters (<code>light_bands</code>, <code>gooch_ramp_intensity</code>)</td><td>The shading style itself. Zero gooch = flat, no visible bands.</td></tr>
+  <tr><td>High</td><td><code>noise_map</code></td><td>Breaks mechanical-looking band edges so the terminator reads hand-drawn, not CG.</td></tr>
+  <tr><td>Medium</td><td><code>normal_map</code></td><td>Adds surface contour to shadow shapes. Can also soften band edges — reduce intensity if bands blur.</td></tr>
+  <tr><td>Medium</td><td><code>threshold_map</code></td><td>Spatial shadow variation (deeper creases) without hand-painting each one.</td></tr>
+  <tr><td>Optional</td><td>hatching / sketch / drawn</td><td>Artistic overlays — a distinct style choice, not needed for a clean cel look.</td></tr>
+</table>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A teammate runs a cool-toned character (blue armor) through your pipeline and it comes out muddy and dark under the toon shader — just like the middle barrel. They ask you to "turn up the brightness in the shader." Explain why that won't fix it, and what actually will.</p>
+  <details>
+  <summary>Hint</summary>
+  <p>Where did the color go wrong — in the shader, or before it reached the shader? What does the palette-snap step do to hue, and what would the right palette for a blue asset look like?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>Should mention: (1) the problem is in the ASSET, not the shader — the palette snap discarded the armor's hue and mapped it onto swatches from the wrong hue family, so no shader brightness knob restores the lost blue. (2) The fix is re-baking with a palette whose hue family matches the asset — a cool asset needs cool-but-correctly-hued swatches (blues/steels), not the warm set. (3) Also check the luminance distribution: if the armor is dark, the palette's swatch values must span where its pixels live, or it collapses to one slot regardless of hue. Key insight: luminance snapping is a lossy, palette-dependent step — quality is decided at bake time, upstream of the shader.</p>
+  </details>
+</div>
+
+<h2>Code Files</h2>
+<p>Download the final-state artifacts from this lesson:</p>
+<ul>
+  <li><a href="../../reference/code/bake-and-export/Barrel_01_toon_albedo_warm.png" download><code>Barrel_01_toon_albedo_warm.png</code></a> — the hue-preserving warm-palette albedo (the fix; 1K sRGB, baked via the lesson-19 pipeline with a warm palette).</li>
+  <li><a href="../../reference/code/toon-control-maps/toon_noise.png" download><code>toon_noise.png</code></a> — the tileable noise control map (from lesson 18).</li>
+  <li><a href="../../reference/code/toon-control-maps/toon_threshold.png" download><code>toon_threshold.png</code></a> — the AO-derived threshold control map (from lesson 18).</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p>That closes the Blender-to-Godot texture-prep track: you can take a photoreal PBR asset, prep it into toon-friendly textures, and wire them into a working cel-shaded material — and you know the palette trap that decides whether it looks good. Next domains build on this: applying the pipeline across a whole scene, and authoring control maps by hand for finer art direction.</p>
+  <p><strong>Questions?</strong> Ask me anything that's unclear.</p>
+</div>
+
+<script type="application/json" id="glossary-data">{"control-map": "A small data texture that tells the shader WHERE/HOW to apply an effect (noise band-edge wobble, threshold shadow shift) — not a surface color. Stored Non-Color and wired into the Godot material separately from the glTF.", "hue-preserving-palette": "A palette-snap palette whose swatches keep the source asset's hue family (a warm asset gets warm shadows) and whose values span where the asset's pixels actually fall — so luminance snapping doesn't drain color or collapse the surface to one dark swatch."}</script>
+<script type="application/json" id="lesson-actions-config" data-domain="blender-texture-prep" data-lesson-id="06-wiring-the-shader" data-map-page="../blender-texture-prep-map.html" data-topic-title="Wiring It All Up — Populate mk_toon_lite in Godot"></script>
+<script type="module" src="../../assets/page-shell.js"></script>
+
+</body>
+</html>
