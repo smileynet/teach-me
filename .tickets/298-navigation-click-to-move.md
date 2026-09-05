@@ -57,6 +57,21 @@ compile-check. Downloadable final at `reference/code/navigation-click-to-move/`.
 - [ ] Cites Godot nav docs + Reynolds steering paper
 - [ ] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
 
+## Research-backed content notes (from #293 dispatch — see `.scratch/research/char-navigation.md`)
+
+- **Query in `_physics_process`, guarded by `is_navigation_finished()`** — querying
+  `get_next_path_position()` after arrival is the #1 cause of destination jitter/oscillation.
+- **Never query in `_ready()`** — the navmesh isn't synced yet, so the path is empty. Guard
+  with `NavigationServer3D.map_get_iteration_id() != 0` on first use.
+- **Wall clearance is BAKE-TIME `NavigationMesh.agent_radius`** (+ agent_height/max_climb/
+  max_slope), not a runtime property — the navmesh is center-only and ignores runtime radius;
+  `agent_radius = 0` at bake → corner clipping.
+- **Avoidance is opt-in and SEPARATE** from path-following (the `velocity_computed` signal +
+  `set_velocity`) — don't conflate avoidance radius with navmesh `agent_radius`. Static walls
+  never need it; only moving obstacles do (already the doc's forward-pointer).
+- **Desired distances scale with speed** (~speed × update-rate); too-small `cell_size` can
+  crash the bake. `[L4/L6]`
+
 ## Notes
 
 - Nav-independent-of-physics is the mental model that prevents the most time-wasting bugs.
