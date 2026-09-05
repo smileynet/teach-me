@@ -50,6 +50,16 @@ in an Inherited Scene. Validated by `godot --headless --import --quit`. Download
 - [ ] Kenney CC0 provenance noted
 - [ ] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
 
+## Research-backed content notes (from #293 dispatch — see `.scratch/research/char-pedagogy.md`)
+
+- **Static-first round-trip.** Convergent prior art (gamedev.tv, Blender Studio DOGWALK
+  [L1/L3 first-party], GDQuest) proves the pipeline on a **static prop** before adding a rig.
+  Frame #294's artifact as a static/simple import first, so a later break is isolated to
+  "rig/animation" (#295/#296), not "basic import." One axis at a time.
+- **Per-lesson mini-project artifact.** The one-downloadable-file model may not fit here —
+  GDQuest ships `start`/`end` checkpoint folders. Consider a per-lesson mini-project folder
+  (scene + `.import` sidecars) as the artifact. Decide the contract when authoring.
+
 ## Notes
 
 - Sets up #295 (export) and #296 (merging the libraries onto one AnimationPlayer).

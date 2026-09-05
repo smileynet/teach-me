@@ -1,7 +1,7 @@
 ---
 id: "293"
 title: "Set up godot-3d-character-pipeline domain (MAP + reference project + validation gate)"
-status: open
+status: in_progress
 blocked_by: []
 priority: medium
 validation_criteria:

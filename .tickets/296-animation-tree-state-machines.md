@@ -50,11 +50,28 @@ proof; headless: `callback_mode = MANUAL`, `advance(delta)`, assert `get_current
 
 ## Acceptance criteria
 
-- [ ] Lesson teaches library merge, the AnimationPlayer→AnimationTree→StateMachine chain, BlendSpace1D locomotion, travel() action states, callback_mode=PHYSICS, and the skin/controller split
+- [ ] Lesson teaches library merge, the AnimationPlayer→AnimationTree→StateMachine chain, BlendSpace1D locomotion, travel() action states, the IDLE-vs-PHYSICS callback_mode tradeoff, and the skin/controller split
 - [ ] Runnable artifact: animation_test_skin.gd + scene, idle/walk/run blend + attack/jump actions, headless-import + compile validated; downloadable final under reference/code/
 - [ ] Coordinated with godot-gamedev animation-and-audio to avoid duplication (this is the canonical AnimationTree home)
 - [ ] Cites AnimationTree/StateMachine/BlendSpace1D Godot docs
 - [ ] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
+
+## Research-backed content notes (from #293 dispatch — see `.scratch/research/char-animationtree.md`)
+
+- **`callback_mode_process = PHYSICS` is a TRADEOFF, not a default.** It syncs animation with
+  `move_and_slide()`, BUT **open bug #104198**: it makes *skeletal* animation choppy under
+  physics interpolation. Teach the choice — PHYSICS to track physics movement; IDLE for
+  smooth skeletal visuals — as a Decision callout, not a blanket prescription. `[L6 — #104198]`
+- **`travel()` silently teleports on unconnected states** → at low FPS the per-`_physics_process`
+  `travel()` calls out-race a one-shot `travel("Attack")`, and transitions "randomly" drop.
+  Fix: connect states properly (or `start()` to force). Maintainer-diagnosed, Godot 4.3.
+- **The SM must be `start()`-ed before `travel()`** (else null); fetch playback once via the
+  correct nested `parameters/…/playback` path.
+- **Prefer Advance Expression over Advance Condition** — Condition can't express negation
+  (`!x` never fires); Expression needs the Advance Expression Base Node set + is case-sensitive.
+- **Sync Mode enum** (None/Independent/Cyclic Mutable/Cyclic Constant): Cyclic Mutable is ideal
+  for walk/run loop phase alignment. Verify the exact minor version where the 4-value enum
+  landed against the target Godot before teaching cyclic modes (open Q).
 
 ## Notes
 
