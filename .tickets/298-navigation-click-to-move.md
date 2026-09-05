@@ -1,7 +1,7 @@
 ---
 id: "298"
 title: "Topic: navigation-click-to-move (NavigationAgent3D pathfollowing + the wall contract)"
-status: open
+status: done
 blocked_by: ["297", "300"]
 priority: medium
 validation_criteria:
@@ -50,12 +50,12 @@ compile-check. Downloadable final at `reference/code/navigation-click-to-move/`.
 
 ## Acceptance criteria
 
-- [ ] Lesson teaches path-follow model, arrive/no-oscillation (both fixes), the wall contract, and the three gotchas (input_ray_pickable, agent_radius, map_get_closest_point)
-- [ ] Diff-style or narrative-framed code building up click_to_move_example.gd (visual-teaching.md)
-- [ ] Runnable artifact: scene + script, routes around a wall + stops on target, headless-import + compile validated; downloadable final under reference/code/
-- [ ] Applies (does not re-derive) the #300 math; cross-links to #300
-- [ ] Cites Godot nav docs + Reynolds steering paper
-- [ ] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
+- [x] [SUPERSEDED] Lesson teaches path-follow model, arrive/no-oscillation (both fixes), the wall contract, and the three gotchas (input_ray_pickable, agent_radius, map_get_closest_point)
+- [x] [SUPERSEDED] Diff-style or narrative-framed code building up click_to_move_example.gd (visual-teaching.md)
+- [x] [SUPERSEDED] Runnable artifact: scene + script, routes around a wall + stops on target, headless-import + compile validated; downloadable final under reference/code/
+- [x] [SUPERSEDED] Applies (does not re-derive) the #300 math; cross-links to #300
+- [x] [SUPERSEDED] Cites Godot nav docs + Reynolds steering paper
+- [x] [SUPERSEDED] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
 
 ## Research-backed content notes (from #293 dispatch — see `.scratch/research/char-navigation.md`)
 
@@ -75,3 +75,7 @@ compile-check. Downloadable final at `reference/code/navigation-click-to-move/`.
 ## Notes
 
 - Nav-independent-of-physics is the mental model that prevents the most time-wasting bugs.
+
+## Resolution (2026-09-05 — superseded by 4-track restructure)
+
+Superseded by the godot-3d-navigation track (6 topics: navmesh-and-regions, agent-pathfollowing, click-to-destination, obstacles-and-avoidance, layers-and-links, runtime-rebake-and-dynamic-worlds). Scope: .scratch/tracks/3d-navigation.md.

@@ -1,7 +1,7 @@
 ---
 id: "299"
 title: "Topic: assembling-the-character (wire controller + skin + nav into the Character scene)"
-status: open
+status: done
 blocked_by: ["296", "297", "298"]
 priority: medium
 validation_criteria:
@@ -51,11 +51,15 @@ compile; visual confirmation of the assembled behavior. Downloadable final under
 
 ## Acceptance criteria
 
-- [ ] Lesson wires the controller + skin + nav into the full Character scene per pipeline_guide.md, teaching the intent-feeding contract (no direct parameters/ access)
-- [ ] Runnable artifact: complete Character scene (move + animate + skin), headless-import + compile validated; downloadable final under reference/code/
-- [ ] Explicitly integrates #296/#297/#298 (references, doesn't re-teach)
-- [ ] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
+- [x] [SUPERSEDED] Lesson wires the controller + skin + nav into the full Character scene per pipeline_guide.md, teaching the intent-feeding contract (no direct parameters/ access)
+- [x] [SUPERSEDED] Runnable artifact: complete Character scene (move + animate + skin), headless-import + compile validated; downloadable final under reference/code/
+- [x] [SUPERSEDED] Explicitly integrates #296/#297/#298 (references, doesn't re-teach)
+- [x] [SUPERSEDED] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
 
 ## Notes
 
 - Final lesson of the domain — its artifact is the complete product (ADR-0010).
+
+## Resolution (2026-09-05 — superseded by 4-track restructure)
+
+Superseded: the single-track 'assemble the character' capstone is gone. Each of the 4 tracks now has its own capstone (e.g. godot-3d-animation's character-authoring lesson is the animation-side assembly home). Scope docs: .scratch/tracks/*.md.

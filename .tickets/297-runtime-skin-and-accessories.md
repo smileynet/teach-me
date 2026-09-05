@@ -1,7 +1,7 @@
 ---
 id: "297"
 title: "Topic: runtime-skin-and-accessories (material_override skin swap + BoneAttachment3D)"
-status: open
+status: done
 blocked_by: ["296"]
 priority: medium
 validation_criteria:
@@ -44,12 +44,16 @@ bone-attached. `godot --headless --import` + `.gd` compile. Downloadable final u
 
 ## Acceptance criteria
 
-- [ ] Lesson teaches the shared-UV fact, material_override vs ShaderMaterial swap, the duplicate() gotcha, and BoneAttachment3D accessories
-- [ ] Runnable artifact: runtime skin swap (≥2 skins) + a bone-attached accessory, headless-import + compile validated; downloadable final under reference/code/
-- [ ] Distinguished from godot-mktoon (that track teaches shader *authoring*; this is runtime *swapping*)
-- [ ] Cites BaseMaterial3D/MeshInstance3D/BoneAttachment3D Godot docs
-- [ ] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
+- [x] [SUPERSEDED] Lesson teaches the shared-UV fact, material_override vs ShaderMaterial swap, the duplicate() gotcha, and BoneAttachment3D accessories
+- [x] [SUPERSEDED] Runnable artifact: runtime skin swap (≥2 skins) + a bone-attached accessory, headless-import + compile validated; downloadable final under reference/code/
+- [x] [SUPERSEDED] Distinguished from godot-mktoon (that track teaches shader *authoring*; this is runtime *swapping*)
+- [x] [SUPERSEDED] Cites BaseMaterial3D/MeshInstance3D/BoneAttachment3D Godot docs
+- [x] [SUPERSEDED] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
 
 ## Notes
 
 - Runtime skin swap is entirely untaught today (only shader authoring exists) — no overlap.
+
+## Resolution (2026-09-05 — superseded by 4-track restructure)
+
+Superseded by the godot-3d-animation track (character-authoring-skins-and-accessories topic). Scope: .scratch/tracks/3d-animation.md.

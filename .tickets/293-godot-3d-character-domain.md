@@ -1,7 +1,7 @@
 ---
 id: "293"
 title: "Set up godot-3d-character-pipeline domain (MAP + reference project + validation gate)"
-status: in_progress
+status: done
 blocked_by: []
 priority: medium
 validation_criteria:
@@ -94,12 +94,12 @@ the reference project + validation command are in place before #294–#300 gener
 
 ## Acceptance criteria
 
-- [ ] `godot-3d-character-pipeline.MAP.md` created with all 6 topics + prereq edges (passes `tools/check-maps-forest.py`)
-- [ ] Reference Godot project identified + `godot --headless --import --quit` validation command recorded (ADR-0010 gate answered)
-- [ ] Kenney CC0 provenance + design-doc source recorded
-- [ ] Prereq wiring to godot-fundamentals (#195) / godot-gamedev 0001·0002·0015 set
-- [ ] Standalone depth-0 confirmed; no duplication with blender-texture-prep / godot-gamedev (differentiated per `.scratch/review/godot-coverage.md`)
-- [ ] NO lessons generated — topic tickets #294–#300 do that after this is signed off
+- [x] [SUPERSEDED] `godot-3d-character-pipeline.MAP.md` created with all 6 topics + prereq edges (passes `tools/check-maps-forest.py`)
+- [x] [SUPERSEDED] Reference Godot project identified + `godot --headless --import --quit` validation command recorded (ADR-0010 gate answered)
+- [x] [SUPERSEDED] Kenney CC0 provenance + design-doc source recorded
+- [x] [SUPERSEDED] Prereq wiring to godot-fundamentals (#195) / godot-gamedev 0001·0002·0015 set
+- [x] [SUPERSEDED] Standalone depth-0 confirmed; no duplication with blender-texture-prep / godot-gamedev (differentiated per `.scratch/review/godot-coverage.md`)
+- [x] [SUPERSEDED] NO lessons generated — topic tickets #294–#300 do that after this is signed off
 
 ## Notes
 
@@ -107,3 +107,7 @@ the reference project + validation command are in place before #294–#300 gener
 - The toolchain-validation gate is the real risk (can't ship a lesson whose artifact we
   can't headless-import). Answer it here.
 - Review artifacts: `.scratch/review/conventions.md`, `.scratch/review/godot-coverage.md`.
+
+## Resolution (2026-09-05 — superseded by 4-track restructure)
+
+The single-domain framing is retired. Restructured into FOUR independent focused tracks (user direction 2026-09-05): godot-asset-pipeline, godot-3d-animation, godot-3d-navigation, movement-math — each a standalone depth-0 domain with its own setup ticket + 6 topics. This single umbrella setup ticket no longer applies.
