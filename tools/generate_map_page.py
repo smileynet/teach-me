@@ -60,6 +60,21 @@ def set_workspace(workspace_path: Path) -> None:
     OVERLAY_ROOT = workspace_path
 
 
+def _map_output_path(map_path: Path, domain: str) -> Path:
+    """Committed map-page path for a MAP file.
+
+    Maps live in `{domain}/maps/*.MAP.md` and their committed page lives in the SAME
+    domain's `lessons/` dir (`{domain}/lessons/{domain}-map.html`) — true for both
+    top-level and sub-maps. Deriving from the MAP's own location (not a hardcoded
+    PROJECT_ROOT/lessons) keeps the generator from writing a stray root file and leaving
+    the committed page stale (#301). Falls back to LESSONS_DIR when the MAP isn't in a
+    `maps/` dir (e.g. root-level fixtures).
+    """
+    if map_path.parent.name == "maps":
+        return map_path.parent.parent / "lessons" / f"{domain}-map.html"
+    return LESSONS_DIR / f"{domain}-map.html"
+
+
 def _overlay_status_map() -> dict:
     """{node_id → status} from the per-user overlay for the active workspace."""
     try:
@@ -421,7 +436,7 @@ def main() -> None:
         for map_path in maps:
             map_data = parse_map_md(map_path)
             domain = map_data["frontmatter"].get("domain", map_path.stem)
-            output_path = PROJECT_ROOT / "lessons" / f"{domain}-map.html"
+            output_path = _map_output_path(map_path, domain)
             html = generate_preact_map_page(map_data, output_path, map_path)
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_text(html, encoding="utf-8")
@@ -453,7 +468,7 @@ def main() -> None:
     domain = map_data["frontmatter"].get("domain", map_path.stem)
 
     if output_path is None:
-        output_path = PROJECT_ROOT / "lessons" / f"{domain}-map.html"
+        output_path = _map_output_path(map_path, domain)
 
     html = generate_preact_map_page(map_data, output_path, map_path)
 

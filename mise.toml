@@ -124,6 +124,7 @@ run = [
   "uv run python tools/control-maps-oracle.py",
   "uv run python tools/control-maps-drift.py",
   "uv run python tools/bake-export-oracle.py",
+  "uv run python tools/albedo-sanity-oracle.py",
   "uv run python tools/verify-links.py",
   "uv run python tools/check-maps-forest.py",
   "uv run python tools/check-index-drift.py",
