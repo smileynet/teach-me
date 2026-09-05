@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "generated_by": "albedo-sanity-oracle (#302)",
+  "note": "Baked toon albedos whose hue/luminance sanity is gated in `mise run verify`. The warm Barrel_01 albedo (from #222) is the shipped good asset; the source is the raw Poly Haven diffuse.",
+  "albedos": [
+    {
+      "baked": "library/godot-gamedev/reference/code/bake-and-export/Barrel_01_toon_albedo_warm.png",
+      "source": "test-scene/assets/polyhaven/Barrel_01/textures/Barrel_01_explosive_diff_1k.jpg",
+      "hue_tol_deg": 40.0,
+      "max_dark_frac": 0.85,
+      "min_mean_lum": 0.12
+    }
+  ]
+}
