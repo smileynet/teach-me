@@ -1,7 +1,7 @@
 ---
 id: "300"
 title: "Topic: movement-math-lerp-acceleration (the math behind lerp / move_toward / arrive-ramp)"
-status: open
+status: done
 blocked_by: ["293"]
 priority: medium
 validation_criteria:
@@ -67,15 +67,19 @@ compile-check. Downloadable final at `reference/code/movement-math-lerp-accelera
 
 ## Acceptance criteria
 
-- [ ] Lesson derives lerp, move_toward, acceleration/arrive-ramp, Euler overshoot + step-clamp, and the stopping-distance formula — each tied to its use in click-to-move
-- [ ] "When to use which" decision callout: move_toward (land exactly) vs lerp (smooth follow)
-- [ ] At least one inline SVG visualizing the math (var(--svg-*) themed, accessible)
-- [ ] In-lesson exercise is a near-transfer misconception probe (why lerp fails to land)
-- [ ] Runnable artifact demonstrating each ease, headless-import + compile validated; downloadable final under reference/code/
-- [ ] Cites Godot docs (move_toward, CharacterBody3D) + Reynolds steering paper
-- [ ] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
+- [x] [SUPERSEDED] Lesson derives lerp, move_toward, acceleration/arrive-ramp, Euler overshoot + step-clamp, and the stopping-distance formula — each tied to its use in click-to-move
+- [x] [SUPERSEDED] "When to use which" decision callout: move_toward (land exactly) vs lerp (smooth follow)
+- [x] [SUPERSEDED] At least one inline SVG visualizing the math (var(--svg-*) themed, accessible)
+- [x] [SUPERSEDED] In-lesson exercise is a near-transfer misconception probe (why lerp fails to land)
+- [x] [SUPERSEDED] Runnable artifact demonstrating each ease, headless-import + compile validated; downloadable final under reference/code/
+- [x] [SUPERSEDED] Cites Godot docs (move_toward, CharacterBody3D) + Reynolds steering paper
+- [x] [SUPERSEDED] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
 
 ## Notes
 
 - This is the "understand the fundamentals" ticket — keep the framing conceptual/derivational,
   not a code walkthrough. The application lives in #298.
+
+## Resolution (2026-09-05 — superseded by 4-track restructure)
+
+Superseded and EXPANDED into the standalone engine-agnostic movement-math track (6 topics: lerp-and-interpolation, delta-time-and-frame-rate-independence, move-toward-and-constant-speed, easing-and-tweening, euler-integration-and-overshoot, steering-arrival-and-smooth-damp). Scope: .scratch/tracks/movement-math.md.

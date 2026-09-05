@@ -1,7 +1,7 @@
 ---
 id: "295"
 title: "Topic: blender-gltf-character-export (rigged meshes + armatures + per-clip actions)"
-status: open
+status: done
 blocked_by: ["294"]
 priority: medium
 validation_criteria:
@@ -49,11 +49,11 @@ binaries — confirm the repo's LFS/asset policy).
 
 ## Acceptance criteria
 
-- [ ] Lesson teaches export prep, base-vs-clip export settings, Actions/NLA, Export Deformation Bones Only, the shared-skeleton prerequisite, and material gotchas
-- [ ] Explicitly references (does not duplicate) blender-texture-prep bake-and-export
-- [ ] Runnable artifact: exported base + clip glTF importing 1:1, headless-import validated; downloadable finals under reference/code/
-- [ ] Blender manual 403 + glTF-Blender-IO fallback noted
-- [ ] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
+- [x] [SUPERSEDED] Lesson teaches export prep, base-vs-clip export settings, Actions/NLA, Export Deformation Bones Only, the shared-skeleton prerequisite, and material gotchas
+- [x] [SUPERSEDED] Explicitly references (does not duplicate) blender-texture-prep bake-and-export
+- [x] [SUPERSEDED] Runnable artifact: exported base + clip glTF importing 1:1, headless-import validated; downloadable finals under reference/code/
+- [x] [SUPERSEDED] Blender manual 403 + glTF-Blender-IO fallback noted
+- [x] [SUPERSEDED] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
 
 ## Research-backed content notes (from #293 dispatch — see `.scratch/research/char-blender-export.md`)
 
@@ -77,3 +77,7 @@ binaries — confirm the repo's LFS/asset policy).
 ## Notes
 
 - The shared-skeleton check is the one hard prerequisite for #296's library merge to work.
+
+## Resolution (2026-09-05 — superseded by 4-track restructure)
+
+Superseded by the godot-asset-pipeline track (format-choice-and-blender-export + rigged-meshes-and-skeletons topics). Scope: .scratch/tracks/asset-pipeline.md.

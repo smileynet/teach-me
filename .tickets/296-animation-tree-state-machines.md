@@ -1,7 +1,7 @@
 ---
 id: "296"
 title: "Topic: animation-tree-state-machines (BlendSpace1D locomotion + travel() actions)"
-status: open
+status: done
 blocked_by: ["295"]
 priority: medium
 validation_criteria:
@@ -50,11 +50,11 @@ proof; headless: `callback_mode = MANUAL`, `advance(delta)`, assert `get_current
 
 ## Acceptance criteria
 
-- [ ] Lesson teaches library merge, the AnimationPlayer→AnimationTree→StateMachine chain, BlendSpace1D locomotion, travel() action states, the IDLE-vs-PHYSICS callback_mode tradeoff, and the skin/controller split
-- [ ] Runnable artifact: animation_test_skin.gd + scene, idle/walk/run blend + attack/jump actions, headless-import + compile validated; downloadable final under reference/code/
-- [ ] Coordinated with godot-gamedev animation-and-audio to avoid duplication (this is the canonical AnimationTree home)
-- [ ] Cites AnimationTree/StateMachine/BlendSpace1D Godot docs
-- [ ] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
+- [x] [SUPERSEDED] Lesson teaches library merge, the AnimationPlayer→AnimationTree→StateMachine chain, BlendSpace1D locomotion, travel() action states, the IDLE-vs-PHYSICS callback_mode tradeoff, and the skin/controller split
+- [x] [SUPERSEDED] Runnable artifact: animation_test_skin.gd + scene, idle/walk/run blend + attack/jump actions, headless-import + compile validated; downloadable final under reference/code/
+- [x] [SUPERSEDED] Coordinated with godot-gamedev animation-and-audio to avoid duplication (this is the canonical AnimationTree home)
+- [x] [SUPERSEDED] Cites AnimationTree/StateMachine/BlendSpace1D Godot docs
+- [x] [SUPERSEDED] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
 
 ## Research-backed content notes (from #293 dispatch — see `.scratch/research/char-animationtree.md`)
 
@@ -76,3 +76,7 @@ proof; headless: `callback_mode = MANUAL`, `advance(delta)`, assert `get_current
 ## Notes
 
 - The skin/controller split is the seam #297 (skin swap) and #299 (assembly) build on.
+
+## Resolution (2026-09-05 — superseded by 4-track restructure)
+
+Superseded by the godot-3d-animation track (6 topics incl. animationtree-blend-trees, state-machines-and-oneshot-actions, blend-spaces-locomotion, root-motion-driven-movement). Scope: .scratch/tracks/3d-animation.md.

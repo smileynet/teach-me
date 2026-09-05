@@ -1,7 +1,7 @@
 ---
 id: "294"
 title: "Topic: importing-3d-characters (Import dock, Scene vs Animation Library)"
-status: open
+status: done
 blocked_by: ["293"]
 priority: medium
 validation_criteria:
@@ -45,10 +45,10 @@ in an Inherited Scene. Validated by `godot --headless --import --quit`. Download
 
 ## Acceptance criteria
 
-- [ ] Lesson teaches format choice, import process/sidecars, Import As (Scene vs Animation Library), New Inherited Scene, and name suffixes
-- [ ] Runnable artifact: imported Kenney character + clip library in an Inherited Scene, headless-import validated; downloadable final under reference/code/
-- [ ] Kenney CC0 provenance noted
-- [ ] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
+- [x] [SUPERSEDED] Lesson teaches format choice, import process/sidecars, Import As (Scene vs Animation Library), New Inherited Scene, and name suffixes
+- [x] [SUPERSEDED] Runnable artifact: imported Kenney character + clip library in an Inherited Scene, headless-import validated; downloadable final under reference/code/
+- [x] [SUPERSEDED] Kenney CC0 provenance noted
+- [x] [SUPERSEDED] `mise run verify` + check-topic-completeness pass; MAP.md gets lesson_file on completion
 
 ## Research-backed content notes (from #293 dispatch — see `.scratch/research/char-pedagogy.md`)
 
@@ -63,3 +63,7 @@ in an Inherited Scene. Validated by `godot --headless --import --quit`. Download
 ## Notes
 
 - Sets up #295 (export) and #296 (merging the libraries onto one AnimationPlayer).
+
+## Resolution (2026-09-05 — superseded by 4-track restructure)
+
+Superseded by the godot-asset-pipeline track (6 topics: format-choice-and-blender-export, import-process-and-sidecars, import-dock-and-name-suffixes, lod-and-import-optimization, rigged-meshes-and-skeletons, reimport-and-round-trip-hygiene). This ticket's import content is absorbed there. Scope: .scratch/tracks/asset-pipeline.md.
