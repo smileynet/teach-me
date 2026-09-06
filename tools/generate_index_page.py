@@ -38,9 +38,16 @@ from lib.page_template import render_index_page  # noqa: E402
 
 def parse_mission(scan_dir: Path | None) -> dict | None:
     """Parse MISSION.md (title/why/criteria) if a real one exists — index presentation
-    logic (kept out of domain_graph, which is view-agnostic). Falls back scan_dir → workspace."""
-    mission_path = (scan_dir or PROJECT_ROOT) / "MISSION.md"
-    if not mission_path.exists():
+    logic (kept out of domain_graph, which is view-agnostic).
+
+    Only the default whole-project scan (scan_dir is None / PROJECT_ROOT) inherits the
+    single-workspace mission at workspace/MISSION.md. A specific --scan-dir (a per-domain
+    index generate) must NOT borrow workspace/MISSION.md — that file is gitignored and
+    machine-local, so inheriting it makes the committed per-domain page non-reproducible
+    (drifts per machine) and gives it another domain's mission (cross-scope bleed, #316)."""
+    base = scan_dir or PROJECT_ROOT
+    mission_path = base / "MISSION.md"
+    if not mission_path.exists() and base == PROJECT_ROOT:
         mission_path = PROJECT_ROOT / "workspace" / "MISSION.md"
     if not mission_path.exists():
         return None

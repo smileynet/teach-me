@@ -1,7 +1,7 @@
 ---
 id: "316"
 title: "Fix ink-godot index drift (stale mission vs generator; MISSION.md missing)"
-status: open
+status: in_progress
 blocked_by: []
 priority: medium
 validation_criteria:
