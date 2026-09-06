@@ -48,7 +48,15 @@ DEFAULT_ASSETS = [
     # gltf-format domain lesson fixtures (the taught minimal triangle, both container forms):
     "library/gltf-format/reference/code/gltf-anatomy-and-the-standard/triangle.gltf",
     "library/gltf-format/reference/code/gltf-anatomy-and-the-standard/triangle.glb",
+    # lesson 02 (authoring-and-blender-export): the "clean export" cube (material-channel gated).
+    "library/gltf-format/reference/code/authoring-and-blender-export/cube_metalrough.glb",
 ]
+
+# Assets that MUST carry a pbrMetallicRoughness material with a baseColorTexture — the lesson-02
+# "clean export" contract. (The triangle/props are geometry-only and are NOT held to this.)
+REQUIRE_MATERIAL = {
+    "library/gltf-format/reference/code/authoring-and-blender-export/cube_metalrough.glb",
+}
 
 
 def parse_gltf_json(path: Path) -> dict:
@@ -80,8 +88,12 @@ def _in_range(idx, arr) -> bool:
     return isinstance(idx, int) and 0 <= idx < len(arr)
 
 
-def check_asset(path: Path) -> tuple[dict, list[str]]:
-    """Assert the taught structural contracts on one asset. Returns (metrics, errors)."""
+def check_asset(path: Path, require_material: bool = False) -> tuple[dict, list[str]]:
+    """Assert the taught structural contracts on one asset. Returns (metrics, errors).
+
+    require_material: also assert the asset carries a pbrMetallicRoughness material with a
+    baseColorTexture (the lesson-02 "clean export" contract) — not just index integrity.
+    """
     errors: list[str] = []
     g = parse_gltf_json(path)
 
@@ -121,12 +133,25 @@ def check_asset(path: Path) -> tuple[dict, list[str]]:
 
     # --- materials (topic 4): texture indices resolve ---
     textures = g.get("textures", [])
-    for i, mat in enumerate(g.get("materials", [])):
+    materials = g.get("materials", [])
+    for i, mat in enumerate(materials):
         pbr = mat.get("pbrMetallicRoughness", {})
         for slot in ("baseColorTexture", "metallicRoughnessTexture"):
             tex = pbr.get(slot)
             if tex is not None and not _in_range(tex.get("index"), textures):
                 errors.append(f"{path.name}: material[{i}].{slot}.index out of range")
+
+    # --- material-channel presence (lesson-02 "clean export" contract, opt-in) ---
+    if require_material:
+        if not materials:
+            errors.append(f"{path.name}: require-material: no materials (expected pbrMetallicRoughness)")
+        else:
+            pbr0 = materials[0].get("pbrMetallicRoughness")
+            if pbr0 is None:
+                errors.append(f"{path.name}: require-material: material[0] has no pbrMetallicRoughness")
+            elif "baseColorTexture" not in pbr0:
+                errors.append(f"{path.name}: require-material: material[0].pbrMetallicRoughness "
+                              f"has no baseColorTexture")
 
     # --- skins (topic 5): inverseBindMatrices contract ---
     has_skin = bool(skins)
@@ -170,17 +195,21 @@ def check_asset(path: Path) -> tuple[dict, list[str]]:
 def main() -> int:
     ap = argparse.ArgumentParser(description="Validate glTF-2.0 structural contracts (gltf-format domain)")
     ap.add_argument("--json", action="store_true", help="emit JSON summary")
+    ap.add_argument("--require-material", action="append", default=[],
+                    help="path to assert has a pbrMetallicRoughness + baseColorTexture (repeatable)")
     ap.add_argument("assets", nargs="*", default=None,
                     help="glTF/GLB files to check (default: committed sample assets)")
     args = ap.parse_args()
 
     paths = [Path(a) for a in (args.assets or DEFAULT_ASSETS)]
+    explicit_require = {str(Path(p)) for p in args.require_material}
     all_metrics: list[dict] = []
     all_errors: list[str] = []
     for p in paths:
         if not p.exists():
             raise FileNotFoundError(f"asset not found: {p}")
-        m, e = check_asset(p)
+        require = str(p) in REQUIRE_MATERIAL or str(p) in explicit_require
+        m, e = check_asset(p, require_material=require)
         all_metrics.append(m)
         all_errors.extend(e)
 

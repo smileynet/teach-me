@@ -29,6 +29,7 @@ glTF is "the JPEG of 3D": a Khronos open standard for *delivering* runtime-ready
 - **why:** Export is where most "my model looks wrong" bugs are born — the spec's rules become concrete exporter actions, and the exporter silently drops anything not in a glTF-native layout (procedural nodes, arbitrary channel math).
 - **scope:** substantial
 - **prereqs:** [gltf-anatomy-and-the-standard]
+- **lesson_file:** 02-authoring-and-blender-export.html
 
 ### consuming-gltf-engine-import
 - **id:** 01M1T33FPC4J9RV8GM8H6GFDQC
