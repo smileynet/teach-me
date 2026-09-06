@@ -34,6 +34,7 @@ glTF is "the JPEG of 3D": a Khronos open standard for *delivering* runtime-ready
 ### consuming-gltf-engine-import
 - **id:** 01M1T33FPC4J9RV8GM8H6GFDQC
 - **title:** Consuming glTF — Engine Import
+- **lesson_file:** 03-consuming-gltf-engine-import.html
 - **why:** Bridges the standard to a real runtime (Godot as one consumer of many) without duplicating engine-specific mechanics — shows where engines honor vs diverge from the spec, and the "don't hand-edit imported data" contract.
 - **scope:** substantial
 - **prereqs:** [gltf-anatomy-and-the-standard]

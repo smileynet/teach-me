@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3: Consuming glTF &amp; Engine Import</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "preact": "../assets/vendor/preact.module.js",
+      "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+      "@preact/signals": "../assets/vendor/preact-signals.module.js",
+      "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+      "htm": "../assets/vendor/htm.module.js"
+    }
+  }
+  </script>
+</head>
+<body>
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="gltf-format-map.html">glTF 2.0</a> <span class="nav-sep">›</span> <span>Consuming glTF &amp; Engine Import</span></nav>
+
+<h1>Consuming glTF &amp; Engine Import</h1>
+
+<div class="lesson-meta">
+  Lesson 3 · glTF 2.0 · ~8 min read<br>
+  <strong>Win:</strong> You can trace any glTF node to the engine scene-node it becomes, explain why the importer is a one-way translator you don't hand-edit, and say what changes between editor-time and runtime import.
+</div>
+
+<div class="key-concept">
+  <strong>An engine doesn't "open" a glTF — it translates it.</strong> In <a href="01-gltf-anatomy-and-the-standard.html">Lesson 1</a> you learned the object graph a glTF file stores: scenes → nodes → meshes → accessors. A runtime doesn't read that graph the way you open a text file. It <em>translates</em> the graph into its own scene-node types, once, on import, using a fixed <span class="term" data-term="concept-node-dictionary">concept→node dictionary</span>. The translation is <strong>one-way and lossy — a projection, not a bijection</strong>: you edit the source glTF, not the imported scene. Godot is this lesson's worked example, but the shape — a fixed dictionary plus a "don't hand-edit" contract — is how three.js, Babylon, and Unity all work too.
+</div>
+
+<h2>The mapping: glTF concept in, engine node out</h2>
+
+<p>Every glTF concept has an engine home. The importer's whole job is to walk the file's nodes and build the matching engine node for each — one engine node per glTF node, indexed so it can wire up parenting, skinning, and animation targets afterward. This is not a Godot quirk: Unity's glTFast importer literally holds a <code>Dictionary&lt;uint, GameObject&gt;</code> documented as "glTF node index to instantiated GameObject dictionary." Same dictionary, different vocabulary, in every runtime.</p>
+
+<p>Here is that dictionary, in Godot's node vocabulary. The arrows are the point — each glTF concept on the left maps to exactly one engine node type on the right:</p>
+
+<svg role="img" aria-labelledby="map-title" viewBox="0 0 720 400" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="map-title">A two-column mapping diagram: each glTF concept on the left maps by an arrow to the Godot scene node it becomes on the right.</title>
+  <!-- column headers -->
+  <text x="150" y="28" text-anchor="middle" fill="var(--svg-text)" font-size="15" font-weight="bold">glTF concept</text>
+  <text x="560" y="28" text-anchor="middle" fill="var(--svg-text)" font-size="15" font-weight="bold">Godot scene node</text>
+
+  <!-- row 1: scene/node -> Node3D (inferred, dashed) -->
+  <rect x="30" y="44" width="240" height="34" rx="4" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5"/>
+  <text x="150" y="66" text-anchor="middle" fill="var(--svg-neutral-text)" font-size="13">scene / node</text>
+  <line x1="270" y1="61" x2="440" y2="61" stroke="var(--svg-line)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+  <rect x="440" y="44" width="240" height="34" rx="4" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="560" y="66" text-anchor="middle" fill="var(--svg-neutral-text)" font-size="13">Node3D  (inferred)</text>
+
+  <!-- row 2: node w/ mesh -> MeshInstance3D -->
+  <rect x="30" y="88" width="240" height="34" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="150" y="110" text-anchor="middle" fill="var(--svg-primary-text)" font-size="13">node with mesh</text>
+  <line x1="270" y1="105" x2="440" y2="105" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="440" y="88" width="240" height="34" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="560" y="110" text-anchor="middle" fill="var(--svg-primary-text)" font-size="13">MeshInstance3D</text>
+
+  <!-- row 3: skin -> Skeleton3D + Skin -->
+  <rect x="30" y="132" width="240" height="34" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="150" y="154" text-anchor="middle" fill="var(--svg-primary-text)" font-size="13">skin</text>
+  <line x1="270" y1="149" x2="440" y2="149" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="440" y="132" width="240" height="34" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="560" y="154" text-anchor="middle" fill="var(--svg-primary-text)" font-size="13">Skeleton3D + Skin</text>
+
+  <!-- row 4: material -> StandardMaterial3D -->
+  <rect x="30" y="176" width="240" height="34" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="150" y="198" text-anchor="middle" fill="var(--svg-primary-text)" font-size="13">material</text>
+  <line x1="270" y1="193" x2="440" y2="193" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="440" y="176" width="240" height="34" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="560" y="198" text-anchor="middle" fill="var(--svg-primary-text)" font-size="13">StandardMaterial3D</text>
+
+  <!-- row 5: light -> Light3D subclass -->
+  <rect x="30" y="220" width="240" height="34" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="150" y="242" text-anchor="middle" fill="var(--svg-primary-text)" font-size="13">light (punctual)</text>
+  <line x1="270" y1="237" x2="440" y2="237" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="440" y="220" width="240" height="34" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="560" y="242" text-anchor="middle" fill="var(--svg-primary-text)" font-size="12">Omni/Spot/DirectionalLight3D</text>
+
+  <!-- row 6: camera -> Camera3D -->
+  <rect x="30" y="264" width="240" height="34" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="150" y="286" text-anchor="middle" fill="var(--svg-primary-text)" font-size="13">camera</text>
+  <line x1="270" y1="281" x2="440" y2="281" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="440" y="264" width="240" height="34" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="560" y="286" text-anchor="middle" fill="var(--svg-primary-text)" font-size="13">Camera3D</text>
+
+  <!-- row 7: animation -> AnimationPlayer -->
+  <rect x="30" y="308" width="240" height="34" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="150" y="330" text-anchor="middle" fill="var(--svg-primary-text)" font-size="13">animation(s)</text>
+  <line x1="270" y1="325" x2="440" y2="325" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="440" y="308" width="240" height="34" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="560" y="330" text-anchor="middle" fill="var(--svg-primary-text)" font-size="13">AnimationPlayer</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="var(--svg-line)"/>
+    </marker>
+  </defs>
+
+  <text x="360" y="374" text-anchor="middle" fill="var(--svg-text)" font-size="13" font-style="italic">Every glTF concept has an engine home; the dashed row (scene/node → Node3D) is the one the docs recommend rather than mandate.</text>
+</svg>
+
+<div class="note">
+  <strong>Why is one row dashed?</strong> The concrete rows — mesh, skin, material, camera, light, animation — are stated in Godot's class reference. The scene-root type is only <em>recommended</em>: the docs say "using node types that inherit from Node3D is recommended, otherwise you'll lose the ability to position the node directly in the 3D editor" — it's configurable, not mandated. Honest diagrams distinguish a documented rule from a recommended default. <a href="https://github.com/godotengine/godot-docs/blob/master/tutorials/assets_pipeline/importing_3d_scenes/import_configuration.rst" class="citation">[Godot docs — Import configuration, Root Type]</a>
+</div>
+
+<h2>The runtime path: GLTFDocument → GLTFState → generate_scene()</h2>
+
+<p>So how does a runtime actually build that tree from bytes on disk? Godot exposes the translator as two resources with a deliberate split of responsibility. <span class="term" data-term="gltf-document">GLTFDocument</span> is the <em>processor</em> — it reads and writes, but holds no scene data itself. <span class="term" data-term="gltf-state">GLTFState</span> is the <em>container</em> — it holds all the nodes and resources parsed from the file. Keeping the data in <code>GLTFState</code> is what lets <code>GLTFDocument</code> stay stateless and reusable.</p>
+
+<p>The minimal runtime load is three lines: make a document, make a state, populate the state from a file, then generate a scene node from it.</p>
+
+<pre data-file="runtime_load.gd" data-mode="fragment"><code>var doc := GLTFDocument.new()
+var state := GLTFState.new()
+doc.append_from_file("res://character.glb", state)   # parse bytes -> populate GLTFState
+var scene_root := doc.generate_scene(state)          # translate GLTFState -> a scene node
+add_child(scene_root)</code></pre>
+
+<div class="note">
+  <strong>Watch the return type.</strong> <span class="term" data-term="generate-scene"><code>generate_scene()</code></span> is typed to return a plain <code>Node</code>, not a <code>Node3D</code> — in practice you get a Node3D tree, but the signature is <code>Node generate_scene(state, ...)</code>. This is the runtime path: no editor, no import dock, no cached <code>.tscn</code>. <a href="https://github.com/godotengine/godot-docs/blob/master/classes/class_gltfdocument.rst" class="citation">[Godot docs — class GLTFDocument]</a>
+</div>
+
+<h2>Two doors: editor import vs runtime import</h2>
+
+<p>The snippet above is only <em>one</em> of the two ways an engine ingests glTF, and the difference matters. When you drop a <code>.glb</code> into the Godot project and it appears in the FileSystem dock, a whole extra layer runs — <span class="term" data-term="resource-importer-scene">ResourceImporterScene</span> — that the runtime path skips entirely.</p>
+
+<div class="comparison">
+  <div><strong>Editor import:</strong> runs <code>ResourceImporterScene</code> on top of the glTF translation. Adds name-suffix node typing (<code>-col</code>, <code>-noimp</code>, and friends), material extraction, level-of-detail generation, and scene inheritance. Produces a <code>.import</code> sidecar and a cached scene. <em>All of this machinery is the godot-asset-pipeline track's territory — this lesson only names it, doesn't teach it.</em></div>
+  <div><strong>Runtime import:</strong> <code>append_from_file → generate_scene</code>. Skips <code>ResourceImporterScene</code> completely — no name-suffix typing, no material extraction. Documented precisely: the <code>EXTRACT_TEXTURES</code> binary-image mode "is editor-only; at runtime it acts the same as EMBED_AS_UNCOMPRESSED."</div>
+</div>
+
+<div class="note">
+  <strong>When to use which:</strong>
+  <ul>
+    <li><strong>Assets you ship inside the project</strong> → editor import. You get the suffix conveniences, extracted materials, and a cached scene for free.</li>
+    <li><strong>Assets you load from disk or the network at runtime</strong> → <code>GLTFDocument</code>. There's no importer to run the conveniences, so you wire up collisions and node typing yourself.</li>
+  </ul>
+  <strong>Rule of thumb:</strong> if the file exists when you build the project, let the editor import it; if it arrives while the game is running, use <code>GLTFDocument</code>. <a href="https://github.com/godotengine/godot-docs/blob/master/classes/class_gltfstate.rst" class="citation">[Godot docs — class GLTFState, HandleBinaryImageMode]</a>
+</div>
+
+<h2>Where engines diverge from the spec</h2>
+
+<p>A glTF is a request, not a command. Two importers can read the same file and build different scenes, because the spec leaves room and each engine fills it differently. Three places this bites:</p>
+
+<ul>
+  <li><strong>Material remap vs passthrough.</strong> Godot's <code>texture_map_mode</code> defaults to remapping glTF material slots onto <code>StandardMaterial3D</code>; setting <code>DO_NOT_REMAP</code> leaves the slots raw for a custom shader. Same file, two different material results.</li>
+  <li><strong>Root node modes.</strong> <span class="term" data-term="root-node-mode">root_node_mode</span> (SINGLE_ROOT by default, or KEEP_ROOT / MULTI_ROOT) changes the top-level shape of the imported tree — the same glTF can come in under one root or several.</li>
+  <li><strong>Extension support varies.</strong> An importer silently ignores any <code>KHR_materials_*</code> extension it doesn't implement, even though the exporter wrote it.</li>
+</ul>
+
+<div class="note">
+  <strong>An extension in <code>extensionsUsed</code> is a request, not a guarantee.</strong> The exporter listing an extension means "I used this"; it does not mean the importer honors it. This is the same viewer-dependent behavior you saw with extensions in Lesson 1, and it's exactly what the Extensions &amp; Optimization lesson picks apart later.
+</div>
+
+<h2>Try it: see the scene a file becomes</h2>
+
+<p>The mapping isn't abstract — you can run it. The companion tool <code>map_to_nodes.py</code> parses a real <code>.glb</code> with the Python standard library alone (no Godot, no dependencies), prints the engine scene tree the importer <em>would</em> build, and asserts the mapping contract holds. Here is its core — the concept→node dictionary applied to a parsed file:</p>
+
+<pre data-file="map_to_nodes.py"><code>import json, struct, sys
+
+def load_gltf(path):
+    with open(path, "rb") as f:
+        data = f.read()
+    if data[:4] != b"glTF":                       # a .gltf file IS json
+        return json.loads(data)
+    magic, version, total = struct.unpack_from("&lt;III", data, 0)
+    assert magic == 0x46546C67 and version == 2   # 'glTF', container v2
+    off, gltf = 12, None
+    while off &lt; total:                            # walk length-prefixed chunks
+        clen, ctype = struct.unpack_from("&lt;II", data, off); off += 8
+        if ctype == 0x4E4F534A:                   # 'JSON'
+            gltf = json.loads(data[off:off+clen])
+        off += clen                               # ignore unknown chunk types
+    return gltf
+
+def map_to_nodes(g):
+    nodes = g.get("nodes", [])
+    return {                                      # the concept -> engine-node dictionary
+        "Node3D": len(nodes),                     # one per glTF node (scene root)
+        "MeshInstance3D": sum(1 for n in nodes if "mesh" in n),
+        "Skeleton3D": len(g.get("skins", [])),    # + a Skin resource each
+        "StandardMaterial3D": len(g.get("materials", [])),
+        "Camera3D": len(g.get("cameras", [])),
+        "AnimationPlayer": 1 if g.get("animations") else 0,   # all anims -> ONE player
+    }
+
+g = map_to_nodes(load_gltf(sys.argv[1]))
+print(g)     # {'Node3D': 25, 'MeshInstance3D': 1, 'Skeleton3D': 1, ...}</code></pre>
+
+<p>Run on a rigged character with 17 animations, the full downloadable version prints the whole tree and asserts every mesh, skin, and material resolves:</p>
+
+<pre data-file="expected_output.txt" data-mode="fragment"><code>$ python map_to_nodes.py Wizard.glb
+  Engine scene the importer would build (Godot node types, one consumer of many):
+    Node3D            x25   (one per glTF node; scene root)
+    MeshInstance3D    x1    (nodes carrying a mesh)
+    Skeleton3D        x1    (one per skin, + a Skin resource)
+    StandardMaterial3D x7   (one per glTF material)
+    Camera3D          x0
+    AnimationPlayer   x1    (holds all 17 glTF animation(s))</code></pre>
+
+<p>Notice how 17 glTF animations collapse into <em>one</em> <code>AnimationPlayer</code>, and a single skin becomes one <code>Skeleton3D</code> with a <code>Skin</code> resource. That's the dictionary from the diagram, applied to a real file.</p>
+
+<h2>Code Files</h2>
+<p>Download the final-state files from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/consuming-gltf-engine-import/map_to_nodes.py" download><code>map_to_nodes.py</code></a> — parse a glTF/GLB and print + assert the engine scene tree it imports into (stdlib only, engine-agnostic).</li>
+</ul>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A teammate imports <code>character.glb</code>, then in the Godot editor renames a bone and tweaks a material directly on the imported scene. Later the artist re-exports the glTF and Godot reimports it — and the teammate's edits are gone. Why did the edits vanish, and where should the change have been made instead?</p>
+  <details><summary>Hint</summary><p>The imported scene isn't a file the engine "keeps open" — it's an output. What happens to an output when you re-run the thing that produced it?</p></details>
+  <details><summary>Answer</summary><p>Should mention: (1) the imported scene is <em>generated</em> from the source glTF on every reimport — import is a one-way, lossy projection, so hand-edits to the generated tree are overwritten, not merged. (2) The fix belongs upstream: change the bone name and material in the DCC tool / source glTF, then re-export. (3) If the edit must live on the Godot side, use a sanctioned escape hatch that survives reimport — scene inheritance, extracted (saved-out) materials, or a post-import script — never a direct edit to the generated scene. <strong>Key insight:</strong> the importer is a translator, not a live link; you edit the input, never the output.</p></details>
+</div>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <ul>
+    <li><strong>Materials &amp; Textures</strong> — the highest-fidelity-loss surface of the round trip: PBR metallic-roughness, sRGB-vs-linear per slot, ORM packing, and the <code>KHR_materials_*</code> extensions.</li>
+    <li><strong>Animation, Skins &amp; Morphs</strong> — how the skin and inverse-bind-matrices you saw collapse into a <code>Skeleton3D</code>, plus samplers, channels, and morph targets.</li>
+    <li><strong>godot-asset-pipeline</strong> — the editor-import mechanics this lesson deliberately pointed at but didn't teach: the import dock, name-suffix node typing, <code>.import</code> sidecars, and the FileSystem cache.</li>
+  </ul>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "concept-node-dictionary": "The fixed table an importer uses to translate each glTF concept (node, mesh, skin, material, ...) into exactly one engine scene-node type — keyed by glTF node index so parenting and skinning can be wired afterward.",
+  "gltf-document": "Godot's stateless glTF processor resource — it reads and writes glTF but holds no scene data itself; it operates on a GLTFState.",
+  "gltf-state": "Godot's glTF data container resource — holds all the nodes and resources parsed from a glTF file, letting GLTFDocument stay stateless.",
+  "generate-scene": "The GLTFDocument method that translates a populated GLTFState into a Godot scene node (typed as Node); the runtime import path that skips the editor's ResourceImporterScene.",
+  "resource-importer-scene": "Godot's editor-only import layer that runs on top of the glTF translation — adds name-suffix node typing, material extraction, LOD, and scene inheritance; skipped by runtime import.",
+  "root-node-mode": "A GLTFDocument setting (SINGLE_ROOT / KEEP_ROOT / MULTI_ROOT) that decides the top-level shape of the imported scene tree — the same glTF can import under one root or several."
+}
+</script>
+<script type="application/json" id="lesson-actions-config" data-domain="gltf-format" data-lesson-id="03-consuming-gltf-engine-import" data-map-page="gltf-format-map.html" data-topic-title="Consuming glTF &amp; Engine Import"></script>
+<script type="module" src="../assets/page-shell.js"></script>
+</body>
+</html>
