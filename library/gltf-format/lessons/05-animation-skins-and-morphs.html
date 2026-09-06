@@ -30,7 +30,7 @@
 </div>
 
 <div class="key-concept">
-  <strong>A skinned mesh is stored once, in bind pose — animation never edits vertices, it moves joints.</strong> In <a href="03-consuming-gltf-engine-import.html">Lesson 3</a> you saw a skin collapse into a Skeleton3D and 17 animations into one AnimationPlayer. This lesson is the model underneath: each vertex rides a chain of matrices from the joint that drives it, the <span class="term" data-term="inverse-bind-matrix">inverse-bind-matrix</span> is the hinge that makes it work, and it only works if the geometry is in the <span class="term" data-term="bind-pose">bind pose</span> those matrices were computed for. That one fact is the spec-level reason rigged meshes must export in rest pose.
+  <strong>A skinned mesh is stored once, in bind pose. Animation never edits vertices; it moves joints.</strong> In <a href="03-consuming-gltf-engine-import.html">Lesson 3</a> you saw a skin collapse into a Skeleton3D and 17 animations into one AnimationPlayer. This lesson is the model underneath. Each vertex rides a chain of matrices from the joint that drives it, and the <span class="term" data-term="inverse-bind-matrix">inverse-bind-matrix</span> is the hinge. It only works if the geometry sits in the <span class="term" data-term="bind-pose">bind pose</span> those matrices were computed for. That one fact is the spec-level reason rigged meshes must export in rest pose.
 </div>
 
 <h2>The skinning chain</h2>
@@ -79,7 +79,7 @@
   <text x="360" y="278" text-anchor="middle" fill="var(--svg-text)" font-size="13" font-style="italic">The InverseBind measures the vertex from the joint; the joint's animation then re-poses it.</text>
 </svg>
 
-<p>The trick is the <strong>InverseBind</strong> matrix. A vertex is authored once, in model space. To let a joint rotate that vertex "around itself," you first re-express the vertex <em>relative to the joint's own origin</em> — that's exactly what the inverse-bind-matrix does ("if the bind-pose joint sat at the origin, where is this vertex?"). Then the joint's current animated world transform carries it to its posed location. Notice how the space labels line up: model → joint-local → world. Get the order wrong or drop the inverse, and the labels stop matching — that's the whole check, no arithmetic needed.</p>
+<p>The <strong>InverseBind</strong> matrix is why this works. A vertex is authored once, in model space. To let a joint rotate that vertex "around itself," you first re-express the vertex <em>relative to the joint's own origin</em>: that's exactly what the inverse-bind-matrix does ("if the bind-pose joint sat at the origin, where is this vertex?"). Then the joint's current animated world transform carries it to its posed location. Notice how the space labels line up: model → joint-local → world. Get the order wrong or drop the inverse, and the labels stop matching — that's the whole check, no arithmetic needed.</p>
 
 <div class="note">
   <strong>New concept — change of basis:</strong> the inverse-bind-matrix is a change of basis — it describes the same vertex in the joint's grid instead of the model's grid. The vertex doesn't move; only the numbers describing it change. (The spec's full form also normalizes by the skinned node's own transform, which is usually identity — the three-factor chain here is the teaching form.)
@@ -87,7 +87,7 @@
 
 <h2>Why bind pose matters</h2>
 
-<p>Here is the payoff every earlier lesson pointed at. All glTF animation is expressed as a <strong>delta from the bind pose</strong> — a channel that says "rotate 30°" means 30° <em>beyond</em> the bind-pose rotation. The bind pose is the shared reference frame that ties the animation to the geometry, and the inverse-bind-matrices encode each joint's bind-pose world transform. If the exported geometry isn't actually in that bind pose, <code>InverseBind · RestPos</code> lands every vertex in the wrong joint-local space and the mesh contorts.</p>
+<p>This is what every earlier lesson pointed at. All glTF animation is expressed as a <strong>delta from the bind pose</strong>: a channel that says "rotate 30°" means 30° <em>beyond</em> the bind-pose rotation. The bind pose is the shared reference frame that ties the animation to the geometry, and the inverse-bind-matrices encode each joint's bind-pose world transform. If the exported geometry isn't actually in that bind pose, <code>InverseBind · RestPos</code> lands every vertex in the wrong joint-local space and the mesh contorts.</p>
 
 <div class="note">
   <strong>Why does my imported character look like spaghetti?</strong> Stretched-to-origin limbs, exploded joints, or a mesh rotated 90° off its skeleton are all one bug: the bind pose the mesh was exported in doesn't match the bind pose the inverse-bind-matrices encode. The classic Blender trigger is a <em>non-identity armature-object transform</em> (Mixamo rigs import with a +90° X rotation and ~0.009 scale); on export that transform merges into the root bone and shifts the bind pose. The fix is to <strong>apply all transforms</strong> before export. This is the deeper reason behind <a href="02-authoring-and-blender-export.html">Lesson 2</a>'s "loads rotated, huge, or invisible" transform gotcha and its promise that a rigged mesh must export in rest pose — and because it's a spec-level contract, the same failure shows up in Unity, three.js, and Babylon too. <a href="https://github.com/KhronosGroup/glTF-Blender-IO/issues/994" class="citation">[glTF-Blender-IO #994]</a>
@@ -131,7 +131,7 @@
 
 <h2>Try it: read the rig off a real file</h2>
 
-<p>The companion tool parses a real rigged <code>.glb</code> with the standard library alone and asserts the contracts above — the skin's inverse-bind-matrices are MAT4/float with one per joint, a skinned primitive carries JOINTS_0 + WEIGHTS_0, and every animation sampler has a valid time input and interpolation mode:</p>
+<p>The companion tool parses a real rigged <code>.glb</code> with the standard library alone and asserts three contracts: the inverse-bind-matrices are MAT4/float, one per joint; a skinned primitive carries JOINTS_0 + WEIGHTS_0; and every animation sampler has a valid time input and interpolation mode:</p>
 
 <pre data-file="check_skin_animation.py"><code>import json, struct, sys
 

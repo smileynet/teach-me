@@ -34,7 +34,7 @@
 
 <h2>Start from the smallest complete file</h2>
 
-<p>The fastest way to understand glTF is to read the smallest file that actually renders: one triangle. Here it is in full — the canonical minimal glTF (from the Khronos <a href="https://github.com/KhronosGroup/glTF-Tutorials" class="citation">glTF-Tutorials</a>). Don't memorize it; we'll walk it top-down.</p>
+<p>The fastest way to understand glTF is to read the smallest file that renders: one triangle. Here it is in full, the canonical minimal glTF from the Khronos <a href="https://github.com/KhronosGroup/glTF-Tutorials" class="citation">glTF-Tutorials</a>. Don't memorize it. Read it as a chain of references, top to bottom.</p>
 
 <pre data-file="triangle.gltf"><code>{
   "scene": 0,
@@ -58,19 +58,19 @@
   "asset": { "version": "2.0" }
 }</code></pre>
 
-<p>Read it as a chain of references, top to bottom:</p>
+<p>Each line below references the next by array index:</p>
 <ul>
   <li><code>scene</code> → picks scene 0; <code>scenes[0].nodes</code> → node 0.</li>
   <li><code>nodes[0]</code> → references <code>mesh</code> 0.</li>
   <li><code>meshes[0]</code> has one <span class="term" data-term="primitive">primitive</span>: its <code>POSITION</code> attribute reads <span class="term" data-term="accessor">accessor</span> 1, and its triangle <code>indices</code> read accessor 0.</li>
-  <li>Each accessor points at a <span class="term" data-term="buffer-view">bufferView</span>, which points at a <span class="term" data-term="buffer">buffer</span> — the actual bytes.</li>
+  <li>Each accessor points at a <span class="term" data-term="buffer-view">bufferView</span>, which points at a <span class="term" data-term="buffer">buffer</span>: the actual bytes.</li>
 </ul>
 
-<p>That last chain — accessor → bufferView → buffer — is the one thing everyone trips on, so it gets its own section.</p>
+<p>The last link — accessor to bufferView to buffer — is where the file stops being obvious. Three levels of indirection sit between "draw this triangle" and the raw bytes, so it gets its own section.</p>
 
-<h2>The indirection everyone trips on: buffer → bufferView → accessor</h2>
+<h2>How the bytes are stored: buffer → bufferView → accessor</h2>
 
-<p>The bytes are stored once and interpreted in three layers, each adding exactly one thing: a <strong>buffer</strong> is raw bytes, a <strong>bufferView</strong> is a window into those bytes, and an <strong>accessor</strong> says "read this window as N typed elements."</p>
+<p>The bytes are stored once and interpreted in three layers, each adding exactly one thing. A <strong>buffer</strong> is raw bytes. A <strong>bufferView</strong> is a window into those bytes. An <strong>accessor</strong> reads that window as N typed elements.</p>
 
 <svg role="img" aria-labelledby="bva-title" viewBox="0 0 720 340" style="max-width:100%; height:auto; margin: 1.5rem 0;">
   <title id="bva-title">The 44-byte buffer, sliced by two bufferViews, read by two accessors as typed arrays</title>

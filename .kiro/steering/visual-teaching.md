@@ -124,6 +124,30 @@ This "explain the wrong answer" pattern (a) requires understanding the mechanism
 - **SR questions** → test details, gotchas, edge cases, connections — distributed over time via spaced repetition
 - **Quiz page** → mixed difficulty, multiple archetypes, covers the full lesson breadth
 
+## Prose Hygiene (low cognitive load, no AI slop)
+
+Lesson prose is read once, cold, by someone learning. Every sentence adds load. Four rules, from a
+2026-09-06 prose audit of the gltf-format track (`.kiro/skills/writing-style` is the general reference):
+
+1. **Say it once.** If a heading and the sentence under it make the same claim, or a paragraph restates
+   the one before it, cut one. The worst offenders repeat a thesis phrase 3–4× ("the bytes are unreadable
+   without me", "one engine node per glTF node") — state it once where it's crispest, then reference it.
+   Restatement is the clearest AI tell.
+2. **Show difficulty, don't assert it.** Ban "everyone trips on", "notoriously", "the tricky part", "the
+   classic X" — they tell the reader to feel confused before they've engaged, and they're unverifiable.
+   Replace with the concrete reason it's hard ("Three levels of indirection sit between 'draw this
+   triangle' and the raw bytes"). Same for unsourced ranks ("the #1 cause" → "the most common cause").
+3. **One idea per sentence for the load-bearing explanation.** Break a colon-then-comma pile-up (3–4
+   clauses) into short sentences. "A buffer is raw bytes. A bufferView is a window. An accessor reads that
+   window as N typed elements." beats one comma-chained sentence.
+4. **One em-dash per paragraph, one notation per list.** Em-dash density is the top structural tell —
+   cap at one per paragraph (use a colon or a period instead). Don't mix arrow notation and prose in the
+   same bullet list. Also cut: "not just X but Y" frames, filler ("the trick is", "richer", "reportedly"),
+   and meta-narration about the document ("this capstone turns...", "so it gets its own section").
+
+After authoring or editing lesson prose, dispatch a prose-check subagent (see `/prose-check`) against
+these rules — a fresh reviewer with no context catches restatement and slop the author is blind to.
+
 ## Callout Hierarchy (Asides, Alternatives, Notes)
 
 Lessons contain information at different urgency levels. Use the right callout type so learners can triage what needs attention now vs. what's reference for later.
