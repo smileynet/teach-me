@@ -21,6 +21,7 @@ glTF is "the JPEG of 3D": a Khronos open standard for *delivering* runtime-ready
 - **why:** Every later topic uses the node/mesh/accessor vocabulary — you can't reason about an export or import bug without the object model and the .glb container layout. Taught as a runnable minimal-complete file (a single indexed triangle) walked field-by-field, with the buffer→bufferView→accessor chain given its own weight.
 - **scope:** deep
 - **prereqs:** []
+- **lesson_file:** 01-gltf-anatomy-and-the-standard.html
 
 ### authoring-and-blender-export
 - **id:** 01M1T33FPCDS2WKNDKFFXGA5V0

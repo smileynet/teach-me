@@ -1,7 +1,7 @@
 ---
 id: "310"
 title: "Topic: gltf-anatomy-and-the-standard (the .glb/.gltf object model — the hub)"
-status: open
+status: done
 blocked_by: ["309"]
 priority: medium
 validation_criteria:
@@ -49,11 +49,23 @@ Downloadable at `reference/code/gltf-format/gltf-anatomy-and-the-standard/`; py_
 
 ## Acceptance criteria
 
-- [ ] Lesson teaches the object graph (incl. buffer/bufferView/accessor with explicit weight), .glb vs .gltf, and the coordinate/units conventions — as a minimal-complete-file walkthrough
-- [ ] Includes a hex-dump/self-verify beat for the .glb header (byte layout not prose-only)
-- [ ] Runnable artifact: stdlib .glb-parse+assert .py + a minimal .gltf fixture; downloadable + py_compile-checked; the domain oracle covers it
-- [ ] Cites the Khronos glTF 2.0 spec
-- [ ] `mise run verify` passes; MAP.md gets lesson_file on completion
+- [x] Lesson teaches the object graph (incl. buffer/bufferView/accessor with explicit weight), .glb vs .gltf, and the coordinate/units conventions — as a minimal-complete-file walkthrough
+- [x] Includes a hex-dump/self-verify beat for the .glb header (byte layout not prose-only)
+- [x] Runnable artifact: stdlib .glb-parse+assert .py + a minimal .gltf fixture; downloadable + py_compile-checked; the domain oracle covers it
+- [x] Cites the Khronos glTF 2.0 spec
+- [x] `mise run verify` gates pass; MAP.md got lesson_file on completion
+
+## Resolution (2026-09-05)
+
+Authored the hub lesson + its runnable artifacts, all validated:
+
+- **Lesson:** `library/gltf-format/lessons/01-gltf-anatomy-and-the-standard.html` — minimal-file-first arc: key-concept → full `triangle.gltf` walkthrough → buffer→bufferView→accessor **inline SVG** (3-row shared byte-axis, hatched padding, the `12×3=36=byteLength` lock-in) + the "why two objects" misconception `.note` → `.gltf` vs `.glb` `.comparison` + **hex-dump self-verify beat** (decode `47 6C 54 46` / `02 00 00 00` by hand) + the container-vs-asset-version gotcha `.note` → stdlib `read_glb.py` block → conventions → **exercise** (2-`<details>` misconception probe: "the `02` is the container version, not the asset version") → Code Files → What's Next.
+- **Artifacts** at `reference/code/gltf-anatomy-and-the-standard/`: `triangle.gltf` (canonical Khronos minimal, base64-verified), `triangle.glb` (700 B, generated — 12-byte header + JSON + BIN chunk), `read_glb.py` (stdlib `struct`+`json` parser+asserts), `README.md`.
+- **Validation gates (all pass):** `gltf-format-oracle.py` → exit 0 on 5 assets incl. both triangle fixtures (added to `DEFAULT_ASSETS`); `check-lesson-code.py` → `read_glb.py` block compiles; `check-lesson.py` → **12 pass / 0 fail / 0 warn / 2 skip**; `check-svg-vars.py` → clean; `check-maps-forest.py` → all 6 domains clean. MAP got `lesson_file: 01-gltf-anatomy-and-the-standard.html`; map page + indexes regenerated.
+
+**Verification:** `check-lesson.py --workspace library/gltf-format --lesson lessons/01-gltf-anatomy-and-the-standard.html` → "12 pass, 0 fail, 0 warn, 2 skip"; `gltf-format-oracle.py` → "all glTF-2.0 structural contracts hold" exit 0. Proposal: `.scratch/proposals/310-gltf-anatomy-lesson.md`; research: `.scratch/research/gltf-{standard,glb-stdlib-parse,minimal-triangle,accessor-diagram}.md`.
+
+This unblocks the spoke lessons (#311/#312/#313/#314) — all prereq this hub; #315 caps the track.
 
 ## Notes
 
