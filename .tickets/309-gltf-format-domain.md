@@ -1,7 +1,7 @@
 ---
 id: "309"
 title: "Set up gltf-format domain (engine-agnostic glTF 2.0 standard track: MAP + GLB/JSON oracles + validation gate)"
-status: open
+status: done
 blocked_by: []
 priority: medium
 validation_criteria:
@@ -85,13 +85,26 @@ downstream consumer, proven by #305's existing harness — complementary tiers.
 
 ## Acceptance criteria
 
-- [ ] `gltf-format.MAP.md` at `library/gltf-format/maps/` with all 6 topics + prereq edges; ULIDs via `tools/migrate_map_ids.py --apply`; passes `tools/check-maps-forest.py`
-- [ ] Stdlib GLB/JSON oracle artifact convention confirmed (structured JSON + exit code, `check-lesson-code.py` py_compile in verify); optional Khronos Validator/gltf-transform cross-check tier noted
-- [ ] Standalone depth-0, engine-agnostic; `leads_to [godot-asset-pipeline, godot-3d-animation]` set
-- [ ] #305 cross-domain prereq edges recorded (t3→#305-t1, t5→#305-t5); #305 shrink coordinated (its Addendum 2)
-- [ ] Provenance recorded (registry.khronos.org / KhronosGroup glTF; design sources `.scratch/research/gltf-*.md`)
-- [ ] The open questions in the scope docs resolved or deferred (+Z/−Z convention folklore, per-extension ratification status, Draco-vs-meshopt guidance, spec minor-version drift, BRDF-math scope)
-- [ ] NO lessons generated — 6 topic tickets created after sign-off
+- [x] `gltf-format.MAP.md` at `library/gltf-format/maps/` with all 6 topics + prereq edges; ULIDs via `tools/migrate_map_ids.py --apply`; passes `tools/check-maps-forest.py`
+- [x] Stdlib GLB/JSON oracle artifact convention confirmed (`tools/gltf-format-oracle.py` — structured JSON + exit 0/1/2, wired into `[tasks.verify].run`); optional Khronos Validator/gltf-transform cross-check tier noted
+- [x] Standalone depth-0, engine-agnostic; `leads_to [godot-asset-pipeline, godot-3d-animation]` set (in the MAP frontmatter + per-topic leads_to on t3/t5)
+- [x] #305 cross-domain prereq edges recorded (t3→#305-t1, t5→#305-t5); #305 shrink coordinated (#305 body Update 2026-09-05 + its Addendum 2)
+- [x] Provenance recorded (RESOURCES.md: registry.khronos.org / KhronosGroup glTF + Blender/Godot docs; design sources `.scratch/research/gltf-*.md`)
+- [x] The open questions resolved/deferred (proposal Appendix C: +Z/−Z resolved in topic 1, ratification/Draco-vs-meshopt deferred to topic 6, spec pinned to 2.0 core, BRDF-math scoped out, .blend-funnel routed to #305)
+- [x] NO lessons generated — setup only; the 6 topic tickets are the signed-off follow-up (not part of this setup ticket)
+
+## Resolution (2026-09-05)
+
+Setup/scaffold + validation gate for the standalone engine-agnostic `gltf-format` domain, DONE and verified:
+
+- **Domain scaffolded** at `library/gltf-format/` (`init_workspace.py`); MISSION.md + RESOURCES.md tailored (glTF-specific, L-tagged sources).
+- **MAP placed** at `library/gltf-format/maps/gltf-format.MAP.md` — depth-0, `parent: null`, `leads_to: [godot-asset-pipeline, godot-3d-animation]`, 6 topics (gltf-anatomy-and-the-standard hub → authoring-and-blender-export, consuming-gltf-engine-import, materials-and-textures, animation-skins-and-morphs, extensions-and-optimization) with within-map prereq edges + per-topic `leads_to` on t3/t5. **6 real ULIDs minted** via `migrate_map_ids.py --apply`. `check-maps-forest.py`: `gltf-format: 1 map(s) — clean` (all 6 domains clean).
+- **Validation gate:** `tools/gltf-format-oracle.py` (stdlib `struct`+`json`, `bake-export-oracle.py` shape) parses real sample assets (`test-scene/assets/`: static `truck-green.glb` w/ KHR_materials_unlit+KHR_texture_transform, skinned `Wizard.glb` 1 skin/17 anim, `.gltf`+bin `Barrel_01`) and asserts the taught contracts: GLB anatomy (magic/version==2/asset.version 2.0/accessor→bufferView integrity), material texture-index range, skin inverseBindMatrices (MAT4/FLOAT/count≥joints), morph weights==targets, extensionsRequired⊆extensionsUsed. **Wired into `[tasks.verify].run`.** Tamper-tested: valid→exit 0, broken extensionsRequired→exit 1, non-glTF→exit 2.
+- Map page generated (`lessons/gltf-format-map.html`, 6 topics).
+
+**Verification:** `python tools/gltf-format-oracle.py` → exit 0, "all glTF-2.0 structural contracts hold"; `python tools/check-maps-forest.py` → all 6 domains clean. **No lessons generated** (setup only). Proposal: `.scratch/proposals/309-gltf-format.md`; research: `.scratch/research/gltf-*.md`.
+
+Follow-up (separate tickets, after sign-off): the 6 topic tickets; the optional Khronos-Validator Tier-2 Node wrapper; #305's topic-1/5 shrink when its topics are authored.
 
 ## Notes
 
