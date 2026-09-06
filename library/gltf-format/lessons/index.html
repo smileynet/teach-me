@@ -1,17 +1,142 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lessons - gltf-format</title>
+  <title>All Lessons — teach-me</title>
+  <script src="../assets/typography-prefs.js"></script>
   <link rel="stylesheet" href="../assets/style.css">
+  <style>
+
+    body { max-width: 900px; margin: 0 auto; padding: 2rem; }
+    .index-view h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
+    .index-meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem; }
+    .index-cue { font-size: 0.9rem; margin: 0 0 1rem; }
+    .index-cue-start { color: var(--text-muted); }
+    .index-cue-done { color: var(--success); font-weight: 500; }
+    .index-cue-resume a {
+      display: inline-block; color: var(--accent); font-weight: 600;
+      text-decoration: none; padding: 0.5rem 0.9rem; border-radius: 8px;
+      background: var(--bg-elevated); border: 1px solid var(--border);
+    }
+    .index-cue-resume a:hover { border-color: var(--accent); }
+
+    /* Demo takeover note (#279) */
+    .index-demo-note { font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1rem;
+      display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .index-demo-start { background: none; border: 1px solid var(--border); color: var(--accent);
+      font: inherit; font-size: 0.8rem; cursor: pointer; padding: 0.25rem 0.7rem; border-radius: 6px; }
+    .index-demo-start:hover { border-color: var(--accent); }
+
+    /* Tree | Map toggle */
+    .view-toggle { display: inline-flex; gap: 0; margin: 0 0 1.5rem; border: 1px solid var(--border);
+      border-radius: 8px; overflow: hidden; }
+    .vt-btn { background: var(--bg-elevated); color: var(--text-muted); border: none;
+      padding: 0.4rem 1.1rem; font-size: 0.85rem; cursor: pointer; font: inherit; }
+    .vt-btn + .vt-btn { border-left: 1px solid var(--border); }
+    .vt-btn.is-active { background: var(--accent); color: var(--bg); font-weight: 600; }
+    .vt-btn:hover:not(.is-active) { color: var(--text); }
+
+    /* Indented tree view */
+    .indented-tree .ti-root { list-style: none; padding-left: 0; margin: 0; }
+    .indented-tree .ti-group { list-style: none; margin: 0; padding-left: 1.4rem;
+      border-left: 1px solid var(--border); margin-left: 0.7rem; }
+    .indented-tree .ti-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.7rem;
+      border-radius: 8px; text-decoration: none; color: var(--text); outline-offset: 2px; }
+    .indented-tree .ti-row:hover { background: var(--bg-elevated); }
+    .indented-tree .ti-row:focus-visible { outline: 2px solid var(--accent); }
+    .indented-tree .ti-row.is-child { color: var(--text-muted); }
+    .indented-tree .ti-twisty { background: none; border: none; color: var(--text-muted);
+      cursor: pointer; font-size: 0.7rem; padding: 0 0.2rem; line-height: 1; }
+    .indented-tree .ti-title { font-weight: 600; }
+    .indented-tree .ti-stat { font-size: 0.78rem; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+    .indented-tree .ti-leads { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
+    .sc-section-title { font-size: 0.9rem; color: var(--text-muted); margin: 1.5rem 0 0.5rem; }
+
+    /* Iterated map view */
+    .iterated-map .im-legend { display: flex; gap: 1.5rem; font-size: 0.78rem;
+      color: var(--text-muted); margin-bottom: 0.6rem; align-items: center; }
+    .iterated-map .im-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .im-card { display: block; padding: 0.8rem 1rem; background: var(--bg-elevated);
+      border: 1px solid var(--border); border-radius: 10px; text-decoration: none; color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box; }
+    .im-card:hover, .im-card:focus-visible { border-color: var(--accent); box-shadow: 0 2px 12px rgba(203,166,247,0.12); }
+    .im-card h3 { font-size: 0.95rem; margin: 0 0 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
+    .im-card .dc-meta { font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; font-variant-numeric: tabular-nums; }
+    .im-card.is-child { border-left: 3px solid var(--accent); }
+    .dc-sub-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 3px;
+      background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    /* Private overlay badge (#184) — distinct from sub-map; text label carries the meaning
+       (WCAG: not color-alone), amber border signals "local, not shipped". */
+    .dc-private-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 3px;
+      border: 1px solid var(--warning, #d08770); color: var(--warning, #d08770);
+      background: color-mix(in srgb, var(--warning, #d08770) 12%, transparent); }
+    .islands-panel { margin-top: 1.5rem; padding: 1rem; border: 1px dashed var(--border); border-radius: 8px; }
+    .islands-panel h2 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .islands-panel ul { list-style: none; padding: 0; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .islands-panel a { font-size: 0.8rem; padding: 0.3rem 0.6rem; border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text-muted); text-decoration: none; }
+    .islands-panel a:hover { border-color: var(--accent); color: var(--accent); }
+
+  </style>
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
 </head>
 <body>
-  <main class="lesson-container">
-    <h1>gltf-format</h1>
-    <p>No lessons yet. Generate a topic map to get started.</p>
-    <p><em>Run the teach skill or <code>mise run map:generate</code> to create your first map.</em></p>
-  </main>
-  <script src="../assets/lesson-actions.js" data-domain="gltf-format"></script>
+
+<div id="app"></div>
+
+<script type="application/json" id="page-data">{"domains": [{"slug": "gltf-format", "title": "glTF 2.0 — The Standard Under Every 3D Import", "description": "glTF is \"the JPEG of 3D\": a Khronos open standard for *delivering* runtime-ready 3D — a JSON scene graph plus binary geometry plus images — that Godot, Blender, three.", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "gltf-format-map.html", "topicIds": ["01M1T33FPC4YTKKSXWH53N60PZ", "01M1T33FPCDS2WKNDKFFXGA5V0", "01M1T33FPC4J9RV8GM8H6GFDQC", "01M1T33FPCNKMX0XXN715XJ7CT", "01M1T33FPCSQ0QED2XH9HDPR9A", "01M1T33FPCKCVXK5NMGDAR180Y"], "private": false, "hasPrivate": false, "privateTopicIds": []}], "edges": [], "islands": ["gltf-format"], "mission": {"title": "Mission: Understand the glTF 2.0 file format", "why": "glTF is the neutral exchange format between DCC tools (Blender) and engines (Godot,\nthree.js, Babylon, Unity). Most \"my model looks wrong after export/import\" bugs are\nreally glTF-format bugs — wrong color space, dropped material channels, a skeleton that\ndidn't export in rest pose. Understanding the standard itself makes those bugs readable\nfrom the file rather than guessed at, and the knowledge transfers across every engine.", "criteria": []}, "demoOverlay": {}, "stats": {"domainCount": 1, "topicCount": 6, "completeCount": 0, "inProgressCount": 0}}</script>
+<script type="module">
+
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { IndexView } from '../assets/components/IndexView.js';
+    import { prefs } from '../assets/preferences.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    // Load-time progress resolution (#279/#281). Baked domains[*].{complete,inProgress} are
+    // the demo/no-JS floor; override from the user's own overlay (served hosts) against each
+    // domain's topicIds. Read-then-swap: keep the floor unless a real overlay resolves.
+    async function resolveProgress() {
+      const owns = prefs.value.hasOwnProgress === true;
+      let overlay = null;
+      try {
+        const res = await fetch('api/overlay', { headers: { accept: 'application/json' } });
+        if (res.ok) overlay = (await res.json()).overlay || {};
+      } catch (_) { /* static host / no server — keep the demo floor */ }
+      const hasReal = owns || (overlay && Object.keys(overlay).length > 0);
+      if (!hasReal) return;
+      const map = overlay || {};
+      let cComplete = 0, cInProgress = 0;
+      for (const d of data.domains) {
+        const ids = d.topicIds || [];
+        d.complete = ids.filter(id => map[id] === 'complete').length;
+        d.inProgress = ids.filter(id => map[id] === 'in-progress').length;
+        cComplete += d.complete; cInProgress += d.inProgress;
+      }
+      data.stats = { ...data.stats, completeCount: cComplete, inProgressCount: cInProgress };
+    }
+
+    await resolveProgress();
+
+    render(
+      html`<${IndexView} domains=${data.domains} stats=${data.stats} mission=${data.mission} />`,
+      document.getElementById('app')
+    );
+
+</script>
+
 </body>
 </html>
