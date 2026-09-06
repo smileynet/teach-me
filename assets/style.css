@@ -440,6 +440,34 @@ details[open]:not(.lesson-section) summary { margin-bottom: 0.5rem; }
   color: var(--success);
 }
 
+/* --- Honest generation prompt panel (GenButton) --- */
+.gen-prompt {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border, #ccc);
+  border-radius: 6px;
+  background: var(--code-bg, rgba(0, 0, 0, 0.03));
+  text-align: left;
+}
+.gen-prompt-lead {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.gen-prompt-text {
+  margin: 0 0 0.5rem;
+  padding: 0.5rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.8rem;
+  background: var(--bg, #fff);
+  border-radius: 4px;
+}
+.gen-prompt-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 /* --- Quiz answer criteria --- */
 .answer-criteria {
   margin-bottom: 1rem;

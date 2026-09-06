@@ -44,13 +44,10 @@ export function TopicCard({ topic, allTopics, position }) {
         </ul>
       `}
       <div class="actions">
-        <${GenButton} topicId=${topic.id} topicTitle=${topic.title} lessonPath=${topic.lessonPath} />
+        <${GenButton} topicId=${topic.id} topicTitle=${topic.title} topicSlug=${topic.slug} lessonPath=${topic.lessonPath} />
         <button class="btn">Generate quiz</button>
         <button class="btn">Explore subtopics</button>
       </div>
-      ${state.status.value === 'generating' && html`
-        <p class="gen-progress">${state.progress}</p>
-      `}
     </div>
   `;
 }
