@@ -78,3 +78,21 @@ git clone --depth 1 https://github.com/SimonPiCarter/demo_pixel_outline_godot.gi
 git clone --depth 1 https://github.com/GarrettGunnell/Acerola-Compute .references/Acerola-Compute
 git clone --depth 1 https://github.com/Gamelogic-Code/Outlines .references/Gamelogic-Outlines
 ```
+
+
+## Official docs — first-party spec sources (gltf-format / godot-* tracks)
+
+Authoritative documentation cloned for the glTF-format, godot-asset-pipeline, godot-3d-animation,
+and godot-3d-navigation tracks. These are the L4 first-party sources lessons cite — kept local so
+authoring/validation reads from a pinned checkout rather than fetching (some Blender manual mirrors
+403 to bots). Shallow clones; large (Blender manual carries images).
+
+| Repo | What it shows |
+|------|--------------|
+| `blender-manual` | The official Blender user manual (RST/Sphinx source, projects.blender.org). Authoritative for the glTF exporter — `manual/addons/scene_gltf2.rst` — plus modeling/rigging/animation. NOTE: latest moved the glTF page to `manual/addons/`, not the old `addons/import_export/` URL path. |
+| `godot-docs` | The official Godot Engine documentation (RST source). Authoritative for glTF import (`tutorials/assets_pipeline/importing_3d_scenes/`), the `GLTF*` class refs (`classes/class_gltf*.rst`), AnimationTree, and navigation. `latest` = current 4.x. |
+
+```
+git clone --depth 1 https://projects.blender.org/blender/blender-manual.git .references/blender-manual
+git clone --depth 1 https://github.com/godotengine/godot-docs.git .references/godot-docs
+```
