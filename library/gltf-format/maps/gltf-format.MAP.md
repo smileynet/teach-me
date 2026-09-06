@@ -60,6 +60,7 @@ glTF is "the JPEG of 3D": a Khronos open standard for *delivering* runtime-ready
 ### extensions-and-optimization
 - **id:** 01M1T33FPCKCVXK5NMGDAR180Y
 - **title:** Extensions & Optimization
+- **lesson_file:** 06-extensions-and-optimization.html
 - **why:** The ships-to-production layer — file size, GPU-ready textures, and how to extend the format (Draco, meshopt, KTX2, variants) without breaking baseline viewers. Closes with the Khronos glTF Validator and gltf-transform.
 - **scope:** substantial
 - **prereqs:** [gltf-anatomy-and-the-standard]

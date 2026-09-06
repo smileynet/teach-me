@@ -46,6 +46,12 @@ COMPONENT_FLOAT = 5126
 SRGB_SLOTS = ("baseColorTexture", "emissiveTexture")
 LINEAR_SLOTS = ("normalTexture", "metallicRoughnessTexture", "occlusionTexture")
 
+# Extension classification (topic 6). Compression extensions rewrite buffer/image bytes — there is no
+# core-glTF fallback, so they MUST be listed in extensionsRequired. Material extensions layer onto the
+# core metal-rough model (always a valid fallback), so marking them required needlessly rejects viewers.
+COMPRESSION_EXTS = {"KHR_draco_mesh_compression", "EXT_meshopt_compression", "KHR_texture_basisu"}
+MATERIAL_EXT_PREFIX = "KHR_materials_"
+
 # Sample assets already committed in the shader test project (CC0/permissive) + lesson fixtures.
 DEFAULT_ASSETS = [
     "test-scene/assets/kenney-retro-urban/truck-green.glb",          # static prop
@@ -60,6 +66,8 @@ DEFAULT_ASSETS = [
     "library/gltf-format/reference/code/materials-and-textures/cube_orm.glb",
     # lesson 05 (animation-skins-and-morphs): minimal morph-target triangle (lights the morph branch).
     "library/gltf-format/reference/code/animation-skins-and-morphs/morph_tri.glb",
+    # lesson 06 (extensions-and-optimization): declare-only required-compression-ext triangle.
+    "library/gltf-format/reference/code/extensions-and-optimization/required_ext.glb",
 ]
 
 # Assets that MUST carry a pbrMetallicRoughness material with a baseColorTexture — the lesson-02
@@ -247,11 +255,23 @@ def check_asset(path: Path, require_material: bool = False) -> tuple[dict, list[
                 errors.append(f"{path.name}: animation[{ai}].sampler[{si}] CUBICSPLINE output.count "
                               f"{accessors[out_i].get('count')} != 3 * input.count {in_acc.get('count')}")
 
-    # --- extensions (topic 6): required subset of used ---
+    # --- extensions (topic 6): required subset of used + no-fallback classification ---
     used = set(metrics["extensionsUsed"])
+    required = set(metrics["extensionsRequired"])
     for ext in metrics["extensionsRequired"]:
         if ext not in used:
             errors.append(f"{path.name}: extensionsRequired '{ext}' not in extensionsUsed")
+    # a compression ext has no core-glTF fallback → it MUST be required (else a viewer reads garbage)
+    for ext in metrics["extensionsUsed"]:
+        if ext in COMPRESSION_EXTS and ext not in required:
+            errors.append(f"{path.name}: compression extension '{ext}' is used but not required "
+                          f"(no fallback — a non-supporting viewer would read garbage)")
+    # a material ext IS fallback-able → marking it required is a soft note, never an error
+    material_required = sorted(e for e in required if e.startswith(MATERIAL_EXT_PREFIX))
+    if material_required:
+        metrics.setdefault("notes", []).append(
+            f"material extension(s) marked required (core metal-rough is a valid fallback): "
+            f"{', '.join(material_required)}")
 
     return metrics, errors
 
