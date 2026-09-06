@@ -81,6 +81,10 @@
 
 <p>The two arrays borrow their meaning from RFC 2119: <strong>required = MUST</strong> understand, <strong>used-only = MAY</strong> ignore. A real file shows the split plainly — Kenney's <code>truck-green.glb</code> lists <code>KHR_materials_unlit</code> and <code>KHR_texture_transform</code> in <em>used</em>, but only <code>KHR_materials_unlit</code> in <em>required</em>.</p>
 
+<div class="note">
+  <strong>The extension set evolves.</strong> The <a href="https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0" class="citation">Khronos glTF extension registry</a> is the source of truth for what's ratified. As of this writing (2026), the ratified <code>KHR_</code> set includes the compression, texture, and material extensions named in this lesson (Draco, texture_basisu, materials_variants, materials_* PBR extensions) plus <code>KHR_texture_transform</code>, <code>KHR_mesh_quantization</code>, and <code>KHR_lights_punctual</code>; <code>EXT_meshopt_compression</code> is the multi-vendor geometry compressor. Check the registry for the current list before relying on any one extension.
+</div>
+
 <h2>Geometry compression: Draco vs meshopt</h2>
 
 <p>The most common reason to reach for a no-fallback extension is size. Two extensions compress geometry, and they trade off differently:</p>
