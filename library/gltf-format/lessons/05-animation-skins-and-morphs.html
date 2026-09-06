@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5: Animation, Skins &amp; Morphs</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "preact": "../assets/vendor/preact.module.js",
+      "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+      "@preact/signals": "../assets/vendor/preact-signals.module.js",
+      "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+      "htm": "../assets/vendor/htm.module.js"
+    }
+  }
+  </script>
+</head>
+<body>
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="gltf-format-map.html">glTF 2.0</a> <span class="nav-sep">›</span> <span>Animation, Skins &amp; Morphs</span></nav>
+
+<h1>Animation, Skins &amp; Morphs</h1>
+
+<div class="lesson-meta">
+  Lesson 5 · glTF 2.0 · ~10 min read<br>
+  <strong>Win:</strong> You can explain what an inverse-bind-matrix does and why a skinned mesh must export in bind/rest pose, read a glTF animation as channels + samplers with an interpolation mode, and say how a morph target differs from a skinned deformation.
+</div>
+
+<div class="key-concept">
+  <strong>A skinned mesh is stored once, in bind pose — animation never edits vertices, it moves joints.</strong> In <a href="03-consuming-gltf-engine-import.html">Lesson 3</a> you saw a skin collapse into a Skeleton3D and 17 animations into one AnimationPlayer. This lesson is the model underneath: each vertex rides a chain of matrices from the joint that drives it, the <span class="term" data-term="inverse-bind-matrix">inverse-bind-matrix</span> is the hinge that makes it work, and it only works if the geometry is in the <span class="term" data-term="bind-pose">bind pose</span> those matrices were computed for. That one fact is the spec-level reason rigged meshes must export in rest pose.
+</div>
+
+<h2>The skinning chain</h2>
+
+<p>Animation doesn't touch vertices. It moves <em>joints</em>, and every vertex follows the joints that influence it through a short chain of matrices. Read it right to left, like function calls — the rightmost runs first and hands its result leftward:</p>
+
+<svg role="img" aria-labelledby="chain-title" viewBox="0 0 720 300" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="chain-title">The skinning matrix chain: a rest-pose vertex is transformed into joint-local space by the inverse-bind-matrix, then into world space by the joint's animated transform.</title>
+  <text x="360" y="30" text-anchor="middle" fill="var(--svg-text)" font-size="15" font-weight="bold">AnimatedPos = JointWorldMatrix · InverseBind · RestPos</text>
+  <text x="360" y="52" text-anchor="middle" fill="var(--svg-text)" font-size="12" font-style="italic">read right → left: each matrix changes the space the vertex is described in</text>
+
+  <!-- RestPos box -->
+  <rect x="500" y="80" width="180" height="52" rx="4" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5"/>
+  <text x="590" y="103" text-anchor="middle" fill="var(--svg-neutral-text)" font-size="13" font-weight="bold">RestPos</text>
+  <text x="590" y="121" text-anchor="middle" fill="var(--svg-neutral-text)" font-size="11">vertex in model space</text>
+
+  <!-- IBM box -->
+  <rect x="270" y="80" width="200" height="52" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="370" y="103" text-anchor="middle" fill="var(--svg-primary-text)" font-size="13" font-weight="bold">InverseBind</text>
+  <text x="370" y="121" text-anchor="middle" fill="var(--svg-primary-text)" font-size="11">→ into the joint's space</text>
+
+  <!-- JointWorld box -->
+  <rect x="40" y="80" width="200" height="52" rx="4" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="1.5"/>
+  <text x="140" y="103" text-anchor="middle" fill="var(--svg-success-text)" font-size="13" font-weight="bold">JointWorldMatrix</text>
+  <text x="140" y="121" text-anchor="middle" fill="var(--svg-success-text)" font-size="11">→ into world, at the pose</text>
+
+  <line x1="500" y1="106" x2="472" y2="106" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="270" y1="106" x2="242" y2="106" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- space labels underneath -->
+  <text x="590" y="152" text-anchor="middle" fill="var(--svg-text)" font-size="11">model space</text>
+  <text x="370" y="152" text-anchor="middle" fill="var(--svg-text)" font-size="11">joint-local space</text>
+  <text x="140" y="152" text-anchor="middle" fill="var(--svg-text)" font-size="11">world space</text>
+
+  <!-- influence inset -->
+  <rect x="40" y="188" width="640" height="60" rx="4" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1"/>
+  <text x="360" y="210" text-anchor="middle" fill="var(--svg-neutral-text)" font-size="12" font-weight="bold">Each vertex names up to 4 joints</text>
+  <text x="360" y="230" text-anchor="middle" fill="var(--svg-neutral-text)" font-size="12">JOINTS_0 (which joints) + WEIGHTS_0 (how much, summing to 1.0) — the results are blended</text>
+
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="var(--svg-line)"/>
+    </marker>
+  </defs>
+
+  <text x="360" y="278" text-anchor="middle" fill="var(--svg-text)" font-size="13" font-style="italic">The InverseBind measures the vertex from the joint; the joint's animation then re-poses it.</text>
+</svg>
+
+<p>The trick is the <strong>InverseBind</strong> matrix. A vertex is authored once, in model space. To let a joint rotate that vertex "around itself," you first re-express the vertex <em>relative to the joint's own origin</em> — that's exactly what the inverse-bind-matrix does ("if the bind-pose joint sat at the origin, where is this vertex?"). Then the joint's current animated world transform carries it to its posed location. Notice how the space labels line up: model → joint-local → world. Get the order wrong or drop the inverse, and the labels stop matching — that's the whole check, no arithmetic needed.</p>
+
+<div class="note">
+  <strong>New concept — change of basis:</strong> the inverse-bind-matrix is a change of basis — it describes the same vertex in the joint's grid instead of the model's grid. The vertex doesn't move; only the numbers describing it change. (The spec's full form also normalizes by the skinned node's own transform, which is usually identity — the three-factor chain here is the teaching form.)
+</div>
+
+<h2>Why bind pose matters</h2>
+
+<p>Here is the payoff every earlier lesson pointed at. All glTF animation is expressed as a <strong>delta from the bind pose</strong> — a channel that says "rotate 30°" means 30° <em>beyond</em> the bind-pose rotation. The bind pose is the shared reference frame that ties the animation to the geometry, and the inverse-bind-matrices encode each joint's bind-pose world transform. If the exported geometry isn't actually in that bind pose, <code>InverseBind · RestPos</code> lands every vertex in the wrong joint-local space and the mesh contorts.</p>
+
+<div class="note">
+  <strong>Why does my imported character look like spaghetti?</strong> Stretched-to-origin limbs, exploded joints, or a mesh rotated 90° off its skeleton are all one bug: the bind pose the mesh was exported in doesn't match the bind pose the inverse-bind-matrices encode. The classic Blender trigger is a <em>non-identity armature-object transform</em> (Mixamo rigs import with a +90° X rotation and ~0.009 scale); on export that transform merges into the root bone and shifts the bind pose. The fix is to <strong>apply all transforms</strong> before export. This is the spec-level root of Lesson 2's "Export Deformation Bones Only" gotcha — and because it's a spec-level contract, the same failure shows up in Unity, three.js, and Babylon too. <a href="https://github.com/KhronosGroup/glTF-Blender-IO/issues/994" class="citation">[glTF-Blender-IO #994]</a>
+</div>
+
+<h2>Animation = channels + samplers</h2>
+
+<p>A glTF <code>animation</code> is two arrays working together. A <span class="term" data-term="animation-channel">channel</span> says <em>what</em> to animate; a <span class="term" data-term="animation-sampler">sampler</span> says <em>how it changes over time</em>.</p>
+
+<pre data-file="animation_snippet.json" data-mode="fragment"><code>"animations": [{
+  "channels": [
+    { "sampler": 0, "target": { "node": 3, "path": "rotation" } }
+  ],
+  "samplers": [
+    { "input": 8, "interpolation": "LINEAR", "output": 9 }
+  ]
+}]</code></pre>
+
+<p>The channel's <code>target</code> is a node plus a <code>path</code> — one of <code>translation</code>, <code>rotation</code>, <code>scale</code>, or <code>weights</code> (animated nodes use TRS, never a matrix). The sampler's <code>input</code> is an accessor of strictly-increasing FLOAT timestamps, and <code>output</code> is the matching values. Samplers can be shared across channels. That's it — 17 animations on a character are just many of these channel/sampler pairs pointing at the skeleton's joint nodes.</p>
+
+<h2>Interpolation: how the sampler fills the gaps</h2>
+
+<div class="note">
+  <strong>When to use which:</strong>
+  <ul>
+    <li><strong>LINEAR</strong> (the default) — straight-line blend between keyframes; rotations slerp. Output count equals input count. Use for most motion.</li>
+    <li><strong>STEP</strong> — hold the previous value until the next key. Output count equals input. Use for discrete switches (a light toggling, a hard pose swap).</li>
+    <li><strong>CUBICSPLINE</strong> — smooth authored curves. Stores an in-tangent, the value, and an out-tangent per key, so its <strong>output has 3× the keyframes</strong> and needs at least 2 keys. Use for hand-tuned easing, at 3× the data cost.</li>
+  </ul>
+  <strong>Rule of thumb:</strong> LINEAR unless you specifically need STEP's snapping or CUBICSPLINE's authored curves.
+</div>
+
+<h2>Morph targets: a different kind of deformation</h2>
+
+<p>Skinning re-poses shared geometry with rigid joints. A <span class="term" data-term="morph-target">morph target</span> does something different: it moves vertices by <em>per-vertex deltas</em>. Each target stores POSITION (and optionally NORMAL/TANGENT) offsets, and the rendered vertex is <code>base + Σ weights[j] · target[j]</code>. Animate the <code>mesh.weights</code> via a channel whose <code>path</code> is <code>"weights"</code>, and you blend smoothly between shapes.</p>
+
+<div class="comparison">
+  <div><strong>Skin:</strong> rigid joints re-pose one shared mesh through the matrix chain. Good for skeletal motion — walking, waving.</div>
+  <div><strong>Morph:</strong> blend between stored geometry snapshots by weight. Good for shapes a skeleton can't express — facial expressions, a smile dialing in. "Blend shapes" and "shape keys" are the same thing.</div>
+</div>
+
+<h2>Try it: read the rig off a real file</h2>
+
+<p>The companion tool parses a real rigged <code>.glb</code> with the standard library alone and asserts the contracts above — the skin's inverse-bind-matrices are MAT4/float with one per joint, a skinned primitive carries JOINTS_0 + WEIGHTS_0, and every animation sampler has a valid time input and interpolation mode:</p>
+
+<pre data-file="check_skin_animation.py"><code>import json, struct, sys
+
+def load_gltf(path):
+    data = open(path, "rb").read()
+    if data[:4] != b"glTF":
+        return json.loads(data)
+    magic, version, total = struct.unpack_from("&lt;III", data, 0)
+    assert magic == 0x46546C67 and version == 2
+    off, gltf = 12, None
+    while off &lt; total:
+        clen, ctype = struct.unpack_from("&lt;II", data, off); off += 8
+        if ctype == 0x4E4F534A:
+            gltf = json.loads(data[off:off+clen])
+        off += clen
+    return gltf
+
+g = load_gltf(sys.argv[1])
+accessors = g.get("accessors", [])
+for si, skin in enumerate(g.get("skins", [])):        # the skin/IBM contract
+    ibm = skin.get("inverseBindMatrices")
+    if ibm is None: continue
+    acc = accessors[ibm]
+    assert acc["type"] == "MAT4" and acc["componentType"] == 5126   # float MAT4
+    assert acc["count"] &gt;= len(skin.get("joints", []))              # one IBM per joint
+
+for ai, anim in enumerate(g.get("animations", [])):    # channels + samplers resolve
+    for s in anim.get("samplers", []):
+        interp = s.get("interpolation", "LINEAR")
+        assert interp in ("LINEAR", "STEP", "CUBICSPLINE")
+        assert accessors[s["input"]]["type"] == "SCALAR"           # time is scalar
+print("ok:", len(g.get("skins", [])), "skin,", len(g.get("animations", [])), "animations")</code></pre>
+
+<p>Run it on a rigged character (23 joints, 17 animations, all LINEAR) and it passes; the full downloadable version prints the channel/sampler summary and is gated in <code>mise run verify</code>. Morph targets get their own minimal fixture:</p>
+
+<pre data-file="make_tri_morph_glb.py" data-mode="fragment"><code># make_tri_morph_glb.py builds morph_tri.glb: a triangle with ONE morph target.
+# The primitive gets  targets: [{ "POSITION": &lt;delta-accessor&gt; }]  and the mesh
+# gets  weights: [0.0]  — the delta lifts vertex 0 by +0.5 in Y as the weight rises.
+# base + weight * delta = the morphed position. Full stdlib generator is the download.</code></pre>
+
+<h2>Code Files</h2>
+<p>Download the final-state files from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/animation-skins-and-morphs/check_skin_animation.py" download><code>check_skin_animation.py</code></a> — print + assert skin IBM and animation channels/samplers on a real rigged asset (stdlib, engine-agnostic).</li>
+  <li><a href="../reference/code/animation-skins-and-morphs/make_tri_morph_glb.py" download><code>make_tri_morph_glb.py</code></a> — generate <code>morph_tri.glb</code>, a minimal one-morph-target fixture (stdlib, no Blender).</li>
+</ul>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> An artist poses their character mid-crouch, exports to glTF, and in the engine the imported mesh is contorted — limbs stretched toward the origin. The rig and weights are fine. What went wrong, and what's the one-line fix?</p>
+  <details><summary>Hint</summary><p>All animation is a delta from the bind pose, and the inverse-bind-matrices encode a specific pose. What did exporting mid-crouch do to the pose the mesh was stored in?</p></details>
+  <details><summary>Answer</summary><p>Should mention: (1) the mesh was exported in the current (crouch) pose, but the inverse-bind-matrices encode a different bind pose — so <code>InverseBind · RestPos</code> sends every vertex into the wrong joint-local space. (2) Because all animation is a delta <em>from</em> the bind pose, a mismatched bind pose corrupts every frame, not just the first. (3) The fix: export in the rest/bind pose the skin was bound in — apply the rest pose / apply all transforms before exporting. <strong>Key insight:</strong> the bind pose is the shared reference frame; the mesh and its IBMs must agree on it, or the whole chain lands in the wrong space.</p></details>
+</div>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <ul>
+    <li><strong>Extensions &amp; Optimization</strong> — the ships-to-production layer: Draco/meshopt compression, KTX2 textures, and the Khronos glTF Validator.</li>
+    <li><strong>godot-3d-animation</strong> — the skin and animation data you just read is exactly what Godot's AnimationPlayer and retargeting consume; that track builds character animation on top of it.</li>
+    <li><strong>godot-asset-pipeline</strong> — importing and retargeting rigged characters into a Godot project.</li>
+  </ul>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "inverse-bind-matrix": "Per-joint matrix (the inverse of the joint's bind-pose world transform) that re-expresses a mesh vertex relative to that joint's origin, so the joint's animated transform can then re-pose it.",
+  "bind-pose": "The reference pose a skinned mesh is authored and bound in; all animation is expressed as a delta from it, and the inverse-bind-matrices encode it — so the exported geometry must match it.",
+  "animation-channel": "The 'what' of a glTF animation — a target node plus a path (translation, rotation, scale, or weights) driven by a referenced sampler.",
+  "animation-sampler": "The 'how over time' of a glTF animation — an input accessor of timestamps, an output accessor of values, and an interpolation mode.",
+  "morph-target": "A stored set of per-vertex POSITION/NORMAL/TANGENT deltas; the rendered vertex is base + the weighted sum of the targets. Also called a blend shape or shape key."
+}
+</script>
+<script type="application/json" id="lesson-actions-config" data-domain="gltf-format" data-lesson-id="05-animation-skins-and-morphs" data-map-page="gltf-format-map.html" data-topic-title="Animation, Skins &amp; Morphs"></script>
+<script type="module" src="../assets/page-shell.js"></script>
+</body>
+</html>

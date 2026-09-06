@@ -51,6 +51,7 @@ glTF is "the JPEG of 3D": a Khronos open standard for *delivering* runtime-ready
 ### animation-skins-and-morphs
 - **id:** 01M1T33FPCSQ0QED2XH9HDPR9A
 - **title:** Animation, Skins & Morphs
+- **lesson_file:** 05-animation-skins-and-morphs.html
 - **why:** Rigged/animated content is where the spec's subtlety lives — the skin/inverse-bind-matrix model is the answer to the rest-pose and Export-Deform-Bones-Only gotchas. Covers samplers/channels, interpolation modes, and morph targets.
 - **scope:** deep
 - **prereqs:** [gltf-anatomy-and-the-standard]
