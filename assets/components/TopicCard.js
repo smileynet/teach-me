@@ -3,6 +3,7 @@ import htm from 'htm';
 import { getTopicState } from './store.js';
 import { StatusBadge } from './StatusBadge.js';
 import { GenButton } from './GenButton.js';
+import { GeneratePrompt } from './GeneratePrompt.js';
 
 const html = htm.bind(h);
 
@@ -45,7 +46,10 @@ export function TopicCard({ topic, allTopics, position }) {
       `}
       <div class="actions">
         <${GenButton} topicId=${topic.id} topicTitle=${topic.title} topicSlug=${topic.slug} lessonPath=${topic.lessonPath} />
-        <button class="btn">Generate quiz</button>
+        <${GeneratePrompt}
+          buttonLabel="Generate quiz"
+          groupLabel=${'How to generate the quiz for ' + topic.title}
+          prompt=${`Generate the quiz page for the "${topic.title}" topic (slug ${topic.slug}) in this teaching workspace. Run the generate-quiz-page tool / generate-topic quiz step.`} />
         <button class="btn">Explore subtopics</button>
       </div>
     </div>

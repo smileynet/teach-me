@@ -1,6 +1,7 @@
 import { h, render } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import htm from 'htm';
+import { GeneratePrompt } from './GeneratePrompt.js';
 
 const html = htm.bind(h);
 
@@ -63,14 +64,20 @@ function LessonActions({ lessonId, domain, mapPage, topicTitle }) {
       });
   }
 
-  const quizLabel = quizExists === null ? '…' : quizExists ? '📝 Take quiz' : '+ Generate quiz';
+  const quizPrompt = `Generate the quiz page for the "${topicTitle}" lesson (lesson id ${lessonId}${domain ? ', domain ' + domain : ''}) in this teaching workspace. Run the generate-quiz-page tool / generate-topic quiz step so it lands at ${quizUrl}.`;
 
   return html`
     <div class="lesson-actions-bar">
       ${resolvedMapPage && html`
         <a href=${resolvedMapPage} class="btn">← Back to map</a>
       `}
-      <button class="btn" onClick=${() => { window.location.href = quizUrl; }}>${quizLabel}</button>
+      ${quizExists === null && html`<span class="btn">…</span>`}
+      ${quizExists === true && html`
+        <a href=${quizUrl} class="btn" aria-label=${'Take quiz: ' + topicTitle}>📝 Take quiz</a>
+      `}
+      ${quizExists === false && html`
+        <${GeneratePrompt} buttonLabel="+ Generate quiz" groupLabel=${'How to generate the quiz for ' + topicTitle} prompt=${quizPrompt} />
+      `}
       ${status === 'loading' && html`
         <span class="btn">…</span>
       `}
