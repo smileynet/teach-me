@@ -1,7 +1,7 @@
 ---
 id: "312"
 title: "Topic: consuming-glTF-engine-import (how a runtime ingests glTF; Godot as one consumer)"
-status: open
+status: in_progress
 blocked_by: ["310"]
 priority: medium
 validation_criteria:
