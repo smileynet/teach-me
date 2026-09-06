@@ -54,3 +54,14 @@ Downloadable at `reference/code/gltf-format/consuming-gltf-engine-import/`.
 
 - The seam to #305: this topic is the spec-side "how import works"; #305 t1 is the Godot-side "which
   format for Godot + verify it imported."
+- **Doc-review (2026-09-05, `.scratch/review/godot-docs-verify.md` vs local `.references/godot-docs`):**
+  runtime API (`GLTFDocument→GLTFState→generate_scene`, exact signatures) and the full name-suffix
+  vocabulary (incl. case-insensitivity + `-`/`$`/`_` separators + the `use_name_suffixes` opt-out) are
+  confirmed **[L4:verified]**. TWO corrections to fold in when authoring:
+  (1) **Do NOT overstate a "-colonly broken on glTF" caveat** — the official docs do NOT say that; only
+  the empty-object→primitive-collision variant is qualified as "with Collada files." Base `-colonly`
+  (remove mesh → StaticBody3D) is format-agnostic. (This drops an overstatement from the earlier #305/#311
+  research that leaned on GH issue #115869.)
+  (2) Downgrade two node-mapping rows to **[L4:inferred]**: `scene→Node3D` (Node3D is the *recommended*
+  Root Type, not mandated) and the concrete `Light3D` subclass names (only `GLTFLight` + Blender
+  directional/omni/spot are in the reviewed RSTs). Everything else in the mapping stays verified.
