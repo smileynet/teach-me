@@ -1,7 +1,7 @@
 ---
 id: "316"
 title: "Fix ink-godot index drift (stale mission vs generator; MISSION.md missing)"
-status: in_progress
+status: done
 blocked_by: []
 priority: medium
 validation_criteria:
@@ -49,11 +49,11 @@ a written MISSION.md, not just a regenerate-and-commit.
 
 ## Acceptance criteria
 
-- [ ] `library/ink-godot/MISSION.md` authored (correct narrative-scripting mission) OR a documented decision to drop it
-- [ ] `library/ink-godot/lessons/index.html` regenerated from the generator (not hand-edited)
-- [ ] `tools/check-index-drift.py` reports it `[ok]`
-- [ ] `mise run verify` passes the index-drift gate without `--no-verify`
-- [ ] Check whether other library domains have the same missing-MISSION.md drift (sweep `check-index-drift.py`)
+- [x] `library/ink-godot/MISSION.md` authored (correct narrative-scripting mission) OR a documented decision to drop it
+- [x] `library/ink-godot/lessons/index.html` regenerated from the generator (not hand-edited)
+- [x] `tools/check-index-drift.py` reports it `[ok]`
+- [x] `mise run verify` passes the index-drift gate without `--no-verify`
+- [x] Check whether other library domains have the same missing-MISSION.md drift (sweep `check-index-drift.py`)
 
 ## Notes
 
@@ -61,3 +61,34 @@ a written MISSION.md, not just a regenerate-and-commit.
   session's commits. Not owned by #198/#272/#276/#278/#279 (those are multi-workspace/overlay/unify
   concerns, not this mission-source drift).
 - `check-index-drift.py` is non-destructive (snapshots + restores), so it's safe to run repeatedly.
+
+## Resolution
+
+The ticket's diagnosis was stale/backwards. Reproduced the real root cause: `generate_index_page.py`'s
+`parse_mission` fell back UNCONDITIONALLY to the gitignored, machine-local `workspace/MISSION.md` when a
+domain had no `MISSION.md` — a determinism bug (committed per-domain pages depended on an untracked,
+per-machine input) plus cross-scope bleed (a domain inherited an unrelated global mission). On this
+machine that leaked a "Blender → Godot Shader Pipeline" mission into BOTH ink-godot's page and the
+aggregate `library/index.html`.
+
+Fix (two parts):
+- **Generator (class fix):** scoped the `workspace/MISSION.md` fallback to `base == PROJECT_ROOT` (the
+  whole-project scan). A specific `--scan-dir` now uses its own `MISSION.md` or the generic default —
+  never an unrelated global. Preserves the default single-workspace serve.
+- **Content:** authored `library/ink-godot/MISSION.md` (the only library domain lacking one) — a
+  narrative-scripting mission verified against the shipped 8-lesson arc (flow/knots → production patterns,
+  inkgd pure-GDScript).
+
+Regenerated both drifted pages via the generator (not hand-edited): ink-godot now carries its correct
+mission; the aggregate correctly shows `mission: null`.
+
+**Verified:**
+- `check-index-drift.py` → 7/7 `[ok]` ("index pages in sync with the generator").
+- `mise run verify` → PASSES, exit 0, no `--no-verify`.
+- The commit landed through the pre-commit hook normally (`✓ pre-commit checks passed`) — the recurring
+  hook-bypass across the gltf-format session is resolved.
+- Swept all 6 domains + aggregate: only ink-godot + aggregate changed (both intended, mission-only diffs);
+  no other domain regressed.
+
+Research/review backing: `.scratch/research/316-deterministic-build.md`, `.scratch/research/316-config-fallback.md`,
+`.scratch/review/316-generator-code.md`, `.scratch/review/316-ink-godot-mission.md`. Committed b09ca0f.

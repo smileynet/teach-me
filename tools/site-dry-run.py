@@ -107,7 +107,7 @@ def main() -> int:
         domain_dirs = [d for d in (site / "library").iterdir()
                        if d.is_dir() and (d / "lessons").is_dir()]
         indexes = [d / "lessons" / "index.html" for d in domain_dirs]
-        c.check(len(domain_dirs) == 5 and all(i.is_file() for i in indexes),
+        c.check(len(domain_dirs) == 6 and all(i.is_file() for i in indexes),
                 f"all {len(domain_dirs)} per-domain lessons/index.html present")
         stubs = [i for i in indexes
                  if "<title>Lessons</title>" in i.read_text(encoding="utf-8", errors="replace")]
