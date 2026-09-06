@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 6: Extensions &amp; Optimization</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "preact": "../assets/vendor/preact.module.js",
+      "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+      "@preact/signals": "../assets/vendor/preact-signals.module.js",
+      "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+      "htm": "../assets/vendor/htm.module.js"
+    }
+  }
+  </script>
+</head>
+<body>
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="gltf-format-map.html">glTF 2.0</a> <span class="nav-sep">›</span> <span>Extensions &amp; Optimization</span></nav>
+
+<h1>Extensions &amp; Optimization</h1>
+
+<div class="lesson-meta">
+  Lesson 6 · glTF 2.0 · ~9 min read<br>
+  <strong>Win:</strong> You can explain the extensionsUsed-vs-extensionsRequired contract and why a compression extension must be required while a material extension should not, choose between Draco and meshopt, and name the tool that tells you whether a file is spec-conformant before you ship it.
+</div>
+
+<div class="key-concept">
+  <strong>An extension is how glTF grows — and <code>extensionsRequired</code> is the promise "you can't render this without me."</strong> <a href="03-consuming-gltf-engine-import.html">Lesson 3</a> introduced the idea that an extension is a request, not a guarantee, and <a href="04-materials-and-textures.html">Lesson 4</a> sharpened it into a rule. This capstone turns that rule into a mechanism you can apply to any extension with <span class="term" data-term="ext-required">one question</span>: <em>does the core still render without this?</em> If yes, it's optional; if no, it's required. That single split is what lets you shrink a file to ship it without breaking older viewers.
+</div>
+
+<h2>The one decision: used vs required</h2>
+
+<p>Every extension is named by who authored it — <code>KHR_</code> (Khronos-ratified), <code>EXT_</code> (multi-vendor), or a vendor prefix. But the property that matters at ship time isn't the prefix; it's which of two arrays the extension goes in. A file lists <span class="term" data-term="ext-used">everything it uses</span>, and separately lists <span class="term" data-term="ext-required">what a viewer must understand</span>. Decide with one question:</p>
+
+<svg role="img" aria-labelledby="dec-title" viewBox="0 0 720 320" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="dec-title">A decision tree: does the core still render without this extension? Yes means list it in extensionsUsed only; no means also list it in extensionsRequired. Each wrong choice has a labeled failure mode.</title>
+  <!-- question -->
+  <rect x="200" y="20" width="320" height="46" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="360" y="41" text-anchor="middle" fill="var(--svg-primary-text)" font-size="13" font-weight="bold">Does the core still render without this extension?</text>
+  <text x="360" y="59" text-anchor="middle" fill="var(--svg-primary-text)" font-size="11">(is there a valid core-glTF fallback?)</text>
+
+  <!-- YES branch -->
+  <line x1="290" y1="66" x2="170" y2="110" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#a6)"/>
+  <text x="210" y="92" text-anchor="middle" fill="var(--svg-success-text)" font-size="12" font-weight="bold">YES</text>
+  <rect x="30" y="112" width="280" height="46" rx="6" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="1.5"/>
+  <text x="170" y="133" text-anchor="middle" fill="var(--svg-success-text)" font-size="12" font-weight="bold">extensionsUsed only (MAY ignore)</text>
+  <text x="170" y="150" text-anchor="middle" fill="var(--svg-success-text)" font-size="11">non-supporting viewer degrades gracefully</text>
+
+  <!-- NO branch -->
+  <line x1="430" y1="66" x2="550" y2="110" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#a6)"/>
+  <text x="510" y="92" text-anchor="middle" fill="var(--svg-warning-text)" font-size="12" font-weight="bold">NO</text>
+  <rect x="410" y="112" width="280" height="46" rx="6" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="1.5"/>
+  <text x="550" y="133" text-anchor="middle" fill="var(--svg-warning-text)" font-size="12" font-weight="bold">also extensionsRequired (MUST support)</text>
+  <text x="550" y="150" text-anchor="middle" fill="var(--svg-warning-text)" font-size="11">viewer SHOULD NOT load if unsupported</text>
+
+  <!-- failure modes -->
+  <rect x="30" y="192" width="280" height="60" rx="4" fill="var(--svg-error-fill)" stroke="var(--svg-error)" stroke-width="1.5"/>
+  <text x="170" y="212" text-anchor="middle" fill="var(--svg-error-text)" font-size="12" font-weight="bold">Wrong: required when optional</text>
+  <text x="170" y="230" text-anchor="middle" fill="var(--svg-error-text)" font-size="11">an over-strict viewer needlessly</text>
+  <text x="170" y="245" text-anchor="middle" fill="var(--svg-error-text)" font-size="11">REJECTS a file it could have rendered</text>
+
+  <rect x="410" y="192" width="280" height="60" rx="4" fill="var(--svg-error-fill)" stroke="var(--svg-error)" stroke-width="1.5"/>
+  <text x="550" y="212" text-anchor="middle" fill="var(--svg-error-text)" font-size="12" font-weight="bold">Wrong: optional when required</text>
+  <text x="550" y="230" text-anchor="middle" fill="var(--svg-error-text)" font-size="11">a viewer loads it and renders</text>
+  <text x="550" y="245" text-anchor="middle" fill="var(--svg-error-text)" font-size="11">GARBAGE (unreadable bytes)</text>
+
+  <defs>
+    <marker id="a6" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="var(--svg-line)"/>
+    </marker>
+  </defs>
+
+  <text x="360" y="290" text-anchor="middle" fill="var(--svg-text)" font-size="13" font-style="italic">Required means "the bytes are unreadable without me" — true for compression, false for materials.</text>
+  <text x="360" y="308" text-anchor="middle" fill="var(--svg-text)" font-size="11">extensionsRequired must be a subset of extensionsUsed (spec §3.12)</text>
+</svg>
+
+<p>The two arrays borrow their meaning from RFC 2119: <strong>required = MUST</strong> understand, <strong>used-only = MAY</strong> ignore. A real file shows the split plainly — Kenney's <code>truck-green.glb</code> lists <code>KHR_materials_unlit</code> and <code>KHR_texture_transform</code> in <em>used</em>, but only <code>KHR_materials_unlit</code> in <em>required</em>.</p>
+
+<h2>Geometry compression: Draco vs meshopt</h2>
+
+<p>The most common reason to reach for a no-fallback extension is size. Two extensions compress geometry, and they trade off differently:</p>
+
+<div class="note">
+  <strong>When to use which:</strong>
+  <ul>
+    <li><strong>Draco</strong> (<code>KHR_draco_mesh_compression</code>) — the smallest files (roughly 70–90% off mesh geometry, <em>reported</em>). Cost: decode is markedly slower and needs a ~200 KB WASM decoder; geometry only.</li>
+    <li><strong>meshopt</strong> (<code>EXT_meshopt_compression</code>) — a lightweight decoder that decodes near-instantly with SIMD, produces GPU-friendly quantized data, and covers geometry, morphs, <em>and</em> animation.</li>
+  </ul>
+  <strong>Rule of thumb:</strong> Draco when transmission bytes dominate and decode budget is generous (one-time load, slow network); meshopt when decode latency, mobile, or animation matter. Both must be <code>extensionsRequired</code> — the buffer bytes are literally unreadable without the decoder. Neither raises framerate (both CPU-decode before GPU upload).
+</div>
+
+<h2>Texture supercompression and variants</h2>
+
+<p><code>KHR_texture_basisu</code> wraps a <span class="term" data-term="ktx2">KTX2 / Basis Universal</span> payload that transcodes to the GPU's native block format and <em>stays compressed in VRAM</em> — unlike PNG/JPEG, which decode to raw RGBA (large memory, slow upload). It's also a no-fallback, required extension. And <code>KHR_materials_variants</code> stores several material sets over one mesh (per-primitive name→material mappings) so a product viewer can swap colorways with no geometry duplication — it <em>can</em> fall back to the default material, so unlike compression it needn't be required.</p>
+
+<h2>Validate, then optimize</h2>
+
+<p>Two tools bracket the ship step, and the order matters. First check the file is correct; only then change it.</p>
+
+<div class="note">
+  <strong>Validate first, optimize second.</strong> The <span class="term" data-term="gltf-validator">Khronos glTF Validator</span> is the reference conformance checker (severities: Error / Warning / Information / Hint). It catches semantic bugs a structural parser misses — misaligned accessor offsets, bufferViews exceeding the buffer, non-monotonic animation sampler inputs, a skin joint referencing a missing node. It's a Node tool (<code>gltf-validator</code>) with a CI-gateable CLI. Then <strong>gltf-transform</strong> (a separate CLI) <em>optimizes</em> — it is not a validator, so run it after. Its passes apply in order: prune/dedup → quantize → Draco/meshopt → KTX2 → and <code>gzip</code>/brotli <em>last</em> (a transport layer on the finished bytes, never gzip-then-optimize).
+</div>
+
+<div class="note">
+  <strong>Don't over-optimize.</strong> A Draco file can render <em>slower</em> to first frame on a low-end device than an uncompressed one — the ~200 KB decoder plus decode time can outweigh the smaller download. Export two candidates and test on the weakest device you support. And remember the contract: making Draco, meshopt, or KTX2 required breaks every non-supporting baseline viewer — that's the whole point of the decision above.
+</div>
+
+<h2>Try it: read the contract off a real file</h2>
+
+<p>The companion tool parses a <code>.glb</code>/<code>.gltf</code> with the standard library alone, prints a per-extension table (its class and whether it has a fallback), and asserts the contract — a compression extension left out of <code>extensionsRequired</code> is a hard error; a material extension forced into it is a note:</p>
+
+<pre data-file="check_extensions.py"><code>import json, struct, sys
+
+COMPRESSION_EXTS = {"KHR_draco_mesh_compression", "EXT_meshopt_compression", "KHR_texture_basisu"}
+MATERIAL_EXT_PREFIX = "KHR_materials_"
+
+def load_gltf(path):
+    data = open(path, "rb").read()
+    if data[:4] != b"glTF":
+        return json.loads(data)
+    magic, version, total = struct.unpack_from("&lt;III", data, 0)
+    assert magic == 0x46546C67 and version == 2
+    off, gltf = 12, None
+    while off &lt; total:
+        clen, ctype = struct.unpack_from("&lt;II", data, off); off += 8
+        if ctype == 0x4E4F534A:
+            gltf = json.loads(data[off:off+clen])
+        off += clen
+    return gltf
+
+g = load_gltf(sys.argv[1])
+used = g.get("extensionsUsed", [])
+required = set(g.get("extensionsRequired", []))
+errors = []
+for ext in required:                                  # spec 3.12: required is a subset of used
+    if ext not in used: errors.append(f"{ext} required but not used")
+for ext in used:                                      # a no-fallback ext MUST be required
+    if ext in COMPRESSION_EXTS and ext not in required:
+        errors.append(f"{ext} is compression but not required (viewer would read garbage)")
+print("errors:", errors or "none")
+sys.exit(1 if errors else 0)</code></pre>
+
+<p>Run it on the truck and it passes with a note about the required unlit material; the full downloadable version prints the fallback table and is gated in <code>mise run verify</code>. A minimal fixture demonstrates the correct compression placement:</p>
+
+<pre data-file="make_required_ext_glb.py" data-mode="fragment"><code># make_required_ext_glb.py builds required_ext.glb: a triangle that DECLARES
+# EXT_meshopt_compression in BOTH extensionsUsed and extensionsRequired — the correct
+# placement for a no-fallback compression extension. It ships no real meshopt payload
+# (that needs the encoder); the point is the contract declaration the oracle checks.</code></pre>
+
+<h2>Code Files</h2>
+<p>Download the final-state files from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/extensions-and-optimization/check_extensions.py" download><code>check_extensions.py</code></a> — print the extension table and assert the used/required contract (stdlib, engine-agnostic).</li>
+  <li><a href="../reference/code/extensions-and-optimization/make_required_ext_glb.py" download><code>make_required_ext_glb.py</code></a> — generate <code>required_ext.glb</code>, a declare-only required-compression-ext fixture (stdlib).</li>
+</ul>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A teammate ships a product-viewer model that renders fine on their machine but shows nothing on an older device. The file lists <code>KHR_materials_unlit</code> in <em>both</em> extensionsUsed and extensionsRequired, and the geometry is Draco-compressed but <code>KHR_draco_mesh_compression</code> appears only in extensionsUsed. Which of those two choices is backwards, and what breaks in each case?</p>
+  <details><summary>Hint</summary><p>Apply the one question to each extension: does the core still render without it? One has a fallback; one doesn't.</p></details>
+  <details><summary>Answer</summary><p>Should mention: (1) <strong>Both</strong> are backwards. (2) <code>KHR_materials_unlit</code> has a valid fallback — core metal-rough — so forcing it required makes a non-supporting viewer refuse a file it could have rendered (per the spec it SHOULD NOT load an asset whose required extension it can't support); move it to used-only. (3) Draco has <em>no</em> fallback — the buffer bytes are unreadable without the decoder — so leaving it used-only lets a non-supporting viewer try to read garbage geometry; it must be required. <strong>Key insight:</strong> required means "the bytes are unreadable without me" — true for compression, false for materials.</p></details>
+</div>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <ul>
+    <li><strong>You've finished the glTF 2.0 track</strong> — anatomy, authoring, engine import, materials, animation/skins/morphs, and now extensions &amp; optimization. You can read a glTF from the file, reason about round-trip bugs, and ship it.</li>
+    <li><strong>godot-asset-pipeline</strong> — how a real engine imports these files, and which of these extensions (Draco, meshopt, KTX2) each runtime actually supports. The same "one consumer of many" that ran through this whole track.</li>
+  </ul>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "ext-used": "The extensionsUsed array — every glTF extension present in the file; a viewer MAY ignore any of them and still load the asset.",
+  "ext-required": "The extensionsRequired array (a subset of extensionsUsed) — extensions a viewer MUST understand, or per the spec it SHOULD NOT load the asset. Use it only when there's no core-glTF fallback.",
+  "ktx2": "A GPU-ready supercompressed texture container (Basis Universal payload, via KHR_texture_basisu) that transcodes to the GPU's native block format and stays compressed in VRAM.",
+  "gltf-validator": "The Khronos reference conformance checker for glTF 2.0 — reports Error/Warning/Information/Hint findings, catching semantic bugs a structural parser misses. Distinct from gltf-transform, which optimizes rather than validates."
+}
+</script>
+<script type="application/json" id="lesson-actions-config" data-domain="gltf-format" data-lesson-id="06-extensions-and-optimization" data-map-page="gltf-format-map.html" data-topic-title="Extensions &amp; Optimization"></script>
+<script type="module" src="../assets/page-shell.js"></script>
+</body>
+</html>
