@@ -30,7 +30,7 @@
 </div>
 
 <div class="key-concept">
-  <strong>An extension is how glTF grows — and <code>extensionsRequired</code> is the promise "you can't render this without me."</strong> <a href="03-consuming-gltf-engine-import.html">Lesson 3</a> introduced the idea that an extension is a request, not a guarantee, and <a href="04-materials-and-textures.html">Lesson 4</a> sharpened it into a rule. This capstone turns that rule into a mechanism you can apply to any extension with <span class="term" data-term="ext-required">one question</span>: <em>does the core still render without this?</em> If yes, it's optional; if no, it's required. That single split is what lets you shrink a file to ship it without breaking older viewers.
+  <strong>An extension is how glTF grows. <code>extensionsRequired</code> is the promise "you can't render this without me."</strong> <a href="03-consuming-gltf-engine-import.html">Lesson 3</a> introduced the idea that an extension is a request, not a guarantee, and <a href="04-materials-and-textures.html">Lesson 4</a> sharpened it into a rule. That rule becomes a mechanism you can apply to any extension with <span class="term" data-term="ext-required">one question</span>: <em>does the core still render without this?</em> If yes, it's optional; if no, it's required. That single split is what lets you shrink a file to ship it without breaking older viewers.
 </div>
 
 <h2>The one decision: used vs required</h2>
@@ -107,11 +107,11 @@
 <p>Two tools bracket the ship step, and the order matters. First check the file is correct; only then change it.</p>
 
 <div class="note">
-  <strong>Validate first, optimize second.</strong> The <span class="term" data-term="gltf-validator">Khronos glTF Validator</span> is the reference conformance checker (severities: Error / Warning / Information / Hint). It catches semantic bugs a structural parser misses — misaligned accessor offsets, bufferViews exceeding the buffer, non-monotonic animation sampler inputs, a skin joint referencing a missing node. It's a Node tool (<code>gltf-validator</code>) with a CI-gateable CLI. Then <strong>gltf-transform</strong> (a separate CLI) <em>optimizes</em> — it is not a validator, so run it after. Its passes apply in order: prune/dedup → quantize → Draco/meshopt → KTX2 → and <code>gzip</code>/brotli <em>last</em> (a transport layer on the finished bytes, never gzip-then-optimize).
+  <strong>Validate first, optimize second.</strong> The <span class="term" data-term="gltf-validator">Khronos glTF Validator</span> is the reference conformance checker (severities: Error / Warning / Information / Hint). It catches semantic bugs a structural parser misses: a bufferView that exceeds its buffer, or an animation sampler whose timestamps aren't strictly increasing. It's a Node tool (<code>gltf-validator</code>) with a CI-gateable CLI. Then <strong>gltf-transform</strong> (a separate CLI) <em>optimizes</em>; it is not a validator, so run it after. Its passes apply in order: prune/dedup → quantize → Draco/meshopt → KTX2, then <code>gzip</code>/brotli <em>last</em>. That last step is a transport layer on the finished bytes, so never gzip before you optimize.
 </div>
 
 <div class="note">
-  <strong>Don't over-optimize.</strong> A Draco file can render <em>slower</em> to first frame on a low-end device than an uncompressed one — the decoder download plus decode time can outweigh the smaller transfer. Export two candidates and test on the weakest device you support. And remember the contract: making Draco, meshopt, or KTX2 required breaks every non-supporting baseline viewer — that's the whole point of the decision above.
+  <strong>Don't over-optimize.</strong> A Draco file can render <em>slower</em> to first frame on a low-end device than an uncompressed one: the decoder download plus decode time can outweigh the smaller transfer. Export two candidates and test on the weakest device you support. And remember the contract: making Draco, meshopt, or KTX2 required breaks every non-supporting baseline viewer, which is exactly what the used/required split controls.
 </div>
 
 <h2>Try it: read the contract off a real file</h2>

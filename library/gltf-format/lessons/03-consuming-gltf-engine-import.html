@@ -30,14 +30,14 @@
 </div>
 
 <div class="key-concept">
-  <strong>An engine doesn't "open" a glTF — it translates it.</strong> In <a href="01-gltf-anatomy-and-the-standard.html">Lesson 1</a> you learned the object graph a glTF file stores: scenes → nodes → meshes → accessors. A runtime doesn't read that graph the way you open a text file. It <em>translates</em> the graph into its own scene-node types, once, on import, using a fixed <span class="term" data-term="concept-node-dictionary">concept→node dictionary</span>. The translation is <strong>one-way and lossy — a projection, not a bijection</strong>: you edit the source glTF, not the imported scene. Godot is this lesson's worked example, but the shape — a fixed dictionary plus a "don't hand-edit" contract — is how three.js, Babylon, and Unity all work too.
+  <strong>An engine doesn't "open" a glTF — it translates it.</strong> In <a href="01-gltf-anatomy-and-the-standard.html">Lesson 1</a> you learned the object graph a glTF file stores: scenes → nodes → meshes → accessors. A runtime doesn't read that graph the way you open a text file. On import, it translates the graph into its own scene-node types once, using a fixed <span class="term" data-term="concept-node-dictionary">concept→node dictionary</span>. The translation is <strong>one-way and lossy: a projection, not a bijection</strong>. You edit the source glTF, not the imported scene. Godot is this lesson's worked example, but the shape is the same everywhere: a fixed dictionary plus a "don't hand-edit" contract.
 </div>
 
 <h2>The mapping: glTF concept in, engine node out</h2>
 
-<p>Every glTF concept has an engine home. The importer's whole job is to walk the file's nodes and build the matching engine node for each — one engine node per glTF node, indexed so it can wire up parenting, skinning, and animation targets afterward. This is not a Godot quirk: Unity's glTFast importer literally holds a <code>Dictionary&lt;uint, GameObject&gt;</code> documented as "glTF node index to instantiated GameObject dictionary." Same dictionary, different vocabulary, in every runtime.</p>
+<p>Every glTF concept has an engine home. The importer's whole job is to walk the file's nodes and build the matching engine node for each. This is not a Godot quirk: Unity's glTFast importer literally holds a <code>Dictionary&lt;uint, GameObject&gt;</code> documented as "glTF node index to instantiated GameObject dictionary." Same dictionary, different vocabulary, in every runtime.</p>
 
-<p>Here is that dictionary, in Godot's node vocabulary. The arrows are the point — each glTF concept on the left maps to exactly one engine node type on the right:</p>
+<p>Here is that dictionary, in Godot's node vocabulary. Each glTF concept on the left maps to exactly one engine node type on the right:</p>
 
 <svg role="img" aria-labelledby="map-title" viewBox="0 0 720 400" style="max-width:100%; height:auto; margin: 1.5rem 0;">
   <title id="map-title">A two-column mapping diagram: each glTF concept on the left maps by an arrow to the Godot scene node it becomes on the right.</title>

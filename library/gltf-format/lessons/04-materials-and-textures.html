@@ -30,12 +30,12 @@
 </div>
 
 <div class="key-concept">
-  <strong>A glTF material is a tiny fixed object — the subtle part is color space, and the file can't tell the engine which is which.</strong> In <a href="02-authoring-and-blender-export.html">Lesson 2</a> you saw the exporter's view: a Principled BSDF pattern-matched into glTF's channels. This lesson is the spec's view — the actual <span class="term" data-term="material-object">material</span> JSON object — and the one property that isn't in the file at all: each texture slot has a mandated <span class="term" data-term="transfer-function">color space</span>, and glTF says the engine <em>ignores</em> any color info baked into the PNG. Get it wrong and nothing errors — the render is just subtly (or badly) wrong.
+  <strong>A glTF material is a tiny fixed object; the subtle part is color space, and the file can't tell the engine which is which.</strong> In <a href="02-authoring-and-blender-export.html">Lesson 2</a> you saw the exporter's view: a Principled BSDF pattern-matched into glTF's channels. This lesson is the spec's view: the actual <span class="term" data-term="material-object">material</span> JSON object, and the one property that isn't in the file at all. Each texture slot has a mandated <span class="term" data-term="transfer-function">color space</span>, and glTF says the engine <em>ignores</em> any color info baked into the PNG. Get it wrong and nothing errors; the render is just subtly wrong.
 </div>
 
 <h2>The material object, slot by slot</h2>
 
-<p>glTF's core material is deliberately small: a metallic-roughness model plus a handful of texture slots. You met the channels in Lesson 2. What matters here is that each slot carries a <em>mandated color space</em> — and the two families live in the same file with nothing marking them apart. Same bytes, two color worlds, and only the engine knows which slot means which.</p>
+<p>glTF's core material is deliberately small: a metallic-roughness model plus a handful of texture slots. You met the channels in Lesson 2. What matters here is that each slot carries a <em>mandated color space</em>, and the two families live in the same file with nothing marking them apart. Same bytes, two color worlds, and only the engine knows which slot means which.</p>
 
 <svg role="img" aria-labelledby="slots-title" viewBox="0 0 720 330" style="max-width:100%; height:auto; margin: 1.5rem 0;">
   <title id="slots-title">A glTF material's texture slots split into two color-space families: base color and emissive are sRGB; normal, metallic-roughness, and occlusion are linear.</title>
@@ -89,12 +89,12 @@
 <p>That is why the mistake is silent. Nothing throws — the pipeline loads, exits cleanly, and produces a valid image that is simply wrong:</p>
 
 <div class="comparison">
-  <div><strong>Base color decoded as linear (missing the sRGB decode):</strong> washed-out, too bright, low-contrast albedo. The classic "why does my model look faded in the browser?"</div>
+  <div><strong>Base color decoded as linear (missing the sRGB decode):</strong> washed-out, too bright, low-contrast albedo. Often reported as "why does my model look faded in the browser?"</div>
   <div><strong>A normal or roughness map decoded as sRGB:</strong> the sRGB→linear curve distorts the data — warped bumps and lighting, or a mid-gray roughness shift. Subtle, and no error anywhere.</div>
 </div>
 
 <div class="note">
-  <strong>Why is it silent?</strong> Every step succeeds at the protocol level — no exception, exit code 0 — so the only evidence is the pixels. It's a common mistake — mislabeled normal maps have reportedly shipped even in well-known reference models. Each engine surfaces the choice in its own vocabulary — three.js <code>texture.colorSpace</code>, Godot's texture "sRGB" / "Normal Map" import mode, Blender's "Non-Color" dropdown — the same engine-agnostic idea from <a href="03-consuming-gltf-engine-import.html">Lesson 3</a> (one file, many consumers). <a href="https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#3-textures-samplers-and-images" class="citation">[Khronos glTF 2.0 §3.6.3]</a>
+  <strong>Why is it silent?</strong> Every step succeeds at the protocol level — no exception, exit code 0 — so the only evidence is the pixels. It's a common mistake. Each engine surfaces the choice in its own vocabulary: three.js <code>texture.colorSpace</code>, Godot's texture "sRGB" / "Normal Map" import mode, Blender's "Non-Color" dropdown. Same engine-agnostic idea as <a href="03-consuming-gltf-engine-import.html">Lesson 3</a> (one file, many consumers). <a href="https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#3-textures-samplers-and-images" class="citation">[Khronos glTF 2.0 §3.6.3]</a>
 </div>
 
 <h2>Try it: read the color space off a real file</h2>
@@ -150,7 +150,7 @@ sys.exit(1 if conflict else 0)</code></pre>
 
 <h2>Extensions add to the base — when the viewer supports them</h2>
 
-<p>The core metal-rough model is intentionally limited. The <span class="term" data-term="khr-materials">KHR_materials_*</span> extensions layer richer physically-based behavior on top: <code>emissive_strength</code> (HDR emission past the [0,1] clamp), <code>transmission</code> (real refraction rather than alpha coverage), <code>clearcoat</code>, <code>sheen</code>, <code>ior</code>, and <code>specular</code>.</p>
+<p>The core metal-rough model is limited by design. The <span class="term" data-term="khr-materials">KHR_materials_*</span> extensions layer more physically-based behavior on top: <code>emissive_strength</code> (HDR emission past the [0,1] clamp), <code>transmission</code> (real refraction rather than alpha coverage), <code>clearcoat</code>, <code>sheen</code>, <code>ior</code>, and <code>specular</code>.</p>
 
 <div class="note">
   <strong>An extension in <code>extensionsUsed</code> is a request, not a guarantee</strong> — the same point from Lesson 3, sharpened. A material extension should <em>not</em> appear in <code>extensionsRequired</code>, because the core metal-rough material is a valid fallback: a viewer that doesn't implement the extension simply <em>drops the effect silently</em> — glass renders opaque, clearcoat vanishes, HDR emission clamps. (Only things with no fallback, like compression, belong in <code>extensionsRequired</code>, where an unsupporting loader must refuse the whole asset.) So the same file can look markedly different across engines. <a href="https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html" class="citation">[Khronos glTF 2.0 §3.12]</a>

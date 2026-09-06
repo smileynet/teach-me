@@ -32,7 +32,7 @@
   <strong>The Blender glTF exporter is a translator, not a renderer.</strong> It reconstructs a glTF material by <em>pattern-matching</em> a specific arrangement of shader nodes — chiefly the Principled BSDF — into glTF's fixed channel set. Node graphs it doesn't recognize are re-baked or silently dropped. That's why "it looked right in Blender" and "it exported right" are two different claims.
 </div>
 
-<p>In <a href="01-gltf-anatomy-and-the-standard.html">Lesson 1</a> you learned the shape a glTF file has. This lesson is the other half of the round trip: how a DCC tool <em>produces</em> that shape, and — more usefully — how to predict what it will quietly lose.</p>
+<p>In <a href="01-gltf-anatomy-and-the-standard.html">Lesson 1</a> you learned the shape a glTF file has. This lesson is the other half of the round trip: how a DCC tool <em>produces</em> that shape, and how to predict what it will quietly lose.</p>
 
 <h2>Three outcomes: what survives, what's re-baked, what's gone</h2>
 
@@ -97,7 +97,7 @@
   <li><strong>Base color / emissive</strong> — an Image Texture (sRGB) into the Principled input.</li>
   <li><strong>Metallic + roughness</strong> — glTF packs <span class="term" data-term="orm-packing">metallic in Blue, roughness in Green</span> of ONE Non-Color image. Wire it that way and it's copied as-is; wire it any other way and the add-on re-bakes.</li>
   <li><strong>Ambient occlusion</strong> — glTF stores AO in Red (so O/R/M share one image). Blender has <em>no native node</em> that consumes it the glTF way — you add the custom <span class="term" data-term="gltf-material-output"><code>glTF Material Output</code></span> node group and plug AO into its Occlusion input.</li>
-  <li><strong>Normal</strong> — tangent-space, +Y up, Non-Color, through a Normal Map node.</li>
+  <li><strong>Normal</strong> — a tangent-space, +Y-up, Non-Color map, wired through a Normal Map node.</li>
 </ul>
 
 <div class="note">
@@ -113,7 +113,7 @@
 <div class="note">
   <strong>Why is my model rotated / the wrong size / not there?</strong>
   <ul>
-    <li><strong><code>+Y Up</code></strong> — Blender is Z-up, glTF is Y-up. The single checkbox handles it; off (or forgotten) is the #1 "loads sideways" cause.</li>
+    <li><strong><code>+Y Up</code></strong> — Blender is Z-up, glTF is Y-up. The single checkbox handles it; off (or forgotten) is the most common "loads sideways" cause.</li>
     <li><strong>Apply Rotation &amp; Scale</strong> (<code>Ctrl+A</code>) before export — an unapplied scale exports wrong normals and bounding boxes.</li>
     <li><strong>Apply Modifiers</strong> — the mesh you see (armature, subsurf, mirror) isn't in the file unless this is on.</li>
   </ul>
