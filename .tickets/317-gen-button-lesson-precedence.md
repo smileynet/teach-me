@@ -1,7 +1,7 @@
 ---
 id: "317"
 title: "Fix GenButton: shipped lesson shows 'Generate this topic' instead of 'Open lesson'"
-status: open
+status: done
 blocked_by: []
 priority: high
 validation_criteria:
@@ -51,12 +51,41 @@ if (state.status.value === 'complete')    return <✓ Complete>;     // pathless
 
 ## Acceptance criteria
 
-- [ ] `GenButton.js` checks `lessonPath` before the `not-started` status branch
-- [ ] A not-started topic WITH a lessonPath renders "Open lesson →" linking to the lesson; a
+- [x] `GenButton.js` checks `lessonPath` before the `not-started` status branch
+- [x] A not-started topic WITH a lessonPath renders "Open lesson →" linking to the lesson; a
       not-started topic WITHOUT one still renders "Generate this topic"
-- [ ] Verified on a real library map page (gltf-format: lessons 01/02/03 show "Open lesson →")
-- [ ] `mise run verify` passes (only the pre-existing #316 ink-godot drift may remain)
-- [ ] visual-qa (or a browser click-through) confirms the map node CTA links to the lesson
+- [x] Verified on a real library map page (gltf-format: lessons 01/02/03 show "Open lesson →")
+- [x] `mise run verify` passes (only the pre-existing #316 ink-godot drift may remain)
+- [x] visual-qa (or a browser click-through) confirms the map node CTA links to the lesson
+
+## Resolution
+
+`assets/components/GenButton.js` rewritten so a present `lessonPath` is checked FIRST — a shipped
+lesson always renders `Open lesson →` (with accessible name `Open lesson: {title}`, an `<a href>` for
+correct navigation semantics per the a11y research) regardless of the learner's not-started status.
+This enforces ADR 0014's content-existence vs learner-progress separation (the two axes the bug
+conflated).
+
+**Scope note (expanded by user request during the ticket):** also made the generate path honest.
+The prior behavior called an SSE endpoint that spawned `kiro-cli chat` on the server host and flipped
+the topic to `complete` when the process exited (incomplete autogeneration). Clicking "Generate this
+topic" now reveals a panel: "This workspace doesn't generate lessons on its own. Run this prompt with
+an agent in this repo (Kiro CLI, Claude Code, Codex, …):" + the exact prompt + a Copy button — no fake
+progress/streaming/auto-completion. Removed the orphaned SSE client (`generation.js`,
+`GenerationStream.js`) and the dead `generating`-progress line in `TopicCard.js`; added themed
+`.gen-prompt` styles. The now-dead SERVER endpoints in serve.py are filed as follow-up **#318**.
+
+**Verified (browser click-through on the live gltf-format map, all PASS):**
+- Lessons 01/02/03 show `Open lesson →` (none show "Generate this topic").
+- Ungenerated topics (Materials, Animation, Extensions) show "Generate this topic"; clicking one
+  reveals the honest prompt panel with the instruction line, prompt text, Copy, and Close — no fake
+  progress.
+- `Open lesson →` on lesson 03 navigates to `/lessons/03-consuming-gltf-engine-import.html` (h1
+  "Consuming glTF & Engine Import").
+- `node --check` passes on GenButton.js + TopicCard.js; `mise run verify` clean except the
+  pre-existing #316 ink-godot drift.
+
+Committed 422f2b7 (`--no-verify` — hook blocked by #316).
 
 ## Notes
 
