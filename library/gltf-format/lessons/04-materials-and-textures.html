@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4: Materials &amp; Textures</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "preact": "../assets/vendor/preact.module.js",
+      "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+      "@preact/signals": "../assets/vendor/preact-signals.module.js",
+      "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+      "htm": "../assets/vendor/htm.module.js"
+    }
+  }
+  </script>
+</head>
+<body>
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="gltf-format-map.html">glTF 2.0</a> <span class="nav-sep">›</span> <span>Materials &amp; Textures</span></nav>
+
+<h1>Materials &amp; Textures</h1>
+
+<div class="lesson-meta">
+  Lesson 4 · glTF 2.0 · ~9 min read<br>
+  <strong>Win:</strong> You can read a glTF material object slot by slot, say which texture slots are sRGB and which are linear and why tagging one wrong fails silently, and explain what a KHR_materials_* extension adds and what happens when a viewer doesn't support it.
+</div>
+
+<div class="key-concept">
+  <strong>A glTF material is a tiny fixed object — the subtle part is color space, and the file can't tell the engine which is which.</strong> In <a href="02-authoring-and-blender-export.html">Lesson 2</a> you saw the exporter's view: a Principled BSDF pattern-matched into glTF's channels. This lesson is the spec's view — the actual <span class="term" data-term="material-object">material</span> JSON object — and the one property that isn't in the file at all: each texture slot has a mandated <span class="term" data-term="transfer-function">color space</span>, and glTF says the engine <em>ignores</em> any color info baked into the PNG. Get it wrong and nothing errors — the render is just subtly (or badly) wrong.
+</div>
+
+<h2>The material object, slot by slot</h2>
+
+<p>glTF's core material is deliberately small: a metallic-roughness model plus a handful of texture slots. You met the channels in Lesson 2. What matters here is that each slot carries a <em>mandated color space</em> — and the two families live in the same file with nothing marking them apart. Same bytes, two color worlds, and only the engine knows which slot means which.</p>
+
+<svg role="img" aria-labelledby="slots-title" viewBox="0 0 720 330" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="slots-title">A glTF material's texture slots split into two color-space families: base color and emissive are sRGB; normal, metallic-roughness, and occlusion are linear.</title>
+  <text x="180" y="26" text-anchor="middle" fill="var(--svg-text)" font-size="15" font-weight="bold">sRGB slots (color)</text>
+  <text x="540" y="26" text-anchor="middle" fill="var(--svg-text)" font-size="15" font-weight="bold">linear slots (data)</text>
+
+  <!-- sRGB column -->
+  <rect x="40" y="44" width="280" height="40" rx="4" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="1.5"/>
+  <text x="180" y="69" text-anchor="middle" fill="var(--svg-warning-text)" font-size="13">baseColorTexture — sRGB</text>
+  <rect x="40" y="92" width="280" height="40" rx="4" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="1.5"/>
+  <text x="180" y="117" text-anchor="middle" fill="var(--svg-warning-text)" font-size="13">emissiveTexture — sRGB</text>
+
+  <!-- linear column -->
+  <rect x="400" y="44" width="280" height="40" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="540" y="69" text-anchor="middle" fill="var(--svg-primary-text)" font-size="13">normalTexture — linear</text>
+  <rect x="400" y="92" width="280" height="40" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="540" y="117" text-anchor="middle" fill="var(--svg-primary-text)" font-size="12">metallicRoughnessTexture — linear</text>
+  <rect x="400" y="140" width="280" height="40" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5"/>
+  <text x="540" y="165" text-anchor="middle" fill="var(--svg-primary-text)" font-size="13">occlusionTexture — linear</text>
+
+  <!-- ORM packing detail -->
+  <rect x="400" y="210" width="280" height="72" rx="4" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5"/>
+  <text x="540" y="232" text-anchor="middle" fill="var(--svg-neutral-text)" font-size="12" font-weight="bold">ORM packing (one linear image)</text>
+  <text x="540" y="252" text-anchor="middle" fill="var(--svg-neutral-text)" font-size="12">R = occlusion · G = roughness · B = metalness</text>
+  <text x="540" y="270" text-anchor="middle" fill="var(--svg-neutral-text)" font-size="11">occlusion + metallicRoughness share it</text>
+
+  <text x="360" y="310" text-anchor="middle" fill="var(--svg-text)" font-size="13" font-style="italic">Nothing in the file marks a slot's color space — the slot name is the only signal.</text>
+</svg>
+
+<p>The color families are verified against the spec: base color and emissive are sRGB (§5.22.2, §5.19.7); normal, metallic-roughness, and occlusion are linear (§5.19.5, §5.22.5, §5.19.6). The metallic-roughness texture packs <strong>roughness in G, metalness in B</strong>, and occlusion sits in <strong>R</strong> — so occlusion and metallic-roughness can share one linear image, the "ORM" layout you met in Lesson 2.</p>
+
+<h2>Factor × texture</h2>
+
+<p>Each metallic-roughness parameter can be a scalar <em>factor</em>, a <em>texture</em>, or both. When both are present, the factor is a <strong>linear multiplier</strong> of the sampled texel; when a texture is absent, that value is taken as 1.0. So <span class="term" data-term="base-color-factor">baseColorFactor</span> (a vec4, default <code>[1,1,1,1]</code>) tints the base-color texture, and <code>metallicFactor</code>/<code>roughnessFactor</code> (each default 1.0) scale their slots.</p>
+
+<pre data-file="material_snippet.json" data-mode="fragment"><code>"materials": [{
+  "pbrMetallicRoughness": {
+    "baseColorTexture": { "index": 0 },        // sRGB image
+    "metallicRoughnessTexture": { "index": 1 },// linear image (G=rough, B=metal)
+    "metallicFactor": 1.0,
+    "roughnessFactor": 1.0
+  },
+  "normalTexture":    { "index": 2 },          // linear image
+  "occlusionTexture": { "index": 1 }           // same linear ORM image, R channel
+}]</code></pre>
+
+<h2>The color-space trap</h2>
+
+<p>Here is the property that isn't in the file. The spec (§3.6.3) is explicit: <em>"Any colorspace information … from PNG or JPEG images MUST be ignored. Effective transfer function is defined by a glTF object that refers to the image."</em> The texture's color space is defined by the <strong>slot that references it</strong> — not by the image's own metadata. The engine decides; the file only names the slot.</p>
+
+<p>That is why the mistake is silent. Nothing throws — the pipeline loads, exits cleanly, and produces a valid image that is simply wrong:</p>
+
+<div class="comparison">
+  <div><strong>Base color decoded as linear (missing the sRGB decode):</strong> washed-out, too bright, low-contrast albedo. The classic "why does my model look faded in the browser?"</div>
+  <div><strong>A normal or roughness map decoded as sRGB:</strong> the sRGB→linear curve distorts the data — warped bumps and lighting, or a mid-gray roughness shift. Subtle, and no error anywhere.</div>
+</div>
+
+<div class="note">
+  <strong>Why is it silent?</strong> Every step succeeds at the protocol level — no exception, exit code 0 — so the only evidence is the pixels. This bug is common even in canonical assets: the Sponza and NormalTangentTest reference models have shipped normal maps mislabeled sRGB. Each engine surfaces the choice in its own vocabulary — three.js <code>texture.colorSpace</code>, Godot's texture "sRGB" / "Normal Map" import mode, Blender's "Non-Color" dropdown — the same rule from Lesson 3's "one consumer of many." <a href="https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html" class="citation">[Khronos glTF 2.0 §3.6.3]</a>
+</div>
+
+<h2>Try it: read the color space off a real file</h2>
+
+<p>Because glTF has no color-space flag, you can't check the trap by reading a field — you check it <em>structurally</em>: an image must never be used in both an sRGB slot and a linear slot, because the engine can't decode the same bytes both ways. The companion tool parses a real <code>.glb</code> with the standard library alone, prints the slot→color-space table, and asserts exactly that.</p>
+
+<pre data-file="check_material_colorspace.py"><code>import json, struct, sys
+
+SRGB_SLOTS = ("baseColorTexture", "emissiveTexture")
+LINEAR_SLOTS = ("normalTexture", "metallicRoughnessTexture", "occlusionTexture")
+
+def load_gltf(path):
+    data = open(path, "rb").read()
+    if data[:4] != b"glTF":
+        return json.loads(data)                    # a .gltf file IS json
+    magic, version, total = struct.unpack_from("&lt;III", data, 0)
+    assert magic == 0x46546C67 and version == 2    # 'glTF', container v2
+    off, gltf = 12, None
+    while off &lt; total:
+        clen, ctype = struct.unpack_from("&lt;II", data, off); off += 8
+        if ctype == 0x4E4F534A:                    # 'JSON'
+            gltf = json.loads(data[off:off+clen])
+        off += clen
+    return gltf
+
+def slot_tex(mat, slot):                           # slot lives at root or under pbrMetallicRoughness
+    return mat[slot] if slot in mat else mat.get("pbrMetallicRoughness", {}).get(slot)
+
+def check(gltf):
+    textures = gltf.get("textures", [])
+    srgb, linear = set(), set()
+    for mat in gltf.get("materials", []):
+        for slot in SRGB_SLOTS + LINEAR_SLOTS:
+            tex = slot_tex(mat, slot)
+            if not tex: continue
+            img = textures[tex["index"]].get("source")   # texture -> image
+            (srgb if slot in SRGB_SLOTS else linear).add(img)
+    conflict = srgb &amp; linear                       # an image in BOTH families = the bug
+    return conflict
+
+conflict = check(load_gltf(sys.argv[1]))
+print("conflict:" , sorted(conflict) or "none")
+sys.exit(1 if conflict else 0)</code></pre>
+
+<p>Run it on the both-families cube and every image stays in its lane; feed it an asset that reuses one image across families and it fails with exit 1. The full downloadable version prints the whole slot table and is gated in <code>mise run verify</code>. The cube itself is generated by a second stdlib file:</p>
+
+<pre data-file="make_cube_orm_glb.py" data-mode="fragment"><code># make_cube_orm_glb.py builds cube_orm.glb with three embedded PNGs:
+#   image 0 = base color   (referenced by baseColorTexture      → sRGB slot)
+#   image 1 = ORM          (metallicRoughnessTexture + occlusionTexture → linear slots)
+#   image 2 = normal       (normalTexture                        → linear slot)
+# No image is shared across families, so check_material_colorspace.py passes.
+# Full generator (stdlib zlib+struct — no Blender/Pillow) is the downloadable file.</code></pre>
+
+<h2>Extensions add to the base — when the viewer supports them</h2>
+
+<p>The core metal-rough model is intentionally limited. The <span class="term" data-term="khr-materials">KHR_materials_*</span> extensions layer richer physically-based behavior on top: <code>emissive_strength</code> (HDR emission past the [0,1] clamp), <code>transmission</code> (real refraction rather than alpha coverage), <code>clearcoat</code>, <code>sheen</code>, <code>ior</code>, and <code>specular</code>.</p>
+
+<div class="note">
+  <strong>An extension in <code>extensionsUsed</code> is a request, not a guarantee</strong> — the same point from Lesson 3, sharpened. A material extension should <em>not</em> appear in <code>extensionsRequired</code>, because the core metal-rough material is a valid fallback: a viewer that doesn't implement the extension simply <em>drops the effect silently</em> — glass renders opaque, clearcoat vanishes, HDR emission clamps. (Only things with no fallback, like compression, belong in <code>extensionsRequired</code>, where an unsupporting loader must refuse the whole asset.) So the same file can look markedly different across engines. <a href="https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html" class="citation">[Khronos glTF 2.0 §3.12]</a>
+</div>
+
+<h2>Code Files</h2>
+<p>Download the final-state files from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/materials-and-textures/check_material_colorspace.py" download><code>check_material_colorspace.py</code></a> — print the slot→color-space table and assert no image crosses families (stdlib, engine-agnostic).</li>
+  <li><a href="../reference/code/materials-and-textures/make_cube_orm_glb.py" download><code>make_cube_orm_glb.py</code></a> — generate <code>cube_orm.glb</code>, a both-color-families fixture (stdlib, no Blender).</li>
+</ul>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> An artist's model looks perfect in Blender but washed-out and too bright in a web viewer. The base-color PNG is correct. Given the image is just raw bytes like <code>[188, 188, 188]</code>, how does the renderer decide whether to treat that as sRGB or linear — and why does neither tool show an error?</p>
+  <details><summary>Hint</summary><p>The PNG's own color tags are ignored (§3.6.3). If the answer isn't in the bytes, where must it live?</p></details>
+  <details><summary>Answer</summary><p>Should mention: (1) the file <em>can't</em> tell it — absent any honored metadata, the color space is a convention the consumer assumes, defined by the glTF <strong>slot</strong> that references the image, not the bytes. (2) Here the base-color slot's texture was decoded as linear instead of sRGB, so the sRGB decode never happened → washed-out/too-bright. (3) No error because every step succeeds at the protocol level — it's a semantic failure, visible only in the pixels; the fix is to assign the base-color slot the sRGB transfer function. <strong>Key insight:</strong> the correct answer lives in the slot/pipeline contract, never in the image bytes.</p></details>
+</div>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <ul>
+    <li><strong>Animation, Skins &amp; Morphs</strong> — the skin/inverse-bind-matrix model behind rigged meshes, plus samplers, channels, and morph targets.</li>
+    <li><strong>Extensions &amp; Optimization</strong> — the ships-to-production layer: Draco/meshopt compression, KTX2 textures, and the Khronos glTF Validator (where the KHR extensions here get their deep treatment).</li>
+    <li><strong>godot-asset-pipeline</strong> — how Godot remaps these material slots onto <code>StandardMaterial3D</code> at import (the seam from Lesson 3).</li>
+  </ul>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "material-object": "The glTF JSON object describing a surface — a metallic-roughness model (baseColor/metallic/roughness) plus optional normal, occlusion, and emissive texture slots.",
+  "transfer-function": "The encoding curve of a texture's values — sRGB (perceptual, for color) or linear (for data). In glTF it is defined by the slot referencing the image, never by the image file itself.",
+  "base-color-factor": "A vec4 (default [1,1,1,1]) that linearly multiplies the sampled base-color texel; with no texture it acts as the flat base color.",
+  "khr-materials": "The KHR_materials_* extension family (emissive_strength, transmission, clearcoat, sheen, ior, specular) that adds physically-based behavior on top of the core metallic-roughness model."
+}
+</script>
+<script type="application/json" id="lesson-actions-config" data-domain="gltf-format" data-lesson-id="04-materials-and-textures" data-map-page="gltf-format-map.html" data-topic-title="Materials &amp; Textures"></script>
+<script type="module" src="../assets/page-shell.js"></script>
+</body>
+</html>

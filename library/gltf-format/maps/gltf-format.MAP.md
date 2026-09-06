@@ -43,6 +43,7 @@ glTF is "the JPEG of 3D": a Khronos open standard for *delivering* runtime-ready
 ### materials-and-textures
 - **id:** 01M1T33FPCNKMX0XXN715XJ7CT
 - **title:** Materials & Textures
+- **lesson_file:** 04-materials-and-textures.html
 - **why:** Materials are the highest-fidelity-loss surface across the round trip, and sRGB-vs-linear color space per slot is the #1 silent bug. Covers the PBR metallic-roughness model, texture slots, ORM packing, and the KHR_materials_* extensions.
 - **scope:** substantial
 - **prereqs:** [gltf-anatomy-and-the-standard]

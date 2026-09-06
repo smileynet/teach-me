@@ -40,6 +40,12 @@ CHUNK_BIN = 0x004E4942          # 'BIN\0'
 ACCESSOR_MAT4 = "MAT4"
 COMPONENT_FLOAT = 5126
 
+# Color-space families (topic 4). glTF has NO per-slot color-space flag — the transfer function is
+# implied by the SLOT that references a texture (spec §3.6.3, §5.19–5.22). An image used across an
+# sRGB slot AND a linear slot is a genuine conflict (the engine can't decode the same bytes both ways).
+SRGB_SLOTS = ("baseColorTexture", "emissiveTexture")
+LINEAR_SLOTS = ("normalTexture", "metallicRoughnessTexture", "occlusionTexture")
+
 # Sample assets already committed in the shader test project (CC0/permissive) + lesson fixtures.
 DEFAULT_ASSETS = [
     "test-scene/assets/kenney-retro-urban/truck-green.glb",          # static prop
@@ -50,6 +56,8 @@ DEFAULT_ASSETS = [
     "library/gltf-format/reference/code/gltf-anatomy-and-the-standard/triangle.glb",
     # lesson 02 (authoring-and-blender-export): the "clean export" cube (material-channel gated).
     "library/gltf-format/reference/code/authoring-and-blender-export/cube_metalrough.glb",
+    # lesson 04 (materials-and-textures): both-color-families cube (base=sRGB, ORM+normal=linear).
+    "library/gltf-format/reference/code/materials-and-textures/cube_orm.glb",
 ]
 
 # Assets that MUST carry a pbrMetallicRoughness material with a baseColorTexture — the lesson-02
@@ -140,6 +148,35 @@ def check_asset(path: Path, require_material: bool = False) -> tuple[dict, list[
             tex = pbr.get(slot)
             if tex is not None and not _in_range(tex.get("index"), textures):
                 errors.append(f"{path.name}: material[{i}].{slot}.index out of range")
+        # normal/occlusion live at the material root — also index-check them
+        for slot in ("normalTexture", "occlusionTexture"):
+            tex = mat.get(slot)
+            if tex is not None and not _in_range(tex.get("index"), textures):
+                errors.append(f"{path.name}: material[{i}].{slot}.index out of range")
+
+    # --- color space (topic 4): no image used across an sRGB and a linear slot ---
+    def _slot_tex(mat: dict, slot: str):
+        return mat[slot] if slot in mat else mat.get("pbrMetallicRoughness", {}).get(slot)
+
+    srgb_images: set[int] = set()
+    linear_images: set[int] = set()
+    for mat in materials:
+        for slot in SRGB_SLOTS + LINEAR_SLOTS:
+            tex = _slot_tex(mat, slot)
+            if tex is None or not _in_range(tex.get("index"), textures):
+                continue
+            img = textures[tex["index"]].get("source")
+            if img is None:
+                continue
+            (srgb_images if slot in SRGB_SLOTS else linear_images).add(img)
+    conflict = sorted(srgb_images & linear_images)
+    for img in conflict:
+        errors.append(f"{path.name}: image[{img}] used in BOTH an sRGB and a linear slot "
+                      f"(color-space conflict — the engine can't decode the same bytes both ways)")
+    if srgb_images or linear_images:
+        metrics["color_space"] = {"srgb_images": sorted(srgb_images),
+                                  "linear_images": sorted(linear_images),
+                                  "conflicts": conflict}
 
     # --- material-channel presence (lesson-02 "clean export" contract, opt-in) ---
     if require_material:
