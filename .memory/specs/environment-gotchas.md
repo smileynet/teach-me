@@ -94,3 +94,26 @@ under budget. Linked from AGENTS.md.
 - **GitHub Pages environment rules reject deploys from tag refs** — only `main` is allowed. Trigger on
   push to main with a tag-detection step (`git tag --points-at HEAD`), skip build+deploy if no `v*` tag;
   `workflow_dispatch` always works. Do NOT trigger from `on: push: tags:`.
+
+
+## glTF-format / lesson-authoring track (#309–#316)
+
+- **`tools/check-lesson.py` path resolution:** run as `--workspace library/{domain} --lesson lessons/NN-slug.html`
+  — the lesson path is **workspace-relative**. Passing an absolute/repo-relative `--lesson` errors
+  "lesson not found"; passing `--lesson` without `--workspace` mis-resolves the G3 "reference/code files
+  present" check (false FAIL). The `reference/code/{slug}/` dir must be named the lesson slug **with the
+  `NN-` prefix stripped** (`02-authoring-...html` → `reference/code/authoring-.../`) — check-lesson does
+  `re.sub(r"^\d+-", "", stem)`. (Cost real archaeology on lessons #310/#311.)
+- **glTF/GLB lesson artifacts** validate via `tools/gltf-format-oracle.py` (wired into `mise run verify`);
+  `check-lesson-code.py` does NOT validate `.gltf`/`.json` (only `.py`/`.ink`; `.gd`/`.gdshader` SKIP). A
+  material-bearing `.glb` (cube + `pbrMetallicRoughness` + embedded PNG) is generatable with Python stdlib
+  alone (`struct`+`json`+`zlib`, PNG via `zlib.crc32` — no Blender/Pillow); use the oracle's
+  `--require-material` flag to gate channel presence. Blender-produced artifacts ship a **bpy `.py`
+  script** (zero committed `.blend` — repo precedent from `blender-texture-prep`), wired opt-in into
+  `tools/verify-blender.py` `ARTIFACTS` with a success-sentinel string + `--python-exit-code 1` (Blender
+  swallows Python exceptions and exits 0 otherwise — tracker T82494).
+- **New-domain scaffold sequence** (validated #309): `python tools/init_workspace.py --path library/{domain}`
+  (makes dirs, NOT the MAP) → hand-write `maps/{domain}.MAP.md` → `python tools/migrate_map_ids.py --apply
+  <mapfile>` to mint ULIDs. `migrate_map_ids` only fills MISSING `- **id:**` lines — a present-but-invalid
+  placeholder (e.g. `TBD`) is flagged "manual review" and NOT overwritten, so omit the id line entirely so
+  the tool mints it.
