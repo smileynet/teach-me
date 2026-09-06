@@ -45,6 +45,7 @@ ARTIFACTS = [
     ("library/godot-gamedev/reference/code/palette-snap/palette_snap.py", "palette_snap: both groups OK"),
     ("library/godot-gamedev/reference/code/toon-control-maps/control_maps.py", "control_maps: OK"),
     ("library/godot-gamedev/reference/code/bake-and-export/bake_export.py", "bake_export: OK"),
+    ("library/gltf-format/reference/code/authoring-and-blender-export/export_cube.py", "EXPORT_CUBE_OK"),
 ]
 
 

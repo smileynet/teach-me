@@ -1,7 +1,7 @@
 ---
 id: "311"
 title: "Topic: authoring-and-blender-export (Blender->glTF; Principled BSDF mapping; what's dropped)"
-status: open
+status: done
 blocked_by: ["310"]
 priority: medium
 validation_criteria:
@@ -50,12 +50,25 @@ SKIPs where Blender absent). Downloadable at `reference/code/gltf-format/authori
 
 ## Acceptance criteria
 
-- [ ] Lesson teaches the pattern-matcher model, Principled→glTF mapping (clean/re-baked/ignored), +Y-up + apply-transform, mesh/animation export modes, and what doesn't survive
-- [ ] Decision/gotcha callouts for the export-dialog choices that matter (Actions vs NLA; apply transform)
-- [ ] Runnable artifact: stdlib `cube_metalrough.glb` (+ `make_cube_glb.py`) validated by the domain oracle asserting material channels present; **reproducible bpy source script** (`export_cube.py`, opt-in Tier-2, SKIP without Blender) — NOT a committed `.blend`
-- [ ] Oracle extended to assert `pbrMetallicRoughness` + `baseColorTexture` presence for the lesson asset; cube added to `DEFAULT_ASSETS`
-- [ ] Cites the Blender glTF exporter manual (local `.references/blender-manual/manual/addons/scene_gltf2.rst`) + glTF-Blender-IO
-- [ ] `mise run verify` passes; MAP.md gets lesson_file on completion
+- [x] Lesson teaches the pattern-matcher model, Principled→glTF mapping (clean/re-baked/ignored), +Y-up + apply-transform, mesh/animation export modes, and what doesn't survive
+- [x] Decision/gotcha callouts for the export-dialog choices that matter (Actions vs NLA; apply transform)
+- [x] Runnable artifact: stdlib `cube_metalrough.glb` (+ `make_cube_glb.py`) validated by the domain oracle asserting material channels present; **reproducible bpy source script** (`export_cube.py`, opt-in Tier-2 in `verify-blender.py`, SKIP without Blender) — NOT a committed `.blend`
+- [x] Oracle extended to assert `pbrMetallicRoughness` + `baseColorTexture` presence for the lesson asset; cube added to `DEFAULT_ASSETS`
+- [x] Cites the Blender glTF exporter manual (local `.references/blender-manual/manual/addons/scene_gltf2.rst`) + glTF-Blender-IO
+- [x] `mise run verify` gates pass; MAP.md got lesson_file on completion
+
+## Resolution (2026-09-06)
+
+Authored lesson 02 + its artifacts, all validated:
+
+- **Lesson:** `library/gltf-format/lessons/02-authoring-and-blender-export.html` — key-concept ("translator, not renderer") → the **3-column (CLEAN/RE-BAKED/DROPPED) × 5-row (material/geometry/textures/animation/lights) decision-matrix SVG** → clean material path + `KHR_materials_*` escape-hatch `.note` → geometry/transform gotcha (`+Y Up`, apply scale/modifiers, triangulation) → animation Mode decision + IK-needs-Sampling gotcha → **exercise** (Voronoi-DROPPED + IK-needs-sampling misconception probe) → Code Files (4 downloads) → What's Next. 5 glossary terms, all annotated.
+- **Artifacts** at `reference/code/authoring-and-blender-export/`: `cube_metalrough.glb` (stdlib-built, `pbrMetallicRoughness` + `baseColorTexture` + embedded PNG), `make_cube_glb.py` (stdlib generator — `struct`+`json`+`zlib`, no Blender/Pillow), `export_cube.py` (bpy source, `--bake`/`--check`, `EXPORT_CUBE_OK` sentinel), `export_notes.md` (game-ready settings card from the local Blender manual RST), `README.md`.
+- **Oracle extended:** `check_asset(require_material=)` asserts `material[0].pbrMetallicRoughness` + `baseColorTexture`; `cube_metalrough.glb` in `DEFAULT_ASSETS` + `REQUIRE_MATERIAL`; `--require-material` CLI flag added. Tamper-tested: cube passes (exit 0), material-less triangle with `--require-material` fails (exit 1).
+- **Tier-2 wiring:** `export_cube.py --check` added to `tools/verify-blender.py` ARTIFACTS (opt-in, SKIPs where Blender absent).
+
+**Verification:** `check-lesson.py --workspace library/gltf-format --lesson lessons/02-...` → "11 pass, 0 fail, 0 warn, 3 skip"; lesson 01 re-checked "13 pass, 0 fail" (forward-link added); `gltf-format-oracle.py` → exit 0 (cube material-gated); `check-lesson-code.py` → make_cube_glb.py + export_cube.py compile; `check-svg-vars.py` → clean; `check-maps-forest.py` → all 6 domains clean; `verify-blender.py` → SKIP (no Blender), exit 0. MAP got `lesson_file: 02-authoring-and-blender-export.html`; map page + indexes regenerated.
+
+Doc-review corrections (`.scratch/review/*.md`) folded: `.blend`→bpy-script, oracle material-assertion, export-extension list. #312/#313/#314 remain on the frontier (they prereq #310, not this).
 
 ## Notes
 

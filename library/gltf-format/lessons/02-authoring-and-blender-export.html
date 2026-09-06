@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2: Authoring &amp; Blender Export</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "preact": "../assets/vendor/preact.module.js",
+      "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+      "@preact/signals": "../assets/vendor/preact-signals.module.js",
+      "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+      "htm": "../assets/vendor/htm.module.js"
+    }
+  }
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="gltf-format-map.html">glTF 2.0</a> <span class="nav-sep">›</span> <span>Authoring &amp; Blender Export</span></nav>
+<h1>Authoring &amp; Blender Export</h1>
+<div class="lesson-meta">
+  Lesson 2 · glTF 2.0 · ~6 min read<br>
+  <strong>Win:</strong> You can tell, before you hit Export, whether a Blender material/mesh/animation will survive the glTF round trip — and fix the ones that won't.
+</div>
+
+<div class="key-concept">
+  <strong>The Blender glTF exporter is a translator, not a renderer.</strong> It reconstructs a glTF material by <em>pattern-matching</em> a specific arrangement of shader nodes — chiefly the Principled BSDF — into glTF's fixed channel set. Node graphs it doesn't recognize are re-baked or silently dropped. That's why "it looked right in Blender" and "it exported right" are two different claims.
+</div>
+
+<p>In <a href="01-gltf-anatomy-and-the-standard.html">Lesson 1</a> you learned the shape a glTF file has. This lesson is the other half of the round trip: how a DCC tool <em>produces</em> that shape, and — more usefully — how to predict what it will quietly lose.</p>
+
+<h2>Three outcomes: what survives, what's re-baked, what's gone</h2>
+
+<p>Every material channel, mesh feature, and animation you author lands in exactly one of three buckets on export. The bucket is a property of <em>how you authored it</em>, not of glTF — which is why you can predict it:</p>
+
+<svg role="img" aria-labelledby="survives-title" viewBox="0 0 720 360" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="survives-title">Which Blender features export cleanly, which get re-baked, and which are dropped, across five categories</title>
+
+  <!-- column headers -->
+  <rect x="150" y="10" width="185" height="40" rx="4" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="2"/>
+  <text x="242" y="30" text-anchor="middle" font-size="13" fill="var(--svg-success-text)">CLEAN</text>
+  <text x="242" y="44" text-anchor="middle" font-size="9" fill="var(--svg-success-text)">copied verbatim</text>
+  <rect x="340" y="10" width="185" height="40" rx="4" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="2"/>
+  <text x="432" y="30" text-anchor="middle" font-size="13" fill="var(--svg-warning-text)">RE-BAKED</text>
+  <text x="432" y="44" text-anchor="middle" font-size="9" fill="var(--svg-warning-text)">adapted, slower</text>
+  <rect x="530" y="10" width="180" height="40" rx="4" fill="var(--svg-error-fill)" stroke="var(--svg-error)" stroke-width="2"/>
+  <text x="620" y="30" text-anchor="middle" font-size="13" fill="var(--svg-error-text)">DROPPED</text>
+  <text x="620" y="44" text-anchor="middle" font-size="9" fill="var(--svg-error-text)">gone silently</text>
+
+  <!-- rows -->
+  <!-- Material -->
+  <text x="12" y="80" font-size="11" fill="var(--svg-text)">Material</text>
+  <text x="158" y="80" font-size="9" fill="var(--svg-text)">Principled + image tex</text>
+  <text x="348" y="80" font-size="9" fill="var(--svg-text)">mis-packed channels</text>
+  <text x="538" y="80" font-size="9" fill="var(--svg-text)">non-Principled shaders</text>
+  <!-- Geometry -->
+  <text x="12" y="118" font-size="11" fill="var(--svg-text)">Geometry</text>
+  <text x="158" y="118" font-size="9" fill="var(--svg-text)">tris, applied mesh</text>
+  <text x="348" y="118" font-size="9" fill="var(--svg-text)">quads→tris, modifiers</text>
+  <text x="538" y="118" font-size="9" fill="var(--svg-text)">curves, NURBS, text</text>
+  <!-- Textures -->
+  <text x="12" y="156" font-size="11" fill="var(--svg-text)">Textures</text>
+  <text x="158" y="156" font-size="9" fill="var(--svg-text)">PNG/JPEG, ORM-packed</text>
+  <text x="348" y="156" font-size="9" fill="var(--svg-text)">other formats, UDIM</text>
+  <text x="538" y="156" font-size="9" fill="var(--svg-text)">procedural (Voronoi…)</text>
+  <!-- Animation -->
+  <text x="12" y="194" font-size="11" fill="var(--svg-text)">Animation</text>
+  <text x="158" y="194" font-size="9" fill="var(--svg-text)">keyframes, pose, morphs</text>
+  <text x="348" y="194" font-size="9" fill="var(--svg-text)">IK/constraints (sampled)</text>
+  <text x="538" y="194" font-size="9" fill="var(--svg-text)">material/light anim</text>
+  <!-- Lights -->
+  <text x="12" y="232" font-size="11" fill="var(--svg-text)">Lights</text>
+  <text x="158" y="232" font-size="9" fill="var(--svg-text)">Point / Spot / Sun</text>
+  <text x="348" y="232" font-size="9" fill="var(--svg-text)">—</text>
+  <text x="538" y="232" font-size="9" fill="var(--svg-text)">Area, World / HDRI</text>
+
+  <!-- column separators + row grid -->
+  <line x1="150" y1="60" x2="150" y2="250" stroke="var(--svg-line)" stroke-width="1"/>
+  <line x1="340" y1="60" x2="340" y2="250" stroke="var(--svg-line)" stroke-width="1"/>
+  <line x1="530" y1="60" x2="530" y2="250" stroke="var(--svg-line)" stroke-width="1"/>
+
+  <text x="12" y="290" font-size="11" fill="var(--svg-text)">Rule: if it's not Principled BSDF + image textures in the glTF-native layout, it's re-baked or gone.</text>
+</svg>
+
+<p>Read your own material against the left column. If it's a <span class="term" data-term="principled-bsdf">Principled BSDF</span> with UV-mapped image textures (or flat slider values) wired in the layout glTF expects, it exports byte-for-byte. Everything else is a re-bake-or-lose.</p>
+
+<h2>The clean material path</h2>
+
+<p>glTF's core material is metal/rough PBR with a fixed set of channels: base color, metallic, roughness, ambient occlusion, normal, emissive. The exporter recognizes a specific node arrangement and copies those textures verbatim:</p>
+
+<ul>
+  <li><strong>Base color / emissive</strong> — an Image Texture (sRGB) into the Principled input.</li>
+  <li><strong>Metallic + roughness</strong> — glTF packs <span class="term" data-term="orm-packing">metallic in Blue, roughness in Green</span> of ONE Non-Color image. Wire it that way and it's copied as-is; wire it any other way and the add-on re-bakes.</li>
+  <li><strong>Ambient occlusion</strong> — glTF stores AO in Red (so O/R/M share one image). Blender has <em>no native node</em> that consumes it the glTF way — you add the custom <span class="term" data-term="gltf-material-output"><code>glTF Material Output</code></span> node group and plug AO into its Occlusion input.</li>
+  <li><strong>Normal</strong> — tangent-space, +Y up, Non-Color, through a Normal Map node.</li>
+</ul>
+
+<div class="note">
+  <strong>Alternative — the <code>KHR_materials_*</code> escape hatch:</strong> non-default Principled inputs (clearcoat, transmission, sheen, specular, emissive strength, unlit) export as <code>KHR_materials_*</code> extensions. A baseline viewer ignores an extension it doesn't understand (graceful degradation) — but a <code>required</code> extension it can't read will refuse to load. Use extensions when the effect matters and your target supports it; otherwise bake to the core channels. <a href="../reference/code/authoring-and-blender-export/export_notes.md" class="citation">[settings card]</a>
+</div>
+
+<p>The lesson's downloadable <code>cube_metalrough.glb</code> is exactly this clean layout — a cube with a <code>pbrMetallicRoughness</code> material and a base-color texture. It's built two ways: <code>make_cube_glb.py</code> (stdlib, no Blender) and <code>export_cube.py</code> (the Blender path), so you can see the same glTF from both ends.</p>
+
+<h2>Geometry &amp; transform: why it loads rotated, huge, or invisible</h2>
+
+<p>Three settings cause the most "it broke on import" bugs, and none are about materials:</p>
+
+<div class="note">
+  <strong>Why is my model rotated / the wrong size / not there?</strong>
+  <ul>
+    <li><strong><code>+Y Up</code></strong> — Blender is Z-up, glTF is Y-up. The single checkbox handles it; off (or forgotten) is the #1 "loads sideways" cause.</li>
+    <li><strong>Apply Rotation &amp; Scale</strong> (<code>Ctrl+A</code>) before export — an unapplied scale exports wrong normals and bounding boxes.</li>
+    <li><strong>Apply Modifiers</strong> — the mesh you see (armature, subsurf, mirror) isn't in the file unless this is on.</li>
+  </ul>
+</div>
+
+<p>glTF also always <strong>triangulates</strong> and <strong>splits vertices</strong> on discontinuous UVs or flat-shaded edges — so the exported vertex count is higher than Blender's. That's expected, not a bug.</p>
+
+<h2>Animation: the Mode choice decides what exports</h2>
+
+<p>A glTF animation drives <em>only</em> node transforms (translation/rotation/scale), pose bones, and shape-key weights. Material, light, and physics animation are ignored. The pivotal export setting is <strong>Mode</strong>:</p>
+
+<div class="note">
+  <strong>When to use which Animation Mode:</strong>
+  <ul>
+    <li><strong>Actions</strong> (default) — each action becomes its own clip, but <strong>only if it's the active action or stashed / pushed down to an <span class="term" data-term="nla-track">NLA track</span></strong>. Best for game animation libraries.</li>
+    <li><strong>NLA Tracks</strong> — each track → one glTF animation; use when you rely on strip modifiers.</li>
+    <li><strong>Scene</strong> — exactly what plays on the timeline.</li>
+  </ul>
+  <strong>Rule of thumb:</strong> multiple actions to ship? Use <strong>Actions</strong> and <strong>stash every one</strong> — unstashed actions silently do not export.
+</div>
+
+<div class="note">
+  <strong>Why do my IK/constraint animations come out empty?</strong> IK, constraints, and drivers don't exist in glTF — the exporter can only bake their <em>result</em> into keyframes, and only if <span class="term" data-term="sampling"><strong>Sampling</strong></span> is on. The manual is blunt: "Do not sample animation can lead to wrong animation export." <a href="https://docs.blender.org/manual/en/latest/addons/import_export/scene_gltf2.html" class="citation">[Blender manual: glTF exporter]</a>
+</div>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A colleague's model looks perfect in Blender — a rock textured with a Voronoi procedural, and an arm posed by an IK-driven action — but after glTF export the rock is flat grey and the arm doesn't move. Name the two root causes and the fix for each.</p>
+  <details>
+  <summary>Hint</summary>
+  <p>One failure is in the CLEAN/RE-BAKED/DROPPED material bucketing; the other is about what an Animation Mode can and can't carry out of Blender.</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>Should mention: (1) the <strong>Voronoi is a procedural texture — it's DROPPED</strong> (the exporter is a pattern-matcher; procedural nodes "work only inside Blender"). Fix: bake it to an image texture, then wire that image into the base-color input. (2) <strong>IK is not a glTF concept</strong> — the arm's motion comes from a constraint, which exports as nothing unless you enable <strong>Sampling</strong> so the exporter bakes the resulting pose into keyframes. Key insight: both bugs are the same principle — glTF only carries a fixed vocabulary, so anything outside it must be baked into something glTF understands (an image, sampled keyframes) before export.</p>
+  </details>
+</div>
+
+<h2>Code Files</h2>
+<p>Download the final-state files from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/authoring-and-blender-export/cube_metalrough.glb" download><code>cube_metalrough.glb</code></a> — the "clean export": a cube with a pbrMetallicRoughness material + base-color texture.</li>
+  <li><a href="../reference/code/authoring-and-blender-export/make_cube_glb.py" download><code>make_cube_glb.py</code></a> — builds that .glb with the Python stdlib (no Blender).</li>
+  <li><a href="../reference/code/authoring-and-blender-export/export_cube.py" download><code>export_cube.py</code></a> — the Blender (bpy) source for the same asset.</li>
+  <li><a href="../reference/code/authoring-and-blender-export/export_notes.md" download><code>export_notes.md</code></a> — the game-ready export-settings card (every setting + why + failure-if-wrong).</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <ul>
+    <li><strong>Consuming glTF — Engine Import</strong> — the other end: how a runtime turns this file into a scene.</li>
+    <li><strong>Materials &amp; Textures</strong> — the PBR model in depth, and the sRGB-vs-linear color-space trap.</li>
+    <li><strong>Animation, Skins &amp; Morphs</strong> — why a rigged mesh must export in rest pose.</li>
+  </ul>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "principled-bsdf": "Blender's standard physically-based shader node. The glTF exporter pattern-matches a Principled BSDF (plus image textures) into glTF's metallic-roughness material; other shaders don't map.",
+  "orm-packing": "Packing Occlusion (Red), Roughness (Green), and Metalness (Blue) into one image's three channels — the layout glTF's metallic-roughness material expects, so one texture serves three maps.",
+  "nla-track": "Blender's Non-Linear Animation track. Stashing / pushing an action down to an NLA track is what makes the glTF exporter include it (in Actions mode) — unstashed actions are silently skipped.",
+  "gltf-material-output": "A custom Blender node group the glTF add-on provides to feed export-only data (ambient occlusion, volume thickness) that no native Principled input carries.",
+  "sampling": "Baking animation to per-frame keyframes on export. Required for IK/constraint/driver motion, which glTF cannot represent directly — without it, that motion exports wrong or empty."
+}
+</script>
+<script type="application/json" id="lesson-actions-config" data-domain="gltf-format" data-lesson-id="02-authoring-and-blender-export" data-map-page="gltf-format-map.html" data-topic-title="Authoring &amp; Blender Export"></script>
+<script type="module" src="../assets/page-shell.js"></script>
+</body>
+</html>
