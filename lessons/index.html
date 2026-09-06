@@ -10,25 +10,73 @@
 
     body { max-width: 900px; margin: 0 auto; padding: 2rem; }
     .index-view h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
-    .index-meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
-    .mission-fold { margin-top: 0.75rem; border-top: 1px solid var(--border); padding-top: 0.5rem; }
-    .mission-fold summary { font-size: 0.8rem; color: var(--text-faint); cursor: pointer; }
-    .mission-fold summary:hover { color: var(--text-muted); }
-    .mission-why { font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; margin: 0.5rem 0; }
-    .mission-criteria { padding-left: 1.2rem; margin: 0; }
-    .mission-criteria li { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
-    .domain-grid { display: flex; flex-direction: column; gap: 1rem; }
-    .domain-card {
-      display: block; padding: 1.25rem; background: var(--bg-elevated);
-      border: 1px solid var(--border); border-radius: 10px; text-decoration: none;
-      color: var(--text); transition: border-color 0.15s, box-shadow 0.15s;
+    .index-meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem; }
+    .index-cue { font-size: 0.9rem; margin: 0 0 1rem; }
+    .index-cue-start { color: var(--text-muted); }
+    .index-cue-done { color: var(--success); font-weight: 500; }
+    .index-cue-resume a {
+      display: inline-block; color: var(--accent); font-weight: 600;
+      text-decoration: none; padding: 0.5rem 0.9rem; border-radius: 8px;
+      background: var(--bg-elevated); border: 1px solid var(--border);
     }
-    .domain-card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(203, 166, 247, 0.1); }
-    .domain-card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
-    .domain-card-header h2 { font-size: 1.1rem; margin: 0; }
-    .domain-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
-    .domain-stat { font-size: 0.8rem; color: var(--text-faint); }
-    .progress-ring { flex-shrink: 0; }
+    .index-cue-resume a:hover { border-color: var(--accent); }
+
+    /* Demo takeover note (#279) */
+    .index-demo-note { font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1rem;
+      display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .index-demo-start { background: none; border: 1px solid var(--border); color: var(--accent);
+      font: inherit; font-size: 0.8rem; cursor: pointer; padding: 0.25rem 0.7rem; border-radius: 6px; }
+    .index-demo-start:hover { border-color: var(--accent); }
+
+    /* Tree | Map toggle */
+    .view-toggle { display: inline-flex; gap: 0; margin: 0 0 1.5rem; border: 1px solid var(--border);
+      border-radius: 8px; overflow: hidden; }
+    .vt-btn { background: var(--bg-elevated); color: var(--text-muted); border: none;
+      padding: 0.4rem 1.1rem; font-size: 0.85rem; cursor: pointer; font: inherit; }
+    .vt-btn + .vt-btn { border-left: 1px solid var(--border); }
+    .vt-btn.is-active { background: var(--accent); color: var(--bg); font-weight: 600; }
+    .vt-btn:hover:not(.is-active) { color: var(--text); }
+
+    /* Indented tree view */
+    .indented-tree .ti-root { list-style: none; padding-left: 0; margin: 0; }
+    .indented-tree .ti-group { list-style: none; margin: 0; padding-left: 1.4rem;
+      border-left: 1px solid var(--border); margin-left: 0.7rem; }
+    .indented-tree .ti-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.7rem;
+      border-radius: 8px; text-decoration: none; color: var(--text); outline-offset: 2px; }
+    .indented-tree .ti-row:hover { background: var(--bg-elevated); }
+    .indented-tree .ti-row:focus-visible { outline: 2px solid var(--accent); }
+    .indented-tree .ti-row.is-child { color: var(--text-muted); }
+    .indented-tree .ti-twisty { background: none; border: none; color: var(--text-muted);
+      cursor: pointer; font-size: 0.7rem; padding: 0 0.2rem; line-height: 1; }
+    .indented-tree .ti-title { font-weight: 600; }
+    .indented-tree .ti-stat { font-size: 0.78rem; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+    .indented-tree .ti-leads { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
+    .sc-section-title { font-size: 0.9rem; color: var(--text-muted); margin: 1.5rem 0 0.5rem; }
+
+    /* Iterated map view */
+    .iterated-map .im-legend { display: flex; gap: 1.5rem; font-size: 0.78rem;
+      color: var(--text-muted); margin-bottom: 0.6rem; align-items: center; }
+    .iterated-map .im-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .im-card { display: block; padding: 0.8rem 1rem; background: var(--bg-elevated);
+      border: 1px solid var(--border); border-radius: 10px; text-decoration: none; color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box; }
+    .im-card:hover, .im-card:focus-visible { border-color: var(--accent); box-shadow: 0 2px 12px rgba(203,166,247,0.12); }
+    .im-card h3 { font-size: 0.95rem; margin: 0 0 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
+    .im-card .dc-meta { font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; font-variant-numeric: tabular-nums; }
+    .im-card.is-child { border-left: 3px solid var(--accent); }
+    .dc-sub-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 3px;
+      background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    /* Private overlay badge (#184) — distinct from sub-map; text label carries the meaning
+       (WCAG: not color-alone), amber border signals "local, not shipped". */
+    .dc-private-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 3px;
+      border: 1px solid var(--warning, #d08770); color: var(--warning, #d08770);
+      background: color-mix(in srgb, var(--warning, #d08770) 12%, transparent); }
+    .islands-panel { margin-top: 1.5rem; padding: 1rem; border: 1px dashed var(--border); border-radius: 8px; }
+    .islands-panel h2 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .islands-panel ul { list-style: none; padding: 0; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .islands-panel a { font-size: 0.8rem; padding: 0.3rem 0.6rem; border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text-muted); text-decoration: none; }
+    .islands-panel a:hover { border-color: var(--accent); color: var(--accent); }
 
   </style>
   <script type="importmap">
@@ -42,23 +90,73 @@
     }
 }
   </script>
+  <script src="../assets/vendor/dagre.min.js"></script>
 </head>
 <body>
 
 <div id="app"></div>
 
-<script type="application/json" id="page-data">{"domains": [{"domain": "godot-gamedev", "title": "Game Development with Godot", "description": "Godot is a free, open-source game engine whose node/scene architecture makes it unusually learnable — every game object is a composable tree of small, focused nodes.", "total": 8, "complete": 2, "inProgress": 0}, {"domain": "ink-godot", "title": "Ink + Godot: Narrative Scripting", "description": "Ink is a narrative scripting language by Inkle Studios — the engine behind 80 Days, Heaven's Vault, and Esoteric Ebb.", "total": 8, "complete": 0, "inProgress": 1}, {"domain": "data-analytics", "title": "Modern Data Analytics Stacks", "description": "Every organization sits on operational data that only becomes useful when it flows through a deliberate pipeline: captured, stored in queryable formats, transformed into business concepts, orchestrated reliably, and served to the people making decisions.", "total": 7, "complete": 2, "inProgress": 0}, {"domain": "oidc-rust", "title": "OIDC Authentication in Rust", "description": "Every web service that says \"Sign in with Google\" is using OpenID Connect — an identity layer on top of OAuth 2.", "total": 6, "complete": 2, "inProgress": 0}, {"domain": "workout-fundamentals", "title": "Workout Fundamentals", "description": "Strength training is governed by a small number of principles that explain 90% of results.", "total": 6, "complete": 3, "inProgress": 0}], "mission": null, "stats": {"domainCount": 5, "topicCount": 35, "completeCount": 9}}</script>
+<script type="application/json" id="page-data">{"domains": [{"slug": "gltf-format", "title": "glTF 2.0 — The Standard Under Every 3D Import", "description": "glTF is \"the JPEG of 3D\": a Khronos open standard for *delivering* runtime-ready 3D — a JSON scene graph plus binary geometry plus images — that Godot, Blender, three.", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "../library/gltf-format/lessons/gltf-format-map.html", "topicIds": ["01M1T33FPC4YTKKSXWH53N60PZ", "01M1T33FPCDS2WKNDKFFXGA5V0", "01M1T33FPC4J9RV8GM8H6GFDQC", "01M1T33FPCNKMX0XXN715XJ7CT", "01M1T33FPCSQ0QED2XH9HDPR9A", "01M1T33FPCKCVXK5NMGDAR180Y"], "private": false, "hasPrivate": false, "privateTopicIds": []}, {"slug": "blender-texture-prep", "title": "Blender Texture Prep for Toon Shading", "description": "Toon shaders handle lighting procedurally — banding, specular, rim are all computed in real time.", "depth": 1, "parent": "godot-gamedev", "total": 7, "complete": 0, "inProgress": 0, "mapHref": "../library/godot-gamedev/lessons/blender-texture-prep-map.html", "topicIds": ["01M174TQPB723EMSEZPECA55MC", "01M174TQPB8QFQZ6A8D4WQ3HAB", "01M174TQPBFQG4MTH62HANBFMD", "01M174TQPBTDFW2AAZZXKCCWKN", "01M174TQPBD4AXH3MSNAF1CNPS", "01M174TQPB4KRM72DXG8GAZ3KJ", "01M174TQPB5WJ7TT2EJ2YPXTZ4"], "private": false, "hasPrivate": false, "privateTopicIds": []}, {"slug": "godot-gamedev", "title": "Game Development with Godot", "description": "Godot is a free, open-source game engine whose node/scene architecture makes it unusually learnable — every game object is a composable tree of small, focused nodes.", "depth": 0, "parent": null, "total": 8, "complete": 2, "inProgress": 0, "mapHref": "../library/godot-gamedev/lessons/godot-gamedev-map.html", "topicIds": ["01M174TQPEWJXH0VZ88FMHYF3G", "01M174TQPE9JAPFN8JB1ERFEPE", "01M174TQPEZQMEFSVC2TMKVZAP", "01M174TQPEFPESE3GDEMACGS5M", "01M174TQPE5HAD87R8D409B9R7", "01M174TQPE5AAZKC0NR1JP1Y9W", "01M174TQPEB6J1NZ3QVM080KRY", "01M174TQPE0MZGBZKVXFS0GJ23"], "private": false, "hasPrivate": false, "privateTopicIds": []}, {"slug": "godot-mktoon", "title": "Per-Material Toon Shading (MKToon)", "description": "Where the toon-shaders track simplifies lighting with post-process filters (outlines, Kuwahara), this track builds the look from scratch inside the material.", "depth": 1, "parent": "godot-gamedev", "total": 6, "complete": 0, "inProgress": 0, "mapHref": "../library/godot-gamedev/lessons/godot-mktoon-map.html", "topicIds": ["01M174TQPHA2TWZBPKQN7NPG1E", "01M174TQPH8CD5PXM9BN2E86BY", "01M174TQPH2BVG3FT78A1AD3K6", "01M174TQPH2Y56YNJHW6E4CSMQ", "01M174TQPH5ZBRNCNF0ZB2TEP7", "01M174TQPHRS48N7909AXCZF24"], "private": false, "hasPrivate": false, "privateTopicIds": []}, {"slug": "godot-toon-shaders", "title": "Godot Toon Shaders", "description": "Toon (cel) shading replaces smooth realistic lighting with discrete brightness bands — the signature look of anime, comic-book games, and stylized 3D.", "depth": 1, "parent": "godot-gamedev", "total": 6, "complete": 0, "inProgress": 0, "mapHref": "../library/godot-gamedev/lessons/godot-toon-shaders-map.html", "topicIds": ["01M174TQPM0PYKA1JEB494GVSS", "01M174TQPM3VYT0E96F4B7735M", "01M174TQPM333KKHJYZHE7AE6E", "01M174TQPMSZ3ZBHD6DW3SGCD2", "01M174TQPMKFNCRGHCMNSSCNES", "01M174TQPMXHHWXY6QRP4CZADH"], "private": false, "hasPrivate": false, "privateTopicIds": []}, {"slug": "data-analytics", "title": "Modern Data Analytics Stacks", "description": "Every organization sits on operational data that only becomes useful when it flows through a deliberate pipeline: captured, stored in queryable formats, transformed into business concepts, orchestrated reliably, and served to the people making decisions.", "depth": 0, "parent": null, "total": 7, "complete": 2, "inProgress": 0, "mapHref": "../library/iceberg-workspace/lessons/data-analytics-map.html", "topicIds": ["01M174TQPPZFGSZT3DJNFGXHZ9", "01M174TQPPD0TDSBXSM79ZBZ73", "01M174TQPPQC00AS015ZGRV1R3", "01M174TQPP4NSA7HE1FG1ZHHYC", "01M174TQPPPS80V8ZSSXTHTSWK", "01M174TQPP4Z1ADE34PFAX1GWJ", "01M174TQPPM488YV8AA7M4TC7E"], "private": false, "hasPrivate": false, "privateTopicIds": []}, {"slug": "storage-and-table-formats", "title": "Storage & Open Table Formats", "description": "Your data has to live somewhere, and HOW it's stored determines everything downstream: what queries are fast, what operations are possible, how much you pay, and how much operational burden you carry.", "depth": 1, "parent": "data-analytics", "total": 5, "complete": 0, "inProgress": 0, "mapHref": "../library/iceberg-workspace/lessons/storage-and-table-formats-map.html", "topicIds": ["01M174TQPS85HE7F2EZ0R7KH09", "01M174TQPS2E30N1MYEGNRRZ8E", "01M174TQPS0PX6V614C6042P1Q", "01M174TQPSND5QFHZNG077E898", "01M174TQPSF6F95WXFXT0VAPRP"], "private": false, "hasPrivate": false, "privateTopicIds": []}, {"slug": "ink-godot", "title": "Ink + Godot: Narrative Scripting", "description": "Ink is a narrative scripting language by Inkle Studios — the engine behind 80 Days, Heaven's Vault, and Esoteric Ebb.", "depth": 0, "parent": null, "total": 8, "complete": 3, "inProgress": 5, "mapHref": "../library/ink-godot/lessons/ink-godot-map.html", "topicIds": ["01M174TQPVJ8DXJ9XHG6PYVSJC", "01M174TQPVXSXEVPRYM5QNNWT3", "01M174TQPV20MTTGH29SMYCZ24", "01M174TQPVTPB3VFTCRBX3KJFG", "01M174TQPVDXGR1JFAHZ15J7XH", "01M174TQPV6FWNWQJS1JRC5ADW", "01M174TQPV2FBSAMEKC0Z5DWGH", "01M174TQPV2WJXAXZGWJ2TJ0Q0"], "private": false, "hasPrivate": false, "privateTopicIds": []}, {"slug": "oidc-rust", "title": "OIDC Authentication in Rust", "description": "Every web service that says \"Sign in with Google\" is using OpenID Connect — an identity layer on top of OAuth 2.", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "../library/oidc-rust/lessons/oidc-rust-map.html", "topicIds": ["01M174TQPX1EZC8TA5KSZ4Q9WD", "01M174TQPXBH83XTK1HWTNY04R", "01M174TQPX4G6A5TMGD7MEEK2K", "01M174TQPX07QG13F5CPAFPC2P", "01M174TQPXSF617VN6Z02F3YM1", "01M174TQPXG8YAF3FWXRAQN92X"], "private": false, "hasPrivate": false, "privateTopicIds": []}, {"slug": "workout-fundamentals", "title": "Workout Fundamentals", "description": "Strength training is governed by a small number of principles that explain 90% of results.", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "../library/workout-fundamentals/lessons/workout-fundamentals-map.html", "topicIds": ["01M174TQQ06X4RPJSKFDP1WHKM", "01M174TQQ06SZ2KWDKZBZ7Y01R", "01M174TQQ0TC0KXPNJFKAM1JHC", "01M174TQQ0A8H2E0Y3NWFYND1M", "01M174TQQ0PKM5CA9PAMHCRMGW", "01M174TQQ0D8HCNG0GHJS2G6GX"], "private": false, "hasPrivate": false, "privateTopicIds": []}, {"slug": "blender-godot-shaders", "title": "Blender → Godot Shader Pipeline (Esoteric Ebb Style)", "description": "You'll learn to create stylized 3D forest environments by combining Blender's shader nodes for authoring with Godot's shader language for real-time rendering.", "depth": 0, "parent": null, "total": 7, "complete": 0, "inProgress": 0, "mapHref": "../workspace/lessons/blender-godot-shaders-map.html", "topicIds": ["01M1T3S75WQYE89AFSQT5YD6R8", "01M1T3S75WGYYWXEC66HZ64YVA", "01M1T3S75W4ZSAXM4ZWKMHPGEF", "01M1T3S75WK485JBGG12XR6N0A", "01M1T3S75WT6THSYJ4XKD5W3QZ", "01M1T3S75WSKAZG11P3KYAJDAM", "01M1T3S75WHAJNPVCMADZMZ3B7"], "private": false, "hasPrivate": false, "privateTopicIds": []}, {"slug": "code-design", "title": "A Philosophy of Software Design", "description": "Topics derived from document headings in reading order.", "depth": 0, "parent": null, "total": 20, "complete": 0, "inProgress": 0, "mapHref": "../workspace/lessons/code-design-map.html", "topicIds": ["01M1T3S75WP4CWYAJDKNVXJ91J", "01M1T3S75WE5HWCE6AXJ6XS2XY", "01M1T3S75WNJRAHHB6797EQ9N6", "01M1T3S75WW0843TYJCG9GK5QP", "01M1T3S75W2ARK1D42XYAKMVYZ", "01M1T3S75WZTEF2N62TTA6Q4V0", "01M1T3S75WPKFMVNWDZT8KER6R", "01M1T3S75WPSJ2V6EEQ11ZP7AG", "01M1T3S75W4TD74JH1Q3R54X19", "01M1T3S75W3RY09TZVGY2G3W56", "01M1T3S75W2527GT4X0ZBZB450", "01M1T3S75WGF41DCP9M0A7Z2C9", "01M1T3S75W7N25E9D32H6E39T5", "01M1T3S75WE1MH9E88J9DKTSWW", "01M1T3S75WNKNMYPN9SC8VWVWJ", "01M1T3S75WNR45GG2SRSV0KR5Q", "01M1T3S75W0W8DKQ8BQ09J07KW", "01M1T3S75WAFBZS8440MTY1916", "01M1T3S75WGM5QGEQ8JGYA5VZ6", "01M1T3S75WPK1PYDN0BQZ8ZT4A"], "private": false, "hasPrivate": false, "privateTopicIds": []}, {"slug": "rust-fundamentals", "title": "Rust by Example", "description": "Topics derived from document headings in reading order.", "depth": 0, "parent": null, "total": 9, "complete": 0, "inProgress": 0, "mapHref": "../workspace/lessons/rust-fundamentals-map.html", "topicIds": ["01M1T3S75X36R2Z3388SE6FAJ8", "01M1T3S75XNS6H8PB3YS02190B", "01M1T3S75XYE3R1DFSQKKXZ9KB", "01M1T3S75XE4D4G0K8WQSA52DH", "01M1T3S75X5DM2YYK8522JRYBD", "01M1T3S75XA67SRK021SYRPKBH", "01M1T3S75XZKG5KA34HW9WT8HB", "01M1T3S75X961BTZG8QQAG1DV8", "01M1T3S75XJECW86W92K6VW455"], "private": false, "hasPrivate": false, "privateTopicIds": []}], "edges": [{"source": "godot-gamedev", "target": "blender-texture-prep", "type": "parent"}, {"source": "blender-texture-prep", "target": "godot-mktoon", "type": "leads_to", "why": ""}, {"source": "godot-gamedev", "target": "godot-mktoon", "type": "parent"}, {"source": "godot-gamedev", "target": "godot-toon-shaders", "type": "parent"}, {"source": "godot-toon-shaders", "target": "godot-mktoon", "type": "leads_to", "why": ""}, {"source": "data-analytics", "target": "storage-and-table-formats", "type": "parent"}], "islands": ["blender-godot-shaders", "code-design", "gltf-format", "ink-godot", "oidc-rust", "rust-fundamentals", "workout-fundamentals"], "mission": {"title": "Mission: Blender → Godot Shader Pipeline (Esoteric Ebb Style)", "why": "Building a game with a stylized forest scene/level inspired by the esoteric ebb art style. Need to bridge Blender's shader graph and Godot's shader language to produce assets that look correct after export.", "criteria": ["Create textured, stylized environment assets in Blender using shader techniques that support the ebb aesthetic", "Understand which visual effects belong in Blender's material system vs Godot's shader language", "Export assets from Blender to Godot without losing intended visual quality", "Write and modify shaders in both tools to achieve a cohesive stylized forest look"]}, "demoOverlay": {"01M174TQPEWJXH0VZ88FMHYF3G": "complete", "01M174TQPE9JAPFN8JB1ERFEPE": "complete", "01M174TQPPZFGSZT3DJNFGXHZ9": "complete", "01M174TQPPD0TDSBXSM79ZBZ73": "complete", "01M174TQPVJ8DXJ9XHG6PYVSJC": "complete", "01M174TQPVXSXEVPRYM5QNNWT3": "complete", "01M174TQPV20MTTGH29SMYCZ24": "complete", "01M174TQPVTPB3VFTCRBX3KJFG": "in-progress", "01M174TQPVDXGR1JFAHZ15J7XH": "in-progress", "01M174TQPV6FWNWQJS1JRC5ADW": "in-progress", "01M174TQPV2FBSAMEKC0Z5DWGH": "in-progress", "01M174TQPV2WJXAXZGWJ2TJ0Q0": "in-progress"}, "stats": {"domainCount": 9, "topicCount": 77, "completeCount": 7, "inProgressCount": 5}}</script>
 <script type="module">
 
     import { h, render } from 'preact';
     import htm from 'htm';
-    import { IndexView } from '../assets/components/IndexView.js';
+    import { UnifiedView } from '../assets/components/UnifiedView.js';
+    import { prefs, set as setPref } from '../assets/preferences.js';
 
     const html = htm.bind(h);
     const data = JSON.parse(document.getElementById('page-data').textContent);
 
+    // View selection: ?view=map wins, else the persisted pref, else 'tree'. Write the
+    // resolved value through to prefs so a ?view= visit updates the saved default.
+    const urlView = new URLSearchParams(location.search).get('view');
+    const resolved = urlView === 'map' ? 'map'
+      : urlView === 'tree' ? 'tree'
+      : (prefs.value.mapView || 'tree');
+    if (resolved !== prefs.value.mapView) setPref('mapView', resolved);
+
+    // Load-time progress resolution (#279). The baked domains[*].{complete,inProgress} and
+    // stats are the DEMO / no-JS floor. If the user has their OWN overlay (served hosts
+    // only — GET /api/overlay), recompute counts from it and swap. Read-then-swap: keep the
+    // baked floor unless a real overlay actually resolves. Static hosts (GH Pages) 404 the
+    // fetch, so the demo counts stand (Option A: static = display-only demo).
+    async function resolveProgress() {
+      // hasOwnProgress means the user has taken over from the demo; from then on the demo
+      // seed is never shown — an absent/empty overlay yields all-not-started (empty view).
+      const owns = prefs.value.hasOwnProgress === true;
+      let overlay = null;
+      try {
+        const res = await fetch('api/overlay', { headers: { accept: 'application/json' } });
+        if (res.ok) overlay = (await res.json()).overlay || {};
+      } catch (_) { /* static host / no server — keep the demo floor */ }
+
+      // Only override when we have a real signal: either the user owns their progress, or a
+      // non-empty overlay came back. An empty overlay on a non-owning user = show the demo.
+      const hasReal = owns || (overlay && Object.keys(overlay).length > 0);
+      if (!hasReal) {
+        // Demo floor stands. Flag it so the view can offer the takeover action — but only
+        // if the demo actually shows progress (a zero demo has nothing to "take over").
+        const demoHasProgress = data.stats.completeCount > 0 || (data.stats.inProgressCount || 0) > 0;
+        return demoHasProgress;
+      }
+      const map = overlay || {};
+
+      let cComplete = 0, cInProgress = 0;
+      for (const d of data.domains) {
+        const ids = d.topicIds || [];
+        d.complete = ids.filter(id => map[id] === 'complete').length;
+        d.inProgress = ids.filter(id => map[id] === 'in-progress').length;
+        if (d.depth === 0) { cComplete += d.complete; cInProgress += d.inProgress; }
+      }
+      data.stats = { ...data.stats, completeCount: cComplete, inProgressCount: cInProgress };
+      return false;  // real data resolved — no demo banner
+    }
+
+    const showingDemo = await resolveProgress();
+
     render(
-      html`<${IndexView} domains=${data.domains} stats=${data.stats} mission=${data.mission} />`,
+      html`<${UnifiedView} domains=${data.domains} edges=${data.edges} islands=${data.islands}
+        stats=${data.stats} mission=${data.mission} showingDemo=${showingDemo} />`,
       document.getElementById('app')
     );
 
