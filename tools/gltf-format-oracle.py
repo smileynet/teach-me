@@ -40,11 +40,14 @@ CHUNK_BIN = 0x004E4942          # 'BIN\0'
 ACCESSOR_MAT4 = "MAT4"
 COMPONENT_FLOAT = 5126
 
-# Sample assets already committed in the shader test project (CC0/permissive).
+# Sample assets already committed in the shader test project (CC0/permissive) + lesson fixtures.
 DEFAULT_ASSETS = [
     "test-scene/assets/kenney-retro-urban/truck-green.glb",          # static prop
     "test-scene/assets/quaternius-characters/Wizard.glb",            # rigged (skin + animation)
     "test-scene/assets/polyhaven/Barrel_01/Barrel_01_1k.gltf",       # .gltf + .bin + textures
+    # gltf-format domain lesson fixtures (the taught minimal triangle, both container forms):
+    "library/gltf-format/reference/code/gltf-anatomy-and-the-standard/triangle.gltf",
+    "library/gltf-format/reference/code/gltf-anatomy-and-the-standard/triangle.glb",
 ]
 
 

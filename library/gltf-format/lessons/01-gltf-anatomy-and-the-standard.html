@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1: glTF Anatomy &amp; the Standard</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "preact": "../assets/vendor/preact.module.js",
+      "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+      "@preact/signals": "../assets/vendor/preact-signals.module.js",
+      "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+      "htm": "../assets/vendor/htm.module.js"
+    }
+  }
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="gltf-format-map.html">glTF 2.0</a> <span class="nav-sep">›</span> <span>glTF Anatomy &amp; the Standard</span></nav>
+<h1>glTF Anatomy &amp; the Standard</h1>
+<div class="lesson-meta">
+  Lesson 1 · glTF 2.0 · ~7 min read<br>
+  <strong>Win:</strong> You can open a <code>.glb</code>/<code>.gltf</code>, name its object graph, and explain how a chunk of bytes becomes a typed array of vertex data.
+</div>
+
+<div class="key-concept">
+  <strong>glTF is "the JPEG of 3D":</strong> a <em>delivery</em> format for runtime-ready models — not an authoring format like a <code>.blend</code>. A <code>.gltf</code> is a JSON scene graph; a <code>.glb</code> is that same JSON plus a binary blob packed into one file. Every other topic in this track hangs on the object model you meet here.
+</div>
+
+<h2>Start from the smallest complete file</h2>
+
+<p>The fastest way to understand glTF is to read the smallest file that actually renders: one triangle. Here it is in full — the canonical minimal glTF (from the Khronos <a href="https://github.com/KhronosGroup/glTF-Tutorials" class="citation">glTF-Tutorials</a>). Don't memorize it; we'll walk it top-down.</p>
+
+<pre data-file="triangle.gltf"><code>{
+  "scene": 0,
+  "scenes": [ { "nodes": [0] } ],
+  "nodes": [ { "mesh": 0 } ],
+  "meshes": [
+    { "primitives": [ { "attributes": { "POSITION": 1 }, "indices": 0 } ] }
+  ],
+  "buffers": [
+    { "uri": "data:application/octet-stream;base64,AAABAAIAAAAAAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAAAAAACAPwAAAAA=",
+      "byteLength": 44 }
+  ],
+  "bufferViews": [
+    { "buffer": 0, "byteOffset": 0, "byteLength": 6,  "target": 34963 },
+    { "buffer": 0, "byteOffset": 8, "byteLength": 36, "target": 34962 }
+  ],
+  "accessors": [
+    { "bufferView": 0, "componentType": 5123, "count": 3, "type": "SCALAR", "min": [0], "max": [2] },
+    { "bufferView": 1, "componentType": 5126, "count": 3, "type": "VEC3", "min": [0,0,0], "max": [1,1,0] }
+  ],
+  "asset": { "version": "2.0" }
+}</code></pre>
+
+<p>Read it as a chain of references, top to bottom:</p>
+<ul>
+  <li><code>scene</code> → picks scene 0; <code>scenes[0].nodes</code> → node 0.</li>
+  <li><code>nodes[0]</code> → references <code>mesh</code> 0.</li>
+  <li><code>meshes[0]</code> has one <span class="term" data-term="primitive">primitive</span>: its <code>POSITION</code> attribute reads <span class="term" data-term="accessor">accessor</span> 1, and its triangle <code>indices</code> read accessor 0.</li>
+  <li>Each accessor points at a <span class="term" data-term="buffer-view">bufferView</span>, which points at a <span class="term" data-term="buffer">buffer</span> — the actual bytes.</li>
+</ul>
+
+<p>That last chain — accessor → bufferView → buffer — is the one thing everyone trips on, so it gets its own section.</p>
+
+<h2>The indirection everyone trips on: buffer → bufferView → accessor</h2>
+
+<p>The bytes are stored once and interpreted in three layers, each adding exactly one thing: a <strong>buffer</strong> is raw bytes, a <strong>bufferView</strong> is a window into those bytes, and an <strong>accessor</strong> says "read this window as N typed elements."</p>
+
+<svg role="img" aria-labelledby="bva-title" viewBox="0 0 720 340" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="bva-title">The 44-byte buffer, sliced by two bufferViews, read by two accessors as typed arrays</title>
+
+  <!-- Row 1: the raw buffer (neutral = infrastructure) -->
+  <text x="10" y="34" font-size="13" fill="var(--svg-text)">buffer (44 raw bytes)</text>
+  <rect x="10" y="44" width="700" height="36" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="2"/>
+  <!-- byte offset ticks -->
+  <text x="14" y="98" font-size="10" fill="var(--svg-text)">0</text>
+  <text x="112" y="98" font-size="10" fill="var(--svg-text)">6</text>
+  <text x="150" y="98" font-size="10" fill="var(--svg-text)">8</text>
+  <text x="690" y="98" font-size="10" fill="var(--svg-text)">44</text>
+  <!-- padding bytes 6..8, hatched -->
+  <rect x="112" y="44" width="32" height="36" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="1" stroke-dasharray="3"/>
+  <text x="128" y="66" text-anchor="middle" font-size="9" fill="var(--svg-warning-text)">pad</text>
+
+  <!-- Row 2: bufferViews (primary = the thing being discussed), drawn as brackets/windows -->
+  <text x="10" y="140" font-size="13" fill="var(--svg-text)">bufferViews (windows)</text>
+  <rect x="10" y="150" width="100" height="30" rx="3" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="60" y="169" text-anchor="middle" font-size="10" fill="var(--svg-primary-text)">view0: 0..6</text>
+  <rect x="150" y="150" width="560" height="30" rx="3" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="430" y="169" text-anchor="middle" font-size="10" fill="var(--svg-primary-text)">view1: 8..44  (target ARRAY_BUFFER)</text>
+
+  <!-- connector lines buffer->views -->
+  <line x1="60" y1="80" x2="60" y2="150" stroke="var(--svg-line)" stroke-width="1" stroke-dasharray="4"/>
+  <line x1="430" y1="80" x2="430" y2="150" stroke="var(--svg-line)" stroke-width="1" stroke-dasharray="4"/>
+
+  <!-- Row 3: accessors (success = the usable output: typed arrays) -->
+  <text x="10" y="228" font-size="13" fill="var(--svg-text)">accessors (typed arrays)</text>
+  <rect x="10" y="238" width="100" height="30" rx="3" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="2"/>
+  <text x="60" y="257" text-anchor="middle" font-size="9" fill="var(--svg-success-text)">3× SCALAR u16</text>
+  <!-- accessor1: three VEC3 cells -->
+  <rect x="150" y="238" width="186" height="30" rx="3" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="2"/>
+  <rect x="336" y="238" width="187" height="30" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="2"/>
+  <rect x="523" y="238" width="187" height="30" rx="3" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="2"/>
+  <text x="243" y="257" text-anchor="middle" font-size="9" fill="var(--svg-success-text)">VEC3 (0,0,0)</text>
+  <text x="430" y="257" text-anchor="middle" font-size="9" fill="var(--svg-success-text)">VEC3 (1,0,0)</text>
+  <text x="616" y="257" text-anchor="middle" font-size="9" fill="var(--svg-success-text)">VEC3 (0,1,0)</text>
+
+  <line x1="60" y1="180" x2="60" y2="238" stroke="var(--svg-line)" stroke-width="1" stroke-dasharray="4"/>
+  <line x1="430" y1="180" x2="430" y2="238" stroke="var(--svg-line)" stroke-width="1" stroke-dasharray="4"/>
+
+  <text x="10" y="300" font-size="11" fill="var(--svg-text)">accessor1 element = 4 bytes (float) × 3 (VEC3) = 12; × count 3 = 36 = view1.byteLength. The numbers close.</text>
+</svg>
+
+<p>The payoff is that closing equation: the position accessor declares <code>VEC3</code> of <code>FLOAT</code> (componentType <code>5126</code>) with <code>count: 3</code>. One element is 4 bytes × 3 = 12 bytes; three of them is 36 bytes — exactly <code>bufferView[1].byteLength</code>. When those numbers reconcile, you know you've read the layout correctly.</p>
+
+<div class="note">
+  <strong>Why two objects (bufferView <em>and</em> accessor)?</strong> The split lets several accessors read the same buffer — interleaved vertex data (position + normal + UV in one strided window) or two attributes sharing one buffer. The bufferView owns <em>where</em> the bytes are; the accessor owns <em>how to interpret</em> them. A few things people get wrong: <code>count</code> is the number of <em>elements</em>, not bytes; the accessor's <code>byteOffset</code> is relative to its bufferView, not the file; and <code>min</code>/<code>max</code> are the data's bounding box, required on <code>POSITION</code>. <a href="https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#accessors" class="citation">[Khronos spec §3.6]</a>
+</div>
+
+<h2>Two container forms: <code>.gltf</code> vs <code>.glb</code></h2>
+
+<p>The exact same object graph ships in two shapes. Which one you reach for is a real choice:</p>
+
+<div class="comparison">
+  <div><strong><code>.gltf</code> (text):</strong> JSON you can open and read, with geometry either in a sibling <code>.bin</code> + texture files, or inlined as a base64 <code>data:</code> URI (as our triangle does). Human-inspectable; multi-file unless embedded.</div>
+  <div><strong><code>.glb</code> (binary):</strong> one self-contained file — a 12-byte header, then a <span class="term" data-term="glb-chunk">JSON chunk</span>, then a BIN chunk holding the raw bytes. Smaller, single-file, the usual shipping form. Not human-readable.</div>
+</div>
+
+<p>The <code>.glb</code> container is simpler than it sounds. Here are the first bytes of our <code>triangle.glb</code>, decoded by hand — read little-endian:</p>
+
+<pre data-file="triangle-glb-header.txt" data-mode="fragment"><code>offset 0:  47 6C 54 46   magic     = 'glTF'
+offset 4:  02 00 00 00   version   = 2        ← GLB CONTAINER version
+offset 8:  BC 02 00 00   length    = 700 bytes (whole file)
+offset 12: 64 02 00 00   chunk0 len = 612
+offset 16: 4A 53 4F 4E   chunk0 type = 'JSON'
+...620 bytes of JSON... then:
+           2C 00 00 00   chunk1 len = 44
+           42 49 4E 00   chunk1 type = 'BIN\0'   ← the 44 bytes of geometry</code></pre>
+
+<div class="note">
+  <strong>Why does the version read "2" when the asset is glTF 2.0?</strong> Those are two different numbers. The <code>02</code> at byte 4 is the <strong>GLB container</strong> version — the wrapper format. The <em>asset</em> version is <code>asset.version: "2.0"</code>, inside the JSON chunk. A viewer checks the JSON one to decide if it can render the asset. Confusing the two is the classic first-time glTF mistake. <a href="https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#glb-file-format-specification" class="citation">[Khronos spec §4.4]</a>
+</div>
+
+<p>You don't need a library to prove any of this. The parser below reads either form with the Python standard library alone (<code>struct</code> + <code>json</code>), prints the object graph, and <em>asserts</em> the structure — because "it loaded" is not the same as "it's correct":</p>
+
+<pre data-file="read_glb.py"><code>import json, struct, sys
+
+GLB_MAGIC = 0x46546C67   # 'glTF' little-endian
+
+def load_gltf(path):
+    with open(path, "rb") as f:
+        data = f.read()
+    if data[:4] != b"glTF":          # a .gltf file IS json
+        return json.loads(data)
+    magic, version, total = struct.unpack_from("&lt;III", data, 0)
+    assert magic == GLB_MAGIC, "not a GLB"
+    assert version == 2, f"GLB container version {version} != 2"
+    off, gltf = 12, None
+    while off &lt; total:               # walk length-prefixed chunks
+        clen, ctype = struct.unpack_from("&lt;II", data, off); off += 8
+        if ctype == 0x4E4F534A:      # 'JSON'
+            gltf = json.loads(data[off:off+clen])
+        off += clen                  # ignore unknown chunk types
+    return gltf
+
+g = load_gltf(sys.argv[1])
+assert g["asset"]["version"] == "2.0"          # ASSET version, not container
+for a in g["accessors"]:                       # every accessor -&gt; a real bufferView
+    assert 0 &lt;= a["bufferView"] &lt; len(g["bufferViews"])
+print("ok:", len(g["accessors"]), "accessors,", len(g["bufferViews"]), "bufferViews")</code></pre>
+
+<p>Run it on either fixture and you get the same graph — one scene, one node, one mesh; two accessors reading two bufferViews out of one buffer. The full downloadable version prints a fuller summary and checks more contracts.</p>
+
+<h2>Conventions baked into every glTF</h2>
+
+<p>A few global rules the format assumes, worth knowing before they surprise you:</p>
+<ul>
+  <li><strong>Right-handed, +Y up, meters, radians.</strong> A node's transform is <code>T · R · S</code> (translation, rotation, scale composed in that order). Models face +Z; a camera looks down its local −Z.</li>
+  <li><strong>Little-endian</strong> for all binary data (that's why the parser uses <code>&lt;</code> in <code>struct</code>).</li>
+  <li><strong>Color space is per texture channel</strong> — base color is sRGB, data maps like roughness are linear. That distinction is the single most common material bug, and it gets its own lesson (<em>Materials &amp; Textures</em>).</li>
+</ul>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A teammate opens a <code>.glb</code> in a hex editor, sees the bytes <code>glTF</code> followed by <code>02 00 00 00</code>, and tells you "good, this asset is glTF version 2." They've read the wrong number. Why, and where is the real asset version?</p>
+  <details>
+  <summary>Hint</summary>
+  <p>There are two versions in a <code>.glb</code>, in two different places. One describes the wrapper; one describes the 3D asset. Which one does a renderer check to decide if it can load the model?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>Should mention: (1) the <code>02</code> at byte offset 4 is the <strong>GLB container</strong> version — the version of the binary wrapper format, not the asset. (2) The real asset version lives in the <strong>JSON chunk</strong> as <code>asset.version</code> (a required field, here <code>"2.0"</code>). (3) A viewer checks <code>asset.version</code> (and optionally <code>asset.minVersion</code>) to decide whether it can render the model. Key insight: the container format and the asset spec version are independent — a future GLB container version could still carry a glTF 2.0 asset, and vice versa.</p>
+  </details>
+</div>
+
+<h2>Code Files</h2>
+<p>Download the final-state files from this lesson:</p>
+<ul>
+  <li><a href="../reference/code/gltf-anatomy-and-the-standard/triangle.gltf" download><code>triangle.gltf</code></a> — the canonical minimal triangle, text form with an embedded base64 buffer.</li>
+  <li><a href="../reference/code/gltf-anatomy-and-the-standard/triangle.glb" download><code>triangle.glb</code></a> — the same asset in binary container form (header + JSON chunk + BIN chunk).</li>
+  <li><a href="../reference/code/gltf-anatomy-and-the-standard/read_glb.py" download><code>read_glb.py</code></a> — a stdlib-only parser that reads either form and asserts the structure.</li>
+</ul>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p><strong>Next lessons</strong> (all build on this object model):</p>
+  <ul>
+    <li><strong>Authoring &amp; Blender Export</strong> — how a DCC produces a conformant glTF, and what it silently drops.</li>
+    <li><strong>Consuming glTF — Engine Import</strong> — how a runtime turns this graph into a scene.</li>
+    <li><strong>Materials &amp; Textures</strong> — the PBR model and the sRGB-vs-linear color-space trap.</li>
+    <li><strong>Animation, Skins &amp; Morphs</strong> — why a rigged mesh exports in rest pose.</li>
+  </ul>
+</div>
+
+<script type="application/json" id="glossary-data">
+{
+  "buffer": "A block of raw bytes in a glTF asset — geometry, animation, and (optionally) images live here. Backed by an external file, a base64 data: URI, or the GLB BIN chunk.",
+  "buffer-view": "A window into a buffer (byteOffset + byteLength, optional byteStride) that groups a slice of bytes; an accessor reads from a bufferView rather than the raw buffer.",
+  "accessor": "A glTF object that says how to read a bufferView as typed data: componentType (e.g. FLOAT), type (e.g. VEC3), and count (number of elements). Turns bytes into a typed array.",
+  "primitive": "One drawable unit of a mesh: a set of vertex attributes (POSITION, NORMAL, ...), an optional indices accessor, a material, and a draw mode (default TRIANGLES).",
+  "glb-chunk": "A length-prefixed section of a .glb binary file. The first chunk is the JSON scene graph; the optional second BIN chunk holds the raw binary buffer."
+}
+</script>
+<script type="application/json" id="lesson-actions-config" data-domain="gltf-format" data-lesson-id="01-gltf-anatomy-and-the-standard" data-map-page="gltf-format-map.html" data-topic-title="glTF Anatomy &amp; the Standard"></script>
+<script type="module" src="../assets/page-shell.js"></script>
+</body>
+</html>
