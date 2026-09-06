@@ -67,6 +67,30 @@ Guard with `resolve_godot()`→SKIP→return 0. NOT in core `verify`, NOT in CI 
 - [ ] The 6 open questions in the scope doc resolved or explicitly deferred (Godot version pin, headless 3D import support, .blend-in-CI, OMI physics, LOD oracle, reverse-export scope)
 - [ ] NO lessons generated — 6 topic tickets created after this is signed off
 
+## Update 2026-09-05 — glTF split out to `gltf-format` (#309); this domain SHRINKS
+
+The glTF *standard* content (anatomy, Blender export, skin/morph spec) factored out to the new
+standalone engine-agnostic **`gltf-format`** domain (#309, movement-math precedent). This domain
+stays Godot-import-**mechanics**-specific and REFERENCES #309. Concretely (per #309 proposal +
+`.scratch/research/gltf-domain-boundary.md`):
+
+- **Topic 1** `format-choice-and-blender-export` → **shrinks ~40%**, reframe as
+  `format-decision-and-import-verify`: keep the "glTF vs FBX-via-ufbx vs `.blend` vs OBJ/DAE **for
+  Godot**" decision + verifying Godot ingested it; the glTF anatomy/exporter walkthrough moves to
+  #309. **Gains cross-domain prereq edge from `gltf-format/consuming-glTF-engine-import` (t3).**
+- **Topic 5** `rigged-meshes-and-skeletons` → **shrinks to Godot skeleton/BoneMap/retarget
+  mechanics only**; the skin/inverse-bind-matrix/rest-pose *why* moves to #309.
+  **Gains cross-domain prereq edge from `gltf-format/animation-skins-and-morphs` (t5).**
+- **Topic 6** `reimport-and-round-trip-hygiene` → references #309 for round-trip fidelity.
+- **Topics 2/3/4** unchanged (pure Godot mechanics). Topic 4's Draco/meshopt mention cites
+  #309 t6.
+
+Net: ~4 substantial + 2 lighter topics; description tightens to emphasize *Godot import mechanics*;
+ADR-0010 validation gate (test-scene/ reuse) untouched. **Sequence: #309 setup + topic tickets
+before this domain's topic tickets 1 & 5.** Reflect the shrunk topic table + the two cross-domain
+prereq edges in the MAP when it's placed.
+
 ## Notes
 
 - Restructured from #293–#295 (closed superseded). Scope: `.scratch/tracks/asset-pipeline.md`.
+- glTF split: `.scratch/proposals/309-gltf-format.md`, `.scratch/research/gltf-domain-boundary.md`.
