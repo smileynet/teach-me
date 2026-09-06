@@ -58,6 +58,8 @@ DEFAULT_ASSETS = [
     "library/gltf-format/reference/code/authoring-and-blender-export/cube_metalrough.glb",
     # lesson 04 (materials-and-textures): both-color-families cube (base=sRGB, ORM+normal=linear).
     "library/gltf-format/reference/code/materials-and-textures/cube_orm.glb",
+    # lesson 05 (animation-skins-and-morphs): minimal morph-target triangle (lights the morph branch).
+    "library/gltf-format/reference/code/animation-skins-and-morphs/morph_tri.glb",
 ]
 
 # Assets that MUST carry a pbrMetallicRoughness material with a baseColorTexture — the lesson-02
@@ -219,6 +221,31 @@ def check_asset(path: Path, require_material: bool = False) -> tuple[dict, list[
                 if len(mesh["weights"]) != len(targets):
                     errors.append(f"{path.name}: mesh[{mi}] weights {len(mesh['weights'])} "
                                   f"!= primitive[{pi}] targets {len(targets)}")
+
+    # --- animation (topic 5): channels + samplers resolve; interpolation valid ---
+    animations = g.get("animations", [])
+    for ai, anim in enumerate(animations):
+        samplers = anim.get("samplers", [])
+        for ci, chan in enumerate(anim.get("channels", [])):
+            if not _in_range(chan.get("sampler"), samplers):
+                errors.append(f"{path.name}: animation[{ai}].channel[{ci}].sampler out of range")
+            node = chan.get("target", {}).get("node")
+            if node is not None and not _in_range(node, nodes):
+                errors.append(f"{path.name}: animation[{ai}].channel[{ci}].target.node {node} out of range")
+        for si, samp in enumerate(samplers):
+            in_i, out_i = samp.get("input"), samp.get("output")
+            if not _in_range(in_i, accessors) or not _in_range(out_i, accessors):
+                errors.append(f"{path.name}: animation[{ai}].sampler[{si}] input/output accessor out of range")
+                continue
+            in_acc = accessors[in_i]
+            if in_acc.get("type") != "SCALAR" or in_acc.get("componentType") != COMPONENT_FLOAT:
+                errors.append(f"{path.name}: animation[{ai}].sampler[{si}] input not a FLOAT SCALAR time accessor")
+            interp = samp.get("interpolation", "LINEAR")
+            if interp not in ("LINEAR", "STEP", "CUBICSPLINE"):
+                errors.append(f"{path.name}: animation[{ai}].sampler[{si}] interpolation {interp!r} invalid")
+            elif interp == "CUBICSPLINE" and accessors[out_i].get("count", 0) != 3 * in_acc.get("count", 0):
+                errors.append(f"{path.name}: animation[{ai}].sampler[{si}] CUBICSPLINE output.count "
+                              f"{accessors[out_i].get('count')} != 3 * input.count {in_acc.get('count')}")
 
     # --- extensions (topic 6): required subset of used ---
     used = set(metrics["extensionsUsed"])
