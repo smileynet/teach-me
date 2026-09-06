@@ -65,7 +65,7 @@
   <text x="360" y="310" text-anchor="middle" fill="var(--svg-text)" font-size="13" font-style="italic">Nothing in the file marks a slot's color space — the slot name is the only signal.</text>
 </svg>
 
-<p>The color families are verified against the spec: base color and emissive are sRGB (§5.22.2, §5.19.7); normal, metallic-roughness, and occlusion are linear (§5.19.5, §5.22.5, §5.19.6). The metallic-roughness texture packs <strong>roughness in G, metalness in B</strong>, and occlusion sits in <strong>R</strong> — so occlusion and metallic-roughness can share one linear image, the "ORM" layout you met in Lesson 2.</p>
+<p>The color families are verified against the spec: base color and emissive are sRGB (§5.22.2, §5.19.7); normal, metallic-roughness, and occlusion are linear (§5.19.5, §5.22.5, §5.19.6). The metallic-roughness texture packs <strong>roughness in G, metalness in B</strong>, and occlusion sits in <strong>R</strong> — so occlusion and metallic-roughness can share one linear image, the "ORM" layout you met in Lesson 2. <a href="https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-material" class="citation">[Khronos glTF 2.0 §5.19–5.22, material/texture reference]</a></p>
 
 <h2>Factor × texture</h2>
 
@@ -94,7 +94,7 @@
 </div>
 
 <div class="note">
-  <strong>Why is it silent?</strong> Every step succeeds at the protocol level — no exception, exit code 0 — so the only evidence is the pixels. This bug is common even in canonical assets: the Sponza and NormalTangentTest reference models have shipped normal maps mislabeled sRGB. Each engine surfaces the choice in its own vocabulary — three.js <code>texture.colorSpace</code>, Godot's texture "sRGB" / "Normal Map" import mode, Blender's "Non-Color" dropdown — the same rule from Lesson 3's "one consumer of many." <a href="https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html" class="citation">[Khronos glTF 2.0 §3.6.3]</a>
+  <strong>Why is it silent?</strong> Every step succeeds at the protocol level — no exception, exit code 0 — so the only evidence is the pixels. It's a common mistake — mislabeled normal maps have reportedly shipped even in well-known reference models. Each engine surfaces the choice in its own vocabulary — three.js <code>texture.colorSpace</code>, Godot's texture "sRGB" / "Normal Map" import mode, Blender's "Non-Color" dropdown — the same engine-agnostic idea from <a href="03-consuming-gltf-engine-import.html">Lesson 3</a> (one file, many consumers). <a href="https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#3-textures-samplers-and-images" class="citation">[Khronos glTF 2.0 §3.6.3]</a>
 </div>
 
 <h2>Try it: read the color space off a real file</h2>

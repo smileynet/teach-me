@@ -92,8 +92,8 @@
 <div class="note">
   <strong>When to use which:</strong>
   <ul>
-    <li><strong>Draco</strong> (<code>KHR_draco_mesh_compression</code>) — the smallest files (roughly 70–90% off mesh geometry, <em>reported</em>). Cost: decode is markedly slower and needs a ~200 KB WASM decoder; geometry only.</li>
-    <li><strong>meshopt</strong> (<code>EXT_meshopt_compression</code>) — a lightweight decoder that decodes near-instantly with SIMD, produces GPU-friendly quantized data, and covers geometry, morphs, <em>and</em> animation.</li>
+    <li><strong>Draco</strong> (<code>KHR_draco_mesh_compression</code>) — the smallest files (roughly 70–90% off mesh geometry, <em>reported</em>). Cost: decode is markedly slower and needs a WASM decoder (a few hundred KB, <em>reported</em>); geometry only.</li>
+    <li><strong>meshopt</strong> (<code>EXT_meshopt_compression</code>) — a lightweight decoder that decodes very fast with SIMD (<em>reported</em> near or above uncompressed-load speed), produces GPU-friendly quantized data, and covers geometry, morphs, <em>and</em> animation.</li>
   </ul>
   <strong>Rule of thumb:</strong> Draco when transmission bytes dominate and decode budget is generous (one-time load, slow network); meshopt when decode latency, mobile, or animation matter. Both must be <code>extensionsRequired</code> — the buffer bytes are literally unreadable without the decoder. Neither raises framerate (both CPU-decode before GPU upload).
 </div>
@@ -111,7 +111,7 @@
 </div>
 
 <div class="note">
-  <strong>Don't over-optimize.</strong> A Draco file can render <em>slower</em> to first frame on a low-end device than an uncompressed one — the ~200 KB decoder plus decode time can outweigh the smaller download. Export two candidates and test on the weakest device you support. And remember the contract: making Draco, meshopt, or KTX2 required breaks every non-supporting baseline viewer — that's the whole point of the decision above.
+  <strong>Don't over-optimize.</strong> A Draco file can render <em>slower</em> to first frame on a low-end device than an uncompressed one — the decoder download plus decode time can outweigh the smaller transfer. Export two candidates and test on the weakest device you support. And remember the contract: making Draco, meshopt, or KTX2 required breaks every non-supporting baseline viewer — that's the whole point of the decision above.
 </div>
 
 <h2>Try it: read the contract off a real file</h2>
