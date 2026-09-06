@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-09-06
+
+Three new hands-on domains (glTF, ink narrative scripting, and a full Godot toon-shader +
+Blender-texture-prep track), a unified Tree/Map browser with private progress overlays, and a
+validation-first pipeline that runs lesson code in its real runtime.
+
+### New domains & lessons
+
+- **glTF Format** — new 6-lesson track: anatomy of the standard, Blender authoring/export, engine import, materials & textures, animation/skins/morphs, extensions & optimization. Each lesson ships a runnable stdlib artifact.
+- **Ink narrative scripting (ink + Godot)** — new 8-lesson track: flow & knots, choices & weave, variables & conditionals, functions & tunnels, Godot integration, tags-as-commands, state bridge, production patterns.
+- **Godot toon shaders** — new 12-lesson shader track (spatial shader anatomy, banding, triplanar, outlines, color simplification, Gooch/wrapped/specular lighting, overlays).
+- **Blender texture prep** — new 6-lesson subtrack: texture audit, albedo posterize, palette snap, control maps, bake & export, shader wiring.
+- **Godot fundamentals** — nodes & scenes, GDScript, physics & collision.
+
+### Features
+
+- **Unified Tree | Map browser** — the index and global map are one two-view page; a forest map shows every domain as a node.
+- **Per-domain landing pages** with a first-time orientation and a "resume where you left off" cue.
+- **Private progress overlays** — completion + spaced-repetition state lives in a local `.user/` overlay merged in at render time; the committed library stays clean.
+- **Honest Generate buttons** — quiz/lesson buttons open shipped content when it exists, and otherwise hand you the exact prompt to run with an agent instead of faking generation.
+- **Concept extraction & hints** feeding glossary, quiz, and coverage checks.
+- **Teach from a source document** — one-command ingest: chunk → classify → build map → enrich prerequisites, with source-attributed quiz questions.
+- **Downloadable code files** with copy + download on every code block; **read-time estimates** on lessons.
+
+### Tooling
+
+- **Ink validation suite** — compile/lint, playthrough dead-end detection, golden-transcript output checks, and real headless-Godot runtime validation.
+- **Property oracles** — Blender (posterize, palette-snap, control-maps, bake/export) and glTF (GLB/JSON structural + material color-space + skin/animation) oracles assert the math each lesson teaches; opt-in `verify:blender` runtime gate.
+- **Language-aware code-compile gate** — lesson code blocks compile in `mise run verify`.
+- **Single-source site deploy** — one `_site` assembler shared by the deploy workflow and a local dry-run; cross-platform reference-repo rehydrate.
+
+### Fixes
+
+- Deterministic index generation — per-domain pages no longer inherit an unrelated machine-local mission.
+- Depth-aware breadcrumbs and quiz pages for lessons in domain subfolders.
+- Mark-complete wires through to the map instead of silently failing.
+- High-contrast focus ring in both themes; Windows UTF-8 stdout guards; ink line-drop/double-space/read-count fixes.
+
 ## [0.2.0] — 2026-08-15
 
 ### Interactive quizzes
