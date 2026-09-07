@@ -1,21 +1,21 @@
 ---
 id: "329"
-title: "godot-asset-pipeline topic 6: reimport-and-round-trip-hygiene"
+title: "godot-asset-pipeline topic 7: reimport-and-round-trip-hygiene"
 status: open
 blocked_by: ["305", "325"]
 validation_criteria:
-  - "Lesson 06: from 'can get assets in' → 'source keeps changing / need it back out' → iterate loop, reimport-multiple, changing importer, reverse GLTFDocument export (runtime API), UID stability, .blend-vs-committed-glTF team tradeoff. Decision callout at that fork. Soft-prereq topic 5. References gltf-format round-trip fidelity. Lands at a mature round-trip"
-  - "Runnable artifact (import → export-back → reimport) + asset:validate-gd L6 assertion (surface/vertex count preserved within tolerance)"
+  - "Lesson 07: from 'can get assets in' → 'source keeps changing / need it back out' → iterate loop, reimport-multiple, changing importer, reverse GLTFDocument export (runtime API), UID stability, .blend-vs-committed-glTF team tradeoff. Decision callout at that fork. Soft-prereq topic 6. References gltf-format round-trip fidelity. Lands at a mature round-trip"
+  - "Runnable artifact (import → export-back → reimport) + asset:validate-gd L7 assertion (surface/vertex count preserved within tolerance)"
   - "Reference doc + SR cards + glossary JSON; passes mise run verify"
 tags: ["content"]
 ---
 
-# godot-asset-pipeline topic 6: reimport-and-round-trip-hygiene
+# godot-asset-pipeline topic 7: reimport-and-round-trip-hygiene
 
 ## Context
 
-Track spiral topic 6, the track closer (#305). win → complication → resolution → win. Prereq topic 2
-(soft topic 5). Design: `.scratch/proposals/305-godot-asset-pipeline-setup.md`.
+Track spiral topic 7, the track closer (#305). win → complication → resolution → win. Prereq topic 3
+(soft topic 6). Design: `.scratch/proposals/305-godot-asset-pipeline-setup.md`.
 
 ## What to build
 
@@ -32,7 +32,7 @@ Track spiral topic 6, the track closer (#305). win → complication → resoluti
 
 ## Acceptance criteria
 
-- [ ] Lesson `06-reimport-and-round-trip-hygiene.html` in the spiral shape; `.blend`-vs-glTF Decision callout with criteria
-- [ ] Runnable artifact (import → export-back → reimport) + `asset:validate-gd` L6 assertion (surface/vertex count preserved within tolerance)
+- [ ] Lesson `07-reimport-and-round-trip-hygiene.html` in the spiral shape; `.blend`-vs-glTF Decision callout with criteria
+- [ ] Runnable artifact (import → export-back → reimport) + `asset:validate-gd` L7 assertion (surface/vertex count preserved within tolerance)
 - [ ] Reference doc + SR cards + glossary JSON
 - [ ] Passes `mise run verify`

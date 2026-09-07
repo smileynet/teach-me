@@ -1,20 +1,20 @@
 ---
 id: "326"
-title: "godot-asset-pipeline topic 3: import-dock-and-name-suffixes"
+title: "godot-asset-pipeline topic 4: import-dock-and-name-suffixes"
 status: open
 blocked_by: ["305", "325"]
 validation_criteria:
   - "Lesson 03: from a working visual prop → 'it is just a mesh — needs collision / strip a helper' → three interfaces + 4.7 suffix vocabulary by role (-col/-convcol/-colonly/-occ/-navmesh/-noimp/-rigid/-loop). Decision callout: triangle-vs-convex-vs-primitive + OMI-glTF-physics alternative. Lands at a game object that still renders"
-  - "Runnable artifact (multi-object suffixed source) + asset:validate-gd L3 assertion (StaticBody3D+CollisionShape3D for -col, -noimp node absent, Occluder3D present)"
+  - "Runnable artifact (multi-object suffixed source) + asset:validate-gd L4 assertion (StaticBody3D+CollisionShape3D for -col, -noimp node absent, Occluder3D present)"
   - "Reference doc + SR cards + glossary JSON; passes mise run verify"
 tags: ["content"]
 ---
 
-# godot-asset-pipeline topic 3: import-dock-and-name-suffixes
+# godot-asset-pipeline topic 4: import-dock-and-name-suffixes
 
 ## Context
 
-Track spiral topic 3 (#305). win → complication → resolution → win. Design:
+Track spiral topic 4 (#305). win → complication → resolution → win. Design:
 `.scratch/proposals/305-godot-asset-pipeline-setup.md`.
 
 ## What to build
@@ -31,7 +31,7 @@ Track spiral topic 3 (#305). win → complication → resolution → win. Design
 
 ## Acceptance criteria
 
-- [ ] Lesson `03-import-dock-and-name-suffixes.html` in the spiral shape; collision + OMI Decision callouts with criteria
-- [ ] Runnable artifact (multi-object source with suffixes) + `asset:validate-gd` L3 assertion (StaticBody3D+CollisionShape3D for `-col`, `-noimp` node absent, Occluder3D present)
+- [ ] Lesson `04-import-dock-and-name-suffixes.html` in the spiral shape; collision + OMI Decision callouts with criteria
+- [ ] Runnable artifact (multi-object source with suffixes) + `asset:validate-gd` L4 assertion (StaticBody3D+CollisionShape3D for `-col`, `-noimp` node absent, Occluder3D present)
 - [ ] Reference doc + SR cards + glossary JSON
 - [ ] Passes `mise run verify`
