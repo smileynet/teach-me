@@ -22,6 +22,9 @@ __pycache__/
 **/.user/*
 test-results/
 *.png
+# ...but shipped lesson assets under library/ ARE committed (downloadable + served by Pages):
+# lesson screenshots, reference-code textures, etc. (the blanket *.png keeps scratch/dev PNGs out).
+!library/**/*.png
 
 # mise machine-local config (paths, tool overrides — never committed)
 mise.local.toml
