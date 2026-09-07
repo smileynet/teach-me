@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz: First Import — The Happy Path</title>
+  <script src="../../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../../assets/vendor/preact.module.js",
+        "preact/hooks": "../../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../../assets/vendor/signals-core.module.js",
+        "htm": "../../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="../index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../godot-asset-pipeline-map.html">Godot Asset Pipeline</a> <span class="nav-sep">›</span> <a href="../01-first-import-happy-path.html">First Import — The Happy Path</a> <span class="nav-sep">›</span> <span>Quiz</span></nav>
+  <div id="app"></div>
+
+<script type="application/json" id="page-data">{"questions": [{"id": "gap-001", "prompt": "Explain to a teammate new to Godot why dropping a model file into the project isn't the same as putting the model in your game.", "expected_answer": "Should mention: (1) dropping the file under res:// only makes Godot IMPORT it — convert a copy into its own format and list it in the FileSystem dock; (2) it isn't in any scene until you INSTANCE it by dragging it into a scene's node tree. Key insight: import makes Godot aware of the model; instancing is what actually renders it.", "question_type": "explain", "difficulty_tier": "understand", "lesson_id": "01-first-import-happy-path", "section_heading": "Godot imports it automatically", "generated_by": "teach-skill", "generated_at": "2026-09-07T09:40:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["godot", "import", "instance"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"id": "gap-002", "prompt": "A colleague says 'I put chair.glb in my project but pressing Play shows nothing, and there are no errors.' What has and hasn't happened, and what should they do?", "expected_answer": "Should mention: (1) the import succeeded — the chair is in the FileSystem dock (Godot knows about it); (2) it was never instanced — it's not in any scene, so nothing renders; (3) fix: drag the imported model from the FileSystem dock into the scene tree to create an instance. Bonus: no error because import ≠ instance is a workflow gap, not a failure.", "question_type": "apply", "difficulty_tier": "apply", "lesson_id": "01-first-import-happy-path", "section_heading": "Drag it into the scene", "generated_by": "teach-skill", "generated_at": "2026-09-07T09:40:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["godot", "instance", "troubleshooting"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"id": "gap-003", "prompt": "You edit chair.glb in your modeling tool and save it back into the project folder. What does Godot do, and why does it never touch your original file?", "expected_answer": "Should mention: (1) Godot re-imports automatically when the source changes (it watches files under res://); (2) it works from a converted copy in its own internal format, so the source is read-only from Godot's side. Key insight: import is a one-way source→Godot conversion; Godot never writes back to your authoring file.", "question_type": "predict", "difficulty_tier": "understand", "lesson_id": "01-first-import-happy-path", "section_heading": "Godot imports it automatically", "generated_by": "teach-skill", "generated_at": "2026-09-07T09:40:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["godot", "import", "reimport"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"id": "gap-004", "prompt": "What has to exist in a 3D scene for an imported model to be visible when you drag it in, and why?", "expected_answer": "Should mention: a camera (Camera3D) to view from and a light so surfaces are lit — without a camera you see nothing, without light the mesh renders black/dark. Key insight: importing + instancing puts geometry in the scene, but 'seeing it render' also needs something to look through and something to light it.", "question_type": "quick-check", "difficulty_tier": "remember", "lesson_id": "01-first-import-happy-path", "section_heading": "Drag it into the scene", "generated_by": "teach-skill", "generated_at": "2026-09-07T09:40:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["godot", "scene", "camera", "light"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"id": "gap-005", "prompt": "Why is 'the file is in the FileSystem dock but not in my scene' the expected state right after import, not a bug?", "expected_answer": "Should mention: import's whole job is to register the model as a reusable resource in the FileSystem dock — it deliberately does NOT place it in any scene. Placing it is a separate, explicit act (instancing). Key insight: one imported resource can be instanced into many scenes, so import stays separate from placement by design.", "question_type": "explain", "difficulty_tier": "understand", "lesson_id": "01-first-import-happy-path", "section_heading": "The one thing to remember", "generated_by": "teach-skill", "generated_at": "2026-09-07T09:40:00", "schedule": {"interval_days": 0, "ease_factor": 2.5, "repetitions": 0, "due_date": "", "last_reviewed": "", "last_quality": null}, "tags": ["godot", "import", "instance", "resource"], "suspended": false, "mastered": false, "prompt_code": null, "answer_code": null}, {"type": "sequence", "topic": "01-first-import-happy-path", "prompt": "Order the steps of the first-import happy path, from a file on disk to a rendered model:", "items": ["Copy chair.glb into a folder under res://", "Godot auto-imports it into the FileSystem dock", "Drag the imported model into the scene tree", "The chair renders in the viewport"], "correct_order": [0, 1, 2, 3]}, {"type": "match", "topic": "01-first-import-happy-path", "prompt": "Match each term to what it means in the first-import workflow:", "pairs": [["Import", "Godot converts a copy of the source into its own format and lists it in the FileSystem dock"], ["Instance", "A placed copy of the model in a scene's node tree — this is what renders"], ["res://", "The project folder; dropping a file here triggers auto-import"], ["FileSystem dock", "The panel that lists everything under res:// — where an imported model waits to be used"]]}], "title": "First Import — The Happy Path", "lessonFile": "01-first-import-happy-path.html", "mapPage": "godot-asset-pipeline-map.html"}</script>
+<script type="module" src="../../assets/page-shell.js"></script>
+<script type="module">
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { QuizView } from '../../assets/components/QuizView.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    render(
+      html`<${QuizView} questions=${data.questions} title=${data.title} />`,
+      document.getElementById('app')
+    );
+</script>
+
+</body>
+</html>

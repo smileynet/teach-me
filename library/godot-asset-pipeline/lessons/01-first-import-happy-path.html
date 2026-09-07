@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1: First Import — The Happy Path</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="godot-asset-pipeline-map.html">Godot Asset Pipeline</a> <span class="nav-sep">›</span> <span>First Import — The Happy Path</span></nav>
+<h1>First Import — The Happy Path</h1>
+
+<div class="lesson-meta">
+  Lesson 1 · Godot Asset Pipeline · ~4 min read<br>
+  <strong>Win:</strong> You can import a 3D model into Godot and see it render in a scene.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> you can get a 3D model into Godot and see it appear on screen — the whole pipeline once, minimally.
+</div>
+
+<h2>Get one model into Godot and see it render</h2>
+
+<p>The whole 3D asset pipeline — formats, collision, level-of-detail, rigging — starts with one
+small act: putting a single model into Godot and seeing it appear. This lesson does exactly that,
+once, with no decisions to make. You will import a chair and watch it show up in a scene. Everything
+harder builds on this one success.</p>
+
+<p>We are using a ready-made chair (a Kenney model, free to use). You do not need Blender or any
+modeling skill — the model already exists as a <code>.glb</code> file. Later lessons cover where
+that file comes from and how to choose formats; here, you just bring it in.</p>
+
+<svg viewBox="0 0 780 90" role="img" aria-labelledby="diagram-title" style="display:block;margin:1.5rem auto;max-width:100%;height:auto" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><title id="diagram-title">The first-import happy path: from a file on disk to a rendered node</title>
+<defs>
+<marker markerWidth="4.0" markerHeight="4.04" viewBox="-0.1 -0.51 1.0 1.01" orient="auto" id="d0">
+<path d="M-0.1,0.5 L-0.1,-0.5 L0.9,0 Z" fill="var(--svg-text)" />
+</marker>
+</defs>
+<rect x="10" y="20" width="120" height="50" rx="6" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="1.5" />
+<text x="70.0" y="45.0" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">chair.glb</text>
+<path d="M130,45.0 L170,45.0" stroke="var(--svg-text)" stroke-width="1.5" marker-end="url(#d0)" />
+<text x="150.0" y="37.0" font-size="10" text-anchor="middle" font-family="system-ui, sans-serif" fill="var(--svg-text)">copy in</text>
+<rect x="170" y="20" width="120" height="50" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5" />
+<text x="230.0" y="45.0" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">drop in res://</text>
+<path d="M290,45.0 L330,45.0" stroke="var(--svg-text)" stroke-width="1.5" marker-end="url(#d0)" />
+<text x="310.0" y="37.0" font-size="10" text-anchor="middle" font-family="system-ui, sans-serif" fill="var(--svg-text)">(no button)</text>
+<rect x="330" y="20" width="120" height="50" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5" />
+<text x="390.0" y="45.0" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">auto-imports</text>
+<path d="M450,45.0 L490,45.0" stroke="var(--svg-text)" stroke-width="1.5" marker-end="url(#d0)" />
+<text x="470.0" y="37.0" font-size="10" text-anchor="middle" font-family="system-ui, sans-serif" fill="var(--svg-text)">instance</text>
+<rect x="490" y="20" width="120" height="50" rx="6" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="1.5" />
+<text x="550.0" y="45.0" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">drag to scene</text>
+<path d="M610,45.0 L650,45.0" stroke="var(--svg-text)" stroke-width="1.5" marker-end="url(#d0)" />
+<text x="630.0" y="37.0" font-size="10" text-anchor="middle" font-family="system-ui, sans-serif" fill="var(--svg-text)">visible</text>
+<rect x="650" y="20" width="120" height="50" rx="6" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="1.5" />
+<text x="710.0" y="45.0" font-size="13" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" dominant-baseline="central">rendered</text>
+</svg>
+
+
+<h2>Step 1 — put the file under <code>res://</code></h2>
+
+<p>A Godot project is a folder. Everything inside it lives under the <span class="term"
+data-term="res://">res://</span> path. To hand Godot a model, you copy the file into that folder —
+drag <code>chair.glb</code> into your project's file list, or drop it in the folder on disk. That is
+the entire "give Godot the model" step. There is no import button to press.</p>
+
+<h2>Step 2 — Godot imports it automatically</h2>
+
+<p>The moment the file lands under <code>res://</code>, Godot <span class="term"
+data-term="import">imports</span> it: it reads the file, converts it into its own internal scene
+format, and shows it in the <span class="term" data-term="FileSystem dock">FileSystem dock</span>.
+Your original <code>chair.glb</code> is never modified — Godot works from a copy. Nothing appears in
+your game yet; the chair is now something Godot <em>knows about</em>, sitting in the file list,
+waiting to be used.</p>
+
+<div class="key-concept">
+  <strong>The one thing to remember:</strong> importing a model is not the same as putting it in your
+  scene. Import makes Godot aware of the model. It shows up in the file list — not in your game —
+  until you take the next step.
+</div>
+
+<h2>Step 3 — drag it into the scene to see it</h2>
+
+<p>Open a 3D scene (one with a camera and a light, so there is something to see it with). Drag the
+imported <code>chair.glb</code> from the FileSystem dock into the scene tree. This creates an
+<span class="term" data-term="instance">instance</span> of the model — it appears as a single node
+in your scene, and the chair shows up in the viewport, lit and textured. That is the win: a model
+authored elsewhere, now rendering in your Godot scene.</p>
+
+<p>That is the complete happy path. You imported a model and it works. What you did <em>not</em> do —
+choose between file formats, add collision, worry about what to commit to version control — is what
+the rest of this track is about. Each of those is a harder version of a step you just took once.</p>
+
+<h2>Check Your Understanding</h2>
+
+<p>You drag <code>chair.glb</code> into your project. It shows up in the FileSystem dock, but when
+you press Play, the chair is nowhere in your scene. Nothing errored. What is the one step you still
+need to do?</p>
+
+<details>
+  <summary>Hint</summary>
+  <p>Look at the difference between the <em>file list</em> and the <em>scene tree</em>. Which one is
+  the chair in, and which one does your running game actually render?</p>
+</details>
+<details>
+  <summary>Answer</summary>
+  <p>Importing only put the chair in the FileSystem dock — Godot knows about it, but it is not in any
+  scene. You need to <strong>drag the imported model from the FileSystem dock into the scene
+  tree</strong>, which creates an instance of it. Import ≠ instance: the first makes Godot aware of
+  the model; the second is what actually places it in your game so it renders.</p>
+</details>
+
+<h2>Code Files</h2>
+<p>Download the model used in this lesson:</p>
+<ul>
+  <li><a href="../reference/code/first-import-happy-path/chair.glb" download><code>chair.glb</code></a>
+      — the Kenney chair, exported Godot-ready (glTF 2.0). Drop it into a project's <code>res://</code>
+      and drag it into a 3D scene.</li>
+</ul>
+<p>The editable Blender source (<code>chair.blend</code>) and the CC0 license are in the same
+reference folder.</p>
+
+<h2>What's next</h2>
+<p>You imported one model the easy way. Next: <strong>Format Decision &amp; Import Verify</strong> —
+what to do when the model is an FBX or a <code>.blend</code>, and why one sometimes comes in
+inside-out or the wrong size.</p>
+
+
+<footer class="page-credits" role="contentinfo">
+  <p>Credits: <a href="https://kenney.nl" rel="license">3D chair by Kenney (kenney.nl) — CC0 1.0</a></p>
+</footer>
+<script type="application/json" id="glossary-data">{"import": "Godot's one-way conversion of a source file (glTF, FBX, …) into its own internal format. Godot never edits your source — it reads a copy. The result lives in the FileSystem dock as a reusable scene resource.", "instance": "A copy of a scene (or imported model) placed into another scene's node tree. Importing a model makes Godot *know* about it; instancing it (dragging it into the tree) is what actually puts it in your game.", "res://": "Godot's path prefix for everything inside your project folder. Dropping a file anywhere under res:// is what triggers an automatic import.", "FileSystem dock": "The panel (bottom-left by default) that shows every file under res://. An imported model shows up here as something you can drag into a scene — but it is not yet in any scene."}</script>
+<script type="application/json" id="lesson-actions-config" data-domain="godot-asset-pipeline" data-lesson-id="01-first-import-happy-path" data-map-page="godot-asset-pipeline-map.html" data-topic-title="First Import — The Happy Path"></script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>
