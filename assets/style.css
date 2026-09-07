@@ -325,6 +325,21 @@ th { background: var(--code-bg); font-weight: 600; }
   color: var(--text-faint);
 }
 
+.page-credits {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.page-credits a {
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+.page-credits a:hover {
+  color: var(--accent);
+}
+
 .lesson-meta {
   color: var(--text-muted);
   font-size: 0.85rem;

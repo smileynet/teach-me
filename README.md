@@ -97,6 +97,20 @@ mise run visual-qa  # Playwright component exercise
 mise run doctor     # check tool/venv health
 ```
 
+## Credits
+
+Third-party assets used in lessons are credited here and in each lesson's page footer. All are
+public-domain (CC0 1.0) — attribution isn't legally required, but we credit the authors anyway.
+
+**3D assets**
+- 3D models, characters, and animations by [Kenney](https://kenney.nl) — CC0 1.0 (Furniture Kit,
+  Nature Kit, Animated Characters Bundle)
+- Dungeon props by [Kay Lousberg / KayKit](https://kaylousberg.com) — CC0 1.0
+- Character models by [Quaternius](https://quaternius.com) — CC0 1.0
+- PBR assets from [Poly Haven](https://polyhaven.com) — CC0 1.0
+
+Per-domain asset manifests live alongside each track's `reference/` directory.
+
 ## License
 
 [MIT](LICENSE)

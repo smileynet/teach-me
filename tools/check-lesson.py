@@ -302,6 +302,23 @@ def check_cf_code_files_section(html: str) -> list[dict]:
     return [result("CF", PASS, "Code Files section with download links")]
 
 
+def check_cr_credits(html: str) -> list[dict]:
+    """CR (WARN): if a lesson offers downloadable 3D asset files, it should credit their source.
+
+    Third-party assets (Kenney/etc, even CC0) get a page-credits footer. WARN-only —
+    nudges without red-ing the suite; promote to FAIL once track coverage is complete.
+    """
+    # Downloadable 3D-asset artifacts that imply third-party provenance.
+    has_asset_download = bool(
+        re.search(r'href="[^"]+\.(?:glb|gltf|blend|fbx|obj)"[^>]*\sdownload', html, re.IGNORECASE)
+    )
+    if not has_asset_download:
+        return [result("CR", SKIP, "No downloadable 3D-asset artifacts")]
+    if 'class="page-credits"' in html:
+        return [result("CR", PASS, "Downloadable assets are credited (page-credits footer)")]
+    return [result("CR", WARN, "Downloadable 3D assets but no page-credits footer — add asset attribution")]
+
+
 # --- Runner ---
 
 
@@ -427,6 +444,7 @@ def lint_lesson(lesson_path: Path, workspace: Path) -> list[dict]:
     all_results.extend(check_q14_decision_callouts(html))
     all_results.extend(check_q15_glossary_coverage(html))
     all_results.extend(check_cf_code_files_section(html))
+    all_results.extend(check_cr_credits(html))
     all_results.extend(check_rt_read_time(html))
 
     return all_results
