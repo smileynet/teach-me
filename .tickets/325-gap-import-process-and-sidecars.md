@@ -12,10 +12,24 @@ tags: ["content"]
 
 # godot-asset-pipeline topic 2: import-process-and-sidecars
 
+## Context
+
+Track spiral topic 2 (#305). Win → complication → resolution → win. Design:
+`.scratch/proposals/305-godot-asset-pipeline-setup.md`.
+
 ## What to build
 
-TBD
+- **Start from the win**: "You have a prop imported and rendering correctly."
+- **Harder case**: "You edited the source and nothing updated / you committed the wrong files / a
+  teammate's checkout broke."
+- **Resolve**: what import *generates* — the `.import` sidecar (commit it) vs the `.godot/imported/`
+  cache (don't); UID (`uid://`) for safe file moves; auto-reimport on source MD5 change;
+  `ResourceLoader`/`load()` vs `FileAccess` (FileAccess breaks in exported builds).
+- **Land back**: the same working prop, now safe to iterate on and share.
 
 ## Acceptance criteria
 
-- [ ] TBD
+- [ ] Lesson `02-import-process-and-sidecars.html` in the spiral shape
+- [ ] Runnable artifact (committed sidecar + `.gitignore` + `loader.gd`) + `asset:validate-gd` L2 assertion (delete cache → auto-reimport regenerates; `load()` path works)
+- [ ] Reference doc + SR cards + glossary JSON
+- [ ] Passes `mise run verify`

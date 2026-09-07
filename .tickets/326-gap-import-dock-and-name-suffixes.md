@@ -12,10 +12,26 @@ tags: ["content"]
 
 # godot-asset-pipeline topic 3: import-dock-and-name-suffixes
 
+## Context
+
+Track spiral topic 3 (#305). win → complication → resolution → win. Design:
+`.scratch/proposals/305-godot-asset-pipeline-setup.md`.
+
 ## What to build
 
-TBD
+- **Start from the win**: "You have a prop that imports and renders correctly, safely."
+- **Harder case**: "But it's *just a mesh* — it needs collision, or a modeling-only helper needs
+  stripping."
+- **Resolve**: the three customization interfaces (Import dock / Advanced Import Settings / name
+  suffixes) + the 4.7 suffix vocabulary taught *by asset role*: `-col`/`-convcol`/`-colonly`,
+  `-occ`/`-occonly`, `-navmesh`, `-noimp`, `-rigid`, `-loop`. **Decision callout** at the fork:
+  triangle-vs-convex-vs-primitive collision; and OMI glTF-physics as an *Alternative* callout (Q4 —
+  suffixes are the taught default).
+- **Land back**: the prop is now a *game object* (has collision / occlusion) that still renders.
 
 ## Acceptance criteria
 
-- [ ] TBD
+- [ ] Lesson `03-import-dock-and-name-suffixes.html` in the spiral shape; collision + OMI Decision callouts with criteria
+- [ ] Runnable artifact (multi-object source with suffixes) + `asset:validate-gd` L3 assertion (StaticBody3D+CollisionShape3D for `-col`, `-noimp` node absent, Occluder3D present)
+- [ ] Reference doc + SR cards + glossary JSON
+- [ ] Passes `mise run verify`
