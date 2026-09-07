@@ -510,8 +510,53 @@ func _take_screenshot_impl(params: Dictionary) -> Dictionary:
 					"Captured an empty image from the 2D viewport. The 2D viewport produced no output — typically headless mode or the 2D viewport has not drawn a frame yet."
 				)
 			return _finalize_image(image_2d, "viewport_2d", max_resolution)
+		"editor":
+			## Capture the whole editor WINDOW (including docks: FileSystem, Scene,
+			## Inspector) — the only source that reads editor UI chrome rather than a
+			## rendered scene viewport. get_base_control() is the editor UI root; its
+			## viewport is the editor window. Enables lesson screenshots of editor
+			## panels (import dock, suffix settings, etc.). view_target/coverage/angle
+			## are scene-camera concepts — reject them here like viewport_2d does.
+			if not view_target.is_empty() or coverage or custom_elevation != null or custom_azimuth != null or custom_fov != null:
+				return ErrorCodes.make(
+					ErrorCodes.INVALID_PARAMS,
+					"view_target, coverage, elevation, azimuth, and fov are not supported with source='editor'"
+				)
+			var base_control := EditorInterface.get_base_control()
+			if base_control == null:
+				return ErrorCodes.make_not_ready(
+					ErrorCodes.SUB_EDITOR_VIEWPORT_UNAVAILABLE,
+					"No editor base control available (headless editor?)", false)
+			var editor_vp := base_control.get_viewport()
+			if editor_vp == null:
+				return ErrorCodes.make_not_ready(
+					ErrorCodes.SUB_EDITOR_VIEWPORT_UNAVAILABLE,
+					"No editor window viewport available", false)
+			RenderingServer.force_draw(false)
+			var image_editor: Image = editor_vp.get_texture().get_image()
+			if image_editor == null or image_editor.is_empty():
+				return _empty_image_error(
+					"editor",
+					"Captured an empty image from the editor window. Typically headless mode or the editor has not drawn a frame yet."
+				)
+			## Optional in-engine disk write: some MCP clients deliver the capture as an
+			## image block and can't round-trip its base64 back into a file-write call, so
+			## write the PNG here (the base64 never has to leave Godot). Absolute path or
+			## res://. Returned alongside the normal encoded payload.
+			var save_to: String = params.get("save_to", "")
+			var saved_path := ""
+			if not save_to.is_empty():
+				var err_code := image_editor.save_png(save_to)
+				if err_code != OK:
+					return ErrorCodes.make(ErrorCodes.INTERNAL_ERROR,
+						"editor screenshot captured but save_png('%s') failed (err %d)" % [save_to, err_code])
+				saved_path = save_to
+			var result_editor := _finalize_image(image_editor, "editor", max_resolution)
+			if not saved_path.is_empty() and result_editor.has("data"):
+				result_editor["data"]["saved_path"] = saved_path
+			return result_editor
 		_:
-			return ErrorCodes.make(ErrorCodes.VALUE_OUT_OF_RANGE, "Invalid source '%s' — use 'viewport', 'viewport_2d', 'cinematic', or 'game'" % source)
+			return ErrorCodes.make(ErrorCodes.VALUE_OUT_OF_RANGE, "Invalid source '%s' — use 'viewport', 'viewport_2d', 'cinematic', 'editor', or 'game'" % source)
 
 	## Handle view_target: temporarily reposition the editor's own camera to
 	## frame one or more target nodes, force a render, capture, then restore.
