@@ -306,15 +306,6 @@ Iceberg is a <strong>file-tracking metadata tree on top of object storage</stron
   </details>
 </div>
 
-<script>
-function offerQuiz() {
-  if (!confirm('Generate quiz questions for this topic?')) return;
-  fetch('/api/generate', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:'generate quick-check questions for Iceberg Metadata Tree', mock:false})})
-    .then(r => r.json()).then(d => { const es = new EventSource(d.stream_url); es.addEventListener('done', () => { es.close(); location.reload(); }); })
-    .catch(() => alert('Server not running — use: mise run serve'));
-}
-</script>
-
 <script type="application/json" id="glossary-data">
 {
   "partition": "A way of organizing data files into groups by column value (e.g., all rows where year=2024 go in one folder). Lets queries skip irrelevant files entirely.",
