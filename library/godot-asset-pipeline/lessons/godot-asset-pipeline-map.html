@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Map: Godot Asset Pipeline — Getting 3D In and Out of Godot</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+
+    body { max-width: none; padding: 2rem; }
+    .dag-container { position: relative; width: 100%; overflow-x: auto; }
+    .dag-canvas { position: relative; min-width: min-content; }
+    .edge-layer { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1; }
+    .topic-card {
+      position: absolute; width: 420px; padding: 1rem 1.2rem;
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+      z-index: 2; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .topic-card:hover { border-color: var(--accent); box-shadow: 0 2px 16px rgba(203, 166, 247, 0.1); }
+    .topic-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text); flex-wrap: wrap; }
+    .topic-card .why { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
+    .topic-card .prereq-label { font-size: 0.75rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.5rem; }
+    .topic-card .prereq-list { list-style: none; margin: 0 0 0.5rem; padding: 0; font-size: 0.72rem; }
+    .topic-card .prereq-item { display: flex; align-items: baseline; gap: 0.4rem; line-height: 1.6; margin-bottom: 0.15rem; }
+    /* met/unmet: color reinforces, glyph (✓/○) + word ("met"/"not yet") carry meaning (color-not-alone) */
+    .topic-card .prereq-item.met .prereq-mark, .topic-card .prereq-item.met .prereq-state { color: var(--success); }
+    .topic-card .prereq-item.unmet .prereq-mark, .topic-card .prereq-item.unmet .prereq-state { color: var(--text-muted); }
+    .topic-card .prereq-mark { font-weight: 700; flex: 0 0 auto; }
+    .topic-card .prereq-state { font-variant: small-caps; letter-spacing: 0.02em; flex: 0 0 auto; margin-right: 0.15rem; }
+    .topic-card .prereq-name { color: var(--text-faint); font-style: italic; }
+    .topic-card .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .btn {
+      font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px;
+      border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+      cursor: pointer; transition: border-color 0.15s, color 0.15s;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.primary { border-color: var(--accent); color: var(--accent); }
+    .badge { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 3px; font-weight: 500; white-space: nowrap; }
+    .badge.not-started { background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    .badge.generating { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
+    .badge.complete { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
+    .badge.in-progress { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+    .gen-progress { font-size: 0.75rem; color: var(--warning); margin-top: 0.4rem; font-family: monospace; }
+    .gen-stream { margin-top: 0.5rem; }
+    .gen-stream-header { font-size: 0.8rem; margin-bottom: 0.3rem; }
+    .gen-status.connecting { color: var(--text-muted); }
+    .gen-status.streaming { color: var(--warning); }
+    .gen-status.done { color: var(--success); }
+    .gen-status.error { color: var(--error); }
+    .gen-stream-output {
+      background: var(--code-bg); padding: 0.5rem; border-radius: 4px;
+      font-size: 0.72rem; font-family: monospace; max-height: 150px;
+      overflow-y: auto; line-height: 1.4;
+    }
+    .gen-stream-output .line { padding: 1px 0; }
+    .gen-stream-output .phase-tool { color: var(--accent); }
+    .gen-stream-output .phase-writing { color: var(--success); }
+    .gen-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex;
+      align-items: center; justify-content: center; z-index: 1000;
+    }
+    .gen-modal {
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1.5rem; max-width: 550px; width: 90%;
+    }
+    .gen-modal-actions { display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: flex-end; }
+    .leads-to { margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); }
+    .leads-to-grid { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+    .leads-to-btn {
+      display: flex; flex-direction: column; align-items: flex-start; padding: 0.75rem 1rem;
+      border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);
+      font-weight: 500; font-size: 0.95rem; cursor: pointer; text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .leads-to-btn:hover { border-color: var(--accent); background: var(--bg-elevated); }
+    .leads-to-desc { font-weight: 400; font-size: 0.83rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .loading { color: var(--text-muted); padding: 2rem; }
+    .map-header { margin-bottom: 1.5rem; }
+    .map-header h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    .map-header .orientation { color: var(--text-muted); font-size: 0.9rem; max-width: 700px; line-height: 1.5; }
+
+  </style>
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+  <script src="../assets/vendor/dagre.min.js"></script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <span>Godot Asset Pipeline — Getting 3D In and Out of Godot</span></nav>
+<div class="map-header">
+    <h1>Godot Asset Pipeline — Getting 3D In and Out of Godot</h1>
+    <p class="orientation">This track teaches Godot's side of the 3D asset pipeline: how a model authored in a DCC tool
+(Blender, etc.) becomes a running, correct Godot scene — and, when needed, how it comes back out. It
+is deliberately Godot-import-*mechanics*-specific: the glTF standard itself (anatomy, the export
+spec, skins) lives in the engine-agnostic `gltf-format` track, which this one consumes. The track is
+built happy-path-first: topic 1 is the pure win — one model in, rendered, zero decisions — and every
+later topic takes that standing win and widens it to one harder case (formats, version control,
+collision, performance, rigging, round-trip), always landing back at a working result. Assets are
+CC0 (Kenney); the source→glTF path is real end-to-end via the `make-blend` / `export-godot-glb`
+tools.</p>
+  </div>
+  <div id="app"></div>
+
+<script type="application/json" id="page-data">{"title": "Godot Asset Pipeline — Getting 3D In and Out of Godot", "orientation": "This track teaches Godot's side of the 3D asset pipeline: how a model authored in a DCC tool\n(Blender, etc.) becomes a running, correct Godot scene — and, when needed, how it comes back out. It\nis deliberately Godot-import-*mechanics*-specific: the glTF standard itself (anatomy, the export\nspec, skins) lives in the engine-agnostic `gltf-format` track, which this one consumes. The track is\nbuilt happy-path-first: topic 1 is the pure win — one model in, rendered, zero decisions — and every\nlater topic takes that standing win and widens it to one harder case (formats, version control,\ncollision, performance, rigging, round-trip), always landing back at a working result. Assets are\nCC0 (Kenney); the source→glTF path is real end-to-end via the `make-blend` / `export-godot-glb`\ntools.", "topics": [{"id": "01M1Y84DVVEAZXWJKH6X3DSC49", "slug": "first-import-happy-path", "title": "First Import — The Happy Path", "why": "The pure early win: drop one neutral prop into Godot and see it render, correctly, with zero decisions. Establishes the one thing beginners trip on — import ≠ instance (Godot imports a copy into its own format; it appears in the game only once you drag it into the scene tree). Every later topic builds on this standing success.", "prereqs": [], "status": "not-started", "lessonPath": "01-first-import-happy-path.html"}, {"id": "01M1Y84DVV579KX00T4MXXWFA4", "slug": "format-decision-and-import-verify", "title": "Format Decision & Import Verify", "why": "From the win: \"but what about FBX / .blend / OBJ, and why did one come in wrong?\" The format decision for Godot (glTF recommended, FBX via ufbx, .blend direct, OBJ/DAE limits) plus the Blender export prep (backface culling, normals, origin) that makes an import correct on purpose. Builds in prose on gltf-format's anatomy + engine-import topics.", "prereqs": ["01M1Y84DVVEAZXWJKH6X3DSC49"], "status": "not-started", "lessonPath": "02-format-decision-and-import-verify.html"}, {"id": "01M1Y84DVVH9Q6R0XT575K96BB", "slug": "import-process-and-sidecars", "title": "Import Process & Sidecars", "why": "From a working prop: \"I edited the source and nothing updated / I committed the wrong files / a teammate's checkout broke.\" What import generates — the .import sidecar (commit it) vs the .godot/imported cache (don't) — UID, auto-reimport on source change, and ResourceLoader vs FileAccess. Lands back at the same prop, now safe to iterate on and share.", "prereqs": ["01M1Y84DVV579KX00T4MXXWFA4"], "status": "not-started", "lessonPath": "03-import-process-and-sidecars.html"}, {"id": "01M1Y84DVVBPTBD56KK38H7E5C", "slug": "import-dock-and-name-suffixes", "title": "Import Dock & Name Suffixes", "why": "From a working visual prop: \"it's just a mesh — it needs collision, or a modeling-only helper needs stripping.\" The three customization interfaces plus the name-suffix vocabulary by asset role (-col/-convcol/-colonly, -occ, -navmesh, -noimp, -rigid, -loop). Decision callout: triangle-vs-convex-vs-primitive collision, with OMI glTF-physics as an alternative. Lands at a game object that still renders.", "prereqs": ["01M1Y84DVVH9Q6R0XT575K96BB"], "status": "not-started", "lessonPath": "04-import-dock-and-name-suffixes.html"}, {"id": "01M1Y84DVVSPZ33ZE8PBQDQ1BV", "slug": "lod-and-import-optimization", "title": "LOD & Import Optimization", "why": "From a working game object: \"fill a scene with it and the framerate tanks.\" Automatic mesh-LOD (meshoptimizer) on import, threshold/bias, HLOD visibility ranges, occlusion, and collision-shape performance. Decision callout: LOD-or-not and which collision shape, by asset role. Lands at the same object, performant at scale.", "prereqs": ["01M1Y84DVVBPTBD56KK38H7E5C"], "status": "not-started", "lessonPath": "05-lod-and-import-optimization.html"}, {"id": "01M1Y84DVVACKGVT23AEXS43N2", "slug": "rigged-meshes-and-skeletons", "title": "Rigged Meshes & Skeletons", "why": "From clean static imports: \"an animated mesh breaks the static rules — wrong shading, broken deformation.\" Godot's skeleton/BoneMap/retarget mechanics — rest-pose export, the Export-Deform-Bones-Only gotcha, SkeletonProfileHumanoid, Rest Fixer. The skin/inverse-bind why lives in gltf-format. Lands at a rigged mesh that imports and animates correctly.", "prereqs": ["01M1Y84DVVBPTBD56KK38H7E5C"], "status": "not-started", "lessonPath": "06-rigged-meshes-and-skeletons.html"}, {"id": "01M1Y84DVVA9AT98SZHJ7MB9EJ", "slug": "reimport-and-round-trip-hygiene", "title": "Reimport & Round-Trip Hygiene", "why": "From \"can get assets in\": \"the source keeps changing, and sometimes I need it back out.\" The iterate loop, reimport-multiple, changing importer, the reverse direction (exporting a Godot scene to glTF via GLTFDocument) and its limits, and UID stability. Decision callout: .blend-direct vs committed-glTF team tradeoff. Lands at a mature round-trip.", "prereqs": ["01M1Y84DVVH9Q6R0XT575K96BB"], "status": "not-started", "lessonPath": "07-reimport-and-round-trip-hygiene.html"}], "leadsTo": [{"slug": "godot-3d-animation", "why": ""}], "edges": [{"source": "01M1Y84DVVEAZXWJKH6X3DSC49", "target": "01M1Y84DVV579KX00T4MXXWFA4", "type": "prereq", "why": ""}, {"source": "01M1Y84DVV579KX00T4MXXWFA4", "target": "01M1Y84DVVH9Q6R0XT575K96BB", "type": "prereq", "why": ""}, {"source": "01M1Y84DVVH9Q6R0XT575K96BB", "target": "01M1Y84DVVBPTBD56KK38H7E5C", "type": "prereq", "why": ""}, {"source": "01M1Y84DVVBPTBD56KK38H7E5C", "target": "01M1Y84DVVSPZ33ZE8PBQDQ1BV", "type": "prereq", "why": ""}, {"source": "01M1Y84DVVBPTBD56KK38H7E5C", "target": "01M1Y84DVVACKGVT23AEXS43N2", "type": "prereq", "why": ""}, {"source": "01M1Y84DVVH9Q6R0XT575K96BB", "target": "01M1Y84DVVA9AT98SZHJ7MB9EJ", "type": "prereq", "why": ""}, {"source": "01M1Y84DVVACKGVT23AEXS43N2", "target": "01M1Y84DVVH9Q6R0XT575K96BB", "type": "related", "why": ""}, {"source": "01M1Y84DVVH9Q6R0XT575K96BB", "target": "01M1Y84DVVACKGVT23AEXS43N2", "type": "related", "why": ""}, {"source": "01M1Y84DVVA9AT98SZHJ7MB9EJ", "target": "01M1Y84DVVACKGVT23AEXS43N2", "type": "related", "why": ""}, {"source": "01M1Y84DVVACKGVT23AEXS43N2", "target": "01M1Y84DVVA9AT98SZHJ7MB9EJ", "type": "related", "why": ""}]}</script>
+<script type="module">
+
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { MapView } from '../assets/components/MapView.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    render(
+      html`<${MapView} topics=${data.topics} leadsTo=${data.leadsTo} edges=${data.edges} orientation=${data.orientation} title=${data.title} />`,
+      document.getElementById('app')
+    );
+
+</script>
+
+</body>
+</html>

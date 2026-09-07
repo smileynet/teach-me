@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference: First Import — The Happy Path</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="../lessons/index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../lessons/godot-asset-pipeline-map.html">Godot Asset Pipeline</a> <span class="nav-sep">›</span> <a href="../lessons/01-first-import-happy-path.html">First Import — The Happy Path</a> <span class="nav-sep">›</span> <span>Reference</span></nav>
+<h1>First Import — The Happy Path — Quick Reference</h1>
+
+<div class="lesson-meta">
+  Reference · Godot Asset Pipeline<br>
+  Pull this up when you need a quick lookup.
+</div>
+
+<h2>The happy path, in four moves</h2>
+<ol>
+  <li><strong>Have a model file</strong> — e.g. <code>chair.glb</code>.</li>
+  <li><strong>Copy it under <code>res://</code></strong> — anywhere in the project folder. No button.</li>
+  <li><strong>Godot auto-imports</strong> — converts to its own format, shows it in the FileSystem
+      dock. Your source is untouched.</li>
+  <li><strong>Drag it into the scene tree</strong> — creates an instance; the model renders.</li>
+</ol>
+
+<h2>The trap: import ≠ instance</h2>
+<p>Importing puts the model in the <em>file list</em>. It is not in your game until you
+<em>instance</em> it by dragging it into a scene's node tree. "It's in the FileSystem dock but not
+in my scene" means: import succeeded, you have not instanced it yet.</p>
+
+<h2>Terms</h2>
+<ul>
+  <li><strong>Import</strong> — one-way conversion of a source file into Godot's internal format (a copy; source never edited).</li>
+  <li><strong>Instance</strong> — a placed copy of an imported scene in a node tree; this is what renders.</li>
+  <li><strong>res://</strong> — the project folder; dropping a file here triggers auto-import.</li>
+  <li><strong>FileSystem dock</strong> — the panel listing everything under res://.</li>
+</ul>
+
+
+<footer class="page-credits" role="contentinfo">
+  <p>Credits: <a href="https://kenney.nl" rel="license">3D chair by Kenney (kenney.nl) — CC0 1.0</a></p>
+</footer>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>

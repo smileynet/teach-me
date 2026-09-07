@@ -68,6 +68,8 @@ DEFAULT_ASSETS = [
     "library/gltf-format/reference/code/animation-skins-and-morphs/morph_tri.glb",
     # lesson 06 (extensions-and-optimization): declare-only required-compression-ext triangle.
     "library/gltf-format/reference/code/extensions-and-optimization/required_ext.glb",
+    # godot-asset-pipeline topic 1 (first-import-happy-path): the Kenney chair the lesson imports.
+    "library/godot-asset-pipeline/reference/code/first-import-happy-path/chair.glb",
 ]
 
 # Assets that MUST carry a pbrMetallicRoughness material with a baseColorTexture — the lesson-02
