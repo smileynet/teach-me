@@ -109,11 +109,9 @@ library/           — public topic library (shipped, growing; served by default
 | Don't ask recall questions in gates | Ask "explain to [person] why..." |
 | Don't give partial URLs, or default to 127.0.0.1 for humans | When a server is running, always provide full clickable URLs (http://host:port/path). For a human to VIEW, launch `--lan` and give the LAN address (http://192.168.x.x:PORT) as the primary link — 127.0.0.1 is only for agent-internal checks |
 | Don't context-switch to content during infrastructure | Finish the migration/ticket in progress before generating lessons or teaching |
-| Don't create per-topic workspaces | One workspace/ per machine holds all topics. Use library/ only for demo fixtures |
 | Don't script creative work | Judgment work (question writing, term selection, level assignment) is a skill instruction, not a `tools/` script |
 | Don't over-engineer user-facing features | Show information simply. One line of attribution beats routing + classification + progressive disclosure |
 | Don't start new feature chains with open tickets in the current chain | Finish through the parent ticket before proposing new work |
-| Don't put lessons in flat lessons/ root | Use `lessons/{domain-slug}/NN-slug.html` — per-domain subfolders numbered from 01 |
 
 Lesson-authoring rules (page-shell.js, narrative framing around code blocks, downloadable `data-file` artifacts, no silent buttons, honest visual validation) live in `.kiro/steering/visual-teaching.md`.
 
