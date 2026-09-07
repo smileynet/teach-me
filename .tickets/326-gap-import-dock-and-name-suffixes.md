@@ -28,6 +28,9 @@ Track spiral topic 4 (#305). win → complication → resolution → win. Design
   triangle-vs-convex-vs-primitive collision; and OMI glTF-physics as an *Alternative* callout (Q4 —
   suffixes are the taught default).
 - **Land back**: the prop is now a *game object* (has collision / occlusion) that still renders.
+- **Asset: a small multi-object Kenney scene (CC0)** — e.g. Furniture `table`+`chair` or a Nature
+  cluster; author suffixed copies (`-col`, `-noimp`, `-occ`). Reuses the topic-1 kit. Manifest:
+  `.scratch/tracks/asset-pipeline-ASSETS-manifest.md`.
 
 ## Acceptance criteria
 

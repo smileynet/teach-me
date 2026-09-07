@@ -30,6 +30,10 @@ glTF anatomy/exporter walkthrough now lives in the `gltf-format` domain; this is
   when-to-use-which criteria (not "it depends").
 - **Land back**: a prop that renders correctly *on purpose*, format chosen deliberately.
 - Prose links: builds on gltf-format `gltf-anatomy-and-the-standard` + `consuming-gltf-engine-import`.
+- **Asset: the topic-1 Kenney `chair` (CC0), exported multiple ways** (`.glb`, `.gltf`+bin, `.blend`,
+  `.fbx`) — the format decision is real only side-by-side on the SAME asset. This is where the derived
+  `.blend` is first *taught* (topic 1 only showed it). License manifest:
+  `.scratch/tracks/asset-pipeline-ASSETS-manifest.md`.
 
 ## Acceptance criteria
 

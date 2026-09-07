@@ -23,10 +23,15 @@ table). Structure guidance (DRAFT, under review in #322):
 
 ## What to build
 
-The zero-decision happy path: export one neutral prop (a committed CC0 `.glb`) → drop it into Godot
+The zero-decision happy path: export one neutral prop (a Kenney `chair` — CC0) → drop it into Godot
 → it renders correct (right-side-out, material intact). The learner's takeaway: **"I put a model in
 Godot and it works."** No format matrix, no collision, no "it depends" — those are topics 2–7.
 
+- **Asset: Kenney Furniture Kit `chair` (CC0 1.0).** Source: `Animated Characters Bundle` sibling kit
+  Furniture Kit 2.1. Ships glb/fbx — derive a `.blend` (`reference/blender/chair.blend`) so the
+  source→glTF path is end-to-end (Blender step shown, not taught here). See asset plan
+  `.scratch/tracks/asset-pipeline-asset-plan.md` + license manifest
+  `.scratch/tracks/asset-pipeline-ASSETS-manifest.md`.
 - Runtime artifact: the prop imported into `asset-test-project/` with a working scene.
 - Opt-in `asset:validate-gd` L1 assertion: MeshInstance3D present, `mesh.surface_count > 0`,
   non-degenerate AABB.
@@ -35,6 +40,7 @@ Godot and it works."** No format matrix, no collision, no "it depends" — those
 ## Acceptance criteria
 
 - [ ] Lesson `01-first-import-happy-path.html` — the pipeline once, no decisions, lands at a rendered prop
+- [ ] Kenney `chair` vendored under `reference/` WITH Furniture Kit `License.txt` copied alongside (row in the ASSETS manifest)
 - [ ] Runnable artifact + `asset:validate-gd` L1 assertion (opt-in, SKIP if Godot absent)
 - [ ] Reference doc + SR cards + glossary JSON
 - [ ] Passes `mise run verify` (jargon annotated, SVG themed, links, accessibility)

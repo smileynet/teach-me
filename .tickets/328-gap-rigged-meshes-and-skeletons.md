@@ -27,13 +27,18 @@ Shrunk post gltf-format split — the skin/inverse-bind/rest-pose *why* lives in
 - **Resolve**: what changes with a skeleton — rest/T-pose export (not bone-deformed); the
   Export-Deform-Bones-Only gotcha; AnimationPlayer generation; `-loop` revisited; skeleton
   retargeting (BoneMap + SkeletonProfileHumanoid, Bone Renamer, Rest Fixer / Overwrite Axis).
-  Character-agnostic — a generic two-bone rigged "arm", not a named character.
+  Character-agnostic framing (mechanics, not a named hero).
 - **Land back**: a rigged mesh that imports and animates correctly.
 - Prose link: builds on gltf-format `animation-skins-and-morphs`.
+- **Asset: Kenney `characterSmall` (Animated Characters Bundle 4.0, CC0) — ships `.blend` source +
+  `.fbx` clips + 51 skins.** Use `characterSmall.blend` + one `idle` clip + 2–3 skins (multi-skin
+  case); retarget across `characterSmall` vs `characterMedium` (different rig). License manifest:
+  `.scratch/tracks/asset-pipeline-ASSETS-manifest.md`.
 
 ## Acceptance criteria
 
 - [ ] Lesson `06-rigged-meshes-and-skeletons.html` in the spiral shape
-- [ ] Runnable artifact (two-bone rigged `.glb` + looping clip + BoneMap) + `asset:validate-gd` L6 assertion (Skeleton3D+AnimationPlayer, `loop_mode` set, mesh not pre-deformed)
+- [ ] Kenney `characterSmall` (+ clip + skins + `characterMedium` for retarget) vendored WITH Animated Characters Bundle `License.txt` (row in ASSETS manifest)
+- [ ] Runnable artifact (rigged `.glb` + looping clip + BoneMap) + `asset:validate-gd` L6 assertion (Skeleton3D+AnimationPlayer, `loop_mode` set, mesh not pre-deformed)
 - [ ] Reference doc + SR cards + glossary JSON
 - [ ] Passes `mise run verify`
