@@ -1,7 +1,7 @@
 ---
 id: "320"
 title: "Fix MAP leads_to rendered char-by-char in map page-data (leadsTo array of single chars)"
-status: open
+status: done
 blocked_by: []
 validation_criteria:
   - "generate_map_page.py emits leads_to as a list of {slug,why} objects (one per target domain), not one object per character"
@@ -45,12 +45,37 @@ MAP.md has a `leads_to:` with 1+ targets and inspect the `#page-data` `leadsTo`.
 
 ## Acceptance criteria
 
-- [ ] `generate_map_page.py` emits `leadsTo` as a list of `{slug, why}` objects, one per target domain
-- [ ] The gltf-format map page-data `leadsTo` shows `[{slug: "godot-asset-pipeline"}, {slug: "godot-3d-animation"}]`, not per-character objects
-- [ ] Regenerate affected committed map pages; `check-index-drift` / `mise run verify` pass
-- [ ] Add a `map_parser` test for a multi-target `leads_to` (it's a library with consumers → warrants a test)
+- [x] `generate_map_page.py` emits `leadsTo` as a list of `{slug, why}` objects, one per target domain
+- [x] The gltf-format map page-data `leadsTo` shows `[{slug: "godot-asset-pipeline"}, {slug: "godot-3d-animation"}]`, not per-character objects
+- [x] Regenerate affected committed map pages; `check-index-drift` / `mise run verify` pass
+- [x] Add a `map_parser` test for a multi-target `leads_to` (it's a library with consumers → warrants a test)
 
 ## Notes
 
 - Discovered during #312 (consuming-glTF-engine-import) map regeneration; present in both the pre- and
   post-regen committed page, so it predates that work — not introduced by it.
+
+## Resolution
+
+Root cause: `_parse_yaml_value` in `tools/map_parser.py` had no bracketed-list branch, so the inline
+frontmatter `leads_to: [godot-asset-pipeline, godot-3d-animation]` was returned as a raw string;
+`load_map`'s `for item in raw_leads` then iterated that string character-by-character, producing the
+per-character `leadsTo` objects in the page-data. (A "parse, don't validate at the boundary" failure —
+the loose `str|int|list|None` return let a downstream site re-interpret the value.)
+
+Fix: added an inline flow-sequence branch to `_parse_yaml_value` (parse `[a,b]` → `list[str]` at the
+single parse boundary, with an empty-`[]` guard). `list[str]` was already in the function's return union,
+so no caller sees a new shape and no downstream guards changed.
+
+Scope held by 3 research/review passes (root-cause trace, blast-radius, data-modeling): gltf-format is the
+only MAP using the inline form → only its map page regenerated; the other 9 maps use block-style and were
+already correct. `Edge.type: str` deliberately NOT tightened (closed parser-set vocabulary, already
+`validate()`-checked — fails the "when NOT to model harder" gate; reflexive over-modeling avoided).
+
+**Verified:**
+- `tools/test_map_parser.py` → 22/22 pass, incl. 2 new regression tests (`test_leads_to_inline_list_not_char_split`, `test_leads_to_empty_inline_list`).
+- Regenerated `gltf-format-map.html`: `leadsTo` = `[{slug:"godot-asset-pipeline"}, {slug:"godot-3d-animation"}]`.
+- Repo sweep for single-char slugs across all map pages + `library/index.html` → none.
+- `mise run verify` green, committed through the pre-commit hook (no `--no-verify`).
+
+Committed dc13c40. Research/review: `.scratch/{research/320-yaml-flowlist,research/320-parse-boundary,review/320-parser-blast-radius,review/320-test-and-maps,review/320-parser-return-types}.md`.
