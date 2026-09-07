@@ -95,6 +95,14 @@ def _parse_yaml_value(val: str) -> str | int | list[str] | None:
         return val[1:-1]
     if val.startswith("'") and val.endswith("'"):
         return val[1:-1]
+    # Inline flow-sequence `[a, b, c]` → a real list (parse at the boundary, #320).
+    # Without this the raw string is returned and callers that iterate it (leads_to
+    # normalization) walk it character-by-character. A quoted value never reaches here.
+    if val.startswith("[") and val.endswith("]"):
+        inner = val[1:-1].strip()
+        if not inner:
+            return []
+        return [item.strip() for item in inner.split(",") if item.strip()]
     try:
         return int(val)
     except ValueError:

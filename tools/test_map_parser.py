@@ -255,6 +255,27 @@ def test_id_minted_when_absent():
     p.unlink()
 
 
+def test_leads_to_inline_list_not_char_split():
+    """#320: `leads_to: [a, b]` (inline flow seq) parses as 2 slugs, not per-character."""
+    body = _BASE_MAP.replace(
+        "parent: null\n",
+        "parent: null\nleads_to: [godot-asset-pipeline, godot-3d-animation]\n",
+    )
+    p = _write_map(body)
+    m = load_map(p)
+    assert [lt.slug for lt in m.leads_to] == ["godot-asset-pipeline", "godot-3d-animation"]
+    p.unlink()
+
+
+def test_leads_to_empty_inline_list():
+    """`leads_to: []` parses to an empty list, not ['']."""
+    body = _BASE_MAP.replace("parent: null\n", "parent: null\nleads_to: []\n")
+    p = _write_map(body)
+    m = load_map(p)
+    assert m.leads_to == []
+    p.unlink()
+
+
 def test_prereq_edges_synthesized_from_inline():
     p = _write_map(_BASE_MAP)
     m = load_map(p)
