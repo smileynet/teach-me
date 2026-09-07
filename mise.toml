@@ -292,3 +292,13 @@ run = [
 description = "Real Blender: run the bpy artifacts' --check node-group validators (Tier-2 for the Blender lesson track). Skips if Blender is absent. NOT in core verify (keeps it fast + Blender-free) — run before closing Blender-track tickets."
 depends = ["setup"]
 run = ["python tools/verify-blender.py"]
+
+[tasks."make-blend"]
+description = "Derive an editable .blend from glb/gltf/fbx/obj via headless Blender. Usage: mise run make-blend -- <input> [--out PATH] [--force]. SKIPs if Blender absent. Authoring aid — NOT in core verify."
+depends = ["setup"]
+run = "python tools/make-blend.py \"$@\""
+
+[tasks."export-godot-glb"]
+description = "Export a Godot-ready .glb/.gltf from a .blend (Godot export options + Tier-1 glTF oracle). Usage: mise run export-godot-glb -- <input> [--out PATH] [--separate] [--apply] [--force]. SKIPs if Blender absent. Authoring aid — NOT in core verify."
+depends = ["setup"]
+run = "python tools/export-godot-glb.py \"$@\""
