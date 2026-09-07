@@ -68,6 +68,29 @@ def _esc(s: str) -> str:
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
 
+def _credits_footer(credits: list[tuple[str, str]] | None) -> str:
+    """Render an optional page-credits footer for third-party asset attribution.
+
+    credits: list of (label, url) pairs. url may be "" for a plain-text entry.
+    CC0 assets need no legal attribution; we credit anyway (courtesy + discoverability).
+    Themed via --text-muted / --border (no hardcoded hex); one contentinfo landmark.
+    """
+    if not credits:
+        return ""
+    items = []
+    for label, url in credits:
+        if url:
+            items.append(f'<a href="{_esc(url)}" rel="license">{_esc(label)}</a>')
+        else:
+            items.append(_esc(label))
+    inner = " · ".join(items)
+    return (
+        '<footer class="page-credits" role="contentinfo">\n'
+        f'  <p>Credits: {inner}</p>\n'
+        "</footer>\n"
+    )
+
+
 # --- Base page ---
 
 def _base_page(
@@ -76,6 +99,7 @@ def _base_page(
     depth: int = 1,
     body_content: str,
     breadcrumb_html: str = "",
+    footer_html: str = "",
     head_extras: str = "",
     data_islands: dict[str, Any] | None = None,
     include_glossary_css: bool = False,
@@ -141,7 +165,7 @@ def _base_page(
 
 {breadcrumb_html}{body_content}
 
-{islands_html}{lesson_actions_script}{shell_script}
+{footer_html}{islands_html}{lesson_actions_script}{shell_script}
 </body>
 </html>"""
 
@@ -161,6 +185,7 @@ def render_lesson_page(
     glossary_data: dict[str, str] | None = None,
     key_concept: str = "",
     depth: int = 1,
+    credits: list[tuple[str, str]] | None = None,
 ) -> str:
     """Render a complete lesson page.
 
@@ -168,6 +193,7 @@ def render_lesson_page(
         body_content: The lesson body (h2 sections, paragraphs, SVGs, tables).
                       Does NOT include h1, lesson-meta, or key-concept — those
                       are generated from structured data.
+        credits: optional [(label, url)] third-party asset attribution → page footer.
     """
     # Breadcrumb: All Lessons › Domain › Title.
     # index.html and {slug}-map.html live at the lessons/ root; a page nested below
@@ -209,6 +235,7 @@ def render_lesson_page(
         depth=depth,
         body_content=full_body,
         breadcrumb_html=_breadcrumb(crumbs),
+        footer_html=_credits_footer(credits),
         data_islands=islands if islands else None,
         include_glossary_css=bool(glossary_data),
         include_page_shell=True,
@@ -231,8 +258,12 @@ def render_reference_page(
     lesson_id: str,
     body_content: str,
     depth: int = 1,
+    credits: list[tuple[str, str]] | None = None,
 ) -> str:
-    """Render a complete reference page."""
+    """Render a complete reference page.
+
+    credits: optional [(label, url)] third-party asset attribution → page footer.
+    """
     map_page = f"{'../' * depth}lessons/{domain_slug}-map.html"
     lesson_page = f"{'../' * depth}lessons/{lesson_id}.html"
 
@@ -256,6 +287,7 @@ def render_reference_page(
         depth=depth,
         body_content=header + body_content,
         breadcrumb_html=_breadcrumb(crumbs),
+        footer_html=_credits_footer(credits),
         include_page_shell=True,
     )
 
