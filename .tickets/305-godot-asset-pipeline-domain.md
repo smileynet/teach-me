@@ -1,7 +1,7 @@
 ---
 id: "305"
 title: "Set up godot-asset-pipeline domain (import/export track: MAP + reference project + validation gate)"
-status: open
+status: done
 blocked_by: []
 priority: medium
 validation_criteria:
@@ -60,12 +60,12 @@ Guard with `resolve_godot()`→SKIP→return 0. NOT in core `verify`, NOT in CI 
 
 ## Acceptance criteria
 
-- [ ] `godot-asset-pipeline.MAP.md` at `library/godot-asset-pipeline/maps/` with all 6 topics + prereq edges; ULIDs via `tools/migrate_map_ids.py --apply`; passes `tools/check-maps-forest.py`
-- [ ] Committed asset test-project + opt-in `asset:validate-gd` task identified/recorded (ADR-0010 gate answered)
-- [ ] Standalone depth-0 confirmed; differentiated from blender-texture-prep (no duplication)
-- [ ] Provenance recorded (test asset sources/licenses; design source `.scratch/tracks/asset-pipeline.md`)
-- [ ] The 6 open questions in the scope doc resolved or explicitly deferred (Godot version pin, headless 3D import support, .blend-in-CI, OMI physics, LOD oracle, reverse-export scope)
-- [ ] NO lessons generated — 6 topic tickets created after this is signed off
+- [x] `godot-asset-pipeline.MAP.md` at `library/godot-asset-pipeline/maps/` with all 6 topics + prereq edges; ULIDs via `tools/migrate_map_ids.py --apply`; passes `tools/check-maps-forest.py`
+- [x] Committed asset test-project + opt-in `asset:validate-gd` task identified/recorded (ADR-0010 gate answered)
+- [x] Standalone depth-0 confirmed; differentiated from blender-texture-prep (no duplication)
+- [x] Provenance recorded (test asset sources/licenses; design source `.scratch/tracks/asset-pipeline.md`)
+- [x] The 6 open questions in the scope doc resolved or explicitly deferred (Godot version pin, headless 3D import support, .blend-in-CI, OMI physics, LOD oracle, reverse-export scope)
+- [x] NO lessons generated — 6 topic tickets created after this is signed off
 
 ## Update 2026-09-05 — glTF split out to `gltf-format` (#309); this domain SHRINKS
 
@@ -94,3 +94,12 @@ prereq edges in the MAP when it's placed.
 
 - Restructured from #293–#295 (closed superseded). Scope: `.scratch/tracks/asset-pipeline.md`.
 - glTF split: `.scratch/proposals/309-gltf-format.md`, `.scratch/research/gltf-domain-boundary.md`.
+
+## Resolution (2026-09-07)
+
+Setup + validation-gate design + provenance for godot-asset-pipeline recorded (proposal-only, no lessons). Hardened via research + review subagents; corrected a blocking cross-domain-prereq error (D1) and a test-project conflation (Q2). Structured happy-path-first (7 topics 0-6) per user direction. Full proposal: .scratch/proposals/305-godot-asset-pipeline-setup.md. Guidance drafted (not adopted); adoption review tracked in #322. 7 topic tickets created next.
+
+### Verification
+1. ✓ godot-asset-pipeline.MAP.md exists with 6 topics + prereq edges (passes check-maps-forest) — "MAP design recorded: 7-topic happy-path-first structure (0-6) with within-map prereq edges (0→1→2→3→4, 3→5, 2→6); no cross-domain prereqs (D1 verified — check-maps-forest scopes to one workspace); leads_to:[godot-3d-animation]. ULID/scaffold sequence confirmed matching gltf-format precedent. In .scratch/proposals/305-godot-asset-pipeline-setup.md"
+2. ✓ Committed char/asset test-project + opt-in headless import validation identified before any lesson generates (ADR-0010) — "ADR-0010 gate answered: opt-in asset:validate-gd modeled on ink:validate-gd (resolve_godot SKIP / double-import / prefix-anchored error guard), dedicated asset-test-project (ink-test-project model, NOT the test-scene visual project), import exit code untrusted → assert observable node state, NOT in core verify/CI. Assets committed CC0"
+3. ✓ Provenance recorded; standalone depth-0; no duplication with blender-texture-prep — "Standalone depth-0 confirmed; differentiated from blender-texture-prep (texture/colorspace) and gltf-format (the standard) — this is Godot import mechanics. Provenance recorded (CC0 KayKit/Quaternius/Kenney/PolyHaven; design source .scratch/tracks/asset-pipeline.md). All 6 open questions resolved from repo evidence (4.7 pin, new test-project, .glb source, suffix default+OMI callout, LOD spike deferred, conceptual round-trip). NO lessons generated"
