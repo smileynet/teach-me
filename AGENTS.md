@@ -38,6 +38,7 @@ library/           — public topic library (shipped, growing; served by default
 | theme | "theme", "colors", "palette" | Preview, validate, and apply color palettes |
 | draw-diagram | "draw diagram", "generate SVG" | Generate inline SVG teaching diagrams |
 | browse-and-verify | "validate link", "check this URL" | Dispatch browser agent for URL validation |
+| asset-conversion | "convert asset", "make blend", "export glb for godot" | Headless-Blender format conversion for lesson artifacts (glb/fbx→.blend, .blend→Godot glb + oracle) |
 
 ## Commands
 
@@ -56,6 +57,8 @@ library/           — public topic library (shipped, growing; served by default
 | Validate ink stories | `mise run ink:validate` (add `:strict` to treat warnings as errors) | Compile all .ink via inklecate, report errors/warnings |
 | Validate ink GDScript | `mise run ink:validate-gd` | Headless Godot: run shipped lesson story_player.gd in the real inkgd runtime (needs Godot; skips if absent). `ink:validate` does NOT need Godot. |
 | Validate Blender artifacts | `mise run verify:blender` | Real Blender: run the bpy artifacts' `--check` node-group validators (Tier-2 for the Blender lesson track). Skips if Blender absent. NOT in core `verify` — run before closing Blender-track tickets. |
+| Derive a .blend | `mise run make-blend -- <in.glb\|.fbx\|.obj> [--out P] [--force]` | Headless Blender: import a mesh asset → save an editable `.blend` (applies transforms; fixes FBX-cm/axis). SKIPs if Blender absent. Authoring aid — NOT in core `verify`. Needs `BLENDER` in gitignored `mise.local.toml`. |
+| Export Godot glb | `mise run export-godot-glb -- <in.blend> [--out P] [--separate] [--apply]` | Headless Blender: export a Godot-ready `.glb`/`.gltf` (yup, no lights/cameras, Principled→PBR) + Tier-1 `gltf-format-oracle` structural check. `--apply` bakes modifiers (DROPS shape keys — omit for rigged/morph). SKIPs if Blender absent. Authoring aid. |
 | tkt (direct) | `tkt` (on PATH via mise shim) | Use directly for ticket management; if mise shim recursion bites, invoke the tkt binary by absolute path |
 | SR review | `mise run sr` (due + health); `sr:review [-- topic]`, `sr:check` (leeches/format), `sr:analytics` (retention), `sr:lifecycle -- suspend ID` | Spaced-repetition review + maintenance |
 | SR export | `mise run sr:quick-check -- [topic] [--all]` (review HTML); `sr:export-anki -- [topic] [--output path]` (.apkg) | Generate review pages / export cards |
