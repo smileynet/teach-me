@@ -164,7 +164,7 @@ These apply every time you generate or edit a MAP.md:
 2. **No scope markers** — don't include `scope:` fields. The learner doesn't need effort estimates.
 3. **leads_to needs descriptions** — every `leads_to` item has a `slug` and a `why` (one sentence). Bare slugs are useless to the learner.
 4. **leads_to renders as buttons** — each one is actionable with a description of what it opens up.
-5. **Generation is live** — "Generate this topic" buttons hit `/api/generate` and stream progress via SSE. Never show copy-paste commands.
+5. **Generation is honest, not automatic** — a topic with a lesson shows an "Open lesson" link; one without shows "Generate this topic", which reveals the exact prompt to run with an agent in this repo (no server-side autogeneration). Same for quiz buttons (#317/#319).
 6. **"Explore subtopics"** — the button for drilling into a sub-map. Not "Zoom in" (unclear to users).
 
 ### Trigger Phrases
