@@ -29,6 +29,9 @@ Track spiral topic 7, the track closer (#305). win → complication → resoluti
   track by returning to the "fix upstream" principle.
 - **Land back**: a mature round-trip the learner can live in.
 - Prose link: references gltf-format round-trip fidelity.
+- **Assets (reuse, no new vendoring): the topic-1 `chair` for the simple loop + the topic-6
+  `characterSmall` for the rigged round-trip** (hardest fidelity case). All CC0, already tracked in
+  `.scratch/tracks/asset-pipeline-ASSETS-manifest.md`.
 
 ## Acceptance criteria
 

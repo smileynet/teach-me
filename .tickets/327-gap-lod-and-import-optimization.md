@@ -27,6 +27,9 @@ Track spiral topic 5 (#305). win → complication → resolution → win. Design
   gltf-format t6 for Draco/meshopt.
 - **Land back**: the same object, now performant at scale.
 - Optional Q5 spike (separate): Blender-free Tier-1 LOD oracle if wanted.
+- **Asset: a denser Kenney Nature Kit mesh (tree/rock, CC0)** — LOD is only meaningful on a mesh with
+  tris to shed. Ships glb/fbx; derive `.blend`. License manifest:
+  `.scratch/tracks/asset-pipeline-ASSETS-manifest.md`.
 
 ## Acceptance criteria
 
