@@ -20,7 +20,7 @@ jobs:
     outputs:
       is_release: ${{ steps.check.outputs.is_release }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - id: check
@@ -40,7 +40,7 @@ jobs:
     if: needs.check-tag.outputs.is_release == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Assemble deploy directory
         run: |
@@ -50,12 +50,12 @@ jobs:
           bash tools/assemble-site.sh _site
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
         with:
           enablement: true
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: './_site'
 
@@ -68,4 +68,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
