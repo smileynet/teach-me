@@ -117,3 +117,33 @@ under budget. Linked from AGENTS.md.
   <mapfile>` to mint ULIDs. `migrate_map_ids` only fills MISSING `- **id:**` lines — a present-but-invalid
   placeholder (e.g. `TBD`) is flagged "manual review" and NOT overwritten, so omit the id line entirely so
   the tool mints it.
+
+## godot-asset-pipeline track (#305, #323–#329)
+
+- **Kenney ships ASCII FBX** — Blender's `import_scene.fbx` rejects it (`"ASCII FBX files are not
+  supported"`). Derive the `.blend` from the kit's `.glb` instead (Kenney kits ship both). The two
+  conversion tools: `mise run make-blend -- <in.glb|.fbx|.obj>` (→ editable `.blend`) and
+  `mise run export-godot-glb -- <in.blend>` (→ Godot-ready `.glb` + Tier-1 `gltf-format-oracle`
+  check). Both copy `verify-blender.py`'s resolve/skip pattern (SKIP exit 0 if Blender absent).
+- **`.user/learning-records/` shadows the committed `learning-records/`.** `init_workspace.py`
+  scaffolds an empty `.user/learning-records/` (gitignored); `questions.py:_store_root_for` prefers
+  `.user/` if it exists, so SR/quiz tools read the empty private store and miss committed questions.
+  Fix: put questions at the COMMITTED `library/{domain}/learning-records/questions/{domain}.jsonl` and
+  `rm -rf` the empty `.user/learning-records/` so the committed path resolves. Quiz gen matches on
+  `lesson_id` (open Qs) OR `topic` (interactive Qs).
+- **Aggregate index is `--scan-dir library --output library/index.html`** — a bare `mise run
+  index:generate` writes the wrong file (`lessons/index.html` at repo root) and leaves `library/index.html`
+  drifted. Adding a new domain requires regenerating the aggregate at that exact path (check-index-drift
+  compares `library/index.html`).
+- **Shipped lesson PNGs need `!library/**/*.png` in `.gitignore`** — a blanket `*.png` rule was hiding
+  them (existing library PNGs were force-added). Lesson screenshots + reference textures must commit
+  (Pages serves them; NOT Git LFS — Pages doesn't serve LFS content, and the assets are tiny).
+- **Editor-dock screenshots are blocked in this env** — `editor_screenshot`'s sources all capture a
+  scene/game *viewport*, never editor UI (FileSystem/Scene docks). A `source="editor"` + `save_to`
+  capability was added to `test-scene/addons/godot_ai/handlers/editor_handler.gd` (captures the whole
+  editor window via `get_base_control().get_viewport()`, saves in-engine) — but the uvx MCP *server*
+  (PyPI 3.1.5) rejects `save_to` (Pydantic unknown-kwarg) until it ships the param. Tracked: godot-helper
+  #216. Godot's self-drawn docks are AX-invisible (System Events returns no windows), so cliclick
+  coordinate automation can't map screen coords reliably. macOS `screencapture -l<id>` (via
+  `GetWindowID`) DOES capture the real window once Screen Recording is granted — the semi-automated
+  fallback. Lessons use an SVG flow diagram + a `source=game` render meanwhile.
