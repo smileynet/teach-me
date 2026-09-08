@@ -1,7 +1,7 @@
 ---
 id: "323"
 title: "godot-asset-pipeline topic 1: first-import-happy-path (the early win)"
-status: open
+status: done
 blocked_by: ["305"]
 validation_criteria:
   - "Lesson at library/godot-asset-pipeline/lessons/01-first-import-happy-path.html: exports one neutral prop as glTF, imports to Godot, renders correct — zero decisions/forks"
@@ -39,8 +39,17 @@ Godot and it works."** No format matrix, no collision, no "it depends" — those
 
 ## Acceptance criteria
 
-- [ ] Lesson `01-first-import-happy-path.html` — the pipeline once, no decisions, lands at a rendered prop
-- [ ] Kenney `chair` vendored under `reference/` WITH Furniture Kit `License.txt` copied alongside (row in the ASSETS manifest)
-- [ ] Runnable artifact + `asset:validate-gd` L1 assertion (opt-in, SKIP if Godot absent)
-- [ ] Reference doc + SR cards + glossary JSON
-- [ ] Passes `mise run verify` (jargon annotated, SVG themed, links, accessibility)
+- [x] Lesson `01-first-import-happy-path.html` — the pipeline once, no decisions, lands at a rendered prop
+- [x] Kenney `chair` vendored under `reference/` WITH Furniture Kit `License.txt` copied alongside (row in the ASSETS manifest)
+- [x] Runnable artifact + `asset:validate-gd` L1 assertion (opt-in, SKIP if Godot absent)
+- [x] Reference doc + SR cards + glossary JSON
+- [x] Passes `mise run verify` (jargon annotated, SVG themed, links, accessibility)
+
+## Resolution (2026-09-08)
+
+godot-asset-pipeline topic 1 (first-import-happy-path) authored + shipped: lesson/reference/quiz/SR, Kenney chair via the new conversion tools, credits footer, real Godot render. L1 via Tier-1 oracle; Godot Tier-2 gate + editor-dock screenshots deferred (godot-helper #216). Commits 6f8f3d9, 87001b1.
+
+### Verification
+1. ✓ Lesson at library/godot-asset-pipeline/lessons/01-first-import-happy-path.html: exports one neutral prop as glTF, imports to Godot, renders correct — zero decisions/forks — "Lesson library/godot-asset-pipeline/lessons/01-first-import-happy-path.html shipped: happy-path (import chair, render, zero decisions), teaches import≠instance; check-lesson 11 pass/0 fail; commits 6f8f3d9 (path a) + 87001b1 (real Godot render screenshot, path b)"
+2. ✓ Runnable artifact + opt-in asset:validate-gd L1 assertion (MeshInstance3D present, surface_count>0, non-degenerate AABB) — "L1 validation via Tier-1 gltf-format-oracle (chair.glb registered in DEFAULT_ASSETS → core verify covers it Blender-free: v2.0 1n/1m). Full Godot asset:validate-gd Tier-2 gate deferred as the sanctioned (a)-fallback per the #323 proposal. Kenney chair vendored (.blend+glb via make-blend/export-godot-glb) + Furniture Kit License.txt + ASSETS manifest row"
+3. ✓ Reference doc + SR cards + glossary JSON; passes mise run verify — "Reference doc + quiz (7 Qs) + SR cards (5 open + 2 interactive) + inline glossary (4 terms) shipped; full mise run verify green (links 99, forest 7, index 8 in sync, interactive 11, pytest 43)"
