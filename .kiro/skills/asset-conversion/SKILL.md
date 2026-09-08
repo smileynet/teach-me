@@ -32,6 +32,10 @@ mise run make-blend -- <input.glb|.gltf|.fbx|.obj> [--out reference/blender/NAME
 Imports the source into an empty scene, applies transforms (fixes FBX-cm 100× + axis bugs), saves a
 compressed `.blend`. Default output is `<input>.blend` beside the input.
 
+> **ASCII FBX is unsupported.** Blender's importer rejects it (`"ASCII FBX files are not supported"`).
+> Kenney kits ship **ASCII** FBX — derive the `.blend` from the kit's `.glb` instead (Kenney ships both).
+> Prefer `.glb`/`.gltf` sources for `make-blend` when available.
+
 ### Export a Godot-ready glTF (`.blend`/fbx/obj/gltf → `.glb`/`.gltf`)
 ```
 mise run export-godot-glb -- <input.blend> [--out reference/code/SLUG/NAME.glb] [--separate] [--apply] [--force]
