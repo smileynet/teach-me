@@ -78,6 +78,8 @@ The godot-ai MCP has three failure modes that cause silent wrong results:
 
 5. **`--headless` CANNOT render 3D to PNG.** Under `--headless` the DisplayServer is a dummy driver with no framebuffer — `get_viewport().get_texture().get_image()` returns blank/black (Blender/Godot parallel; validated #221, 2026-08-28). Headless is only for import/compile validation. A visual A/B capture needs a REAL windowed `project_run` (GPU). Reserve `--headless --editor --import --quit` for "does it load without errors" (Tier-3a); use the windowed `godot_editor` MCP path for pixels (Tier-3b).
 
+7. **Opening a project in a newer Godot rewrites `project.godot`.** A `godot_editor`/GUI session (or the specialist) opening `test-scene` on a different Godot build silently downgrades `config/features` (observed 4.7→4.5 twice, 2026-09-07) and drops the `[rendering]` `forward_plus` line. After ANY editor session, `git diff test-scene/project.godot` and `git checkout` it if only the version/rendering lines changed — don't commit that drift. (Editor-open is not a clean read.)
+
 ## Headless GDScript validation (hard rules — validated 2026-08-28, #249/#236)
 
 For running/validating GDScript headlessly (e.g. `mise run ink:validate-gd`):
