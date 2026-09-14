@@ -32,6 +32,13 @@ under budget. Linked from AGENTS.md.
   OWN shell call, never chained behind the run. A blocked/cancelled Godot/build/test run leaves the
   file broken and strands it (observed twice: a parse error left in `validate_runtime.gd` after a
   cancelled `--import` chain). Pattern: (1) back up + break, (2) run, (3) restore — three separate calls.
+- **A stuck unmerged/conflict index entry blocks ALL `tkt` auto-commits.** `tkt new`/`tkt close`
+  auto-commit, and git refuses to commit with any unmerged path — so a single stranded conflict
+  (even in a gitignored scratch file) makes `tkt` crash with "Committing is not possible because you
+  have unmerged files." Seen 2026-09-14: `.scratch/HANDOFF.md` was tracked-then-later-gitignored and
+  left as a `deleted by us` unmerged entry from an interrupted op (no MERGE_HEAD present). Fix:
+  `git rm --cached <file>` to clear the entry (keeps the on-disk copy; the gitignore then applies).
+  Check `git diff --name-only --diff-filter=U` if `tkt` suddenly can't commit.
 
 ## Blender track
 
@@ -147,3 +154,31 @@ under budget. Linked from AGENTS.md.
   coordinate automation can't map screen coords reliably. macOS `screencapture -l<id>` (via
   `GetWindowID`) DOES capture the real window once Screen Recording is granted — the semi-automated
   fallback. Lessons use an SVG flow diagram + a `source=game` render meanwhile.
+
+## Generated artifacts / regeneration (index & map pages)
+
+Moved here from AGENTS.md (#330 cleanup) to keep AGENTS.md under budget — these are
+workflow-specific regeneration gotchas, not always-on facts.
+
+- **Regenerating a committed library page re-bakes progress counts** (`index:generate`,
+  `map:global`) from `.user/status-overlay.json`. #278 committed a demo overlay under
+  `library/**/.user/` (un-gitignored, kept at deploy), so regen is IDEMPOTENT — counts re-bake to
+  the committed values (ink 3/8, iceberg 2/7, godot 2/8), not 0. Still verify a regen diff before
+  committing; a future move to load-time overlay reads is tracked in #279. (Note: generating a
+  library map STANDALONE without the workspace/overlay context flips demo statuses to
+  `not-started` — always regen via the overlay-aware path.)
+- **Regenerating a PER-DOMAIN index:** `index:generate --scan-dir library/{domain}` defaults its
+  `--output` to the ROOT `lessons/index.html` and will CLOBBER the aggregate with a single-domain
+  view. Always pass `--output library/{domain}/lessons/index.html` (this is what
+  `check-index-drift.py` does per domain). Confirmed live 2026-09-06 — a `--scan-dir`-only regen
+  overwrote the root index; caught by scope check + reverted.
+- **Committed generated artifacts MUST be reproducible from TRACKED inputs only** — never read a
+  gitignored/machine-local file. A generator falling back to `workspace/MISSION.md` (gitignored)
+  made per-domain pages drift per machine (#316). `parse_mission` now scopes that fallback to the
+  whole-project scan; keep any new generator fallback on a tracked lineage, not "the nearest file
+  that happens to exist."
+- **New-domain scaffold sequence:** `init_workspace.py --path library/{domain}` (dirs only) →
+  hand-write `maps/{domain}.MAP.md` → `migrate_map_ids.py --apply` (mint ULIDs — omit the id line
+  so it fills, don't stub `TBD`). Lesson-authoring gotchas (check-lesson.py workspace-relative
+  `--lesson` + `reference/code/{slug-minus-NN}`; glTF-oracle vs check-lesson-code coverage; stdlib
+  `.glb` gen; bpy-not-`.blend`) live in the glTF track section of this file.
