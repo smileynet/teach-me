@@ -1,7 +1,7 @@
 ---
 id: "331"
 title: "Repair the red site-dry-run deploy gate"
-status: open
+status: in_progress
 priority: high
 blocked_by: []
 type: fix
