@@ -1,7 +1,7 @@
 ---
 id: "347"
 title: "Deep-dive lesson quality across every shipped domain"
-status: open
+status: in_progress
 priority: low
 blocked_by: []
 type: research
