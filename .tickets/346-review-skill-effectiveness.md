@@ -1,7 +1,7 @@
 ---
 id: "346"
 title: "Deep-dive agent skill activation and workflow overlap"
-status: open
+status: in_progress
 priority: low
 blocked_by: ["342"]
 type: research
