@@ -2,16 +2,42 @@
 id: "348"
 title: "Deep-dive static-host and local-server capability consistency"
 status: open
-blocked_by: []
-tags: ["arch-review"]
+priority: medium
+blocked_by: ["331", "332", "338", "341"]
+type: research
+tags: ["arch-review", "platform"]
+validation_criteria:
+  - "A capability matrix covers file, static HTTP, Pages, single-domain, library-root, and LAN modes"
+  - "Every intentional degradation is user-visible and documented"
+  - "Every accidental inconsistency has a focused follow-up ticket"
 ---
 
 # Deep-dive static-host and local-server capability consistency
 
-## What to build
+## Intent source
 
-TBD
+Follow-up proposed by the architecture review. Static fallback and live local state are both
+intentional, but their exact capability differences are scattered across ADRs and tickets.
+
+## What to review
+
+Execute a matrix for direct `file://`, simple static HTTP, GitHub Pages, single-domain serve,
+library-root serve, and LAN serve. Cover reading, navigation, maps, quizzes, preferences,
+progress, SR, generation prompts, private content, and offline behavior.
+
+## Context
+
+Read ADRs 0003/0012/0014/0015/0016, `tools/serve.py`, `tools/assemble-site.sh`,
+`assets/page-shell.js`, and #279/#319/#331/#332/#338/#341.
 
 ## Acceptance criteria
 
-- [ ] TBD
+- [ ] Matrix states supported, degraded, and unsupported behavior per environment
+- [ ] Every degraded path gives an honest explanation rather than a silent no-op
+- [ ] Direct deep links and JavaScript-disabled reading are exercised
+- [ ] Progress respects the local-only rule in every environment
+- [ ] Accidental inconsistencies receive tickets; intentional differences are documented
+
+## Resolution
+
+TBD
