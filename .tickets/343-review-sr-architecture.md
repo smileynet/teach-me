@@ -1,7 +1,7 @@
 ---
 id: "343"
 title: "Deep-dive the spaced-repetition state and scheduling architecture"
-status: open
+status: in_progress
 priority: medium
 blocked_by: ["341"]
 type: research
