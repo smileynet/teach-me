@@ -1,7 +1,7 @@
 ---
 id: "346"
 title: "Deep-dive agent skill activation and workflow overlap"
-status: in_progress
+status: done
 priority: low
 blocked_by: ["342"]
 type: research
@@ -32,12 +32,12 @@ and representative completed tickets. Judge effectiveness from observed routing 
 
 ## Acceptance criteria
 
-- [ ] Every skill has at least two positive and two negative activation probes
-- [ ] Tests cover teach/generate-topic and the Ink/tooling family overlaps
-- [ ] Findings distinguish activation, instruction quality, and missing capability
-- [ ] Recommended edits cite observed failed or inefficient behavior
-- [ ] Accepted changes receive tickets; rejected consolidations include rationale
+- [x] Every skill has at least two positive and two negative activation probes
+- [x] Tests cover teach/generate-topic and the Ink/tooling family overlaps
+- [x] Findings distinguish activation, instruction quality, and missing capability
+- [x] Recommended edits cite observed failed or inefficient behavior
+- [x] Accepted changes receive tickets; rejected consolidations include rationale
 
 ## Resolution
 
-TBD
+Completed the 13-skill activation and workflow review in `.scratch/research/346-skill-effectiveness.md`, including positive/negative probes and live overlap classification. The report verifies a nonexistent Ink skill claim, the ambiguous teach/generate-topic boundary, and local-state instruction drift while rejecting broad consolidation. Tickets #359–#362 capture the follow-up work; #361 is sequenced behind #341. Evidence: complete skill inventory, live routing probes, AGENTS/skill comparison, and Git history for the claimed Ink path.

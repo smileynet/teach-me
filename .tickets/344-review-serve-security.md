@@ -1,7 +1,7 @@
 ---
 id: "344"
 title: "Deep-dive serve.py trust boundaries and LAN exposure"
-status: in_progress
+status: done
 priority: medium
 blocked_by: ["332", "339"]
 type: research
@@ -32,12 +32,12 @@ Read `tools/serve.py`, `tools/lib/overlay.py`, `tools/lib/serve_harness.py`, ADR
 
 ## Acceptance criteria
 
-- [ ] Assets, state, and network trust boundaries are documented
-- [ ] Automated probes cover traversal, hidden state reads, invalid writes, and cross-origin mutation
-- [ ] LAN and loopback exposure are assessed separately
-- [ ] Findings include severity, evidence, and specific mitigation
-- [ ] Confirmed gaps receive tickets; clean areas are reported without manufactured findings
+- [x] Assets, state, and network trust boundaries are documented
+- [x] Automated probes cover traversal, hidden state reads, invalid writes, and cross-origin mutation
+- [x] LAN and loopback exposure are assessed separately
+- [x] Findings include severity, evidence, and specific mitigation
+- [x] Confirmed gaps receive tickets; clean areas are reported without manufactured findings
 
 ## Resolution
 
-TBD
+Completed the reproducible trust-boundary review in `.scratch/research/344-serve-security.md`. Loopback traversal and hidden-state checks were clean, while the report reproduces overlay write loss under concurrency, unbounded/reflected malformed input, wildcard domain resolution, and unauthenticated LAN mutations. Tickets #353–#355 capture atomic persistence, request hardening, and the required LAN policy decision; #332/#339 own canonical workspace resolution. Evidence: live HTTP probes and a repeated 100-update concurrency test.
