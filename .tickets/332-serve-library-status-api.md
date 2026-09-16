@@ -1,7 +1,7 @@
 ---
 id: "332"
 title: "Fix per-domain status API when serving library root"
-status: open
+status: in_progress
 priority: high
 blocked_by: []
 type: fix
