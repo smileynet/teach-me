@@ -5,7 +5,7 @@ The GitHub Pages deploy only fires on a v* tag, so the _site assembly + the /{re
 were never exercised before release. This runs the SAME `tools/assemble-site.sh` the deploy
 uses (no re-implementation → no drift) into a temp dir, then asserts what must hold post-#279
 (demo-status.json fixtures ship; .user/ never does) and post-#281 (all per-domain indexes
-present; the missing-index redirect fallback works with the correct ../ target), plus the
+present; the missing-index redirect fallback reaches its sibling map), plus the
 ADR-0015 document-relative asset invariant on the subpath.
 
 Requires bash (git-bash on Windows). Exits 0 = all assertions pass, 1 = a failure.
@@ -69,6 +69,37 @@ def _grep_root_relative_assets(site: Path) -> list[str]:
     return bad
 
 
+def _missing_index_fallback(scratch: Path) -> tuple[bool, str]:
+    """Exercise the assembler's fallback in an isolated one-domain source tree."""
+    domains = [d for d in (PROJECT_ROOT / "library").iterdir()
+               if d.is_dir() and (d / "lessons").is_dir()
+               and (d / "lessons" / f"{d.name}-map.html").is_file()]
+    if not domains:
+        return False, "missing-index fallback fixture has no domain map source"
+
+    domain = domains[0]
+    source = scratch / "fallback-source"
+    output = source / "_site"
+    shutil.copytree(PROJECT_ROOT / "assets", source / "assets")
+    shutil.copytree(domain, source / "library" / domain.name)
+    (source / "tools").mkdir()
+    shutil.copy2(ASSEMBLER, source / "tools" / ASSEMBLER.name)
+
+    index = source / "library" / domain.name / "lessons" / "index.html"
+    index.unlink(missing_ok=True)
+    result = subprocess.run(
+        [_bash(), f"tools/{ASSEMBLER.name}", "_site"],
+        cwd=str(source), capture_output=True, text=True,
+    )
+    stub = output / "library" / domain.name / "lessons" / "index.html"
+    target = stub.parent / f"{domain.name}-map.html"
+    expected = f"url={domain.name}-map.html"
+    ok = result.returncode == 0 and target.is_file() and stub.is_file()
+    if ok:
+        ok = expected in stub.read_text(encoding="utf-8", errors="replace")
+    return ok, f"missing-index fallback targets existing lessons/{domain.name}-map.html"
+
+
 def main() -> int:
     if not ASSEMBLER.exists():
         print(f"✗ assembler not found: {ASSEMBLER}", file=sys.stderr)
@@ -102,12 +133,12 @@ def main() -> int:
         c.check((site / "library" / "global-map.html").is_file(), "global-map.html redirect stub present")
 
         # 3. Per-domain indexes (#281): every domain with lessons/ ships an index; the
-        #    missing-index redirect loop wrote ZERO stubs (all present). A "stub" is the
+        #    missing-index redirect loop writes ZERO stubs for the committed corpus. A "stub" is the
         #    redirect signature (<title>Lessons</title> + meta-refresh to a -map.html).
         domain_dirs = [d for d in (site / "library").iterdir()
                        if d.is_dir() and (d / "lessons").is_dir()]
         indexes = [d / "lessons" / "index.html" for d in domain_dirs]
-        c.check(len(domain_dirs) == 6 and all(i.is_file() for i in indexes),
+        c.check(all(i.is_file() for i in indexes),
                 f"all {len(domain_dirs)} per-domain lessons/index.html present")
         stubs = [i for i in indexes
                  if "<title>Lessons</title>" in i.read_text(encoding="utf-8", errors="replace")]
@@ -129,17 +160,10 @@ def main() -> int:
         c.check(not symlinks, "no symlinks in the artifact"
                 + (f" — found: {symlinks[:3]}" if symlinks else ""))
 
-        # 7. Missing-index fallback target (#280 fix): the redirect stub the assembler writes
-        #    for an index-less domain must target `../{domain}-map.html` (../ to escape
-        #    lessons/ — the map is one dir up). All domains ship an index today so the loop is
-        #    dormant, but the fix must be correct for future index-less domains. Assert the
-        #    assembler SOURCE builds the `../`-prefixed target (the exact bug that was fixed).
-        #    Paired with check "no redirect stubs written" above (proves the loop condition
-        #    fires correctly on the real tree), this covers the fallback without a fragile
-        #    bash re-invocation.
-        asm_src = ASSEMBLER.read_text(encoding="utf-8")
-        c.check('map="../$(basename "$d")-map.html"' in asm_src,
-                'missing-index redirect target is ../-prefixed (../{domain}-map.html) — #280 fix')
+        # 7. Exercise the dormant fallback in an isolated scratch source tree. This proves
+        #    the generated redirect reaches the sibling map file instead of merely matching
+        #    a shell-script string.
+        c.check(*_missing_index_fallback(site.parent))
 
         return c.report()
     finally:

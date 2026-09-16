@@ -96,8 +96,8 @@ NOT the page.**
     (mise task `site-dry-run`, NOT core `verify` — needs git-bash) runs that SAME script into
     a temp dir and asserts the invariants this ADR names — **no root-relative `/assets` refs**
     (grep gate), plus post-#279/#281 deploy facts (demo-status.json fixtures ship, `.user/`
-    stripped at any depth, all 5 per-domain indexes present, root redirect, `.nojekyll`, no
-    symlinks) and the `../`-prefixed missing-index redirect fix. The dry-run exercises the
+    stripped at any depth, every discovered per-domain index present, root redirect, `.nojekyll`, no
+    symlinks) and a scratch-assembled missing-index redirect that targets the sibling map page. The dry-run exercises the
     real deploy logic, so the document-relative invariant is now enforced pre-release, not
     only on a `v*` tag.
 - **Supersedes** the ad-hoc depth handling rationale in #163/#229/#230/#242/#261 by naming

@@ -51,13 +51,13 @@ done
 # "All Lessons" breadcrumb to a per-domain `lessons/index.html`. Post-#281 all shipped domains
 # commit one, so this loop is a FORWARD-LOOKING fallback — a future domain added without a
 # per-domain index would 404 that breadcrumb, so backfill a redirect to the domain map. The
-# stub lives at {domain}/lessons/index.html and the map at {domain}/{domain}-map.html — one
-# dir UP — so the target needs `../` to escape lessons/ (#280 fix: was missing, would 404).
+# stub lives at {domain}/lessons/index.html and the map at
+# {domain}/lessons/{domain}-map.html, so the target is a sibling file.
 for d in "$SITE"/library/*/; do
   [ -d "${d}lessons" ] || continue
   idx="${d}lessons/index.html"
   if [ ! -f "$idx" ]; then
-    map="../$(basename "$d")-map.html"
+    map="$(basename "$d")-map.html"
     cat > "$idx" <<HTML
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">

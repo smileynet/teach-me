@@ -1,7 +1,7 @@
 ---
 id: "331"
 title: "Repair the red site-dry-run deploy gate"
-status: in_progress
+status: done
 priority: high
 blocked_by: []
 type: fix
@@ -30,12 +30,12 @@ Regeneration gotchas (idempotent re-bake rules, tracked-inputs-only) live in `.m
 
 ## Acceptance criteria
 
-- [ ] `library/gltf-format/assets` and `library/godot-asset-pipeline/assets` are gone (or are real dirs); `mise run serve` on a fresh clone still serves those domains' pages with working `../assets` resolution
-- [ ] Missing-index redirect in a scratch copy points at `{domain}/lessons/{domain}-map.html` and the target file exists
-- [ ] `tools/site-dry-run.py` domain check derives from a `library/` scan (no hardcoded count)
-- [ ] `mise run site-dry-run` exits 0
-- [ ] `mise run verify` passes after any regeneration
+- [x] `library/gltf-format/assets` and `library/godot-asset-pipeline/assets` are gone (or are real dirs); `mise run serve` on a fresh clone still serves those domains' pages with working `../assets` resolution
+- [x] Missing-index redirect in a scratch copy points at `{domain}/lessons/{domain}-map.html` and the target file exists
+- [x] `tools/site-dry-run.py` domain check derives from a `library/` scan (no hardcoded count)
+- [x] `mise run site-dry-run` exits 0
+- [x] `mise run verify` passes after any regeneration
 
 ## Resolution
 
-TBD
+Deleted the two Windows text-stub `assets` entries; local serving now relies on the ADR-0015 shared-asset normalizer rather than an invalid filesystem shim. Corrected the fallback redirect to the sibling `{domain}-map.html` file and replaced the hard-coded domain count with discovery. The dry-run now builds an isolated index-less domain fixture and proves that its generated redirect reaches an existing map. Updated ADR 0015 to describe the live gate. Evidence: `mise run site-dry-run` → 12/12 assertions pass; library-root requests for both repaired domain pages and `../assets/style.css` returned four HTTP 200s; `mise run verify` → passed (43 map tests, 20 interactive checks, 5 Ink transcript fixtures).
