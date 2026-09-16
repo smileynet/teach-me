@@ -1,7 +1,7 @@
 ---
 id: "338"
 title: "Refresh topic-map progress from the local overlay at load time"
-status: open
+status: in_progress
 priority: high
 blocked_by: ["332"]
 type: fix
