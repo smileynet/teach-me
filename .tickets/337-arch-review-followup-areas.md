@@ -1,11 +1,13 @@
 ---
 id: "337"
 title: "Recommended follow-up review areas"
-status: open
+status: done
 priority: low
 blocked_by: []
 type: research
 tags: ["arch-review"]
+validation_criteria:
+  - "Each proposed review area maps to a dedicated ticket or an explicitly documented combined scope"
 ---
 
 # Recommended follow-up review areas from the 2026-09-16 architecture review
@@ -29,9 +31,13 @@ A prioritized shortlist (max 3) with a ticket per accepted area and an explicit 
 
 ## Acceptance criteria
 
-- [ ] Each of the 6 areas triaged: ticket created, or declined with one-line rationale
-- [ ] Accepted areas have tickets with verified findings (subagent claims checked against source per AGENTS.md)
+- [x] Each of the 6 areas triaged: ticket created, or declined with one-line rationale
+- [x] Accepted areas have tickets with verified findings (subagent claims checked against source per AGENTS.md)
 
 ## Resolution
 
-TBD
+Accepted all six areas and replaced this umbrella with focused review tickets: SR architecture
+(#343), serve security (#344), generated-artifact reproducibility/provenance including the
+regeneration matrix (#345), skill effectiveness (#346), lesson quality (#347), and the
+static/local capability matrix including CI-posture review (#348). The implementation findings
+that must land first are tracked separately in #331-#342.
