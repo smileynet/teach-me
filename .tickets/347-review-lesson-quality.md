@@ -39,6 +39,10 @@ Read the steering file, page scaffolds, `tools/check-lesson.py`,
 - [ ] Corpus-wide patterns and isolated defects are reported separately
 - [ ] Confirmed gaps receive scoped tickets
 
+## Progress
+
+Structural audit completed across all seven shipped domains and `mise run visual-qa` reproduced the lessons-index SVG failure. Tickets #363 and #364 capture the confirmed user-facing defects. The remaining citation-support and judgment-based browser sampling needs a dedicated visual/pedagogical pass before this research ticket can close.
+
 ## Resolution
 
 TBD

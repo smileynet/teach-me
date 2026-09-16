@@ -39,6 +39,10 @@ Read `.memory/specs/environment-gotchas.md`, `tools/check-index-drift.py`,
 - [ ] Citation provenance is distinguished from build provenance
 - [ ] Missing gates or irreproducible outputs receive focused tickets
 
+## Progress
+
+Determinism probes completed for MAP pages, indexes, global-map redirects, and representative timezone/locale conditions; the detailed evidence is summarized in `.memory/research/2026-09-16-architecture-deep-dives.md`. The deploy-path portion cannot complete until #331 repairs the site dry-run blocker. Tickets #356–#358 capture the confirmed missing gates.
+
 ## Resolution
 
 TBD
