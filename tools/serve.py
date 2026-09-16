@@ -110,15 +110,36 @@ _HOST, _PORT, WORKSPACE = _parse_args()
 
 MAPS_DIR = WORKSPACE / "maps"
 if not MAPS_DIR.exists():
-    # Fallback: look in the example workspace
+    # Legacy single-workspace fallback. Multi-domain library roots resolve every map
+    # by its parsed domain identity below.
     MAPS_DIR = PROJECT_ROOT / "library" / "iceberg-workspace" / "maps"
 
 
+_SERVING_MULTI_DOMAIN = not (WORKSPACE / "lessons").is_dir()
+
+
+def _map_for_domain(domain: str):
+    """Return the one parsed map whose canonical domain identity matches `domain`."""
+    from map_parser import load_map
+
+    map_paths = (WORKSPACE.glob("*/maps/*.MAP.md") if _SERVING_MULTI_DOMAIN
+                 else MAPS_DIR.glob("*.MAP.md"))
+    matches = []
+    for path in sorted(map_paths):
+        parsed = load_map(path)
+        if parsed.domain == domain:
+            matches.append((path, parsed))
+    if len(matches) != 1:
+        detail = "No" if not matches else "Ambiguous"
+        raise HTTPException(status_code=404, detail=f"{detail} MAP.md found for domain '{domain}'")
+    return matches[0]
+
+
 def _overlay():
-    """The per-user status overlay for the served workspace (root = maps' parent)."""
+    """The per-user status overlay for the served content root."""
     from lib.overlay import Overlay
 
-    return Overlay(MAPS_DIR.parent)
+    return Overlay(WORKSPACE if _SERVING_MULTI_DOMAIN else MAPS_DIR.parent)
 
 @app.get("/api/lessons")
 async def list_lessons() -> JSONResponse:
@@ -173,13 +194,9 @@ async def list_maps() -> JSONResponse:
 @app.get("/api/map/{domain}")
 async def get_map(domain: str) -> JSONResponse:
     """Return parsed MAP.md data for a domain, joined with the per-user status overlay."""
-    from map_parser import load_map, validate, get_available_topics, get_next_suggestion
+    from map_parser import validate, get_available_topics, get_next_suggestion
 
-    candidates = list(MAPS_DIR.glob(f"*{domain}*MAP.md")) + list(MAPS_DIR.glob(f"{domain}*"))
-    if not candidates:
-        raise HTTPException(status_code=404, detail=f"No MAP.md found for domain '{domain}'")
-
-    m = load_map(candidates[0])
+    _, m = _map_for_domain(domain)
     errors = validate(m)
     status_map = _overlay().status_map()  # {node_id → status}; absent = not-started
     available = get_available_topics(m, status_map)
@@ -210,15 +227,10 @@ class StatusUpdateRequest(BaseModel):
 
 def _resolve_topic_id(domain: str, slug: str):
     """Resolve (map_path, node_id) for a domain+slug, or raise 404."""
-    from map_parser import load_map
-
-    candidates = list(MAPS_DIR.glob(f"*{domain}*MAP.md")) + list(MAPS_DIR.glob(f"{domain}*"))
-    if not candidates:
-        raise HTTPException(status_code=404, detail=f"No MAP.md found for domain '{domain}'")
-    m = load_map(candidates[0])
+    path, m = _map_for_domain(domain)
     for t in m.topics:
         if t.slug == slug:
-            return candidates[0], t.id
+            return path, t.id
     raise HTTPException(status_code=404, detail=f"Topic '{slug}' not found in domain '{domain}'")
 
 
@@ -276,9 +288,6 @@ async def _block_private_overlay(path: str) -> JSONResponse:
 # multi-domain root (e.g. library/), a page at /{domain}/lessons/X.html requests
 # /{domain}/assets/... — normalize any-depth `**/assets/{rest}` to the shared assets tree.
 # Registered BEFORE the greedy `/` mount so it wins (mirrors the .user/ guard precedence).
-_SERVING_MULTI_DOMAIN = not (WORKSPACE / "lessons").is_dir()
-
-
 @app.get("/{prefix:path}/assets/{rest:path}")
 async def _nested_assets(prefix: str, rest: str):
     """Resolve `.../assets/<rest>` at ANY depth to PROJECT_ROOT/assets/<rest> (ADR-0015).
