@@ -1,7 +1,7 @@
 ---
 id: "345"
 title: "Deep-dive generated-artifact reproducibility and provenance"
-status: open
+status: in_progress
 priority: medium
 blocked_by: ["331", "342"]
 type: research
