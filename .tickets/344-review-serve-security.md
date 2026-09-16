@@ -1,7 +1,7 @@
 ---
 id: "344"
 title: "Deep-dive serve.py trust boundaries and LAN exposure"
-status: open
+status: in_progress
 priority: medium
 blocked_by: ["332", "339"]
 type: research
