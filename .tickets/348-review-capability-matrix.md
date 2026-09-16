@@ -1,7 +1,7 @@
 ---
 id: "348"
 title: "Deep-dive static-host and local-server capability consistency"
-status: open
+status: in_progress
 priority: medium
 blocked_by: ["331", "332", "338", "341"]
 type: research
