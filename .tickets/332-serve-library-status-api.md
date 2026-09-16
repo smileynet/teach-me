@@ -1,7 +1,7 @@
 ---
 id: "332"
 title: "Fix per-domain status API when serving library root"
-status: in_progress
+status: done
 priority: high
 blocked_by: []
 type: fix
@@ -28,11 +28,11 @@ The default fresh-clone serve (`mise run serve`, ADR-0012: serve the whole `libr
 
 ## Acceptance criteria
 
-- [ ] `/api/map/{domain}` returns topic lists for all 7 library domains when serving `library/`
-- [ ] Status POST and `/api/overlay` write to the served root's `.user/` overlay for every domain
-- [ ] Playwright: serve default root → open a non-iceberg domain lesson → mark complete → reload → status persists and appears in the aggregate index's live overlay read
-- [ ] Single-domain serve (`--workspace library/godot-gamedev`) regression-tested, unchanged behavior
+- [x] `/api/map/{domain}` returns topic lists for all 7 library domains when serving `library/`
+- [x] Status POST and `/api/overlay` write to the served root's `.user/` overlay for every domain
+- [x] Playwright: serve default root → open a non-iceberg domain lesson → mark complete → reload → status persists and appears in the aggregate index's live overlay read
+- [x] Single-domain serve (`--workspace library/godot-gamedev`) regression-tested, unchanged behavior
 
 ## Resolution
 
-TBD
+Replaced the Iceberg fallback with a canonical parsed-MAP resolver. Library-root serving now scans direct domain `maps/` directories and matches the requested MAP identity exactly, which covers all 11 current map identities across seven library folders (including `data-analytics` in `iceberg-workspace` and Godot submaps). Library-root progress writes only `library/.user/status-overlay.json`; single-domain serving continues to use that domain's `.user/` overlay. Added `mise run test:status-api`, a hermetic Playwright/API fixture that exercises all map identities, completion/reload/index live-overlay behavior, and single-domain routing without touching user data. Evidence: `mise run test:status-api` → pass; direct default-root GETs returned 200 for all 11 maps; direct single-domain map and overlay GETs returned 200; `mise run verify` → pass (43 map tests, 20 interactive checks, 5 Ink transcript fixtures).
