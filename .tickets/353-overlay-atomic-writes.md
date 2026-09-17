@@ -1,7 +1,7 @@
 ---
 id: "353"
 title: "Make local progress overlay writes atomic and concurrency-safe"
-status: open
+status: in_progress
 priority: high
 type: bug
 blocked_by: ["341"]
