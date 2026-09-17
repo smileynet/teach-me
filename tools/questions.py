@@ -6,8 +6,9 @@ Storage convention (#255 — per-user store is private):
   .user/learning-records/reviews.jsonl                 — append-only review log
   learning-records/…                                   — committed example FIXTURES (read fallback)
 
-Resolve via questions_dir_for(workspace) / reviews_log_for(workspace): prefer the
-private `.user/` store, fall back to the committed fixture path for reads.
+Resolve via questions_dir_for(workspace) / reviews_log_for(workspace): read a local topic
+when present and otherwise fall back to the committed fixture. Every mutation is copy-on-write
+to `.user/`.
 Each line in a topic file is a complete card record (JSON object).
 Reviews are logged separately for future FSRS training.
 """
@@ -28,41 +29,33 @@ from sm2 import CardSchedule, review, is_due, EASE_DEFAULT
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
-def _store_root_for(workspace: Path) -> Path:
-    """Root dir of the SR store for a workspace (#255).
+def user_records_dir_for(workspace: Path) -> Path:
+    """Private, writable SR root for a workspace."""
+    return workspace / ".user" / "learning-records"
 
-    Per-user progress is private: prefer `<workspace>/.user/learning-records/`
-    (gitignored). Fall back to `<workspace>/learning-records/` when the `.user/`
-    store doesn't exist yet — this is where the COMMITTED example fixtures live
-    (library/*/learning-records/, read-only demo data that must stay committed).
 
-    So: read from `.user/` if present, else the committed fixture path; writes/new
-    workspaces scaffold under `.user/` (see init_workspace).
-    """
-    user_store = workspace / ".user" / "learning-records"
-    if user_store.exists():
-        return user_store
-    committed = workspace / "learning-records"
-    if committed.exists():
-        return committed
-    # Neither exists yet (fresh live workspace) — default to the private path.
-    return user_store
+def fixture_records_dir_for(workspace: Path) -> Path:
+    """Optional committed, read-only SR fixture root for a workspace."""
+    return workspace / "learning-records"
 
 
 def questions_dir_for(workspace: Path) -> Path:
-    """`questions/` dir under the resolved SR store root for a workspace."""
-    return _store_root_for(workspace) / "questions"
+    """Preferred question directory for read-only directory consumers."""
+    user_questions = user_records_dir_for(workspace) / "questions"
+    return user_questions if user_questions.exists() else fixture_records_dir_for(workspace) / "questions"
 
 
 def reviews_log_for(workspace: Path) -> Path:
-    """`reviews.jsonl` under the resolved SR store root for a workspace."""
-    return _store_root_for(workspace) / "reviews.jsonl"
+    """Private `reviews.jsonl` path for a workspace."""
+    return user_records_dir_for(workspace) / "reviews.jsonl"
 
 
 # Module-level defaults: use workspace/ if it exists, else project root.
 _WORKSPACE = _PROJECT_ROOT / "workspace"
 _DEFAULT_WS = _WORKSPACE if _WORKSPACE.exists() else _PROJECT_ROOT
 QUESTIONS_DIR = questions_dir_for(_DEFAULT_WS)
+USER_QUESTIONS_DIR = user_records_dir_for(_DEFAULT_WS) / "questions"
+FIXTURE_QUESTIONS_DIR = fixture_records_dir_for(_DEFAULT_WS) / "questions"
 REVIEWS_LOG = reviews_log_for(_DEFAULT_WS)
 
 
@@ -115,20 +108,26 @@ class Card:
 
 
 def topic_path(topic_slug: str) -> Path:
-    """Path to the JSONL file for a given topic."""
-    return QUESTIONS_DIR / f"{topic_slug}.jsonl"
+    """Read path for a topic, preferring a private copy over its fixture."""
+    user_path = user_topic_path(topic_slug)
+    return user_path if user_path.exists() else FIXTURE_QUESTIONS_DIR / f"{topic_slug}.jsonl"
+
+
+def user_topic_path(topic_slug: str) -> Path:
+    """Private writable path for a topic's cards."""
+    return USER_QUESTIONS_DIR / f"{topic_slug}.jsonl"
 
 
 def ensure_dirs() -> None:
-    """Create storage directories if missing."""
-    QUESTIONS_DIR.mkdir(parents=True, exist_ok=True)
+    """Create only the private SR storage directories."""
+    USER_QUESTIONS_DIR.mkdir(parents=True, exist_ok=True)
     REVIEWS_LOG.parent.mkdir(parents=True, exist_ok=True)
 
 
 def append_card(topic_slug: str, card: Card) -> None:
     """Append a card to the topic's JSONL file."""
     ensure_dirs()
-    path = topic_path(topic_slug)
+    path = user_topic_path(topic_slug)
     with open(path, "a", encoding="utf-8") as f:
         f.write(card.to_json() + "\n")
 
@@ -160,10 +159,7 @@ def get_all_due_cards(today: date | None = None) -> list[Card]:
     """Get all due cards across all topics."""
     today = today or date.today()
     due = []
-    if not QUESTIONS_DIR.exists():
-        return due
-    for path in QUESTIONS_DIR.glob("*.jsonl"):
-        topic_slug = path.stem
+    for topic_slug in list_topics():
         due.extend(get_due_cards(topic_slug, today))
     return due
 
@@ -174,11 +170,9 @@ def review_card(topic_slug: str, card_id: str, quality: int, today: date | None 
     Rewrites the topic file with the updated card. Returns the updated card or None if not found.
     """
     today = today or date.today()
-    path = topic_path(topic_slug)
-    if not path.exists():
-        return None
-
     cards = read_cards(topic_slug)
+    if not cards:
+        return None
     updated_card = None
 
     for i, card in enumerate(cards):
@@ -199,7 +193,8 @@ def review_card(topic_slug: str, card_id: str, quality: int, today: date | None 
         return None
 
     # Rewrite topic file
-    with open(path, "w", encoding="utf-8") as f:
+    ensure_dirs()
+    with open(user_topic_path(topic_slug), "w", encoding="utf-8") as f:
         for card in cards:
             f.write(card.to_json() + "\n")
 
@@ -221,9 +216,8 @@ def review_card(topic_slug: str, card_id: str, quality: int, today: date | None 
 
 def list_topics() -> list[str]:
     """List all topic slugs with question files."""
-    if not QUESTIONS_DIR.exists():
-        return []
-    return sorted(p.stem for p in QUESTIONS_DIR.glob("*.jsonl"))
+    return sorted({p.stem for directory in (USER_QUESTIONS_DIR, FIXTURE_QUESTIONS_DIR)
+                   if directory.exists() for p in directory.glob("*.jsonl")})
 
 
 def stats(topic_slug: str, today: date | None = None) -> dict:

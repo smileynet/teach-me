@@ -26,8 +26,11 @@ workspace-name/
       quiz/             — per-topic quiz pages for this domain
       {domain}-map.html — interactive map page for this domain
   reference/            — compressed lookup companions
-  learning-records/     — demonstrated understanding
-    questions/          — SR question bank (.jsonl)
+  learning-records/     — optional committed, read-only demo question fixtures
+    questions/          — SR question bank fixture (.jsonl)
+  .user/                — private learner state (gitignored, never published)
+    status-overlay.json — topic completion state
+    learning-records/   — copied/created SR cards and review history
 ```
 
 ## How these get built
@@ -36,7 +39,8 @@ workspace-name/
 2. Agent generates `maps/*.MAP.md` (domain decomposition into topics)
 3. Agent generates `lessons/{domain-slug}/NN-slug.html` (one per topic, filed under its domain)
 4. Agent generates `lessons/{domain-slug}/quiz/NN-slug-quiz.html` (questions for each topic)
-5. User marks topics complete as they go
+5. User marks topics complete as they go; completion and SR history are written only
+   beneath `.user/`, never into the shared library
 6. Adjacent domains appear in "From here, you could explore"
 
 The `iceberg-workspace/` and `oidc-rust/` examples show steps 1–5 completed for two topics each. These predate the domain subfolder convention — new workspaces use the layout above.
