@@ -1,7 +1,7 @@
 ---
 id: "363"
 title: "Repair verified lesson navigation and content-contract failures"
-status: open
+status: in_progress
 priority: high
 type: bug
 blocked_by: []
