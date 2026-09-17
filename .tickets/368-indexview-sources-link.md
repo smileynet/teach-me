@@ -3,14 +3,30 @@ id: "368"
 title: "Dead Sources link on per-domain index pages"
 status: open
 blocked_by: []
+tags: ["ux", "curriculum", "nav"]
 ---
 
 # Dead Sources link on per-domain index pages
 
-## What to build
+## Intent
 
-TBD
+A learner on a per-domain index page should never be offered a link that 404s.
+
+## Context (verified 2026-09-17, UX audit + source check)
+
+`assets/components/IndexView.js:109` renders `<a href="resources.html">Sources</a>`
+whenever `mission.why` is set — but no `library/*/lessons/resources.html` exists
+anywhere on disk. Observed 404s on `/gltf-format/lessons/index.html` and
+`/ink-godot/lessons/index.html` (single-domain IndexView pages whose page-data carries
+mission context); any domain with `mission.why` is affected.
+
+Fix options to choose from when picking up: emit the link only when a resources page
+actually exists (probe like the quiz HEAD probe, or pass a flag from the generator),
+link to the workspace `RESOURCES.md`-derived page if one is generated, or drop the
+affordance.
 
 ## Acceptance criteria
 
-- [ ] TBD
+- [ ] No per-domain index page renders a link that resolves to 404
+- [ ] Domains that genuinely have a sources/resources page still link to it
+- [ ] `mise run verify` exits 0
