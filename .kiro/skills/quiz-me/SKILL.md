@@ -11,7 +11,7 @@ The user wants to test their retention. This is not a grilling session (plan-sha
 
 ## SR-Powered Review Mode
 
-If spaced repetition cards exist (`learning-records/questions/*.jsonl`), check what's due first:
+If shared or private spaced-repetition card definitions exist (`learning-records/questions/*.jsonl` or `.user/learning-records/questions/*.jsonl`), check what's due first:
 
 ```bash
 python tools/sr-status.py          # quick health check
@@ -36,13 +36,13 @@ This skips SR card lookup — it's immediate comprehension checking on material 
 
 ## How to quiz
 
-1. **Read the workspace state** — check `./learning-records/`, `./lessons/`, and `./reference/` to understand what the user has been taught.
-2. **Pick the scope** — if the user named a topic or lesson, quiz on that. Otherwise, quiz across recent learning records — prioritise material that hasn't been tested yet.
+1. **Read the workspace state** — check `.user/learning-records/`, `./lessons/`, and `./reference/` to understand what the user has been taught.
+2. **Pick the scope** — if the user named a topic or lesson, quiz on that. Otherwise, quiz across private recent learning records — prioritise material that hasn't been tested yet.
 3. **Ask in rounds** — 3-5 questions per round. Ask conceptual questions (see below).
 4. **Wait for answers** — don't reveal correct answers until the user responds.
 5. **Evaluate against criteria, not exact wording** — check whether the learner's response hits the key relationship/mechanism. Multiple valid phrasings are expected. Don't penalize missing details that aren't central.
 6. **Give immediate feedback** — acknowledge what they got right, clarify what they missed (one sentence), cite the source.
-7. **Record results** — if the user demonstrates solid understanding of something new, write a learning record. If they reveal a gap, note it in `NOTES.md` for the next lesson to address.
+7. **Record results** — write quiz outcomes and gaps only under `.user/learning-records/` (and preferences under `.user/learner-profile.md`). Never write learner results to `NOTES.md` or committed `learning-records/`.
 
 ## Question design
 
@@ -128,4 +128,4 @@ append_card("<topic-slug>", card)
 - **Only for genuine understanding gaps**, not memory lapses. If they knew it last week but forgot today, the existing card's SM-2 schedule handles that.
 - **Frame the question around their specific confusion.** "Explain why X isn't the same as Y" is better than a generic question — it targets exactly where their model broke.
 - **1-2 gap cards per quiz session maximum.** Don't overwhelm. The gaps become the focus of the next lesson naturally.
-- **Note the gap in NOTES.md too** so the teach skill can address it in the next lesson.
+- **Note the gap in `.user/learner-profile.md`** so the teach skill can address it in the next lesson.
