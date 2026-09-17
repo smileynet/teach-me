@@ -1,7 +1,7 @@
 ---
 id: "349"
 title: "Separate committed card definitions from local learner state"
-status: open
+status: in_progress
 priority: high
 type: refactor
 blocked_by: ["341"]
