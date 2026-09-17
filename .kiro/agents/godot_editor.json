@@ -1,27 +1,26 @@
 {
-  "name": "godot_editor",
-  "description": "Godot 4 editor agent with MCP control — assign materials, inspect scenes, take screenshots, validate shaders visually. Dispatch to this agent for any Godot editor interaction.",
-  "prompt": "You are a Godot 4 editor specialist. You have MCP access to a live Godot editor instance via the godot-ai MCP server. Use the MCP tools to inspect scenes, create/modify nodes, assign materials and shaders, take screenshots for visual verification, and read editor logs for compilation errors. When validating shaders: apply them to test meshes, visually confirm the output, and report any issues. When creating materials: use ShaderMaterial with the appropriate .gdshader file. Always verify your changes visually via screenshot after applying them.",
-  "tools": ["read", "write", "shell", "grep", "glob", "code", "web_search", "web_fetch", "@godot-ai"],
-  "allowedTools": ["@godot-ai", "@godot-ai/*", "read", "write", "shell", "grep", "glob", "code", "web_search", "web_fetch"],
-  "toolsSettings": {
-    "shell": {
-      "autoAllowReadonly": true,
-      "denyByDefault": false
+  "name" : "godot_editor",
+  "description" : "Godot 4 editor agent with MCP control — assign materials, inspect scenes, take screenshots, validate shaders visually. Dispatch to this agent for any Godot editor interaction.",
+  "prompt" : "You are a Godot 4 editor specialist. You have MCP access to a live Godot editor instance via the godot-ai MCP server. Use the MCP tools to inspect scenes, create/modify nodes, assign materials and shaders, take screenshots for visual verification, and read editor logs for compilation errors. When validating shaders: apply them to test meshes, visually confirm the output, and report any issues. When creating materials: use ShaderMaterial with the appropriate .gdshader file. Always verify your changes visually via screenshot after applying them.",
+  "tools" : [ "read", "write", "shell", "grep", "glob", "code", "web_search", "web_fetch", "@godot-ai", "@creds-agent" ],
+  "allowedTools" : [ "@godot-ai", "@godot-ai/*", "read", "write", "shell", "grep", "glob", "code", "web_search", "web_fetch", "@creds-agent" ],
+  "toolsSettings" : {
+    "shell" : {
+      "autoAllowReadonly" : true,
+      "denyByDefault" : false
     }
   },
-  "mcpServers": {
-    "godot-ai": {
-      "command": "uvx",
-      "args": ["--from", "godot-ai==3.1.5", "godot-ai", "attach", "--port", "8400", "--ws-port", "9540"]
+  "mcpServers" : {
+    "godot-ai" : {
+      "command" : "uvx",
+      "args" : [ "--from", "godot-ai==3.1.5", "godot-ai", "attach", "--port", "8400", "--ws-port", "9540" ]
+    },
+    "creds-agent" : {
+      "command" : "aim",
+      "args" : [ "mcp", "start-server", "local-creds-agent-mcp" ]
     }
   },
-  "resources": [
-    "file://test-scene/shaders/**/*.gdshader",
-    "file://test-scene/scenes/**/*.tscn",
-    "file://test-scene/README.md",
-    "file://examples/godot-gamedev/reference/code/**/*.gdshader"
-  ],
-  "keyboardShortcut": "ctrl+shift+g",
-  "welcomeMessage": "Godot editor agent ready. I can inspect scenes, assign shaders to meshes, take screenshots, and validate shader output visually. What would you like me to do?"
+  "resources" : [ "file://test-scene/shaders/**/*.gdshader", "file://test-scene/scenes/**/*.tscn", "file://test-scene/README.md", "file://examples/godot-gamedev/reference/code/**/*.gdshader" ],
+  "keyboardShortcut" : "ctrl+shift+g",
+  "welcomeMessage" : "Godot editor agent ready. I can inspect scenes, assign shaders to meshes, take screenshots, and validate shader output visually. What would you like me to do?"
 }
