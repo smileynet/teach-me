@@ -92,3 +92,11 @@ When a user provides a second source on a topic that already has lessons, compou
 - Conflicts: DRAGged/Conflicts taxonomy (Cattan et al. 2025), heuristic signals sufficient for teaching (NLI caps at 65% even with frontier LLMs)
 - Pedagogy: DISC hypothesis (Braasch et al.) — conflict triggers sourcing behavior; Documents Model Framework (Perfetti/Rouet/Britt) — claim-level attribution builds intertext models
 - Architecture: Karpathy LLM Wiki overlay pattern (2026), W3C PROV-DM append-only principle
+
+## Resolution (as-built note added 2026-09-17, #335)
+
+Delivered per the checked ACs above (two-stage matching, conflict heuristics, append-only
+enrichment overlay, provenance questions). One body claim corrected: the "Modified files"
+list said `map_parser.py — add sources field to Topic dataclass`; that field was never
+added and is not needed — Topic carries no `sources` field (`tools/map_parser.py:23-33`)
+and enrichment joins via the chunks layer + overlay without a parser schema change.

@@ -128,3 +128,17 @@ clean of committed changes; `mise run verify` green.
 ## Resolution (2026-08-29)
 
 Severed per-user status from the committed graph. New tools/lib/overlay.py (locked load/get/set/reset, ULID keys, sparse .user/status-overlay.json). map_parser: dropped Topic.status + validate check; get_available_topics/get_next_suggestion take a {node_id->status} dict. serve.py: GET/POST status endpoints resolve slug->id and read/write overlay only; GET /api/map joins overlay status. generate_map_page: removed MAP.md write-back + trust-complete branch, sources status from overlay. Fixed silent-0% consumers (index ring, check-topic-completeness) to read overlay. Stopped map_from_chunks/map_from_deps emitting the status line. Idempotent migrate_strip_status.py removed status from 9 MAP.md. .user/ gitignored at any depth. generate-topic SKILL updated. Tests migrated off Topic(status=...).
+
+## As-built correction (2026-09-17, #335)
+
+The checked AC "Client seeds status from the overlay-joined `/api/map` payload (island
+no longer the status source of truth)" overstated the mechanism at close time. At close,
+map pages seeded entirely from the generate-time baked data island
+(`tools/generate_map_page.py` baked overlay-joined values into the page; only the
+aggregate index read the live overlay per #279). The described live-fetch mechanism did
+not exist then — the *values* were overlay-derived, but the island was the seed.
+
+Since corrected by #338 (commit `40aedb9`, 2026-09-17): map pages now fetch the live
+overlay-joined `/api/map/{domain}` payload at load (`tools/generate_map_page.py:212-224`)
+and re-seed topic statuses; the island remains only the initial seed / static-host
+fallback. The AC's intent is now satisfied by that mechanism.

@@ -1,7 +1,7 @@
 ---
 id: "335"
 title: "Reconcile ticket records flagged by the architecture review"
-status: open
+status: done
 priority: medium
 blocked_by: []
 type: fix
@@ -32,11 +32,39 @@ The repo's honest-records convention (AGENTS.md: verified claims, no faked boxes
 
 ## Acceptance criteria
 
-- [ ] Each listed done ticket annotated honestly (amended AC text or an as-built note; no fabricated evidence)
-- [ ] Each listed open ticket closed or re-scoped with an explicit remaining-work list
-- [ ] `tkt validate` finding count does not increase
-- [ ] #199's surviving scope is accurate (spot-verified against source, not copied from this ticket blindly)
+- [x] Each listed done ticket annotated honestly (amended AC text or an as-built note; no fabricated evidence)
+- [x] Each listed open ticket closed or re-scoped with an explicit remaining-work list
+- [x] `tkt validate` finding count does not increase
+- [x] #199's surviving scope is accurate (spot-verified against source, not copied from this ticket blindly)
 
-## Resolution
+## Verification outcome (2026-09-17 — deltas from this ticket's own claims)
 
-TBD
+Every claim above was re-verified against source before acting (per the convention this
+ticket enforces). Deltas found:
+
+- **#258 claim is now STALE, not false**: commit `40aedb9` (#338, 2026-09-17) shipped the
+  live `/api/map/{domain}` fetch at page load (`generate_map_page.py:212-224`), so the
+  mechanism the AC described now exists in a different form. The #258 annotation records
+  both the at-close truth and the #338 correction.
+- **#046 close-claim is REFUTED**: #046 has TWO unchecked ACs ("all done" leads_to
+  presentation, "everything available" choice). Closing it as "all ACs checked" would
+  have faked a record. Re-scoped open instead.
+- **#047 "no discovery UX" overstated**: domain-level leads_to discovery renders today
+  (`IndentedTreeView.js:92-97`); only the completion-triggered/start-domain UX is
+  unstarted. Re-scope reflects that.
+- **#199 item precision**: only `.assess-buttons` + rating rules are genuinely unstyled;
+  `.gen-progress` is dead, `.leads-to-btn` styled on map pages. XSS/GenButton/
+  LessonActions/Generate-quiz items already fixed. Full re-scope section added to #199.
+
+## Resolution (2026-09-17)
+
+Reconciled all ten ticket records flagged by the 2026-09-16 architecture review, with
+every claim re-verified against source first (two claims from this ticket itself were
+refuted in the process — the #046 close and the #047 flat claim — and the #258 claim
+was overtaken by #338's same-day live-refresh fix). Five done tickets now carry honest
+as-built annotations (#258, #257, #141, #112, #090); two open tickets were closed with
+verified-evidence resolutions (#162 duplicate-of-#173, #066 mooted-by-#319); three were
+re-scoped to explicit verified remaining-work lists (#199, #046, #047). `tkt validate`
+findings went 127 → 124 (no increase). Verified via: source greps quoted in each
+ticket, CodeBlockToolbar/style.css/page-shell.js inspection for #162, serve.py route
+inventory for #066, and preact_page.py/TopicCard.js/scaffolds for #199.

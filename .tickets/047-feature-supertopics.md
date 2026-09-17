@@ -62,3 +62,18 @@ Learner: "start data-governance" → agent generates a new root MAP.md for that 
 ## Resolution
 
 Reopened: parsing works (leads_to in MAP.md frontmatter), but presentation, conversation handling, and new MAP generation are unverified. Marked done prematurely.
+
+## Update (2026-09-17, #335 re-scope)
+
+Verified precision on what already exists (the flat "discovery UX unstarted" claim
+overstated): leads_to edges are parsed both as topic-level typed edges
+(`map_parser.py` EDGE_TYPES) and domain frontmatter, and DOMAIN-level discovery IS
+rendered today — `IndentedTreeView.js:92-97` surfaces "-> also leads to X" in the forest
+view, and MapView renders a Related Topics grid from frontmatter leadsTo (though its
+buttons have no onClick — silent-button violation, tracked in #199). What remains
+unimplemented, and what this ticket is now scoped to:
+1. Completion-triggered presentation (all topics complete -> "where this leads" panel).
+2. "where does this lead?" mid-domain (agent-side reading of frontmatter leads_to).
+3. "start <leads_to domain>" -> generate a new root MAP.md for it.
+4. Opportunity framing language throughout.
+The parser AC above stays checked (re-verified: leads_to parsed + accessible).
