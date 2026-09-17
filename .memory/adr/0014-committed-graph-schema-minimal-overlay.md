@@ -1,6 +1,6 @@
 # 0014 — First-class committed content graph + minimal per-user overlay
 
-**Status:** proposed
+**Status:** accepted (implemented 2026-08-29; as-built note appended 2026-09-17, #342)
 **Date:** 2026-08-29
 
 ## Context
@@ -99,3 +99,23 @@ MAP.md parsers exist (canonical + two regex shadows), so any schema change risks
   → **#255** minimal overlay. **#259** (backlog) optional SR sync, deferred.
 - Independent of the #183 `examples/`→`library/` rename (schema, not paths) — both tracks
   proceed in parallel.
+
+## As-built note (2026-09-17, #342)
+
+All four implementing tickets are done (#256, #257, #258, #255) plus hardening (#261,
+#260 cross-map prereqs); #259 remains backlog as predicted. Status flipped
+proposed → accepted. Three deviations from the decision text, recorded honestly:
+
+1. **SR state is NOT keyed by node ids.** §B.5 said quiz/SR state relocates under
+   `.user/` "keyed by the same node ids". As built, SR cards are keyed by card UUID +
+   `lesson_id`/`section_heading` (`tools/questions.py`), joined to topics via lesson
+   identity rather than ULID. The overlay itself is ULID-keyed as decided.
+2. **Topic-level `leads_to` edges resolve within one file.** §A's "may cross domains"
+   is realized at the DOMAIN level only: cross-domain discovery uses the
+   domain-frontmatter `leads_to` list surfaced by `tools/lib/domain_graph.py`; the
+   `## Edges` block validates endpoints in-file.
+3. **§B.6 "No event-sourcing" is partially superseded by ADR-0018** (2026-09-17):
+   SR learner state now uses a local SQLite event store + projection. The decision's
+   intent — no SERVER sync apparatus, no browser store, local-only — still holds;
+   0018 extends the storage model for SR events specifically, and the status overlay
+   remains a plain JSON file.

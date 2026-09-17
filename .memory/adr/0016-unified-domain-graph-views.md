@@ -120,10 +120,12 @@ domain-graph data island as two coordinated views, behind a persisted toggle.** 
     modal-switch anti-pattern the "Single-Axis Preferences" steering warns against). `IndexView`
     stays live for the single-domain path. A `tools/check-index-drift.py` gate (in `verify`)
     regenerates all index pages in place + `git diff` to prevent the stale-artifact drift that
-    motivated #281. KNOWN LIMITATION (follow-up): serve.py's `_root_index` normalizer shadows
+    motivated #281. ~~KNOWN LIMITATION (follow-up): serve.py's `_root_index` normalizer shadows
     per-domain pages under a multi-domain root serve — they're live on the deployed static host
     but unreachable via `mise run serve` on `library/`. Tracked separately (serve routing, not
-    page style).
+    page style).~~ **RESOLVED by #284** (2026-09-17 note, #342): `_root_index` now prefers the
+    committed per-domain `index.html` when it exists (`tools/serve.py`), so per-domain pages
+    are reachable under a multi-domain root serve.
 - **View preference is UI state, NOT the learner state ADR 0014 keeps out of the browser.**
   ADR 0014 §B.6 bars a browser store for LEARNER state (progress/overlay). The `mapView`
   preference in `teach-me-prefs-v1` localStorage is UI presentation state — a distinct
@@ -152,6 +154,8 @@ domain-graph data island as two coordinated views, behind a persisted toggle.** 
 - **#275** spike (decision + prototypes) → **#276** implementation (commit 53793b1:
   `domain_graph.py`, `UnifiedView`/`IndentedTreeView`/`IteratedMapView`, unified generator,
   redirect stub). **#274** rewrote the nav suite for the new contract.
-- Follow-ups (not blocking): **#279** (load-time overlay read may retire the build-time count
-  baking), **#281** (per-domain index style), **#282** (index cue-matrix synthetic fixture),
-  **#278** (committed demo overlay, already done — keeps regen idempotent).
+- Follow-ups (not blocking): **#279** done (2026-09-17 note, #342) — shipped "Approach B":
+  committed `library/*/demo-status.json` fixtures baked at generate time PLUS a live
+  `/api/overlay` read at load that overrides them (the baking was kept, not retired),
+  **#281** (per-domain index style) done, **#282** (index cue-matrix synthetic fixture)
+  done, **#278** (committed demo overlay, keeps regen idempotent) done.

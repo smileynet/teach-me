@@ -5,25 +5,24 @@ Test bed for learning-oriented agent skills. Refined here, then ported to crew-r
 ## Workspace Layout
 
 ```
-workspace/          — THE user's live learning workspace (gitignored, auto-created on first serve)
+workspace/          — THE user's live learning workspace (gitignored; served from library/ until populated)
 .kiro/skills/       — agent skills (teach, quiz-me, wait-what, jargon, visual-qa, theme, etc.)
 .kiro/steering/     — visual-teaching guidelines
 .memory/            — persistent knowledge (CONTEXT.md glossary, ADRs, research findings)
 .scratch/           — ephemeral (gitignored) — only visual-qa output regenerated on run
 .references/        — cloned reference repos (gitignored, rehydrate via mise run rehydrate)
 tools/              — project scripts (draw-diagram, visual-qa, theme-preview, render-diagrams, sr-*)
-tools/lib/          — Python helpers (preact_page.py for generating Preact HTML shells)
+tools/lib/          — Python helpers (page_template.py is THE HTML page-shell source of truth; preact_page.py is its deprecated duplicate, slated for deletion in #199)
 palettes/           — color palette definitions (JSON)
 assets/             — shared: style.css, CSS variables, SVG patterns
 assets/vendor/      — vendored Preact + Signals + HTM + dagre (self-hosted, no CDN)
 assets/components/  — Preact components (MapView, TopicCard, QuizView, etc.)
-assets/services/    — signal services (generation.js SSE stream)
 assets/scaffolds/   — content-pattern examples (boilerplate is in tools/lib/page_template.py)
 .tickets/           — local ticket tracking
 library/           — public topic library (shipped, growing; served by default on a fresh clone — ADR 0012). Committed lessons/maps/reference per domain.
 ```
 
-`workspace/` is the single live workspace per machine — all topics (maps, lessons, quizzes, reference docs, learning records) go here. Gitignored (user-local); auto-created on first `mise run serve`. Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`, per-domain numbering from 01; quizzes and maps parallel this (`lessons/{domain-slug}/quiz/`, `lessons/{domain-slug}/{domain}-map.html`).
+`workspace/` is the single live workspace per machine — all topics (maps, lessons, quizzes, reference docs, learning records) go here. Gitignored (user-local); a fresh clone is served from `library/` and a workspace is created only when no library exists or the user starts learning. Lessons are organized by domain: `lessons/{domain-slug}/NN-slug.html`, per-domain numbering from 01; quizzes and maps parallel this (`lessons/{domain-slug}/quiz/`, `lessons/{domain-slug}/{domain}-map.html`).
 
 ## Skills
 
@@ -53,7 +52,7 @@ library/           — public topic library (shipped, growing; served by default
 | Migrate SVG colors | `python3 tools/check-svg-vars.py --workspace X` | Flags hardcoded hex in lesson SVGs |
 | Init workspace | `python tools/init_workspace.py [--default] [--path DIR]` | Scaffold workspace; --default for generic first-launch content (pure Python — no bash) |
 | Mint MAP topic ULIDs | `python tools/migrate_map_ids.py --apply <mapfile>` | Fill MISSING `- **id:**` lines in a MAP.md with ULIDs (idempotent). Only fills missing — a `TBD`/invalid stub is flagged "manual review", NOT overwritten; omit the id line so the tool mints it. Run before committing a hand-written MAP (parser mints ephemeral ids otherwise → churn) |
-| Serve workspace | `mise run serve -- [--workspace PATH]` | Start server (default workspace/, auto-created). Add `:lan` for 0.0.0.0:8787; `:restart` to kill+restart |
+| Serve workspace | `mise run serve -- [--workspace PATH]` | Start server (serves `workspace/` if populated, else the committed `library/`; workspace is created only if neither exists). Add `:lan` for 0.0.0.0:8787; `:restart` to kill+restart |
 | Validate ink stories | `mise run ink:validate` (add `:strict` to treat warnings as errors) | Compile all .ink via inklecate, report errors/warnings |
 | Validate ink GDScript | `mise run ink:validate-gd` | Headless Godot: run shipped lesson story_player.gd in the real inkgd runtime (needs Godot; skips if absent). `ink:validate` does NOT need Godot. |
 | Validate Blender artifacts | `mise run verify:blender` | Real Blender: run the bpy artifacts' `--check` node-group validators (Tier-2 for the Blender lesson track). Skips if Blender absent. NOT in core `verify` — run before closing Blender-track tickets. |
@@ -149,4 +148,4 @@ The teach skill's posture is **knowledgeable colleague at a whiteboard** — not
 
 ## Test Fixture
 
-The root-level teaching workspace (MISSION.md, RESOURCES.md, lessons/, reference/, learning-records/) is the **Iceberg on AWS** example — a real teaching session used as a test fixture. See `library/README.md` for what to test feature changes against.
+`library/iceberg-workspace/` is the committed **Iceberg on AWS** demo fixture — a real teaching session (MISSION.md, RESOURCES.md, lessons/, reference/, learning-records/) shipped as read-only demo content; its `learning-records/` is fixture data, NOT learner state (real learner records live under `.user/`). See `library/README.md` for what to test feature changes against.

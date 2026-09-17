@@ -17,7 +17,8 @@ After setup, pre-commit hooks run `mise run verify` automatically on every commi
 ## Project Structure
 
 ```
-workspace/          — Your live learning workspace (gitignored, auto-created on first serve)
+workspace/          — Your live learning workspace (gitignored; a fresh clone is served
+                      from library/ until you start learning — see AGENTS.md)
 .kiro/skills/       — Agent skills (teach, generate-topic, quiz-me, etc.)
 .kiro/steering/     — Visual teaching guidelines
 .memory/            — Persistent knowledge (glossary, ADRs)
@@ -26,7 +27,7 @@ tools/lib/          — Python helpers (page_template.py for HTML generation)
 assets/             — Shared CSS, JS components, SVG patterns
 assets/components/  — Preact components (mounted by page-shell.js)
 assets/vendor/      — Vendored Preact + Signals + HTM + dagre
-examples/           — 4 example workspaces (iceberg, oidc-rust, workout, godot)
+library/            — Committed public topic library (7 workspaces; see library/README.md)
 .tickets/           — Local ticket tracking
 .githooks/          — Pre-commit hooks (auto-wired by mise run setup)
 ```
