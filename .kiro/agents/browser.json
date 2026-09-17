@@ -1,31 +1,18 @@
 {
-  "name": "browser",
-  "description": "Specialist browser agent — validates URLs, extracts page sections, finds heading anchors, reads documentation pages. Dispatch to this agent for any web browsing task.",
-  "tools": ["read", "write", "grep", "@playwright"],
-  "allowedTools": [
-    "read",
-    "write",
-    "grep",
-    "@playwright/browser_navigate",
-    "@playwright/browser_find",
-    "@playwright/browser_snapshot",
-    "@playwright/browser_evaluate",
-    "@playwright/browser_network_requests",
-    "@playwright/browser_tabs"
-  ],
-  "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": [
-        "@playwright/mcp@latest",
-        "--headless",
-        "--isolated",
-        "--image-responses", "omit"
-      ]
+  "name" : "browser",
+  "description" : "Specialist browser agent — validates URLs, extracts page sections, finds heading anchors, reads documentation pages. Dispatch to this agent for any web browsing task.",
+  "tools" : [ "read", "write", "grep", "@playwright", "@creds-agent" ],
+  "allowedTools" : [ "read", "write", "grep", "@playwright/browser_navigate", "@playwright/browser_find", "@playwright/browser_snapshot", "@playwright/browser_evaluate", "@playwright/browser_network_requests", "@playwright/browser_tabs", "@creds-agent" ],
+  "mcpServers" : {
+    "playwright" : {
+      "command" : "npx",
+      "args" : [ "@playwright/mcp@latest", "--headless", "--isolated", "--image-responses", "omit" ]
+    },
+    "creds-agent" : {
+      "command" : "aim",
+      "args" : [ "mcp", "start-server", "local-creds-agent-mcp" ]
     }
   },
-  "resources": [
-    "skill://.kiro/skills/browse-and-verify/SKILL.md"
-  ],
-  "prompt": "You are a browser specialist. Your job is to navigate web pages, validate links, find specific sections, extract content, and report back. Use the Playwright tools for browsing. Report findings concisely: page status, relevant headings with IDs, and extracted content. Never take screenshots — use accessibility snapshots and browser_find to locate content."
+  "resources" : [ "skill://.kiro/skills/browse-and-verify/SKILL.md" ],
+  "prompt" : "You are a browser specialist. Your job is to navigate web pages, validate links, find specific sections, extract content, and report back. Use the Playwright tools for browsing. Report findings concisely: page status, relevant headings with IDs, and extracted content. Never take screenshots — use accessibility snapshots and browser_find to locate content."
 }
