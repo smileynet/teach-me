@@ -117,10 +117,7 @@ function Toolbar({ preEl }) {
   function handleCopy() {
     const text = extractCleanText(preEl);
 
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(() => showCopied());
-    } else {
-      // Fallback for non-secure contexts
+    const fallbackCopy = () => {
       const ta = document.createElement('textarea');
       ta.value = text;
       ta.style.position = 'fixed';
@@ -130,6 +127,15 @@ function Toolbar({ preEl }) {
       document.execCommand('copy');
       document.body.removeChild(ta);
       showCopied();
+    };
+
+    if (navigator.clipboard) {
+      // A rejected clipboard permission must fall back, not surface an
+      // unhandled rejection with no learner feedback.
+      navigator.clipboard.writeText(text).then(showCopied).catch(fallbackCopy);
+    } else {
+      // Fallback for non-secure contexts
+      fallbackCopy();
     }
   }
 
