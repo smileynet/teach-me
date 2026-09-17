@@ -29,17 +29,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from questions import Card, ensure_dirs, list_topics, read_cards, user_topic_path
+from questions import Card, list_topics, read_cards, save_card_states
 from sm2 import CardSchedule, EASE_DEFAULT
 
 
 def _rewrite_topic(topic: str, cards: list[Card]) -> None:
-    """Copy a topic's cards into the private store with lifecycle changes."""
-    ensure_dirs()
-    path = user_topic_path(topic)
-    with open(path, "w", encoding="utf-8") as f:
-        for card in cards:
-            f.write(card.to_json() + "\n")
+    """Persist lifecycle state without copying card definitions."""
+    save_card_states(cards)
 
 
 def _find_card(card_id: str) -> tuple[str, int, list[Card]] | None:

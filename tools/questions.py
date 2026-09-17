@@ -2,13 +2,14 @@
 """Question bank: JSONL storage for spaced repetition cards.
 
 Storage convention (#255 — per-user store is private):
-  .user/learning-records/questions/<topic-slug>.jsonl  — one card per line (per-user)
-  .user/learning-records/reviews.jsonl                 — append-only review log
-  learning-records/…                                   — committed example FIXTURES (read fallback)
+  learning-records/questions/<topic-slug>.jsonl         — committed card definitions
+  .user/learning-records/questions/<topic-slug>.jsonl   — private card definitions
+  .user/learning-records/card-state.json                — local schedule/lifecycle state
+  .user/learning-records/reviews.jsonl                  — append-only review log
 
 Resolve via questions_dir_for(workspace) / reviews_log_for(workspace): read a local topic
-when present and otherwise fall back to the committed fixture. Every mutation is copy-on-write
-to `.user/`.
+when present and otherwise fall back to the committed fixture. Effective cards join immutable
+definitions with local state by card ID; mutations write only local state.
 Each line in a topic file is a complete card record (JSON object).
 Reviews are logged separately for future FSRS training.
 """
@@ -57,6 +58,8 @@ QUESTIONS_DIR = questions_dir_for(_DEFAULT_WS)
 USER_QUESTIONS_DIR = user_records_dir_for(_DEFAULT_WS) / "questions"
 FIXTURE_QUESTIONS_DIR = fixture_records_dir_for(_DEFAULT_WS) / "questions"
 REVIEWS_LOG = reviews_log_for(_DEFAULT_WS)
+CARD_STATE_PATH = user_records_dir_for(_DEFAULT_WS) / "card-state.json"
+_STATE_SCHEMA = 1
 
 
 @dataclass
@@ -101,16 +104,17 @@ class Card:
     def to_json(self) -> str:
         return json.dumps(asdict(self), ensure_ascii=False)
 
+    def definition_json(self) -> str:
+        """Serialize shareable content without learner-specific state."""
+        data = asdict(self)
+        for key in ("schedule", "suspended", "mastered"):
+            data.pop(key)
+        return json.dumps(data, ensure_ascii=False)
+
     @classmethod
     def from_json(cls, line: str) -> "Card":
         d = json.loads(line)
         return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
-
-
-def topic_path(topic_slug: str) -> Path:
-    """Read path for a topic, preferring a private copy over its fixture."""
-    user_path = user_topic_path(topic_slug)
-    return user_path if user_path.exists() else FIXTURE_QUESTIONS_DIR / f"{topic_slug}.jsonl"
 
 
 def user_topic_path(topic_slug: str) -> Path:
@@ -124,26 +128,84 @@ def ensure_dirs() -> None:
     REVIEWS_LOG.parent.mkdir(parents=True, exist_ok=True)
 
 
+def _read_cards(path: Path) -> list[Card]:
+    if not path.exists():
+        return []
+    return [Card.from_json(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def _load_state() -> dict:
+    if not CARD_STATE_PATH.exists():
+        return {"schema": _STATE_SCHEMA, "cards": {}, "migrated_topics": []}
+    try:
+        state = json.loads(CARD_STATE_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {"schema": _STATE_SCHEMA, "cards": {}, "migrated_topics": []}
+    if not isinstance(state.get("cards"), dict):
+        return {"schema": _STATE_SCHEMA, "cards": {}, "migrated_topics": []}
+    state.setdefault("migrated_topics", [])
+    return state
+
+
+def _write_state(state: dict) -> None:
+    ensure_dirs()
+    CARD_STATE_PATH.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+
+
+def _state_for(card: Card) -> dict:
+    return {"schedule": card.schedule, "suspended": card.suspended, "mastered": card.mastered}
+
+
+def save_card_states(cards: list[Card]) -> None:
+    """Persist only mutable learner state, keyed by canonical card ID."""
+    state = _load_state()
+    state["cards"].update({card.id: _state_for(card) for card in cards})
+    _write_state(state)
+
+
+def _migrate_legacy_private_topic(topic_slug: str) -> None:
+    """Split old full-card private copies into definitions plus state without data loss."""
+    path = user_topic_path(topic_slug)
+    if not path.exists():
+        return
+    state = _load_state()
+    if topic_slug in state["migrated_topics"]:
+        return
+    fixture_ids = {card.id for card in _read_cards(FIXTURE_QUESTIONS_DIR / f"{topic_slug}.jsonl")}
+    private_cards = _read_cards(path)
+    remaining = []
+    for card in private_cards:
+        state["cards"].setdefault(card.id, _state_for(card))
+        if card.id not in fixture_ids:
+            remaining.append(card)
+    if remaining:
+        path.write_text("".join(card.definition_json() + "\n" for card in remaining), encoding="utf-8")
+    else:
+        path.unlink()
+    state["migrated_topics"].append(topic_slug)
+    _write_state(state)
+
+
 def append_card(topic_slug: str, card: Card) -> None:
-    """Append a card to the topic's JSONL file."""
+    """Append a private card definition; its learner state starts absent."""
     ensure_dirs()
     path = user_topic_path(topic_slug)
     with open(path, "a", encoding="utf-8") as f:
-        f.write(card.to_json() + "\n")
+        f.write(card.definition_json() + "\n")
 
 
 def read_cards(topic_slug: str) -> list[Card]:
-    """Read all cards for a topic."""
-    path = topic_path(topic_slug)
-    if not path.exists():
-        return []
-    cards = []
-    with open(path, encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                cards.append(Card.from_json(line))
-    return cards
+    """Join public/private definitions with local learner state by card ID."""
+    _migrate_legacy_private_topic(topic_slug)
+    cards = {card.id: card for card in _read_cards(FIXTURE_QUESTIONS_DIR / f"{topic_slug}.jsonl")}
+    cards.update({card.id: card for card in _read_cards(user_topic_path(topic_slug))})
+    state = _load_state()["cards"]
+    for card in cards.values():
+        if local := state.get(card.id):
+            card.schedule = local.get("schedule", card.schedule)
+            card.suspended = local.get("suspended", card.suspended)
+            card.mastered = local.get("mastered", card.mastered)
+    return list(cards.values())
 
 
 def get_due_cards(topic_slug: str, today: date | None = None) -> list[Card]:
@@ -192,11 +254,7 @@ def review_card(topic_slug: str, card_id: str, quality: int, today: date | None 
     if updated_card is None:
         return None
 
-    # Rewrite topic file
-    ensure_dirs()
-    with open(user_topic_path(topic_slug), "w", encoding="utf-8") as f:
-        for card in cards:
-            f.write(card.to_json() + "\n")
+    save_card_states([updated_card])
 
     # Append to review log
     log_entry = {
