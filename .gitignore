@@ -34,6 +34,9 @@ mise.local.toml
 # .uid/.import/addons are COMMITTED per Godot 4.4 guidance (matches test-scene). (#234)
 ink-test-project/.godot/
 
+# MCP authoring tooling — local-only, never committed (#234)
+ink-test-project/addons/godot_ai/
+
 # Orphan compiled-ink scratch with no tracked .ink source — spike/answer-key byproducts
 # nobody can regenerate or diff-review. Narrow patterns; do NOT catch lesson .ink.json. (#234)
 ink-test-project/stories/test_fallback.*
