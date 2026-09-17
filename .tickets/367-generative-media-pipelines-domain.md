@@ -1,7 +1,7 @@
 ---
 id: "367"
 title: "Set up generative-media-pipelines domain (MAP + study-guide-backed topics + source-verification gate)"
-status: in_progress
+status: done
 blocked_by: []
 priority: medium
 validation_criteria:
@@ -85,8 +85,8 @@ verified independently — not a claim about that specific repo. Keep the two di
 - [x] Source-verification gate recorded (claim→cited-source contract) — in MISSION.md Constraints + RESOURCES.md source-authority note
 - [x] Standalone depth-0 confirmed; incoming `leads_to` from #366 recorded; differentiated from gltf-format / godot-asset-pipeline (no duplication — reference for image→3D output)
 - [x] Provenance recorded (design source = the promoted guide; backing = repo-findings + all gap-research) — RESOURCES.md
-- [ ] Topic spine reviewed/trimmed (9 → final count; decide whether speech is in-scope) with the user before topic tickets — **AWAITING USER REVIEW** (see scaffold note)
-- [ ] NO lessons generated — topic tickets created after this is signed off
+- [x] Topic spine reviewed/trimmed (9 → final count; decide whether speech is in-scope) with the user before topic tickets — **SIGNED OFF 2026-09-17**: final 8 topics, speech in-scope as topic 8
+- [x] NO lessons generated — topic tickets created after this is signed off (8 topic tickets 371–378 cut on sign-off; zero lessons generated)
 
 ## Scaffold status (2026-09-17) — PROPOSAL COMPLETE, awaiting sign-off
 
@@ -135,3 +135,30 @@ final at 8 topics; ready to cut topic tickets on your go.
 - Pairs with #366 (world-models). Gap research surfaced strong internal prior art for every
   sub-area (fine-tune-SDXL-with-Kohya IaC, ComfyUI reference samples, TTS dubbing pipelines,
   the "Deploying Open Models on AWS" decision guide) — cite these in the relevant topics.
+
+## Resolution (2026-09-17)
+
+Domain scaffold signed off and the 8-topic spine cut into topic tickets. **No lessons generated**
+(gate held).
+
+**What shipped:**
+- `library/generative-media-pipelines/{MISSION.md, RESOURCES.md, maps/generative-media-pipelines.MAP.md}` — 8-topic spine, ULIDs minted, source-verification gate + provenance recorded.
+- Spine finalized (v2): (1) universal-serving-pipeline → (2) scale-to-zero-gpu-serving, (3) model-onboarding-as-data, (4) async-contract; (5) comfyui-at-scale [3,4]; (6) media-types-and-image-to-3d; (7) lora-and-the-training-tier [3]; (8) speech-generation [2,4]. Weights-storage merged into 2+3; speech restored as topic 8; SageMaker Async woven as the worked reference; topic 6 references gltf-format / godot-asset-pipeline rather than duplicating.
+- 8 topic tickets cut, mirroring the MAP prereq edges as `blocked_by`:
+  - 371 the-universal-serving-pipeline [367]
+  - 372 scale-to-zero-gpu-serving [367,371]
+  - 373 model-onboarding-as-data [367,371]
+  - 374 the-async-contract [367,371]
+  - 375 comfyui-at-scale [367,373,374]
+  - 376 media-types-and-image-to-3d [367,371]
+  - 377 lora-and-the-training-tier [367,373]
+  - 378 speech-generation [367,372,374]
+
+**How verified:** `check-maps-forest.py` reports the domain clean; MAP re-read to source exact
+slugs/ULIDs/prereqs for the topic-ticket `blocked_by` edges; ticket bodies each carry the
+source-verification gate + design-source pointers from this ticket.
+
+**Note:** repo git commits are currently broken (`commit.gpgsign=true`, keyless GPG key
+`4192D09C392FC4C0`, no secret key) — history is otherwise SSH-signed. These ticket files were
+committed with `-c commit.gpgsign=false` per-invocation; git config left unchanged. Flagged to the
+user to fix signing config properly.
