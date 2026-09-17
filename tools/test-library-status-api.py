@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import subprocess
 import sys
 import urllib.request
 from pathlib import Path
@@ -40,6 +41,13 @@ def _fixture() -> tuple[Path, list[str]]:
         domains.extend(load_map(path).domain for path in maps.glob("*.MAP.md"))
     shutil.copytree(PROJECT_ROOT / "library" / "gltf-format" / "lessons",
                     FIXTURE / "gltf-format" / "lessons")
+    subprocess.run([
+        sys.executable,
+        str(PROJECT_ROOT / "tools" / "generate_map_page.py"),
+        str(FIXTURE / "gltf-format" / "maps" / "gltf-format.MAP.md"),
+        "--workspace", str(FIXTURE / "gltf-format"),
+        "--output", str(FIXTURE / "gltf-format" / "lessons" / "gltf-format-map.html"),
+    ], check=True, cwd=PROJECT_ROOT)
     (FIXTURE / "gltf-format" / "index.html").write_text("<!doctype html>", encoding="utf-8")
     return FIXTURE, sorted(domains)
 
@@ -59,6 +67,9 @@ def _library_root_flow(base_url: str, map_domains: list[str]) -> None:
     topic = next(topic for topic in gltf["topics"] if topic["lesson_file"])
     slug = topic["slug"]
     lesson = topic["lesson_file"]
+    parsed = load_map(FIXTURE / "gltf-format" / "maps" / "gltf-format.MAP.md")
+    current = next(item for item in parsed.topics if item.slug == slug)
+    dependent = next(item for item in parsed.topics if slug in item.prereqs)
 
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
@@ -71,6 +82,23 @@ def _library_root_flow(base_url: str, map_domains: list[str]) -> None:
 
         status = _request(f"{base_url}/api/map/gltf-format/{slug}/status")
         assert status["status"] == "complete", status
+
+        page.goto(f"{base_url}/gltf-format/lessons/gltf-format-map.html", wait_until="domcontentloaded")
+        current_card = page.locator(f'.topic-card[data-topic-id="{current.id}"]')
+        current_card.locator(".badge.complete").wait_for()
+        page.locator(f'.topic-card[data-topic-id="{dependent.id}"] .prereq-item.met').wait_for()
+        page.reload(wait_until="domcontentloaded")
+        current_card.locator(".badge.complete").wait_for()
+        page.locator(f'.topic-card[data-topic-id="{dependent.id}"] .prereq-item.met').wait_for()
+
+        fallback = browser.new_page()
+        errors = []
+        fallback.on("pageerror", lambda error: errors.append(error))
+        fallback.route("**/api/map/gltf-format", lambda route: route.abort())
+        fallback.goto(f"{base_url}/gltf-format/lessons/gltf-format-map.html", wait_until="domcontentloaded")
+        fallback.locator(f'.topic-card[data-topic-id="{current.id}"] .badge.not-started').wait_for()
+        assert not errors, errors
+        fallback.close()
         overlay = _request(f"{base_url}/api/overlay")["overlay"]
         assert len(overlay) == len(map_domains), overlay
         assert sorted(overlay.values()) == ["complete"] + ["in-progress"] * (len(map_domains) - 1)

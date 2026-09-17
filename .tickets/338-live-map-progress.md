@@ -1,7 +1,7 @@
 ---
 id: "338"
 title: "Refresh topic-map progress from the local overlay at load time"
-status: in_progress
+status: done
 priority: high
 blocked_by: ["332"]
 type: fix
@@ -33,12 +33,12 @@ from a completed lesson must show the new status without regenerating HTML.
 
 ## Acceptance criteria
 
-- [ ] Back-navigation or reload updates topic status without regeneration
-- [ ] Prerequisite met/unmet indicators use refreshed progress
-- [ ] API failure retains embedded status without an uncaught error
-- [ ] No learner progress enters committed HTML, MAP.md, or demo fixtures
-- [ ] An automated browser test covers the freshness scenario
-- [ ] `mise run verify` exits 0
+- [x] Back-navigation or reload updates topic status without regeneration
+- [x] Prerequisite met/unmet indicators use refreshed progress
+- [x] API failure retains embedded status without an uncaught error
+- [x] No learner progress enters committed HTML, MAP.md, or demo fixtures
+- [x] An automated browser test covers the freshness scenario
+- [x] `mise run verify` exits 0
 
 ## Out of scope
 
@@ -46,4 +46,20 @@ Cross-device sync, browser-local learner storage, and the derivation unification
 
 ## Resolution
 
-TBD
+Map pages now carry the canonical MAP `domain` and, before `MapView` initializes its
+signals, fetch `/api/map/{domain}` and replace only matching topic statuses. A failed or
+unavailable request leaves the embedded demo/no-JS data intact.
+
+Generation no longer reads `.user/status-overlay.json` or infers learner progress from
+the presence of shared lesson artifacts. Its sole static status source is the committed
+`demo-status.json` fixture, so per-user progress cannot enter generated map HTML, MAP.md,
+or demo data.
+
+`tools/test-library-status-api.py` now builds a throwaway library fixture, completes a
+lesson through the real UI, verifies its map badge and a dependent prerequisite after a
+reload, then aborts the status request and verifies the static fallback without a page
+error. `tools/test_map_page.py` adds a conflicting demo/private-overlay regression.
+
+Evidence: `python tools/test-library-status-api.py` → 11 map domains plus browser
+persistence and fallback pass; `mise run verify` → 45 tests, 20 interactive checks, and
+5 Ink transcripts pass (70.41s).

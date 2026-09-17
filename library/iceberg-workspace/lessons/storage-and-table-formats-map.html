@@ -21,6 +21,14 @@
     .topic-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text); flex-wrap: wrap; }
     .topic-card .why { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
     .topic-card .prereq-label { font-size: 0.75rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.5rem; }
+    .topic-card .prereq-list { list-style: none; margin: 0 0 0.5rem; padding: 0; font-size: 0.72rem; }
+    .topic-card .prereq-item { display: flex; align-items: baseline; gap: 0.4rem; line-height: 1.6; margin-bottom: 0.15rem; }
+    /* met/unmet: color reinforces, glyph (✓/○) + word ("met"/"not yet") carry meaning (color-not-alone) */
+    .topic-card .prereq-item.met .prereq-mark, .topic-card .prereq-item.met .prereq-state { color: var(--success); }
+    .topic-card .prereq-item.unmet .prereq-mark, .topic-card .prereq-item.unmet .prereq-state { color: var(--text-muted); }
+    .topic-card .prereq-mark { font-weight: 700; flex: 0 0 auto; }
+    .topic-card .prereq-state { font-variant: small-caps; letter-spacing: 0.02em; flex: 0 0 auto; margin-right: 0.15rem; }
+    .topic-card .prereq-name { color: var(--text-faint); font-style: italic; }
     .topic-card .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
     .btn {
       font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px;
@@ -96,7 +104,7 @@
   </div>
   <div id="app"></div>
 
-<script type="application/json" id="page-data">{"title": "Storage & Open Table Formats", "orientation": "Your data has to live somewhere, and HOW it's stored determines everything downstream: what queries are fast, what operations are possible, how much you pay, and how much operational burden you carry. This sub-map breaks storage into its constituent concerns — from the physical file layout on object storage to the metadata layer that makes it behave like a database table.", "topics": [{"id": "01M174TQPS85HE7F2EZ0R7KH09", "slug": "object-storage-fundamentals", "title": "Object Storage Fundamentals", "why": "Every modern analytics stack sits on object storage (S3, GCS, ADLS) — understanding its constraints and strengths is prerequisite to everything else", "prereqs": [], "status": "not-started", "lessonPath": null}, {"id": "01M174TQPS2E30N1MYEGNRRZ8E", "slug": "columnar-file-formats", "title": "Columnar File Formats (Parquet, ORC)", "why": "The file format determines compression ratios, read patterns, and which queries can skip data — it's the physical foundation of performance", "prereqs": ["01M174TQPS85HE7F2EZ0R7KH09"], "status": "not-started", "lessonPath": null}, {"id": "01M174TQPS0PX6V614C6042P1Q", "slug": "table-format-metadata", "title": "Table Format Metadata (Iceberg, Delta, Hudi)", "why": "Open table formats add transactional semantics, schema evolution, and time travel on top of raw files — this is where \"data lake\" becomes \"lakehouse\"", "prereqs": ["01M174TQPS2E30N1MYEGNRRZ8E"], "status": "not-started", "lessonPath": null}, {"id": "01M174TQPSND5QFHZNG077E898", "slug": "partitioning-strategies", "title": "Partitioning & Clustering Strategies", "why": "How you partition data determines whether queries read megabytes or terabytes — the single biggest lever for query cost and speed", "prereqs": ["01M174TQPS2E30N1MYEGNRRZ8E"], "status": "not-started", "lessonPath": null}, {"id": "01M174TQPSF6F95WXFXT0VAPRP", "slug": "compaction-and-maintenance", "title": "Compaction & Table Maintenance", "why": "Without regular maintenance, small files accumulate and metadata bloats — turning fast queries into slow, expensive ones over time", "prereqs": ["01M174TQPS0PX6V614C6042P1Q"], "status": "not-started", "lessonPath": null}], "leadsTo": [{"slug": "lakehouse-architecture", "why": "Combines the best of data lakes and warehouses — the natural evolution of open table formats"}, {"slug": "storage-cost-optimization", "why": "Once you understand formats and compaction, optimizing storage cost becomes tractable"}], "edges": [{"source": "01M174TQPS85HE7F2EZ0R7KH09", "target": "01M174TQPS2E30N1MYEGNRRZ8E", "type": "prereq", "why": ""}, {"source": "01M174TQPS2E30N1MYEGNRRZ8E", "target": "01M174TQPS0PX6V614C6042P1Q", "type": "prereq", "why": ""}, {"source": "01M174TQPS2E30N1MYEGNRRZ8E", "target": "01M174TQPSND5QFHZNG077E898", "type": "prereq", "why": ""}, {"source": "01M174TQPS0PX6V614C6042P1Q", "target": "01M174TQPSF6F95WXFXT0VAPRP", "type": "prereq", "why": ""}]}</script>
+<script type="application/json" id="page-data">{"domain": "storage-and-table-formats", "title": "Storage & Open Table Formats", "orientation": "Your data has to live somewhere, and HOW it's stored determines everything downstream: what queries are fast, what operations are possible, how much you pay, and how much operational burden you carry. This sub-map breaks storage into its constituent concerns — from the physical file layout on object storage to the metadata layer that makes it behave like a database table.", "topics": [{"id": "01M174TQPS85HE7F2EZ0R7KH09", "slug": "object-storage-fundamentals", "title": "Object Storage Fundamentals", "why": "Every modern analytics stack sits on object storage (S3, GCS, ADLS) — understanding its constraints and strengths is prerequisite to everything else", "prereqs": [], "status": "not-started", "lessonPath": null}, {"id": "01M174TQPS2E30N1MYEGNRRZ8E", "slug": "columnar-file-formats", "title": "Columnar File Formats (Parquet, ORC)", "why": "The file format determines compression ratios, read patterns, and which queries can skip data — it's the physical foundation of performance", "prereqs": ["01M174TQPS85HE7F2EZ0R7KH09"], "status": "not-started", "lessonPath": null}, {"id": "01M174TQPS0PX6V614C6042P1Q", "slug": "table-format-metadata", "title": "Table Format Metadata (Iceberg, Delta, Hudi)", "why": "Open table formats add transactional semantics, schema evolution, and time travel on top of raw files — this is where \"data lake\" becomes \"lakehouse\"", "prereqs": ["01M174TQPS2E30N1MYEGNRRZ8E"], "status": "not-started", "lessonPath": null}, {"id": "01M174TQPSND5QFHZNG077E898", "slug": "partitioning-strategies", "title": "Partitioning & Clustering Strategies", "why": "How you partition data determines whether queries read megabytes or terabytes — the single biggest lever for query cost and speed", "prereqs": ["01M174TQPS2E30N1MYEGNRRZ8E"], "status": "not-started", "lessonPath": null}, {"id": "01M174TQPSF6F95WXFXT0VAPRP", "slug": "compaction-and-maintenance", "title": "Compaction & Table Maintenance", "why": "Without regular maintenance, small files accumulate and metadata bloats — turning fast queries into slow, expensive ones over time", "prereqs": ["01M174TQPS0PX6V614C6042P1Q"], "status": "not-started", "lessonPath": null}], "leadsTo": [{"slug": "lakehouse-architecture", "why": "Combines the best of data lakes and warehouses — the natural evolution of open table formats"}, {"slug": "storage-cost-optimization", "why": "Once you understand formats and compaction, optimizing storage cost becomes tractable"}], "edges": [{"source": "01M174TQPS85HE7F2EZ0R7KH09", "target": "01M174TQPS2E30N1MYEGNRRZ8E", "type": "prereq", "why": ""}, {"source": "01M174TQPS2E30N1MYEGNRRZ8E", "target": "01M174TQPS0PX6V614C6042P1Q", "type": "prereq", "why": ""}, {"source": "01M174TQPS2E30N1MYEGNRRZ8E", "target": "01M174TQPSND5QFHZNG077E898", "type": "prereq", "why": ""}, {"source": "01M174TQPS0PX6V614C6042P1Q", "target": "01M174TQPSF6F95WXFXT0VAPRP", "type": "prereq", "why": ""}]}</script>
 <script type="module">
 
     import { h, render } from 'preact';
@@ -105,6 +113,20 @@
 
     const html = htm.bind(h);
     const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    try {
+      const response = await fetch(`/api/map/${encodeURIComponent(data.domain)}`);
+      if (response.ok) {
+        const live = await response.json();
+        const statuses = new Map(live.topics.map(topic => [topic.slug, topic.status]));
+        data.topics = data.topics.map(topic => ({
+          ...topic,
+          status: statuses.get(topic.slug) ?? topic.status,
+        }));
+      }
+    } catch {
+      // Static hosts and unavailable APIs keep the committed demo/no-JS state.
+    }
 
     render(
       html`<${MapView} topics=${data.topics} leadsTo=${data.leadsTo} edges=${data.edges} orientation=${data.orientation} title=${data.title} />`,
