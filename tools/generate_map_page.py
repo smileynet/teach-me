@@ -28,8 +28,8 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-LESSONS_DIR = PROJECT_ROOT / "lessons"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.workspace_context import WorkspaceContext
 
 # Sub-map navigation (zoom)
 try:
@@ -43,25 +43,18 @@ except ModuleNotFoundError:
         can_zoom_in, load_map as mp_load_map, MAX_DEPTH,
     )
 
-def set_workspace(workspace_path: Path) -> None:
-    """Override LESSONS_DIR to a workspace."""
-    global LESSONS_DIR
-    LESSONS_DIR = workspace_path / "lessons"
-
-
-def _map_output_path(map_path: Path, domain: str) -> Path:
+def _map_output_path(map_path: Path, domain: str, context: WorkspaceContext) -> Path:
     """Committed map-page path for a MAP file.
 
     Maps live in `{domain}/maps/*.MAP.md` and their committed page lives in the SAME
     domain's `lessons/` dir (`{domain}/lessons/{domain}-map.html`) — true for both
     top-level and sub-maps. Deriving from the MAP's own location (not a hardcoded
     PROJECT_ROOT/lessons) keeps the generator from writing a stray root file and leaving
-    the committed page stale (#301). Falls back to LESSONS_DIR when the MAP isn't in a
-    `maps/` dir (e.g. root-level fixtures).
+    the committed page stale (#301). Ad-hoc fixture maps use their explicit context.
     """
     if map_path.parent.name == "maps":
         return map_path.parent.parent / "lessons" / f"{domain}-map.html"
-    return LESSONS_DIR / f"{domain}-map.html"
+    return context.lessons_dir / f"{domain}-map.html"
 
 
 def _demo_status_map(map_path: Path) -> dict:
@@ -140,14 +133,14 @@ def parse_map_md(path: Path) -> dict:
     }
 
 
-def topic_has_lesson(slug: str) -> str | None:
+def topic_has_lesson(slug: str, context: WorkspaceContext) -> str | None:
     """Find the lesson file for a topic slug. Returns relative path or None.
     
     Matches by: slug in filename, or slug appears in file content (lesson-id, heading).
     """
-    if not LESSONS_DIR.exists():
+    if not context.lessons_dir.exists():
         return None
-    for f in sorted(LESSONS_DIR.glob("*.html")):
+    for f in sorted(context.lessons_dir.glob("*.html")):
         # Skip map pages, index, and review pages
         if f.stem.endswith("-map") or f.stem == "index":
             continue
@@ -157,7 +150,7 @@ def topic_has_lesson(slug: str) -> str | None:
     return None
 
 
-def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path | None = None) -> str:
+def generate_preact_map_page(map_data: dict, output_path: Path, context: WorkspaceContext) -> str:
     """Generate a Preact-based map page from parsed MAP.md data."""
     sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 
@@ -169,7 +162,7 @@ def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path |
     # Build data island
     topic_data = []
     for t in topics:
-        lesson_path = t.get("lesson_file") or topic_has_lesson(t["slug"])
+        lesson_path = t.get("lesson_file") or topic_has_lesson(t["slug"], context)
         topic_data.append({
             "id": t["id"],                 # real ULID (node key + edge endpoint space)
             "slug": t["slug"],             # for lesson/quiz routing + file matching
@@ -201,7 +194,7 @@ def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path |
     # lessons/ = depth 1, lessons/quiz/ = depth 2
     depth = 1
     try:
-        rel = output_path.relative_to(LESSONS_DIR)
+        rel = output_path.relative_to(context.lessons_dir)
         depth = 1 + str(rel).count("/")
     except (ValueError, TypeError):
         depth = 1
@@ -347,28 +340,36 @@ def find_all_maps() -> list[Path]:
 
 def main() -> None:
     args = sys.argv[1:]
+    selected_context: WorkspaceContext | None = None
 
-    # Handle --workspace flag (repoints lessons/questions directories)
+    # `--workspace` is an explicit boundary: malformed roots must not borrow fixtures.
     if "--workspace" in args:
         idx = args.index("--workspace")
-        if idx + 1 < len(args):
-            ws = Path(args[idx + 1])
-            if not ws.is_absolute():
-                ws = PROJECT_ROOT / ws
-            set_workspace(ws)
-            args = args[:idx] + args[idx + 2:]  # remove flag from args
+        if idx + 1 >= len(args):
+            print("--workspace requires a path")
+            sys.exit(1)
+        ws = Path(args[idx + 1])
+        if not ws.is_absolute():
+            ws = PROJECT_ROOT / ws
+        try:
+            selected_context = WorkspaceContext.from_root(ws)
+        except ValueError as error:
+            print(f"✗ {error}")
+            sys.exit(1)
+        args = args[:idx] + args[idx + 2:]
 
     # Auto-discover mode: no args = generate all maps
     if not args or args == []:
-        maps = find_all_maps()
+        maps = list(selected_context.maps) if selected_context else find_all_maps()
         if not maps:
             print("No MAP.md files found at project root. Pass a path explicitly.")
             sys.exit(0)
         for map_path in maps:
+            context = selected_context or WorkspaceContext.for_map(map_path)
             map_data = parse_map_md(map_path)
             domain = map_data["frontmatter"].get("domain", map_path.stem)
-            output_path = _map_output_path(map_path, domain)
-            html = generate_preact_map_page(map_data, output_path, map_path)
+            output_path = _map_output_path(map_path, domain, context)
+            html = generate_preact_map_page(map_data, output_path, context)
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_text(html, encoding="utf-8")
             try:
@@ -395,13 +396,18 @@ def main() -> None:
         print(f"MAP.md not found: {map_path}")
         sys.exit(1)
 
+    context = selected_context or WorkspaceContext.for_map(map_path)
+    if selected_context and map_path.resolve() not in selected_context.maps:
+        print(f"✗ MAP.md is outside selected workspace: {map_path}")
+        sys.exit(1)
+
     map_data = parse_map_md(map_path)
     domain = map_data["frontmatter"].get("domain", map_path.stem)
 
     if output_path is None:
-        output_path = _map_output_path(map_path, domain)
+        output_path = _map_output_path(map_path, domain, context)
 
-    html = generate_preact_map_page(map_data, output_path, map_path)
+    html = generate_preact_map_page(map_data, output_path, context)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(html, encoding="utf-8")

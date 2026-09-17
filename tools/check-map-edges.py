@@ -173,10 +173,10 @@ def _synthetic_related() -> tuple[Path, Path, str]:
         encoding="utf-8")
     # Generate the map page into ws/lessons via the generator.
     import generate_map_page as gmp
-    gmp.set_workspace(ws)
+    from lib.workspace_context import WorkspaceContext
     data = gmp.parse_map_md(ws / "maps" / "synth.MAP.md")
     out = ws / "lessons" / "synth-map.html"
-    out.write_text(gmp.generate_preact_map_page(data, out, None), encoding="utf-8")
+    out.write_text(gmp.generate_preact_map_page(data, out, WorkspaceContext.from_root(ws)), encoding="utf-8")
     return (ws / "maps" / "synth.MAP.md", ws, "lessons/synth-map.html")
 
 
