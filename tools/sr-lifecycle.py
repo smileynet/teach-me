@@ -29,13 +29,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from questions import Card, list_topics, read_cards, save_card_states
-from sm2 import CardSchedule, EASE_DEFAULT
+from questions import Card, list_topics, read_cards, record_card_event
+from sm2 import CardSchedule
 
 
-def _rewrite_topic(topic: str, cards: list[Card]) -> None:
-    """Persist lifecycle state without copying card definitions."""
-    save_card_states(cards)
+def _rewrite_topic(topic: str, cards: list[Card], action: str, changed_ids: set[str]) -> None:
+    """Record lifecycle transitions without copying card definitions."""
+    for card in cards:
+        if card.id in changed_ids:
+            record_card_event(topic, card, action)
 
 
 def _find_card(card_id: str) -> tuple[str, int, list[Card]] | None:
@@ -61,7 +63,7 @@ def cmd_suspend(card_id: str) -> None:
         return
 
     cards[idx].suspended = True
-    _rewrite_topic(topic, cards)
+    _rewrite_topic(topic, cards, "suspended", {cards[idx].id})
     print(f"✓ Suspended: {cards[idx].prompt[:60]}…")
     print(f"  (topic: {topic}, unsuspend with: sr-lifecycle.py unsuspend {card_id[:8]})")
 
@@ -79,7 +81,7 @@ def cmd_unsuspend(card_id: str) -> None:
         return
 
     cards[idx].suspended = False
-    _rewrite_topic(topic, cards)
+    _rewrite_topic(topic, cards, "unsuspended", {cards[idx].id})
     print(f"✓ Unsuspended: {cards[idx].prompt[:60]}…")
 
 
@@ -94,7 +96,7 @@ def cmd_reset(card_id: str) -> None:
     cards[idx].schedule = CardSchedule().to_dict()
     cards[idx].mastered = False
     cards[idx].suspended = False
-    _rewrite_topic(topic, cards)
+    _rewrite_topic(topic, cards, "reset", {cards[idx].id})
     print(f"✓ Reset to new: {cards[idx].prompt[:60]}…")
     print(f"  (will appear in next review session)")
 
@@ -104,7 +106,7 @@ def cmd_retire(min_interval: int = 180) -> None:
     retired_count = 0
     for t in list_topics():
         cards = read_cards(t)
-        changed = False
+        changed_ids: set[str] = set()
         for card in cards:
             if card.mastered or card.suspended:
                 continue
@@ -112,10 +114,10 @@ def cmd_retire(min_interval: int = 180) -> None:
             if interval >= min_interval:
                 card.mastered = True
                 retired_count += 1
-                changed = True
+                changed_ids.add(card.id)
                 print(f"  🏆 Retired: {card.prompt[:55]}… (interval: {interval}d)")
-        if changed:
-            _rewrite_topic(t, cards)
+        if changed_ids:
+            _rewrite_topic(t, cards, "retired", changed_ids)
 
     if retired_count == 0:
         print(f"No cards with interval ≥ {min_interval} days to retire.")

@@ -1,7 +1,7 @@
 ---
 id: "350"
 title: "Make review and lifecycle history rebuildable and versioned"
-status: in_progress
+status: done
 priority: high
 type: feature
 blocked_by: ["349"]
@@ -26,9 +26,20 @@ Design a versioned event schema and local projection. Record review and lifecycl
 
 ## Acceptance criteria
 
-- [ ] Every event has an event ID, UTC timestamp, full card ID, action/rating, scheduler version, and sufficient result state to replay it.
-- [ ] Suspend, reset, retire, and other lifecycle operations are represented in the same event model.
-- [ ] Rebuilding the projection from a fixture event stream produces the expected due dates, intervals, ease factors, and lifecycle state.
-- [ ] Interrupted or malformed writes recover without accepting a partially applied review.
-- [ ] Existing prefix-ID review logs have an explicit migration or unsupported-version diagnostic.
-- [ ] Fixture tests cover replay, reset, lifecycle transitions, and duplicate/missing-event behavior.
+- [x] Every event has an event ID, UTC timestamp, full card ID, action/rating, scheduler version, and sufficient result state to replay it.
+- [x] Suspend, reset, retire, and other lifecycle operations are represented in the same event model.
+- [x] Rebuilding the projection from a fixture event stream produces the expected due dates, intervals, ease factors, and lifecycle state.
+- [x] Interrupted or malformed writes recover without accepting a partially applied review.
+- [x] Existing prefix-ID review logs have an explicit migration or unsupported-version diagnostic.
+- [x] Fixture tests cover replay, reset, lifecycle transitions, and duplicate/missing-event behavior.
+
+## Resolution
+
+Local learner progress now uses `.user/learning-records/sr-events.sqlite3`: immutable,
+versioned events and their disposable `card_projection` are committed in one SQLite
+transaction. Review and lifecycle commands emit the same event model; canonical card
+definitions remain shared JSONL. Old local state imports as snapshot events when safe,
+and prefix-ID history without a state snapshot reports a clear unsupported diagnostic.
+
+Evidence: `python -m pytest tools/test_questions_local_state.py -q` → 8 passed;
+`mise run verify` → 55 tests, 20 interactive checks, and 5 Ink transcript fixtures passed.

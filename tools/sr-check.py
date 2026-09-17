@@ -19,13 +19,12 @@ if hasattr(_sys.stderr, "reconfigure"):
     _sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from questions import Card, list_topics, read_cards, REVIEWS_LOG
+from questions import Card, iter_events, list_topics, read_cards
 
 
 LEECH_THRESHOLD = 4
@@ -120,22 +119,12 @@ def check_card(card: Card, lapse_counts: dict[str, int]) -> list[str]:
 
 
 def load_lapse_counts() -> dict[str, int]:
-    """Load lapse counts from review log."""
+    """Load lapse counts from canonical review events."""
     counts: dict[str, int] = {}
-    if not REVIEWS_LOG.exists():
-        return counts
-    with open(REVIEWS_LOG, encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                entry = json.loads(line)
-                if entry.get("quality", 5) < 3:
-                    cid = entry.get("card_id", "")
-                    counts[cid] = counts.get(cid, 0) + 1
-            except (json.JSONDecodeError, KeyError):
-                pass
+    for event in iter_events():
+        if event["action"] == "reviewed" and event["rating"] < 3:
+            card_id = event["card_id"]
+            counts[card_id] = counts.get(card_id, 0) + 1
     return counts
 
 

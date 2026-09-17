@@ -34,8 +34,7 @@ from questions import (
     list_topics,
     read_cards,
     stats,
-    QUESTIONS_DIR,
-    REVIEWS_LOG,
+    iter_events,
 )
 from sm2 import CardSchedule, days_overdue, is_due
 
@@ -78,41 +77,17 @@ def count_leeches(cards: list[Card]) -> list[Card]:
 
 def count_lapses_from_log(card_id: str) -> int:
     """Count lapses (quality < 3) from review log."""
-    if not REVIEWS_LOG.exists():
-        return 0
-    lapses = 0
-    with open(REVIEWS_LOG, encoding="utf-8") as f:
-        for line in f:
-            if card_id in line and '"quality": ' in line:
-                import json
-                try:
-                    entry = json.loads(line)
-                    if entry.get("card_id") == card_id and entry.get("quality", 5) < 3:
-                        lapses += 1
-                except (json.JSONDecodeError, KeyError):
-                    pass
-    return lapses
+    return sum(event["card_id"] == card_id and event["action"] == "reviewed" and event["rating"] < 3
+               for event in iter_events())
 
 
 def find_leeches_from_log(cards: list[Card]) -> list[Card]:
     """Find leeches by counting lapses in the review log."""
-    if not REVIEWS_LOG.exists():
-        return []
-    # Build lapse counts from log
-    import json
     lapse_counts: dict[str, int] = {}
-    with open(REVIEWS_LOG, encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                entry = json.loads(line)
-                if entry.get("quality", 5) < 3:
-                    cid = entry.get("card_id", "")
-                    lapse_counts[cid] = lapse_counts.get(cid, 0) + 1
-            except (json.JSONDecodeError, KeyError):
-                pass
+    for event in iter_events():
+        if event["action"] == "reviewed" and event["rating"] < 3:
+            card_id = event["card_id"]
+            lapse_counts[card_id] = lapse_counts.get(card_id, 0) + 1
 
     return [c for c in cards if lapse_counts.get(c.id, 0) >= LEECH_THRESHOLD]
 
