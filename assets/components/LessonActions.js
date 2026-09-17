@@ -26,8 +26,11 @@ function LessonActions({ lessonId, domain, mapPage, topicTitle }) {
   // #370: on quiz/review pages the URL-derived lessonId is already the quiz filename,
   // so probing 'quiz/' + lessonId + '-quiz.html' doubles the path (quiz/quiz/...),
   // 404s, and the bar ends up offering to generate the quiz the learner is taking.
-  // A quiz page never gets a quiz affordance — skip the probe entirely (no console 404).
-  const isQuizContext = lessonId.endsWith('-quiz') || /\/quiz\//.test(window.location.pathname);
+  // A quiz/review page never gets a quiz affordance — skip the probe entirely (no
+  // console 404). Review pages live under /review/ (quick-check) or carry a -quiz id.
+  const isQuizContext = lessonId.endsWith('-quiz')
+    || lessonId === 'quick-check'
+    || /\/(quiz|review)\//.test(window.location.pathname);
   const quizUrl = 'quiz/' + lessonId + '-quiz.html';
 
   useEffect(() => {
