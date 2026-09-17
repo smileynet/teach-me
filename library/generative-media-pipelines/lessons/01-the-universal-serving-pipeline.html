@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1: The Universal Serving Pipeline</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/glossary.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="generative-media-pipelines-map.html">Generative Media Pipelines</a> <span class="nav-sep">›</span> <span>The Universal Serving Pipeline</span></nav>
+<h1>The Universal Serving Pipeline</h1>
+
+<div class="lesson-meta">
+  Lesson 1 · Generative Media Pipelines · ~11 min read<br>
+  <strong>Win:</strong> You can draw the nine-stage async serving loop, map three real platforms onto it, and explain why the submit tier must never hold a GPU.
+</div>
+<div class="key-concept">
+  <strong>After this lesson:</strong> Every generative-media platform runs the same async loop — client → auth → submit → queue → scale-to-zero GPU worker → weight staging → infer → output store → progress stream. Every later topic is a decision made inside one of these stages.
+</div>
+<h2>The problem: a GPU model is not a service</h2>
+
+<p>Turning "a research model on a GPU" into "an API a creative team calls" is a platform problem, not a model problem. Inference is slow — seconds to minutes. So you cannot hold a request open while a GPU runs, and you cannot keep a GPU warm for every model, because GPUs are expensive and idle most of the time. Three real platforms solve this the same way underneath: <code>REDACTED</code> (a custom scale-to-zero orchestrator serving art models to Blender), <code>REDACTED</code> (an artist web studio over Bedrock + SageMaker), and <code>REDACTED</code> (a ComfyUI platform on EKS). They make different bets on the serving substrate and the target user, but they run the <em>same loop</em>.</p>
+
+<p>That loop is the whole track. Every later topic — scale-to-zero, model onboarding, the async contract, ComfyUI, image-to-3D, LoRA, speech — is depth <em>inside</em> one of these stages. Land the shape here and the rest is detail.</p>
+
+<h2>The nine-stage loop</h2>
+
+<p>Read the loop as an <span class="term" data-term="async-request-reply">asynchronous request-reply</span> cycle: the submit call returns a job handle immediately, and the result comes back later over a separate channel. This is a named industry pattern — Asynchronous Request-Reply / <span class="term" data-term="queue-based-load-leveling">Queue-Based Load Leveling</span> — so it transfers to any stack, not just these three <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/gen-ai-inference-architecture-and-best-practices-on-aws/" class="citation">[AWS Prescriptive Guidance, gen-AI inference architecture]</a>.</p>
+
+<svg role="img" aria-labelledby="loop-title" viewBox="0 0 760 320" style="max-width:100%; height:auto; margin: 1.5rem 0;">
+  <title id="loop-title">The universal serving loop: client authenticates, submits a job, it queues, a scaled-to-zero GPU worker stages weights and infers, the output is stored, and progress streams back to the client</title>
+  <defs>
+    <marker id="loop-arrow" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="var(--svg-line)"/>
+    </marker>
+  </defs>
+
+  <!-- Ingestion tier (blue = the thing being discussed / stateless API) -->
+  <rect x="14" y="120" width="96" height="44" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="62" y="140" text-anchor="middle" font-size="12" fill="var(--svg-primary-text)">Client</text>
+  <text x="62" y="156" text-anchor="middle" font-size="9" fill="var(--svg-primary-text)">DCC / browser</text>
+
+  <rect x="130" y="120" width="90" height="44" rx="4" fill="var(--svg-neutral-fill)" stroke="var(--svg-neutral)" stroke-width="2"/>
+  <text x="175" y="140" text-anchor="middle" font-size="12" fill="var(--svg-neutral-text)">Auth</text>
+  <text x="175" y="156" text-anchor="middle" font-size="9" fill="var(--svg-neutral-text)">+ license gate</text>
+
+  <rect x="240" y="120" width="96" height="44" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="288" y="140" text-anchor="middle" font-size="12" fill="var(--svg-primary-text)">Submit API</text>
+  <text x="288" y="156" text-anchor="middle" font-size="9" fill="var(--svg-primary-text)">validate + enqueue</text>
+
+  <!-- Queue (amber = operational buffer) -->
+  <rect x="356" y="120" width="90" height="44" rx="4" fill="var(--svg-warning-fill)" stroke="var(--svg-warning)" stroke-width="2"/>
+  <text x="401" y="140" text-anchor="middle" font-size="12" fill="var(--svg-warning-text)">Queue</text>
+  <text x="401" y="156" text-anchor="middle" font-size="9" fill="var(--svg-warning-text)">shock absorber</text>
+
+  <!-- Worker (green = the compute that produces output) -->
+  <rect x="466" y="112" width="130" height="60" rx="4" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="2"/>
+  <text x="531" y="132" text-anchor="middle" font-size="12" fill="var(--svg-success-text)">Scale-to-zero</text>
+  <text x="531" y="148" text-anchor="middle" font-size="12" fill="var(--svg-success-text)">GPU worker</text>
+  <text x="531" y="163" text-anchor="middle" font-size="9" fill="var(--svg-success-text)">stage weights → infer</text>
+
+  <!-- Output store (green) -->
+  <rect x="620" y="60" width="120" height="44" rx="4" fill="var(--svg-success-fill)" stroke="var(--svg-success)" stroke-width="2"/>
+  <text x="680" y="80" text-anchor="middle" font-size="12" fill="var(--svg-success-text)">Output store</text>
+  <text x="680" y="96" text-anchor="middle" font-size="9" fill="var(--svg-success-text)">S3, not the broker</text>
+
+  <!-- Progress stream (blue) -->
+  <rect x="620" y="184" width="120" height="44" rx="4" fill="var(--svg-primary-fill)" stroke="var(--svg-primary)" stroke-width="2"/>
+  <text x="680" y="204" text-anchor="middle" font-size="12" fill="var(--svg-primary-text)">Progress stream</text>
+  <text x="680" y="220" text-anchor="middle" font-size="9" fill="var(--svg-primary-text)">poll / SSE / WS</text>
+
+  <!-- Forward edges -->
+  <line x1="110" y1="142" x2="128" y2="142" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#loop-arrow)"/>
+  <line x1="220" y1="142" x2="238" y2="142" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#loop-arrow)"/>
+  <line x1="336" y1="142" x2="354" y2="142" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#loop-arrow)"/>
+  <text x="345" y="112" text-anchor="middle" font-size="8" fill="var(--svg-text)">job id</text>
+  <line x1="446" y1="142" x2="464" y2="142" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#loop-arrow)"/>
+  <text x="455" y="112" text-anchor="middle" font-size="8" fill="var(--svg-text)">claim</text>
+  <!-- worker -> store -->
+  <line x1="596" y1="128" x2="618" y2="92" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#loop-arrow)"/>
+  <text x="600" y="104" text-anchor="middle" font-size="8" fill="var(--svg-text)">artifact</text>
+  <!-- worker -> progress -->
+  <line x1="596" y1="156" x2="618" y2="196" stroke="var(--svg-line)" stroke-width="1.5" marker-end="url(#loop-arrow)"/>
+  <text x="600" y="184" text-anchor="middle" font-size="8" fill="var(--svg-text)">events</text>
+
+  <!-- The back-edge: progress stream -> client (dashed, this is what makes it a loop, not a line) -->
+  <path d="M620,206 L62,206 L62,166" fill="none" stroke="var(--svg-line)" stroke-width="1.5" stroke-dasharray="5" marker-end="url(#loop-arrow)"/>
+  <text x="340" y="222" text-anchor="middle" font-size="9" fill="var(--svg-text)">status / result streams back to the caller — the async reply</text>
+</svg>
+
+<p>The one edge that matters most is the dashed one. A naïve pipeline is a straight line: request in, response out. This is a <em>loop</em>: the result returns to the caller on a channel the submit call never held open. That decoupling is the reason the API tier never sits on a GPU, and it is why "draw the loop" (not "draw the pipeline") is the exercise. The stages, in words:</p>
+
+<ol>
+  <li><strong>Client</strong> — a machine (a Blender plugin) or a human (a browser) or any team. Who the client is drives almost every downstream divergence.</li>
+  <li><strong>Auth</strong> — identity plus, often, a <span class="term" data-term="license-gate">license gate</span>: is this caller allowed to run this model at all?</li>
+  <li><strong>Submit API</strong> — a stateless call that <em>validates and enqueues only</em>, then returns a job id. This is the stage that keeps GPU work off the API tier.</li>
+  <li><strong>Queue</strong> — the shock absorber. It smooths bursts and guarantees a job survives a worker restart.</li>
+  <li><strong>Scale-to-zero GPU worker</strong> — the expensive part, which drops to zero (or a warm floor) when the queue is empty, then wakes, stages weights, and infers.</li>
+  <li><strong>Weight staging</strong> — pulling the model onto the card. Weights are never baked into the image; they arrive from S3, NFS, or HuggingFace at start. (Its mechanics belong to topic 3.)</li>
+  <li><strong>Infer</strong> — the model execution.</li>
+  <li><strong>Output store</strong> — a <em>separate</em> result backend (S3), never the queue broker.</li>
+  <li><strong>Progress stream</strong> — the status/result channel back to the client: poll, SSE, or WebSocket.</li>
+</ol>
+
+<div class="note">
+  <strong>The worker-pool rule:</strong> a GPU worker runs one job at a time — <span class="term" data-term="concurrency-one-per-gpu">concurrency = 1 per GPU</span>. You get parallelism by running more processes on more cards, never by stacking jobs inside one worker <a href="https://fal.ai/docs/documentation/model-apis/inference" class="citation">[fal.ai inference model]</a>. Topic 5 shows the sharpest instance: ComfyUI's in-process queue makes it one-workflow-per-process.
+</div>
+
+<h2>The same loop, three platforms</h2>
+
+<p>The value of the loop is that it holds across wildly different stacks. Here each stage is mapped to the exact file in each repo that implements it, so the shared shape is a claim you can verify one cell at a time. Read down a column to see one platform end to end; read across a row to see how the same job differs by stack.</p>
+
+<table>
+  <thead>
+    <tr><th>Stage</th><th>REDACTED</th><th>REDACTED</th><th>REDACTED</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>auth</strong></td><td>Cognito JWT / <code>Principal</code> w/ <code>org_id</code> <span class="cite-file">orchestrator/auth.py</span></td><td>AWS-account trust (no per-request authorizer) <span class="cite-file">README.md:33</span></td><td>Cognito authorizer + REDACTED <span class="cite-file">cdk/lib/router-stack.ts</span></td></tr>
+    <tr><td><strong>submit</strong></td><td><code>POST /v1/models/{id}/{ver}/jobs</code> <span class="cite-file">orchestrator/app.py</span></td><td><code>POST /api/generate/stream</code> (SSE) <span class="cite-file">backend/routers/generate.py</span></td><td><code>POST /prompt</code> → <code>prompt_id</code> <span class="cite-file">docs/VISION.md</span></td></tr>
+    <tr><td><strong>queue</strong></td><td>SQS FIFO + <code>Envelope</code> <span class="cite-file">orchestrator/queue.py</span></td><td>S3-persisted async job tracker <span class="cite-file">services/async_jobs.py</span></td><td>DynamoDB job queue <span class="cite-file">k8s/keda/comfy-scaledobject.yaml</span></td></tr>
+    <tr><td><strong>worker</strong></td><td>ECS/EC2 Spot + diversified Fleet <span class="cite-file">orchestrator/autoscaler.py</span></td><td>SageMaker endpoint, MinCapacity=0 <span class="cite-file">services/sagemaker_deployer.py</span></td><td>EKS GPU pod + KEDA + Karpenter <span class="cite-file">k8s/nodepools/gpu-serving.yaml</span></td></tr>
+    <tr><td><strong>weight staging</strong></td><td>S3 → local NVMe at start <span class="cite-file">runners/native.py</span></td><td>HuggingFace direct-pull at start <span class="cite-file">services/sagemaker_deployer.py</span></td><td>S3 → FSxN → FlexClone NFS mount <span class="cite-file">docs/platform-brief.md</span></td></tr>
+    <tr><td><strong>infer</strong></td><td>runner <code>stage/load/infer</code> <span class="cite-file">orchestrator/executor.py</span></td><td>universal inference handler <span class="cite-file">sagemaker_handlers/inference.py</span></td><td>ComfyUI graph execution <span class="cite-file">containers/trellis2-3d/workflow_api.json</span></td></tr>
+    <tr><td><strong>output store</strong></td><td>S3 upload of typed artifacts <span class="cite-file">orchestrator/executor.py</span></td><td>local FS / S3 <code>data/generated/</code> <span class="cite-file">storage/local_store.py</span></td><td>EFS outputs + <code>/view</code> <span class="cite-file">k8s/deployments/comfy-api-baseline.yaml</span></td></tr>
+    <tr><td><strong>progress</strong></td><td>WebSocket, poll-then-WS <span class="cite-file">orchestrator/app.py</span></td><td>SSE <span class="cite-file">backend/routers/generate.py</span></td><td>ComfyUI WebSocket <code>/ws</code> <span class="cite-file">docs/VISION.md</span></td></tr>
+  </tbody>
+</table>
+
+<p class="muted-note">Every cell above is <code>[L1:verified]</code> against the named repo file (design source: <code>.memory/research/world-models-and-genmedia/02-generative-media-pipelines.md</code>).</p>
+
+<h2>Where they diverge: six axes</h2>
+
+<p>The mappings differ along exactly six axes. These are the memorable contrasts, the places a design decision actually gets made. They are the questions to ask of <em>any</em> serving platform, not just these three.</p>
+
+<ul>
+  <li><strong>Serving substrate</strong> — custom FastAPI + SQS orchestrator · Bedrock + SageMaker · ComfyUI-on-EKS.</li>
+  <li><strong>Target user / client</strong> — a machine (Blender plugin) · a human (browser) · any team (both).</li>
+  <li><strong>Progress transport</strong> — WebSocket (studio, REDACTED) · SSE (REDACTED).</li>
+  <li><strong>Queue</strong> — SQS FIFO · S3 job tracker · DynamoDB + KEDA.</li>
+  <li><strong>Weight staging</strong> — S3-to-NVMe · HuggingFace direct-pull · FSxN + FlexClone.</li>
+  <li><strong>Scale-to-zero depth</strong> — true zero (studio; SageMaker Async) · warm-pod floor (REDACTED).</li>
+</ul>
+
+<h2>Three places the loop must stay honest</h2>
+
+<p>A too-clean diagram lies. Three real asymmetries would disappear if you flattened every platform into an identical seven boxes — and each is a place the source explicitly corrects the tidy version. Represent them, don't smooth them.</p>
+
+<table>
+  <thead>
+    <tr><th>Tidy assumption</th><th>The honest reality</th><th>Evidence</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Every platform owns a worker + queue stage</td><td>REDACTED's Bedrock path has <strong>no platform-owned worker</strong> — the managed service owns that box. The loop still holds; the worker is just "someone else's."</td><td><span class="cite-file">SPEC.md · model_registry.json</span></td></tr>
+    <tr><td>Auth is a per-request authorizer</td><td>REDACTED's "auth" is <strong>AWS-account trust</strong>, not a Cognito-style gate. Don't invent an authorizer it doesn't have.</td><td><span class="cite-file">REDACTED README.md:33</span></td></tr>
+    <tr><td>"Scale-to-zero" means zero</td><td>REDACTED keeps a <strong>warm-pod floor</strong> (KEDA <code>minReplicaCount 1</code>) because GPU cold start is 3–4 min; true zero happens only via a weekend-park annotation.</td><td><span class="cite-file">k8s/keda/comfy-scaledobject.yaml</span></td></tr>
+  </tbody>
+</table>
+
+<h2>Choosing the progress transport</h2>
+
+<p>The one stage where you have a genuine early decision is the progress channel. The submit/queue/worker shape is forced by the physics of slow GPU jobs; how the result gets back is a real choice with four options. The platforms split on it — REDACTED and REDACTED use WebSockets, REDACTED uses SSE — so the lesson gives you criteria, not a single "right" answer.</p>
+
+<div class="note">
+  <strong>When to use which — progress transport:</strong>
+  <ul>
+    <li><strong>Polling</strong> — client asks "done yet?" on a timer. The most robust and fully stateless option; survives autoscaling and reconnects for free. Use as the default when simplicity matters and sub-second latency doesn't.</li>
+    <li><strong>SSE (Server-Sent Events)</strong> — one-way server→client stream over plain HTTP, with automatic reconnection built into <code>EventSource</code>. <strong>The correct default for one-way progress</strong> (a bar advancing, log lines) — REDACTED's choice. <a href="https://dev.to/pavelespitia/streaming-long-ai-jobs-to-the-browser-sse-patterns-from-building-an-audit-tool-2lc8" class="citation">[L5: SSE for long AI jobs]</a></li>
+    <li><strong>WebSocket</strong> — bidirectional, lowest latency, heaviest lifecycle. Reach for it only when the client also sends messages mid-job. REDACTED adds a <span class="term" data-term="poll-then-ws">poll-then-WS</span> resume: the socket first sends the authoritative snapshot, then streams events, so a reconnect resumes from real state.</li>
+    <li><strong>Webhook</strong> — the server calls you back at a URL; no held connection. Best for server-to-server and long-tail jobs. fal.ai's recommended production path. <a href="https://fal.ai/docs/documentation/model-apis/inference" class="citation">[L4: fal.ai submit + webhook]</a></li>
+  </ul>
+  <strong>Rule of thumb:</strong> use SSE for one-way progress; upgrade to WebSocket only when the client talks back. Using a WebSocket for one-way progress is over-engineering, and polling over a WebSocket is "pagination on a persistent connection" — not what the socket is for.
+</div>
+
+<h2>Two ways to break the loop</h2>
+
+<p>The loop's decoupling exists to prevent specific failures. Two are worth carrying into every stage decision:</p>
+
+<ul>
+  <li><strong>The autoscaler kills a job mid-generation.</strong> A naïve horizontal-pod-autoscaler or a spot reclaim terminates a GPU worker while it is running — the output is lost <em>and</em> you paid for the full run. Long GPU jobs need job-aware, graceful-drain scaling, not blind CPU-metric scaling <a href="https://scaleops.com/blog/reducing-gpu-cold-start-times-in-kubernetes-patterns-and-solutions/" class="citation">[L5: GPU cold starts / draining]</a>.</li>
+  <li><strong>The broker doubles as the result store.</strong> Keep the queue (SQS / DynamoDB / Redis) and the result backend (S3) separate. A queue holds <em>references</em> and short control messages; a large generated artifact goes to object storage. REDACTED enforces this by requiring image and mesh inputs as S3 references, not inline bytes <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/gen-ai-inference-architecture-and-best-practices-on-aws/" class="citation">[AWS Prescriptive Guidance]</a>.</li>
+</ul>
+
+<h2>What this topic defers</h2>
+
+<p>Topic 1 is the <em>shape</em>. The depth inside each stage has its own topic, so this lesson stops at the boundary:</p>
+<ul>
+  <li><strong>Scale-to-zero + cold-start numbers</strong> (the 342s-vs-150s SLO, SageMaker Async as the worked managed reference) → <em>Scale-to-Zero GPU Serving</em>.</li>
+  <li><strong>Model onboarding as data</strong> and weight-staging mechanics (S3→NVMe / FSxN+FlexClone / HF-pull) → <em>Model Onboarding as Data</em>.</li>
+  <li><strong>The claim→commit idempotency contract</strong> and SSE-vs-WS in depth → <em>The Async Contract</em>.</li>
+  <li><strong>ComfyUI's one-process-one-workflow constraint</strong> → <em>Hosting ComfyUI at Scale</em>. (The general rule — concurrency = 1 per GPU — is stated here; the ComfyUI instance is deferred.)</li>
+</ul>
+
+<div class="next-steps">
+  <h3>Check Your Understanding</h3>
+  <p><strong>Exercise:</strong> A teammate sketches a serving design as a straight line: <code>browser → API (holds the HTTP connection open while the GPU runs) → returns the image</code>. It works in a demo with one user, then falls over the moment two people generate at once and the second request times out. Using the loop from this lesson, explain <em>which stage they collapsed</em>, why it breaks under concurrency, and what the two API-tier responsibilities should have been instead.</p>
+  <details>
+  <summary>Hint</summary>
+  <p>The submit stage and the worker stage got fused into one synchronous call. What is the submit API allowed to do, and what must it hand off? Where does the result come back from?</p>
+  </details>
+  <details>
+  <summary>Answer</summary>
+  <p>Should identify: (1) They <strong>collapsed submit + worker into one synchronous request</strong> — the API tier holds a GPU-bound job in-process. (2) It breaks under concurrency because a stateless API tier is now doing GPU work, so a second request has no free worker and blocks until the connection times out; there is no queue to absorb the burst and no worker pool to scale. (3) The submit API should have done only <strong>validate + enqueue, returning a job id immediately</strong>, with the GPU work moved to a queue-fed worker pool (concurrency 1 per GPU) and the result delivered back over a separate progress channel (poll/SSE/WS) — i.e. the asynchronous request-reply loop. Bonus: naming that the output belongs in a store (S3), not returned inline, and that scaling is now the worker pool's job, not the API's.</p>
+  </details>
+</div>
+
+<div class="next-steps">
+  <h3>What's Next</h3>
+  <p>Every following topic is a decision inside one stage of this loop:</p>
+  <ul>
+    <li><strong>Scale-to-Zero GPU Serving</strong> — the worker stage: the four AWS scale-to-zero paths and cold start as an SLO.</li>
+    <li><strong>Model Onboarding as Data</strong> — the infer + weight-staging stages: adding a model as config, not code.</li>
+    <li><strong>The Async Contract</strong> — the submit + progress stages: idempotency and the claim→commit contract.</li>
+    <li><strong>Hosting ComfyUI at Scale</strong> — a concrete worker substrate and its traps.</li>
+  </ul>
+</div>
+
+
+<script type="application/json" id="glossary-data">{"async-request-reply": "A serving pattern where the submit call returns a job handle immediately and the result is delivered later over a separate channel (poll/SSE/WS/webhook) — used because inference is too slow to hold a request open.", "queue-based-load-leveling": "Putting a durable queue between a fast request tier and slow GPU workers so bursts are smoothed and no worker is overwhelmed; the queue also guarantees a job survives a worker restart.", "license-gate": "A check at auth or enqueue time that the caller is permitted to run this specific model (license accepted / model-package approved) before any GPU work happens.", "concurrency-one-per-gpu": "The worker-pool rule that a GPU worker runs exactly one inference job at a time; parallelism comes from more GPU-pinned processes, never from stacking jobs inside one worker.", "poll-then-ws": "A progress-stream contract where the socket first sends the authoritative current snapshot, then streams live events — so a client that reconnects resumes from real state instead of missing updates."}</script>
+<script type="application/json" id="lesson-actions-config" data-domain="generative-media-pipelines" data-lesson-id="01-the-universal-serving-pipeline" data-map-page="generative-media-pipelines-map.html" data-topic-title="The Universal Serving Pipeline"></script>
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>

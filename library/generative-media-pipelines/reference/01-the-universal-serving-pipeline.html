@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference: The Universal Serving Pipeline</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="../lessons/index.html">All Lessons</a> <span class="nav-sep">›</span> <a href="../lessons/generative-media-pipelines-map.html">Generative Media Pipelines</a> <span class="nav-sep">›</span> <a href="../lessons/01-the-universal-serving-pipeline.html">The Universal Serving Pipeline</a> <span class="nav-sep">›</span> <span>Reference</span></nav>
+<h1>The Universal Serving Pipeline — Quick Reference</h1>
+
+<div class="lesson-meta">
+  Reference · Generative Media Pipelines<br>
+  Pull this up when you need a quick lookup.
+</div>
+<h2>The nine-stage loop</h2>
+<p>An asynchronous request-reply cycle — submit returns a job handle immediately; the result comes back later on a separate channel.</p>
+<ol>
+  <li><strong>Client</strong> — machine / browser / team.</li>
+  <li><strong>Auth</strong> — identity + license gate.</li>
+  <li><strong>Submit API</strong> — validate + enqueue only; returns a job id. Never does GPU work in-process.</li>
+  <li><strong>Queue</strong> — durable shock absorber; survives worker restarts.</li>
+  <li><strong>Scale-to-zero GPU worker</strong> — wakes, stages weights, infers; drops to zero (or a warm floor) when idle.</li>
+  <li><strong>Weight staging</strong> — weights arrive from S3 / NFS / HuggingFace at start; never baked into the image.</li>
+  <li><strong>Infer</strong> — model execution.</li>
+  <li><strong>Output store</strong> — S3, separate from the queue broker.</li>
+  <li><strong>Progress stream</strong> — poll / SSE / WebSocket back to the client.</li>
+</ol>
+
+<h2>Per-platform stage map</h2>
+<table>
+  <thead><tr><th>Stage</th><th>REDACTED</th><th>REDACTED</th><th>REDACTED</th></tr></thead>
+  <tbody>
+    <tr><td>auth</td><td>Cognito JWT + <code>org_id</code></td><td>AWS-account trust</td><td>Cognito + REDACTED</td></tr>
+    <tr><td>submit</td><td><code>POST /v1/models/{id}/{ver}/jobs</code></td><td><code>POST /api/generate/stream</code></td><td><code>POST /prompt</code></td></tr>
+    <tr><td>queue</td><td>SQS FIFO</td><td>S3 async job tracker</td><td>DynamoDB + KEDA</td></tr>
+    <tr><td>worker</td><td>ECS/EC2 Spot + Fleet</td><td>SageMaker MinCapacity=0</td><td>EKS GPU pod + Karpenter</td></tr>
+    <tr><td>weight staging</td><td>S3 → NVMe</td><td>HuggingFace pull</td><td>S3 → FSxN → FlexClone</td></tr>
+    <tr><td>infer</td><td>runner stage/load/infer</td><td>universal handler</td><td>ComfyUI graph</td></tr>
+    <tr><td>output store</td><td>S3 typed artifacts</td><td>S3 <code>data/generated/</code></td><td>EFS + <code>/view</code></td></tr>
+    <tr><td>progress</td><td>WebSocket (poll-then-WS)</td><td>SSE</td><td>ComfyUI <code>/ws</code></td></tr>
+  </tbody>
+</table>
+
+<h2>Six divergence axes</h2>
+<ul>
+  <li><strong>Serving substrate</strong> — custom orchestrator · Bedrock+SageMaker · ComfyUI-on-EKS</li>
+  <li><strong>Target user/client</strong> — machine · human · any team</li>
+  <li><strong>Progress transport</strong> — WebSocket · SSE</li>
+  <li><strong>Queue</strong> — SQS FIFO · S3 tracker · DynamoDB+KEDA</li>
+  <li><strong>Weight staging</strong> — S3→NVMe · HF-pull · FSxN+FlexClone</li>
+  <li><strong>Scale-to-zero depth</strong> — true zero · warm-pod floor</li>
+</ul>
+
+<h2>Progress transport — pick by criteria</h2>
+<table>
+  <thead><tr><th>Transport</th><th>Shape</th><th>Use when</th></tr></thead>
+  <tbody>
+    <tr><td>Polling</td><td>client asks on a timer; stateless</td><td>default; robust, survives autoscaling; latency not critical</td></tr>
+    <tr><td>SSE</td><td>one-way server→client, auto-reconnect</td><td>one-way progress (bar/logs) — the correct default</td></tr>
+    <tr><td>WebSocket</td><td>bidirectional, heaviest lifecycle</td><td>only when the client also sends mid-job</td></tr>
+    <tr><td>Webhook</td><td>server calls back; no held connection</td><td>server-to-server, long-tail jobs</td></tr>
+  </tbody>
+</table>
+
+<h2>Anti-patterns</h2>
+<ul>
+  <li><strong>Submit tier holds a GPU</strong> — fuses submit+worker; blocks under concurrency. Submit must validate+enqueue only.</li>
+  <li><strong>Autoscaler kills a job mid-generation</strong> — need job-aware graceful drain, not blind CPU scaling.</li>
+  <li><strong>Broker as result store</strong> — keep the queue (references) separate from S3 (artifacts).</li>
+  <li><strong>WebSocket for one-way progress</strong> — over-engineering; SSE is the right tool.</li>
+</ul>
+
+<h2>Three honest asymmetries</h2>
+<ul>
+  <li>REDACTED Bedrock path — no platform-owned worker (managed service owns it).</li>
+  <li>REDACTED auth — AWS-account trust, not a per-request authorizer.</li>
+  <li>REDACTED scale-to-zero — a warm-pod floor (KEDA <code>minReplicaCount 1</code>), not literal zero.</li>
+</ul>
+
+<p class="muted-note">Design source: <code>.memory/research/world-models-and-genmedia/02-generative-media-pipelines.md</code>; all cells <code>[L1]</code> against the three explored repos.</p>
+
+
+<script type="module" src="../assets/page-shell.js"></script>
+
+</body>
+</html>

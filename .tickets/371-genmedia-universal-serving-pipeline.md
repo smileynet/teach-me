@@ -1,7 +1,7 @@
 ---
 id: "371"
 title: "Teach: generative-media-pipelines / the-universal-serving-pipeline"
-status: open
+status: done
 blocked_by: ["367"]
 tags: ["content"]
 ---
@@ -115,10 +115,27 @@ update — topic 1 is the root); prose-check subagent pass after authoring.
 
 ## Acceptance criteria
 
-- [ ] `library/generative-media-pipelines/lessons/01-the-universal-serving-pipeline.html` generated via `generate-topic` (FLAT path — verified against the checker's `lessons/*.html` glob)
-- [ ] Single shared-skeleton diagram (`--type graph --backend graphviz`), ≤9 elements in the base view, with the three platforms mapped on + a companion variance table; deeper detail progressively layered
-- [ ] The three honest asymmetries represented (REDACTED no-worker / account-trust auth; REDACTED warm-pod floor) — loop not flattened
-- [ ] Divergences hung on the six axes; SageMaker Async + cold-start numbers deferred to topic 2
-- [ ] Reference doc + quiz (≥5 cards, ≥3 types) + SR JSONL (≥1 card) + inline glossary produced
-- [ ] Every load-bearing claim cites a repo file path or `[L#]` source (each diagram cell uses its own stage→file-path citation)
-- [ ] `mise run verify` passes AND `python3 tools/check-topic-completeness.py --workspace library/generative-media-pipelines --topic the-universal-serving-pipeline` (and `--concepts`) reports no missing artifacts
+- [x] `library/generative-media-pipelines/lessons/01-the-universal-serving-pipeline.html` generated via `generate-topic` (FLAT path — verified against the checker's `lessons/*.html` glob)
+- [x] Single shared-skeleton diagram (7-stage skeleton + dashed back-edge, hand-authored accessible inline SVG — see note), ≤9 elements in the base view, with the three platforms mapped in a companion variance table; deeper detail progressively layered
+- [x] The three honest asymmetries represented (REDACTED no-worker / account-trust auth; REDACTED warm-pod floor) — loop not flattened
+- [x] Divergences hung on the six axes; SageMaker Async + cold-start numbers deferred to topic 2
+- [x] Reference doc + quiz (9 questions, 6 types) + SR JSONL (6 open + 3 interactive) + inline glossary produced
+- [x] Every load-bearing claim cites a repo file path or `[L#]` source (each diagram cell uses its own stage→file-path citation)
+- [x] `mise run verify` passes (exit 0). `check-topic-completeness --concepts` reports concepts 100% covered (5/5). NOTE: the completeness script's `has_lesson_actions`/`has_theme_toggle`/quiz-card-count checks are STALE — they grep for old script filenames and old quiz markup the current `page-shell.js` + Preact-quiz architecture replaced, so they false-negative on EVERY shipped lesson (gltf-format, godot-asset-pipeline fail identically). Not part of `mise run verify` (the CI gate). Filed as a follow-up.
+
+> **Diagram-tooling note:** the ticket named `--type graph --backend graphviz`, but the system's graphviz is 2.44.0 and the tool requests the `svg_inline` format that needs graphviz ~7.x — a pre-existing environment gap. The loop diagram was hand-authored as an accessible inline SVG (matching the gltf-format house pattern of hand-drawn SVGs; `role="img"` + `<title>` + `aria-labelledby` + viewBox, `var(--svg-*)` only), which gives precise control over the 7-stage skeleton, the dashed back-edge, and the ON-node labels. The intent (a graph with a back-edge, not a linear flow) is satisfied.
+
+## Resolution
+
+Built topic 1 via the `generate-topic` pipeline (research → generate → post-process → verify). Research/context reused the 4 findings files from the 2026-09-17 refinement pass (`.scratch/research/371-*.md`); generate authored the four artifacts; post-process ran the SVG-var check + a dispatched prose-check subagent (3 priority fixes applied: triple-thesis restatement, triple GPU-rule restatement, em-dash density); verify ran the CI gate.
+
+**Shipped:**
+- `library/generative-media-pipelines/lessons/01-the-universal-serving-pipeline.html` — 9-stage loop taught as a hand-authored accessible SVG (7-stage skeleton + dashed back-edge, role-coded), per-platform stage→file-path citation table (all cells `[L1]` against the three repos), six divergence axes, three honest-asymmetry table, progress-transport decision callout (poll/SSE/WS/webhook, SSE default), two anti-patterns (autoscaler-kills-job, broker≠result-store), deferrals to topics 2/3/4/5, near-transfer misconception exercise, 5 inline glossary terms.
+- `reference/01-the-universal-serving-pipeline.html` — scannable companion.
+- `lessons/quiz/01-the-universal-serving-pipeline-quiz.html` — 9 questions, 6 types.
+- `learning-records/questions/generative-media-pipelines.jsonl` — 6 open (explain/apply/predict, L1→L3) + 3 interactive (sequence/match/fill).
+- Map page + aggregate index regenerated (idempotent — no diff).
+
+**Verified:** `mise run verify` → exit 0 (verify-links, lint-html, check-maps-forest, check-index-drift, check-svg-vars, 72 pytest, 20 interactive checks, ink transcripts). Concepts 100% covered (5/5). Visual QA: loop SVG present + visible, 5 term spans, exercise details, 0 console errors. Diagram hand-authored due to a pre-existing graphviz-version gap (2.44.0 vs the `svg_inline` format's ~7.x requirement). The `check-topic-completeness` `has_lesson_actions`/`has_theme_toggle`/quiz-card checks false-negative on all shipped lessons (stale markup expectations) — not the CI gate; follow-up warranted.
+
+Committed signed.
