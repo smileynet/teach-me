@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Map: Generative Media Pipelines — Hosting Models to Generate Images, Video, Speech &amp; 3D</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+
+    body { max-width: none; padding: 2rem; }
+    .dag-container { position: relative; width: 100%; overflow-x: auto; }
+    .dag-canvas { position: relative; min-width: min-content; }
+    .edge-layer { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1; }
+    .topic-card {
+      position: absolute; width: 420px; padding: 1rem 1.2rem;
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+      z-index: 2; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .topic-card:hover { border-color: var(--accent); box-shadow: 0 2px 16px rgba(203, 166, 247, 0.1); }
+    .topic-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text); flex-wrap: wrap; }
+    .topic-card .why { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
+    .topic-card .prereq-label { font-size: 0.75rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.5rem; }
+    .topic-card .prereq-list { list-style: none; margin: 0 0 0.5rem; padding: 0; font-size: 0.72rem; }
+    .topic-card .prereq-item { display: flex; align-items: baseline; gap: 0.4rem; line-height: 1.6; margin-bottom: 0.15rem; }
+    /* met/unmet: color reinforces, glyph (✓/○) + word ("met"/"not yet") carry meaning (color-not-alone) */
+    .topic-card .prereq-item.met .prereq-mark, .topic-card .prereq-item.met .prereq-state { color: var(--success); }
+    .topic-card .prereq-item.unmet .prereq-mark, .topic-card .prereq-item.unmet .prereq-state { color: var(--text-muted); }
+    .topic-card .prereq-mark { font-weight: 700; flex: 0 0 auto; }
+    .topic-card .prereq-state { font-variant: small-caps; letter-spacing: 0.02em; flex: 0 0 auto; margin-right: 0.15rem; }
+    .topic-card .prereq-name { color: var(--text-faint); font-style: italic; }
+    .topic-card .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .btn {
+      font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px;
+      border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+      cursor: pointer; transition: border-color 0.15s, color 0.15s;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.primary { border-color: var(--accent); color: var(--accent); }
+    .badge { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 3px; font-weight: 500; white-space: nowrap; }
+    .badge.not-started { background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    .badge.generating { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
+    .badge.complete { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
+    .badge.in-progress { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+    .gen-progress { font-size: 0.75rem; color: var(--warning); margin-top: 0.4rem; font-family: monospace; }
+    .gen-stream { margin-top: 0.5rem; }
+    .gen-stream-header { font-size: 0.8rem; margin-bottom: 0.3rem; }
+    .gen-status.connecting { color: var(--text-muted); }
+    .gen-status.streaming { color: var(--warning); }
+    .gen-status.done { color: var(--success); }
+    .gen-status.error { color: var(--error); }
+    .gen-stream-output {
+      background: var(--code-bg); padding: 0.5rem; border-radius: 4px;
+      font-size: 0.72rem; font-family: monospace; max-height: 150px;
+      overflow-y: auto; line-height: 1.4;
+    }
+    .gen-stream-output .line { padding: 1px 0; }
+    .gen-stream-output .phase-tool { color: var(--accent); }
+    .gen-stream-output .phase-writing { color: var(--success); }
+    .gen-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex;
+      align-items: center; justify-content: center; z-index: 1000;
+    }
+    .gen-modal {
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1.5rem; max-width: 550px; width: 90%;
+    }
+    .gen-modal-actions { display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: flex-end; }
+    .leads-to { margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); }
+    .leads-to-grid { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+    .leads-to-btn {
+      display: flex; flex-direction: column; align-items: flex-start; padding: 0.75rem 1rem;
+      border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);
+      font-weight: 500; font-size: 0.95rem; cursor: pointer; text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .leads-to-btn:hover { border-color: var(--accent); background: var(--bg-elevated); }
+    .leads-to-desc { font-weight: 400; font-size: 0.83rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .loading { color: var(--text-muted); padding: 2rem; }
+    .map-header { margin-bottom: 1.5rem; }
+    .map-header h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    .map-header .orientation { color: var(--text-muted); font-size: 0.9rem; max-width: 700px; line-height: 1.5; }
+
+  </style>
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+  <script src="../assets/vendor/dagre.min.js"></script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <span>Generative Media Pipelines — Hosting Models to Generate Images, Video, Speech &amp; 3D</span></nav>
+<div class="map-header">
+    <h1>Generative Media Pipelines — Hosting Models to Generate Images, Video, Speech & 3D</h1>
+    <p class="orientation">A generative media pipeline is the platform that turns "a research model on a GPU" into "a stable
+API a creative team calls." Three real platforms — a custom scale-to-zero orchestrator
+(studio-model-service), an artist studio over Bedrock + SageMaker (ArtSmoker), and a ComfyUI
+platform on EKS (riot-comfy-ui-platform) — all implement the *same* core loop: authenticate,
+submit a job, queue it, wake a GPU worker that was scaled to zero, stage the model weights, infer,
+store the output, and stream progress back. This track teaches that shared architecture and the
+decisions inside it: which AWS scale-to-zero path to pick, why you onboard models as data instead
+of endpoints, why weights never live in the container image, how to host ComfyUI headlessly, what
+the image→3D landscape and its licensing look like, and why LoRA is a *hosted* category whose
+*training* lives in a separate tier. It's deliberately architecture-first — the specific models are
+examples; the serving patterns transfer. Sources are the three explored repos (primary) plus
+internal + external prior-art research; the image→3D *output* feeds the gltf-format and
+godot-asset-pipeline domains, which this references rather than duplicates.</p>
+  </div>
+  <div id="app"></div>
+
+<script type="application/json" id="page-data">{"domain": "generative-media-pipelines", "title": "Generative Media Pipelines — Hosting Models to Generate Images, Video, Speech & 3D", "orientation": "A generative media pipeline is the platform that turns \"a research model on a GPU\" into \"a stable\nAPI a creative team calls.\" Three real platforms — a custom scale-to-zero orchestrator\n(studio-model-service), an artist studio over Bedrock + SageMaker (ArtSmoker), and a ComfyUI\nplatform on EKS (riot-comfy-ui-platform) — all implement the *same* core loop: authenticate,\nsubmit a job, queue it, wake a GPU worker that was scaled to zero, stage the model weights, infer,\nstore the output, and stream progress back. This track teaches that shared architecture and the\ndecisions inside it: which AWS scale-to-zero path to pick, why you onboard models as data instead\nof endpoints, why weights never live in the container image, how to host ComfyUI headlessly, what\nthe image→3D landscape and its licensing look like, and why LoRA is a *hosted* category whose\n*training* lives in a separate tier. It's deliberately architecture-first — the specific models are\nexamples; the serving patterns transfer. Sources are the three explored repos (primary) plus\ninternal + external prior-art research; the image→3D *output* feeds the gltf-format and\ngodot-asset-pipeline domains, which this references rather than duplicates.", "topics": [{"id": "01M2R98N1JTYQXWXSDV3EBC7MW", "slug": "the-universal-serving-pipeline", "title": "The Universal Serving Pipeline", "why": "Every later topic is a decision *inside* this loop — you can't reason about scale-to-zero, onboarding, or the async contract without the end-to-end shape first. Taught as one diagram (client → auth → submit → queue → scale-to-zero GPU worker → weight staging → infer → output store → progress stream) with each of the three platforms mapped onto it, so the shared pattern and the divergences are both visible.", "prereqs": [], "status": "not-started", "lessonPath": "01-the-universal-serving-pipeline.html"}, {"id": "01M2R98N1J0D5K8T3HW95QFKB9", "slug": "scale-to-zero-gpu-serving", "title": "Scale-to-Zero GPU Serving", "why": "GPUs are expensive and idle most of the time, so scaling to zero is the economic heart of the whole design — and cold start is the tax you pay for it. Covers the four AWS-native paths (SageMaker Async, Inference-Component minCopies=0, Serverless-CPU-only, EKS Karpenter+KEDA) + Bedrock, the measured cold-start SLO (~342s scale-from-zero vs ~150s warm-pool), and why the hand-rolled orchestrators re-implement SageMaker Async / the EKS reference architecture.", "prereqs": ["01M2R98N1JTYQXWXSDV3EBC7MW"], "status": "not-started", "lessonPath": "02-scale-to-zero-gpu-serving.html"}, {"id": "01M2R98N1JH2ACGN90N90CR7A3", "slug": "model-onboarding-as-data", "title": "Model Onboarding as Data", "why": "Adding a model must not mean adding an endpoint or bespoke serving code — this is what lets one platform serve many models. Covers the manifest/registry (studio-model-service), the universal data-driven inference handler + format families (ArtSmoker), and the versioned workflow-container (riot); the rule-of-two seam; runner strategies (native/comfyui/mock); and why weights are never baked into the image (S3→NVMe vs FSxN+FlexClone vs HF-direct-pull, NF4/offload).", "prereqs": ["01M2R98N1JTYQXWXSDV3EBC7MW"], "status": "not-started", "lessonPath": "03-model-onboarding-as-data.html"}, {"id": "01M2R98N1JF95PJKCYR4JCKFK7", "slug": "the-async-contract", "title": "The Async Submit/Status/Progress Contract", "why": "Inference is too slow for request/response, so every platform is submit/status/stream — and getting the idempotency right is where correctness lives. Covers submit/status/progress, SSE vs WebSocket, poll-then-WS resume, and the claim→commit \"work-done-wins\" contract (and why a reaper + visibility recovery would double-run jobs).", "prereqs": ["01M2R98N1JTYQXWXSDV3EBC7MW"], "status": "not-started", "lessonPath": "04-the-async-contract.html"}, {"id": "01M2R98N1JSSGZ9GTRY1P5YZDT", "slug": "comfyui-at-scale", "title": "Hosting ComfyUI at Scale", "why": "ComfyUI is the de-facto node-graph substrate for generative workflows, and hosting it as a service has specific traps. Covers the headless API (/prompt → prompt_id, /ws progress, /history, /object_info introspection), headless-batch vs streamed-UI (AppStream), the three AWS reference samples, the ALB WebSocket idle-timeout trap, workflow-as-immutable-container versioning, and the no-auth security surface.", "prereqs": ["01M2R98N1JH2ACGN90N90CR7A3", "01M2R98N1JF95PJKCYR4JCKFK7"], "status": "not-started", "lessonPath": "05-comfyui-at-scale.html"}, {"id": "01M2R98N1JBZ8E3378G56N2Y8S", "slug": "media-types-and-image-to-3d", "title": "Media Types & Image-to-3D", "why": "What these platforms actually generate, with image→3D as the common denominator and its own licensing/cleanup gotchas. Covers the two-level 2D pipeline (Options × Variations, canary moderation), video-async, image→3D model families (TRELLIS.2 / Hunyuan3D / TripoSG / TripoSR) + the Hunyuan3D non-commercial-license gate + the universal retopo/UV/PBR/LOD \"cleanup tax\" (which references gltf-format / godot-asset-pipeline rather than duplicating them).", "prereqs": ["01M2R98N1JTYQXWXSDV3EBC7MW"], "status": "not-started", "lessonPath": "06-media-types-and-image-to-3d.html"}, {"id": "01M2R98N1JAP32MK8W74HYM6M8", "slug": "lora-and-the-training-tier", "title": "LoRA & the Training Tier", "why": "The sharpest cross-platform finding — none of the serving platforms *train* LoRAs; they *host* them, and training lives in a separate tier. Corrects the common assumption. Covers LoRA-as-hosted-category, SageMaker Training Jobs (the default for one SDXL/FLUX LoRA) vs HyperPod (org-scale), the data-flywheel pattern, and style-via-prompt as the non-LoRA alternative.", "prereqs": ["01M2R98N1JH2ACGN90N90CR7A3"], "status": "not-started", "lessonPath": "07-lora-and-the-training-tier.html"}], "leadsTo": [], "edges": [{"source": "01M2R98N1JTYQXWXSDV3EBC7MW", "target": "01M2R98N1J0D5K8T3HW95QFKB9", "type": "prereq", "why": ""}, {"source": "01M2R98N1JTYQXWXSDV3EBC7MW", "target": "01M2R98N1JH2ACGN90N90CR7A3", "type": "prereq", "why": ""}, {"source": "01M2R98N1JTYQXWXSDV3EBC7MW", "target": "01M2R98N1JF95PJKCYR4JCKFK7", "type": "prereq", "why": ""}, {"source": "01M2R98N1JH2ACGN90N90CR7A3", "target": "01M2R98N1JSSGZ9GTRY1P5YZDT", "type": "prereq", "why": ""}, {"source": "01M2R98N1JF95PJKCYR4JCKFK7", "target": "01M2R98N1JSSGZ9GTRY1P5YZDT", "type": "prereq", "why": ""}, {"source": "01M2R98N1JTYQXWXSDV3EBC7MW", "target": "01M2R98N1JBZ8E3378G56N2Y8S", "type": "prereq", "why": ""}, {"source": "01M2R98N1JH2ACGN90N90CR7A3", "target": "01M2R98N1JAP32MK8W74HYM6M8", "type": "prereq", "why": ""}]}</script>
+<script type="module">
+
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { MapView } from '../assets/components/MapView.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    try {
+      const response = await fetch(`/api/map/${encodeURIComponent(data.domain)}`);
+      if (response.ok) {
+        const live = await response.json();
+        const statuses = new Map(live.topics.map(topic => [topic.slug, topic.status]));
+        data.topics = data.topics.map(topic => ({
+          ...topic,
+          status: statuses.get(topic.slug) ?? topic.status,
+        }));
+      }
+    } catch {
+      // Static hosts and unavailable APIs keep the committed demo/no-JS state.
+    }
+
+    render(
+      html`<${MapView} topics=${data.topics} leadsTo=${data.leadsTo} edges=${data.edges} orientation=${data.orientation} title=${data.title} />`,
+      document.getElementById('app')
+    );
+
+</script>
+
+</body>
+</html>

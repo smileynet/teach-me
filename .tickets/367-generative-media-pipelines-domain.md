@@ -81,12 +81,33 @@ verified independently — not a claim about that specific repo. Keep the two di
 
 ## Acceptance criteria
 
-- [ ] `generative-media-pipelines.MAP.md` at `library/generative-media-pipelines/maps/` with the topic spine + prereq edges; ULIDs via `tools/migrate_map_ids.py --apply`; passes `tools/check-maps-forest.py`
-- [ ] Source-verification gate recorded (claim→cited-source contract)
-- [ ] Standalone depth-0 confirmed; incoming `leads_to` from #366 recorded; differentiated from gltf-format / godot-asset-pipeline (no duplication — reference for image→3D output)
-- [ ] Provenance recorded (design source = the promoted guide; backing = repo-findings + all gap-research)
-- [ ] Topic spine reviewed/trimmed (9 → final count; decide whether speech is in-scope) with the user before topic tickets
+- [x] `generative-media-pipelines.MAP.md` at `library/generative-media-pipelines/maps/` with the topic spine + prereq edges; ULIDs via `tools/migrate_map_ids.py --apply`; passes `tools/check-maps-forest.py`
+- [x] Source-verification gate recorded (claim→cited-source contract) — in MISSION.md Constraints + RESOURCES.md source-authority note
+- [x] Standalone depth-0 confirmed; incoming `leads_to` from #366 recorded; differentiated from gltf-format / godot-asset-pipeline (no duplication — reference for image→3D output)
+- [x] Provenance recorded (design source = the promoted guide; backing = repo-findings + all gap-research) — RESOURCES.md
+- [ ] Topic spine reviewed/trimmed (9 → final count; decide whether speech is in-scope) with the user before topic tickets — **AWAITING USER REVIEW** (see scaffold note)
 - [ ] NO lessons generated — topic tickets created after this is signed off
+
+## Scaffold status (2026-09-17) — PROPOSAL COMPLETE, awaiting sign-off
+
+Scaffold placed and validated (proposal-only, no lessons):
+
+- `library/generative-media-pipelines/{MISSION.md, RESOURCES.md, maps/generative-media-pipelines.MAP.md}`
+- **Topic spine trimmed 9 → 7** (my proposal, needs your review): folded `weights-storage-and-cold-start`
+  into `scale-to-zero-gpu-serving` (topic 2) and `model-onboarding-as-data` (topic 3); **dropped
+  the optional `speech-generation` topic** given the thin coverage across the repos — speech prior
+  art is preserved in `gap-research/tts-speech-generation.md` and can be added back as topic 8 if
+  you want it in scope.
+- Final 7 topics: (1) universal-serving-pipeline → (2) scale-to-zero-gpu-serving,
+  (3) model-onboarding-as-data, (4) async-contract; (5) comfyui-at-scale [needs 3+4];
+  (6) media-types-and-image-to-3d; (7) lora-and-the-training-tier [needs 3].
+- Prereq edges: `1→{2,3,4}`, `{3,4}→5`, `1→6`, `3→7`. Within-map. `leads_to: []` (leaf; #366 points in).
+- **Verification:** `check-maps-forest.py` → "generative-media-pipelines: 1 map(s) — clean" (all 8
+  domains clean); `map:generate` → rendered 7 topics.
+
+**Two decisions for you before topic tickets:** (1) approve the 7-topic trim, or restore
+weights-storage / speech as their own topics; (2) confirm topic 6's image→3D depth vs deferring to
+the gltf-format / godot-asset-pipeline domains. Once approved, I'll cut the 7 topic tickets.
 
 ## Notes
 
