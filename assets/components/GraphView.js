@@ -110,11 +110,21 @@ export function GraphView(props) {
   }, []);
 
   // fit-to-view (viewport==='fit'): single CSS transform scaling the canvas into the frame.
+  // The frame may mount inside a display:none pane (UnifiedView keeps both panes mounted);
+  // clientWidth is 0 there, so fitting at mount would lock the canvas at scale(0). Fit
+  // immediately when measurable and re-fit on any frame resize (pane reveal, window resize).
   useEffect(() => {
     if (viewport !== 'fit' || !L || !frameRef.current) return;
-    const fw = frameRef.current.clientWidth, fh = frameRef.current.clientHeight;
-    const k = Math.min(fw / L.width, fh / L.height, 1);
-    setView({ k, x: (fw - L.width * k) / 2, y: 12 });
+    const fit = () => {
+      const fw = frameRef.current.clientWidth, fh = frameRef.current.clientHeight;
+      if (!fw || !fh) return;
+      const k = Math.min(fw / L.width, fh / L.height, 1);
+      setView({ k, x: (fw - L.width * k) / 2, y: 12 });
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(frameRef.current);
+    return () => observer.disconnect();
   }, [L, viewport]);
 
   if (!L) return html`<div class="loading">Computing layout…</div>`;
