@@ -1,7 +1,7 @@
 ---
 id: "341"
 title: "Enforce local-only learner progress in the shared repository"
-status: open
+status: in_progress
 priority: high
 blocked_by: ["332", "338"]
 type: fix
