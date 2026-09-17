@@ -42,6 +42,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # Add tools/ to import path for map_parser
 sys.path.insert(0, str(PROJECT_ROOT / "tools"))
+from lib.workspace_context import WorkspaceContext
 
 # ---------------------------------------------------------------------------
 # Arg parsing (early — needed before app mounts)
@@ -88,7 +89,7 @@ def _parse_args() -> tuple[str, int, Path]:
         # Fresh clone (no private workspace): serve the committed public library
         # (ADR-0012, supersedes ADR-0011's empty-workspace default). The library is a
         # multi-domain tree with no top-level lessons/maps — it's mounted at / as a
-        # static tree (see the library-root mount below) and MAPS_DIR is unused.
+        # static tree and its domain maps are resolved from the workspace context.
         ws = PROJECT_ROOT / "library"
     else:
         # No workspace and no library — auto-create a default workspace (in-process).
@@ -107,25 +108,19 @@ def _parse_args() -> tuple[str, int, Path]:
 
 
 _HOST, _PORT, WORKSPACE = _parse_args()
-
-MAPS_DIR = WORKSPACE / "maps"
-if not MAPS_DIR.exists():
-    # Legacy single-workspace fallback. Multi-domain library roots resolve every map
-    # by its parsed domain identity below.
-    MAPS_DIR = PROJECT_ROOT / "library" / "iceberg-workspace" / "maps"
-
-
-_SERVING_MULTI_DOMAIN = not (WORKSPACE / "lessons").is_dir()
+try:
+    CONTEXT = WorkspaceContext.from_root(WORKSPACE)
+except ValueError as error:
+    print(f"✗ {error}")
+    sys.exit(1)
 
 
 def _map_for_domain(domain: str):
     """Return the one parsed map whose canonical domain identity matches `domain`."""
     from map_parser import load_map
 
-    map_paths = (WORKSPACE.glob("*/maps/*.MAP.md") if _SERVING_MULTI_DOMAIN
-                 else MAPS_DIR.glob("*.MAP.md"))
     matches = []
-    for path in sorted(map_paths):
+    for path in CONTEXT.maps:
         parsed = load_map(path)
         if parsed.domain == domain:
             matches.append((path, parsed))
@@ -139,12 +134,12 @@ def _overlay():
     """The per-user status overlay for the served content root."""
     from lib.overlay import Overlay
 
-    return Overlay(WORKSPACE if _SERVING_MULTI_DOMAIN else MAPS_DIR.parent)
+    return Overlay(CONTEXT.overlay_root)
 
 @app.get("/api/lessons")
 async def list_lessons() -> JSONResponse:
     """Return list of HTML files in lessons/ for dynamic status detection."""
-    lessons_dir = WORKSPACE / "lessons"
+    lessons_dir = CONTEXT.lessons_dir
     if not lessons_dir.exists():
         return JSONResponse([])
     files = sorted(
@@ -157,8 +152,7 @@ async def list_lessons() -> JSONResponse:
 @app.get("/api/questions")
 async def list_questions() -> JSONResponse:
     """Return map of lesson_ids that have questions (for complete state detection)."""
-    from questions import questions_dir_for
-    questions_dir = questions_dir_for(WORKSPACE)
+    questions_dir = CONTEXT.questions_dir
     if not questions_dir.exists():
         return JSONResponse({})
     lesson_ids: dict[str, int] = {}
@@ -181,7 +175,7 @@ async def list_questions() -> JSONResponse:
 @app.get("/api/maps")
 async def list_maps() -> JSONResponse:
     """Return list of existing domain map pages (for leads-to linking)."""
-    lessons_dir = WORKSPACE / "lessons"
+    lessons_dir = CONTEXT.lessons_dir
     if not lessons_dir.exists():
         return JSONResponse([])
     maps = sorted(
@@ -306,7 +300,7 @@ async def _nested_assets(prefix: str, rest: str):
     return FileResponse(str(target))
 
 
-if _SERVING_MULTI_DOMAIN:
+if CONTEXT.multi_domain:
     # Domain-map / lesson pages emit bare `index.html` back-links (correct when the page
     # sits directly in a workspace's lessons/). Under a multi-domain root they'd resolve to
     # /{domain}/lessons/index.html (nonexistent). Normalize any nested `index.html` request
