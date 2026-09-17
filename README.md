@@ -24,8 +24,17 @@ The agent researches the domain, generates an interactive HTML lesson, and opens
 
 ```bash
 mise run open-lesson
-# → opens lessons/0001-cap-theorem.html
+# → opens your most recent lesson (workspace/ if you have one, else the shipped library/)
 ```
+
+## Where things live
+
+| Path | What it is |
+|------|------------|
+| `library/` | Committed public topic library — seven ready-to-learn workspaces, served by default on a fresh clone |
+| `workspace/` | Your live learning workspace — gitignored, created when the agent starts teaching you |
+| `{workspace}/.user/` | Local-only learner state — status overlay + SR event store. **Never committed** |
+| `library/*/demo-status.json` | Committed demo fixtures for the shipped library — sample progress, not yours |
 
 ## Usage
 
@@ -44,7 +53,9 @@ mise run sr:export-anki  # export to Anki .apkg
 
 ### Navigating your workspace
 
-Open `workspace/lessons/index.html` in any browser for the full dashboard — lessons, maps, quizzes, and progress tracking.
+`mise run serve` starts a local server at http://localhost:8787 (add `:lan` for other
+devices). It serves your private `workspace/` dashboard if one exists — lessons, maps,
+quizzes, progress — otherwise the committed `library/` (what a fresh clone shows).
 
 ```bash
 mise run serve           # start local server at http://localhost:8787
@@ -65,7 +76,10 @@ python tools/ingest_source.py paper.pdf --workspace workspace --domain "machine-
 - **Match** — pair terms to definitions
 - **Fill-in-the-blank** — complete statements with key terms
 
-## Example Workspaces
+## Public Topic Library (`library/`)
+
+Seven shipped workspaces (see [library/README.md](library/README.md)) — a growing
+library, not throwaway demos:
 
 | Domain | Topics |
 |--------|--------|
@@ -73,6 +87,9 @@ python tools/ingest_source.py paper.pdf --workspace workspace --domain "machine-
 | [OIDC in Rust](library/oidc-rust/) | Auth flows, PKCE, token validation, JWT anatomy |
 | [Fitness](library/workout-fundamentals/) | Progressive overload, recovery science, program design |
 | [Game Dev](library/godot-gamedev/) | Godot nodes, GDScript, scene composition |
+| [glTF Format](library/gltf-format/) | glTF anatomy, authoring, engine import, skins |
+| [Godot Asset Pipeline](library/godot-asset-pipeline/) | Import docks, LOD, rigged meshes, round-trips |
+| [Ink + Godot](library/ink-godot/) | Ink narratives in Godot via inkgd |
 
 ## Agent Skills
 

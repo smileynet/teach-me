@@ -24,9 +24,21 @@ server-side settings store or config.
 
 ## Page shell
 
-`assets/page-shell.js` is a planned single entry point that orchestrates all component mounting on
-lesson pages — components register with the shell rather than self-mounting. Not yet implemented
-(ticket 127). It is not an SPA "app shell" or a framework.
+`assets/page-shell.js` is the implemented single entry point that orchestrates component
+initialization on lesson pages (#127, shipped). It runs an ordered imperative init on
+DOMContentLoaded — preferences → LayoutMode → CodeBlockToolbar → Glossary/inline quizzes →
+LessonActions → TypographyPanel. It is not an SPA "app shell" or a framework.
+
+Extension contract: a component exports a mount/init function, gets imported in
+page-shell.js, and is called at the right position in `init()` — no HTML file changes.
+There is no registry; ordering is explicit in the file.
+
+The server-side twin is `tools/lib/page_template.py` (`_base_page`), the single source of
+truth for page HTML shells: it emits the `<script type="module" src="…/page-shell.js">`
+tag, the import map, the blocking `typography-prefs.js` (FOUC guard — must stay
+synchronous/in-head), breadcrumbs, data islands, and the `lesson-actions-config` block.
+Lesson/reference/quiz pages include the shell; map/index/resources pages opt out
+(`include_page_shell=False`) and mount their own views.
 
 
 ## Map render test contract (`data-*` attributes, #261)

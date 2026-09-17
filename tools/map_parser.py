@@ -610,11 +610,12 @@ def resolve_map_filename(parent_domain: str, topic_slug: str, depth: int) -> str
 
     Naming convention (flat in maps/):
       depth 0: {domain}.MAP.md
-      depth 1: {topic_slug}.MAP.md
-      depth 2+: {parent_topic}--{topic_slug}.MAP.md
+      depth 1+: {topic_slug}.MAP.md
 
     The parent_domain arg is only used at depth 0 (root map creation).
-    For depth 1+, we use the topic slug directly.
+    Deeper sub-maps may also be found under the *--{topic_slug}.MAP.md
+    form (see find_child_map), but this resolver always uses the plain
+    topic-slug form.
     """
     if depth == 0:
         return f"{parent_domain}.MAP.md"
