@@ -351,6 +351,21 @@ def _check_graphviz():
         sys.exit(2)
 
 
+def _svg_format(version):
+    """Choose the SVG output format supported by the installed graphviz.
+
+    The `svg_inline` format (SVG with no XML/DOCTYPE preamble) was added in
+    graphviz 6.0. Older binaries (e.g. 2.44.0 on Ubuntu) reject it. Fall back
+    to plain `svg` there — main() already strips the XML declaration, so the
+    downstream output is equivalent either way.
+    """
+    try:
+        major = int(str(version).split(".", 1)[0])
+    except (ValueError, IndexError):
+        major = 0
+    return "svg_inline" if major >= 6 else "svg"
+
+
 def _select_engine(data):
     """Auto-select layout engine from graph properties.
 
@@ -417,7 +432,7 @@ def diagram_graphviz(data, title=None):
 
     g = GraphClass(
         engine=engine,
-        format="svg_inline",
+        format=_svg_format(version),
         graph_attr={
             "rankdir": direction,
             "bgcolor": "transparent",
@@ -501,6 +516,11 @@ def diagram_graphviz(data, title=None):
 
     # Strip comments
     svg_str = re.sub(r'<!--[\s\S]*?-->\s*', '', svg_str)
+
+    # Strip XML declaration + DOCTYPE preamble (present in plain `svg`, absent
+    # in `svg_inline`) so both graphviz-version paths return clean inline SVG.
+    svg_str = re.sub(r'<\?xml[^?]*\?>\s*', '', svg_str)
+    svg_str = re.sub(r'<!DOCTYPE[^>]*>\s*', '', svg_str)
 
     return svg_str
 

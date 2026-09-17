@@ -1,7 +1,7 @@
 ---
 id: "379"
 title: "Fix graphviz version gap: draw-diagram --backend graphviz fails on svg_inline"
-status: open
+status: done
 blocked_by: []
 tags: ["tooling"]
 ---
@@ -35,16 +35,42 @@ target environments can't all get ≥7.x.
 
 ## Acceptance criteria
 
-- [ ] `mise run draw -- --type graph --backend graphviz --data '{...}'` produces valid
+- [x] `mise run draw -- --type graph --backend graphviz --data '{...}'` produces valid
       inline SVG on this machine (graphviz 2.44.0 present) without error
-- [ ] The output SVG is accessible (`role="img"` + `<title>`) and responsive (viewBox, no
+- [x] The output SVG is accessible (`role="img"` + `<title>`) and responsive (viewBox, no
       fixed width/height) — matching the builtin backend's contract
-- [ ] If upgrading: the graphviz version is pinned in `mise.toml` and `mise run doctor`
+- [x] If upgrading: the graphviz version is pinned in `mise.toml` and `mise run doctor`
       reports it; if falling back: a unit/smoke check exercises the old-graphviz path
-- [ ] `mise run verify` passes
+      — chose the fallback (portable across all environments); smoke-tested a back-edge graph
+- [x] `mise run verify` passes
 
 ## Design source
 
 - `tools/draw-diagram.py` (the `svg_inline` format request on the graphviz object)
 - `.kiro/steering/visual-teaching.md` § Diagram Selection (when graphviz backend is required)
 - #371 Resolution section (the deviation record and environment-gap note)
+
+## Resolution
+
+Fixed via **option 2 (graceful fallback)** rather than upgrading graphviz — the fallback
+is portable across every environment (old system graphviz, CI runners, other clones) and
+needs no binary pin that may not build on all platforms.
+
+**Change** (`tools/draw-diagram.py`):
+- Added `_svg_format(version)` — returns `svg_inline` when graphviz major ≥ 6 (the version
+  that introduced the format), else plain `svg`. `svg_inline` is added in graphviz 6.0; the
+  only difference from `svg` is the omitted XML/DOCTYPE preamble.
+- `diagram_graphviz` now calls `format=_svg_format(version)` instead of the hardcoded
+  `svg_inline`.
+- Strip both `<?xml?>` and `<!DOCTYPE>` from the rendered SVG so the plain-`svg` path
+  yields the same clean inline SVG as `svg_inline`.
+
+**Verified:** `--type graph --backend graphviz` with a back-edge graph (the exact 371 case)
+now produces valid accessible inline SVG on graphviz 2.44.0; the builtin backend is
+unchanged; `mise run verify` passes.
+
+**Orthogonal limitation noted (NOT this ticket):** the graphviz backend passes `var(--svg-*)`
+CSS custom properties as node fill/stroke colors, which `dot` can't consume — it renders them
+black and warns. This is why the builtin backend is preferred and lessons hand-author SVG. It
+exists at every graphviz version and is independent of the format gap fixed here. File a
+separate ticket if the graphviz backend needs theme-var colors.
