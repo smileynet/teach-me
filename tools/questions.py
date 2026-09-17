@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import time
 import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timezone
@@ -19,6 +20,11 @@ EVENT_SCHEMA = 1
 SCHEDULER_VERSION = "sm2-v1"
 _STATE_SCHEMA = 1
 _EVENT_ACTIONS = {"reviewed", "suspended", "unsuspended", "reset", "retired", "state_snapshot"}
+# Same-card writes serialize through BEGIN IMMEDIATE; a writer held out longer than
+# the busy timeout retries with backoff before surfacing a retryable EventStoreError.
+_BUSY_TIMEOUT_MS = 5_000
+_WRITE_ATTEMPTS = 6
+_WRITE_RETRY_BACKOFF_S = 0.05
 
 
 def user_records_dir_for(workspace: Path) -> Path:
@@ -161,9 +167,13 @@ def _migrate_legacy_private_topic(topic_slug: str) -> None:
 
 def _connect() -> sqlite3.Connection:
     ensure_dirs()
-    connection = sqlite3.connect(EVENT_STORE_PATH)
+    connection = sqlite3.connect(EVENT_STORE_PATH, timeout=_BUSY_TIMEOUT_MS / 1000)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
+    connection.execute(f"PRAGMA busy_timeout = {_BUSY_TIMEOUT_MS}")
+    # DDL only: CREATE IF NOT EXISTS on existing tables takes no write lock, so
+    # connecting never contends with writers. store_meta seeds happen inside write
+    # transactions instead (see record_card_event / rebuild_projection).
     connection.executescript(
         """
         CREATE TABLE IF NOT EXISTS store_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -181,7 +191,6 @@ def _connect() -> sqlite3.Connection:
         );
         """
     )
-    connection.execute("INSERT OR IGNORE INTO store_meta(key, value) VALUES ('event_schema', ?)", (str(EVENT_SCHEMA),))
     return connection
 
 
@@ -310,8 +319,16 @@ def _ensure_projection(connection: sqlite3.Connection) -> None:
 def rebuild_projection() -> None:
     """Replace the local projection with deterministic replay of canonical events."""
     with _connect() as connection:
-        _ensure_legacy_migrated(connection)
-        _rebuild_projection(connection)
+        connection.execute("BEGIN IMMEDIATE")
+        try:
+            if _meta(connection, "event_schema") is None:
+                _set_meta(connection, "event_schema", str(EVENT_SCHEMA))
+            _ensure_legacy_migrated(connection)
+            _rebuild_projection(connection)
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
 
 
 def _projected_state(connection: sqlite3.Connection, card_id: str) -> tuple[dict, str | None]:
@@ -324,35 +341,66 @@ def _projected_state(connection: sqlite3.Connection, card_id: str) -> tuple[dict
 
 def record_card_event(topic_slug: str, card: Card, action: str, *, rating: int | None = None,
                       effective_date: date | None = None) -> str:
-    """Atomically append one event and its derived projection update."""
+    """Atomically append one event and its derived projection update.
+
+    The write transaction (BEGIN IMMEDIATE) is acquired BEFORE the card's projected
+    state is read, so concurrent reviews of one card serialize into an ordered event
+    stream instead of deriving from the same predecessor. A `reviewed` result is
+    derived from the projected state inside the transaction — the replay contract
+    (_apply_event) recomputes exactly this — so a serialized second writer chains on
+    the first writer's schedule rather than poisoning the replay. Writers held out
+    past the busy timeout retry with backoff and finally raise a retryable
+    EventStoreError; raw sqlite3.OperationalError never reaches the caller.
+    """
+    if action == "reviewed" and effective_date is None:
+        raise ValueError("A reviewed event requires an effective_date")
     with _connect() as connection:
-        _ensure_projection(connection)
-        _, previous_event_id = _projected_state(connection, card.id)
-        event = _event_from_state(topic_slug, card.id, action, _state_for(card), previous_event_id, rating,
-                                  effective_date.isoformat() if effective_date else None)
-        try:
-            connection.commit()
-            connection.execute("BEGIN IMMEDIATE")
-            connection.execute(
-                """INSERT INTO events(event_id, occurred_at, topic, card_id, action, rating, scheduler_version,
-                   effective_date, previous_event_id, result_state, schema_version)
-                   VALUES (:event_id, :occurred_at, :topic, :card_id, :action, :rating, :scheduler_version,
-                   :effective_date, :previous_event_id, :result_state, :schema_version)""",
-                {**event, "result_state": json.dumps(event["result_state"], sort_keys=True)},
-            )
-            sequence = connection.execute("SELECT sequence FROM events WHERE event_id = ?", (event["event_id"],)).fetchone()["sequence"]
-            connection.execute(
-                """INSERT INTO card_projection VALUES (?, ?, ?, ?, ?, ?)
-                   ON CONFLICT(card_id) DO UPDATE SET schedule = excluded.schedule, suspended = excluded.suspended,
-                   mastered = excluded.mastered, last_event_id = excluded.last_event_id, last_sequence = excluded.last_sequence""",
-                (card.id, json.dumps(card.schedule, sort_keys=True), card.suspended, card.mastered, event["event_id"], sequence),
-            )
-            _set_meta(connection, "projection_sequence", str(sequence))
-            connection.commit()
-        except Exception:
-            connection.rollback()
-            raise
-    return event["event_id"]
+        for attempt in range(_WRITE_ATTEMPTS):
+            try:
+                connection.execute("BEGIN IMMEDIATE")
+                if _meta(connection, "event_schema") is None:
+                    _set_meta(connection, "event_schema", str(EVENT_SCHEMA))
+                _ensure_projection(connection)
+                state, previous_event_id = _projected_state(connection, card.id)
+                if action == "reviewed":
+                    schedule = review(CardSchedule.from_dict(state["schedule"]), rating, effective_date).to_dict()
+                    result_state = {"schedule": schedule, "suspended": state["suspended"],
+                                    "mastered": state["mastered"] or schedule["interval_days"] >= 180}
+                else:
+                    result_state = _state_for(card)
+                event = _event_from_state(topic_slug, card.id, action, result_state, previous_event_id, rating,
+                                          effective_date.isoformat() if effective_date else None)
+                connection.execute(
+                    """INSERT INTO events(event_id, occurred_at, topic, card_id, action, rating, scheduler_version,
+                       effective_date, previous_event_id, result_state, schema_version)
+                       VALUES (:event_id, :occurred_at, :topic, :card_id, :action, :rating, :scheduler_version,
+                       :effective_date, :previous_event_id, :result_state, :schema_version)""",
+                    {**event, "result_state": json.dumps(event["result_state"], sort_keys=True)},
+                )
+                sequence = connection.execute("SELECT sequence FROM events WHERE event_id = ?", (event["event_id"],)).fetchone()["sequence"]
+                connection.execute(
+                    """INSERT INTO card_projection VALUES (?, ?, ?, ?, ?, ?)
+                       ON CONFLICT(card_id) DO UPDATE SET schedule = excluded.schedule, suspended = excluded.suspended,
+                       mastered = excluded.mastered, last_event_id = excluded.last_event_id, last_sequence = excluded.last_sequence""",
+                    (card.id, json.dumps(result_state["schedule"], sort_keys=True), result_state["suspended"],
+                     result_state["mastered"], event["event_id"], sequence),
+                )
+                _set_meta(connection, "projection_sequence", str(sequence))
+                connection.commit()
+                return event["event_id"]
+            except sqlite3.OperationalError as error:
+                connection.rollback()
+                if "lock" not in str(error).lower() and "busy" not in str(error).lower():
+                    raise
+                if attempt == _WRITE_ATTEMPTS - 1:
+                    raise EventStoreError(
+                        f"SR event store stayed locked after {_WRITE_ATTEMPTS} attempts; retry the review"
+                    ) from error
+                time.sleep(_WRITE_RETRY_BACKOFF_S)
+            except Exception:
+                connection.rollback()
+                raise
+    raise EventStoreError("unreachable: write retry loop exhausted without raising")
 
 
 def iter_events() -> Iterator[dict]:
