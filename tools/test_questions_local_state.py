@@ -25,10 +25,11 @@ def _configure(monkeypatch, root: Path) -> tuple[Path, Path]:
     monkeypatch.setattr(questions, "FIXTURE_QUESTIONS_DIR", fixture)
     monkeypatch.setattr(questions, "USER_QUESTIONS_DIR", user)
     monkeypatch.setattr(questions, "REVIEWS_LOG", user.parent / "reviews.jsonl")
+    monkeypatch.setattr(questions, "CARD_STATE_PATH", user.parent / "card-state.json")
     return fixture, user
 
 
-def test_review_copies_fixture_card_to_private_state(monkeypatch, tmp_path):
+def test_review_writes_only_fixture_card_state(monkeypatch, tmp_path):
     fixture, user = _configure(monkeypatch, tmp_path)
     card = questions.Card(id="fixture-card", prompt="Explain the boundary.")
     fixture.mkdir(parents=True)
@@ -39,7 +40,9 @@ def test_review_copies_fixture_card_to_private_state(monkeypatch, tmp_path):
 
     assert updated is not None
     assert source.read_text(encoding="utf-8") == card.to_json() + "\n"
-    assert (user / "privacy.jsonl").is_file()
+    assert not (user / "privacy.jsonl").exists()
+    state = questions.CARD_STATE_PATH.read_text(encoding="utf-8")
+    assert '"fixture-card"' in state and "Explain the boundary." not in state
     assert questions.REVIEWS_LOG.is_file()
 
 
@@ -55,7 +58,39 @@ def test_append_and_lifecycle_rewrite_stay_private(monkeypatch, tmp_path):
 
     assert source.read_text(encoding="utf-8") == fixture_card.to_json() + "\n"
     assert (user / "new-topic.jsonl").is_file()
-    assert (user / "privacy.jsonl").is_file()
+    assert not (user / "privacy.jsonl").exists()
+    assert '"schedule"' not in (user / "new-topic.jsonl").read_text(encoding="utf-8")
+    assert "Fixture card" not in questions.CARD_STATE_PATH.read_text(encoding="utf-8")
+
+
+def test_legacy_private_card_copy_migrates_without_hiding_fixture(monkeypatch, tmp_path):
+    fixture, user = _configure(monkeypatch, tmp_path)
+    fixture.mkdir(parents=True)
+    card = questions.Card(id="fixture-card", prompt="Public definition")
+    (fixture / "privacy.jsonl").write_text(card.to_json() + "\n", encoding="utf-8")
+    user.mkdir(parents=True)
+    legacy = questions.Card(id="fixture-card", prompt="Public definition")
+    legacy.suspended = True
+    (user / "privacy.jsonl").write_text(legacy.to_json() + "\n", encoding="utf-8")
+
+    cards = questions.read_cards("privacy")
+
+    assert [(item.id, item.prompt, item.suspended) for item in cards] == [("fixture-card", "Public definition", True)]
+    assert not (user / "privacy.jsonl").exists()
+    assert "Public definition" not in questions.CARD_STATE_PATH.read_text(encoding="utf-8")
+
+
+def test_empty_local_state_keeps_every_public_definition_visible(monkeypatch, tmp_path):
+    fixture, user = _configure(monkeypatch, tmp_path)
+    fixture.mkdir(parents=True)
+    card = questions.Card(id="fixture-card", prompt="Public definition")
+    (fixture / "privacy.jsonl").write_text(card.definition_json() + "\n", encoding="utf-8")
+    user.parent.mkdir(parents=True)
+    questions.CARD_STATE_PATH.write_text('{"schema": 1, "cards": {}, "migrated_topics": []}\n', encoding="utf-8")
+
+    cards = questions.read_cards("privacy")
+
+    assert [(item.id, item.prompt) for item in cards] == [("fixture-card", "Public definition")]
 
 
 def test_private_progress_leaves_a_clean_git_status(tmp_path):
