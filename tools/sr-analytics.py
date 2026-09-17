@@ -21,7 +21,6 @@ if hasattr(_sys.stderr, "reconfigure"):
     _sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 import argparse
-import json
 import math
 import sys
 from collections import Counter
@@ -30,7 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from questions import Card, list_topics, read_cards, REVIEWS_LOG
+from questions import Card, iter_events, list_topics, read_cards
 from sm2 import CardSchedule
 
 
@@ -48,27 +47,16 @@ def retrievability(card: Card, today: date) -> float:
 
 def true_retention(today: date, lookback_days: int = 14) -> float | None:
     """Calculate true retention from review log (pass rate in recent reviews)."""
-    if not REVIEWS_LOG.exists():
-        return None
-
     cutoff = today - timedelta(days=lookback_days)
     passes = 0
     total = 0
-
-    with open(REVIEWS_LOG, encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                entry = json.loads(line)
-                review_date = date.fromisoformat(entry.get("date", ""))
-                if review_date >= cutoff:
-                    total += 1
-                    if entry.get("quality", 0) >= 3:
-                        passes += 1
-            except (json.JSONDecodeError, KeyError, ValueError):
-                pass
+    for event in iter_events():
+        if event["action"] != "reviewed":
+            continue
+        review_date = date.fromisoformat(event["effective_date"])
+        if review_date >= cutoff:
+            total += 1
+            passes += event["rating"] >= 3
 
     if total == 0:
         return None
@@ -142,27 +130,18 @@ def cmd_analytics(topic: str | None = None, today: date | None = None) -> None:
     # 5. Activity from review log
     review_count_week = 0
     streak = 0
-    if REVIEWS_LOG.exists():
-        recent_dates: set[date] = set()
-        with open(REVIEWS_LOG, encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    entry = json.loads(line)
-                    d = date.fromisoformat(entry.get("date", ""))
-                    if (today - d).days <= 7:
-                        review_count_week += 1
-                    recent_dates.add(d)
-                except (json.JSONDecodeError, KeyError, ValueError):
-                    pass
-
-        # Calculate streak
-        check = today
-        while check in recent_dates:
-            streak += 1
-            check -= timedelta(days=1)
+    recent_dates: set[date] = set()
+    for event in iter_events():
+        if event["action"] != "reviewed":
+            continue
+        review_date = date.fromisoformat(event["effective_date"])
+        if (today - review_date).days <= 7:
+            review_count_week += 1
+        recent_dates.add(review_date)
+    check = today
+    while check in recent_dates:
+        streak += 1
+        check -= timedelta(days=1)
 
     # Display
     scope = topic if topic else f"{len(topics)} topics"

@@ -30,7 +30,8 @@ workspace-name/
     questions/          — SR question bank fixture (.jsonl)
   .user/                — private learner state (gitignored, never published)
     status-overlay.json — topic completion state
-    learning-records/   — copied/created SR cards and review history
+    learning-records/   — private SR card definitions plus `sr-events.sqlite3`
+                          (canonical learner events and rebuildable schedule projection)
 ```
 
 ## How these get built

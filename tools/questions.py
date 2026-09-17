@@ -1,57 +1,44 @@
 #!/usr/bin/env python3
-"""Question bank: JSONL storage for spaced repetition cards.
-
-Storage convention (#255 — per-user store is private):
-  learning-records/questions/<topic-slug>.jsonl         — committed card definitions
-  .user/learning-records/questions/<topic-slug>.jsonl   — private card definitions
-  .user/learning-records/card-state.json                — local schedule/lifecycle state
-  .user/learning-records/reviews.jsonl                  — append-only review log
-
-Resolve via questions_dir_for(workspace) / reviews_log_for(workspace): read a local topic
-when present and otherwise fall back to the committed fixture. Effective cards join immutable
-definitions with local state by card ID; mutations write only local state.
-Each line in a topic file is a complete card record (JSON object).
-Reviews are logged separately for future FSRS training.
-"""
+"""Shared card definitions and private, replayable learner progress."""
 
 from __future__ import annotations
 
 import json
+import sqlite3
 import uuid
-from dataclasses import dataclass, asdict, field
-from datetime import date, datetime
+from dataclasses import asdict, dataclass, field
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Iterator
 
-from sm2 import CardSchedule, review, is_due, EASE_DEFAULT
+from sm2 import CardSchedule, is_due, review
 
 
-# Resolve relative to project root (parent of tools/)
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
+EVENT_SCHEMA = 1
+SCHEDULER_VERSION = "sm2-v1"
+_STATE_SCHEMA = 1
+_EVENT_ACTIONS = {"reviewed", "suspended", "unsuspended", "reset", "retired", "state_snapshot"}
 
 
 def user_records_dir_for(workspace: Path) -> Path:
-    """Private, writable SR root for a workspace."""
     return workspace / ".user" / "learning-records"
 
 
 def fixture_records_dir_for(workspace: Path) -> Path:
-    """Optional committed, read-only SR fixture root for a workspace."""
     return workspace / "learning-records"
 
 
 def questions_dir_for(workspace: Path) -> Path:
-    """Preferred question directory for read-only directory consumers."""
     user_questions = user_records_dir_for(workspace) / "questions"
     return user_questions if user_questions.exists() else fixture_records_dir_for(workspace) / "questions"
 
 
 def reviews_log_for(workspace: Path) -> Path:
-    """Private `reviews.jsonl` path for a workspace."""
+    """Legacy pre-event review-log path, retained for migration only."""
     return user_records_dir_for(workspace) / "reviews.jsonl"
 
 
-# Module-level defaults: use workspace/ if it exists, else project root.
 _WORKSPACE = _PROJECT_ROOT / "workspace"
 _DEFAULT_WS = _WORKSPACE if _WORKSPACE.exists() else _PROJECT_ROOT
 QUESTIONS_DIR = questions_dir_for(_DEFAULT_WS)
@@ -59,53 +46,50 @@ USER_QUESTIONS_DIR = user_records_dir_for(_DEFAULT_WS) / "questions"
 FIXTURE_QUESTIONS_DIR = fixture_records_dir_for(_DEFAULT_WS) / "questions"
 REVIEWS_LOG = reviews_log_for(_DEFAULT_WS)
 CARD_STATE_PATH = user_records_dir_for(_DEFAULT_WS) / "card-state.json"
-_STATE_SCHEMA = 1
+EVENT_STORE_PATH = user_records_dir_for(_DEFAULT_WS) / "sr-events.sqlite3"
+
+
+class EventStoreError(RuntimeError):
+    """The local event stream cannot safely produce a projection."""
+
+
+class LegacyReviewLogError(EventStoreError):
+    """Legacy prefix-ID history needs an explicit migration."""
 
 
 @dataclass
 class Card:
-    """A single spaced repetition card."""
-
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    # Content
     prompt: str = ""
     expected_answer: str = ""
-    question_type: str = "explain"  # explain|compare|apply|predict
-    difficulty_tier: str = "understand"  # recall|understand|apply|analyze
-    # Provenance
+    question_type: str = "explain"
+    difficulty_tier: str = "understand"
     lesson_id: str = ""
     section_heading: str = ""
-    source_section: str = ""    # Heading of source chunk this card was derived from
-    source_page: int | None = None  # Page number / chunk index from source document
-    source_quote: str = ""      # Exact passage that teaches the answer (plain text)
-    derivation: str = ""        # "direct" | "inference" | "synthesis"
-    level: str = ""             # "L1" | "L2" | "L3"
-    generated_by: str = "teach-skill"  # teach-skill|quiz-skill|manual
+    source_section: str = ""
+    source_page: int | None = None
+    source_quote: str = ""
+    derivation: str = ""
+    level: str = ""
+    generated_by: str = "teach-skill"
     generated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
-    # Schedule (SM-2 state)
     schedule: dict = field(default_factory=lambda: CardSchedule().to_dict())
-    # Metadata
     tags: list[str] = field(default_factory=list)
     suspended: bool = False
-    mastered: bool = False  # graduated after interval > 180 days
-    # Rich content (optional)
-    prompt_code: dict | None = None   # {"language": "python", "content": "..."}
-    answer_code: dict | None = None   # {"language": "sql", "content": "..."}
-    # Quick-check (multiple-choice) fields
-    options: list[str] | None = None      # 4 answer choices
-    correct_index: int | None = None      # 0-based index into options
-    explanation: str | None = None        # shown after answering
-    # Source links (shown after answering, for "go deeper")
-    sources: list[dict] | None = None     # [{"url": "...", "label": "...", "section": "...", "anchor_type": "heading|text-fragment|prose"}]
-    # Diagram card fields
-    svg_ref: dict | None = None           # {"lesson_file": "...", "svg_index": 0, "description": "..."}
-    occluded_labels: list[str] | None = None  # text content of <text> elements to mask
+    mastered: bool = False
+    prompt_code: dict | None = None
+    answer_code: dict | None = None
+    options: list[str] | None = None
+    correct_index: int | None = None
+    explanation: str | None = None
+    sources: list[dict] | None = None
+    svg_ref: dict | None = None
+    occluded_labels: list[str] | None = None
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), ensure_ascii=False)
 
     def definition_json(self) -> str:
-        """Serialize shareable content without learner-specific state."""
         data = asdict(self)
         for key in ("schedule", "suspended", "mastered"):
             data.pop(key)
@@ -113,19 +97,17 @@ class Card:
 
     @classmethod
     def from_json(cls, line: str) -> "Card":
-        d = json.loads(line)
-        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+        data = json.loads(line)
+        return cls(**{key: value for key, value in data.items() if key in cls.__dataclass_fields__})
 
 
 def user_topic_path(topic_slug: str) -> Path:
-    """Private writable path for a topic's cards."""
     return USER_QUESTIONS_DIR / f"{topic_slug}.jsonl"
 
 
 def ensure_dirs() -> None:
-    """Create only the private SR storage directories."""
     USER_QUESTIONS_DIR.mkdir(parents=True, exist_ok=True)
-    REVIEWS_LOG.parent.mkdir(parents=True, exist_ok=True)
+    EVENT_STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
 def _read_cards(path: Path) -> list[Card]:
@@ -134,20 +116,20 @@ def _read_cards(path: Path) -> list[Card]:
     return [Card.from_json(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
-def _load_state() -> dict:
+def _load_legacy_state() -> dict:
     if not CARD_STATE_PATH.exists():
         return {"schema": _STATE_SCHEMA, "cards": {}, "migrated_topics": []}
     try:
         state = json.loads(CARD_STATE_PATH.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return {"schema": _STATE_SCHEMA, "cards": {}, "migrated_topics": []}
+    except json.JSONDecodeError as error:
+        raise LegacyReviewLogError(f"Malformed legacy projection at {CARD_STATE_PATH}: {error}") from error
     if not isinstance(state.get("cards"), dict):
-        return {"schema": _STATE_SCHEMA, "cards": {}, "migrated_topics": []}
+        raise LegacyReviewLogError(f"Malformed legacy projection at {CARD_STATE_PATH}: missing cards object")
     state.setdefault("migrated_topics", [])
     return state
 
 
-def _write_state(state: dict) -> None:
+def _write_legacy_state(state: dict) -> None:
     ensure_dirs()
     CARD_STATE_PATH.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
 
@@ -156,25 +138,16 @@ def _state_for(card: Card) -> dict:
     return {"schedule": card.schedule, "suspended": card.suspended, "mastered": card.mastered}
 
 
-def save_card_states(cards: list[Card]) -> None:
-    """Persist only mutable learner state, keyed by canonical card ID."""
-    state = _load_state()
-    state["cards"].update({card.id: _state_for(card) for card in cards})
-    _write_state(state)
-
-
 def _migrate_legacy_private_topic(topic_slug: str) -> None:
-    """Split old full-card private copies into definitions plus state without data loss."""
     path = user_topic_path(topic_slug)
     if not path.exists():
         return
-    state = _load_state()
+    state = _load_legacy_state()
     if topic_slug in state["migrated_topics"]:
         return
     fixture_ids = {card.id for card in _read_cards(FIXTURE_QUESTIONS_DIR / f"{topic_slug}.jsonl")}
-    private_cards = _read_cards(path)
     remaining = []
-    for card in private_cards:
+    for card in _read_cards(path):
         state["cards"].setdefault(card.id, _state_for(card))
         if card.id not in fixture_ids:
             remaining.append(card)
@@ -183,110 +156,272 @@ def _migrate_legacy_private_topic(topic_slug: str) -> None:
     else:
         path.unlink()
     state["migrated_topics"].append(topic_slug)
-    _write_state(state)
+    _write_legacy_state(state)
+
+
+def _connect() -> sqlite3.Connection:
+    ensure_dirs()
+    connection = sqlite3.connect(EVENT_STORE_PATH)
+    connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA foreign_keys = ON")
+    connection.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS store_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS events (
+          sequence INTEGER PRIMARY KEY AUTOINCREMENT, event_id TEXT NOT NULL UNIQUE,
+          occurred_at TEXT NOT NULL, topic TEXT NOT NULL, card_id TEXT NOT NULL,
+          action TEXT NOT NULL CHECK (action IN ('reviewed','suspended','unsuspended','reset','retired','state_snapshot')),
+          rating INTEGER CHECK (rating IS NULL OR rating BETWEEN 0 AND 5), scheduler_version TEXT NOT NULL,
+          effective_date TEXT, previous_event_id TEXT, result_state TEXT NOT NULL, schema_version INTEGER NOT NULL,
+          FOREIGN KEY (previous_event_id) REFERENCES events(event_id)
+        );
+        CREATE TABLE IF NOT EXISTS card_projection (
+          card_id TEXT PRIMARY KEY, schedule TEXT NOT NULL, suspended INTEGER NOT NULL, mastered INTEGER NOT NULL,
+          last_event_id TEXT NOT NULL, last_sequence INTEGER NOT NULL
+        );
+        """
+    )
+    connection.execute("INSERT OR IGNORE INTO store_meta(key, value) VALUES ('event_schema', ?)", (str(EVENT_SCHEMA),))
+    return connection
+
+
+def _meta(connection: sqlite3.Connection, key: str) -> str | None:
+    row = connection.execute("SELECT value FROM store_meta WHERE key = ?", (key,)).fetchone()
+    return row["value"] if row else None
+
+
+def _set_meta(connection: sqlite3.Connection, key: str, value: str) -> None:
+    connection.execute(
+        "INSERT INTO store_meta(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        (key, value),
+    )
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")
+
+
+def _event_from_state(topic: str, card_id: str, action: str, state: dict, previous_event_id: str | None,
+                      rating: int | None = None, effective_date: str | None = None,
+                      scheduler_version: str = SCHEDULER_VERSION) -> dict:
+    if action not in _EVENT_ACTIONS:
+        raise ValueError(f"Unsupported event action: {action}")
+    if action == "reviewed" and rating is None:
+        raise ValueError("A reviewed event requires a rating")
+    return {
+        "event_id": str(uuid.uuid4()), "occurred_at": _utc_now(), "topic": topic, "card_id": card_id,
+        "action": action, "rating": rating, "scheduler_version": scheduler_version,
+        "effective_date": effective_date, "previous_event_id": previous_event_id,
+        "result_state": state, "schema_version": EVENT_SCHEMA,
+    }
+
+
+def _validate_state(state: dict, event_id: str) -> None:
+    if not isinstance(state, dict) or not isinstance(state.get("schedule"), dict):
+        raise EventStoreError(f"Event {event_id} has no schedule result")
+    try:
+        CardSchedule.from_dict(state["schedule"])
+    except TypeError as error:
+        raise EventStoreError(f"Event {event_id} has an invalid schedule result") from error
+    if not isinstance(state.get("suspended"), bool) or not isinstance(state.get("mastered"), bool):
+        raise EventStoreError(f"Event {event_id} has invalid lifecycle state")
+
+
+def _decode_event(row: sqlite3.Row) -> dict:
+    try:
+        state = json.loads(row["result_state"])
+    except json.JSONDecodeError as error:
+        raise EventStoreError(f"Event {row['event_id']} has malformed result state") from error
+    event = dict(row)
+    event["result_state"] = state
+    if event["schema_version"] != EVENT_SCHEMA or event["action"] not in _EVENT_ACTIONS:
+        raise EventStoreError(f"Unsupported event version or action for {event['event_id']}")
+    if event["action"] == "reviewed" and event["rating"] is None:
+        raise EventStoreError(f"Review event {event['event_id']} has no rating")
+    _validate_state(state, event["event_id"])
+    return event
+
+
+def _apply_event(previous: dict | None, event: dict) -> dict:
+    previous = previous or {"schedule": CardSchedule().to_dict(), "suspended": False, "mastered": False}
+    result = event["result_state"]
+    if event["action"] == "reviewed":
+        if event["scheduler_version"] != SCHEDULER_VERSION or not event["effective_date"]:
+            raise EventStoreError(f"Review event {event['event_id']} has unsupported scheduler metadata")
+        schedule = review(CardSchedule.from_dict(previous["schedule"]), event["rating"], date.fromisoformat(event["effective_date"])).to_dict()
+        expected = {"schedule": schedule, "suspended": previous["suspended"],
+                    "mastered": previous["mastered"] or schedule["interval_days"] >= 180}
+        if result != expected:
+            raise EventStoreError(f"Review event {event['event_id']} result does not match {SCHEDULER_VERSION}")
+    return result
+
+
+def _rebuild_projection(connection: sqlite3.Connection) -> None:
+    events = [_decode_event(row) for row in connection.execute("SELECT * FROM events ORDER BY sequence")]
+    states: dict[str, dict] = {}
+    last_events: dict[str, tuple[str, int]] = {}
+    connection.execute("DELETE FROM card_projection")
+    for event in events:
+        previous = last_events.get(event["card_id"])
+        if event["previous_event_id"] != (previous[0] if previous else None):
+            raise EventStoreError(f"Event {event['event_id']} has a missing or out-of-order predecessor")
+        state = _apply_event(states.get(event["card_id"]), event)
+        states[event["card_id"]] = state
+        last_events[event["card_id"]] = (event["event_id"], event["sequence"])
+        connection.execute(
+            """INSERT INTO card_projection VALUES (?, ?, ?, ?, ?, ?)
+               ON CONFLICT(card_id) DO UPDATE SET schedule = excluded.schedule, suspended = excluded.suspended,
+               mastered = excluded.mastered, last_event_id = excluded.last_event_id, last_sequence = excluded.last_sequence""",
+            (event["card_id"], json.dumps(state["schedule"], sort_keys=True), state["suspended"],
+             state["mastered"], event["event_id"], event["sequence"]),
+        )
+    _set_meta(connection, "projection_sequence", str(events[-1]["sequence"] if events else 0))
+
+
+def _ensure_legacy_migrated(connection: sqlite3.Connection) -> None:
+    if _meta(connection, "legacy_jsonl_v0"):
+        return
+    legacy_state = _load_legacy_state()
+    legacy_reviews = REVIEWS_LOG.exists() and REVIEWS_LOG.read_text(encoding="utf-8").strip()
+    if legacy_reviews and not legacy_state["cards"]:
+        raise LegacyReviewLogError(
+            "Legacy prefix-ID review history cannot be replayed without card-state.json. Restore it or reset local progress."
+        )
+    for card_id, state in sorted(legacy_state["cards"].items()):
+        event = _event_from_state("legacy", card_id, "state_snapshot", state, None, scheduler_version="legacy-state-v1")
+        connection.execute(
+            """INSERT INTO events(event_id, occurred_at, topic, card_id, action, rating, scheduler_version,
+               effective_date, previous_event_id, result_state, schema_version)
+               VALUES (:event_id, :occurred_at, :topic, :card_id, :action, :rating, :scheduler_version,
+               :effective_date, :previous_event_id, :result_state, :schema_version)""",
+            {**event, "result_state": json.dumps(event["result_state"], sort_keys=True)},
+        )
+    _set_meta(connection, "legacy_jsonl_v0", "migrated")
+    _rebuild_projection(connection)
+
+
+def _ensure_projection(connection: sqlite3.Connection) -> None:
+    _ensure_legacy_migrated(connection)
+    max_sequence = connection.execute("SELECT COALESCE(MAX(sequence), 0) AS value FROM events").fetchone()["value"]
+    if _meta(connection, "projection_sequence") != str(max_sequence):
+        _rebuild_projection(connection)
+
+
+def rebuild_projection() -> None:
+    """Replace the local projection with deterministic replay of canonical events."""
+    with _connect() as connection:
+        _ensure_legacy_migrated(connection)
+        _rebuild_projection(connection)
+
+
+def _projected_state(connection: sqlite3.Connection, card_id: str) -> tuple[dict, str | None]:
+    row = connection.execute("SELECT schedule, suspended, mastered, last_event_id FROM card_projection WHERE card_id = ?", (card_id,)).fetchone()
+    if not row:
+        return ({"schedule": CardSchedule().to_dict(), "suspended": False, "mastered": False}, None)
+    return ({"schedule": json.loads(row["schedule"]), "suspended": bool(row["suspended"]),
+             "mastered": bool(row["mastered"])}, row["last_event_id"])
+
+
+def record_card_event(topic_slug: str, card: Card, action: str, *, rating: int | None = None,
+                      effective_date: date | None = None) -> str:
+    """Atomically append one event and its derived projection update."""
+    with _connect() as connection:
+        _ensure_projection(connection)
+        _, previous_event_id = _projected_state(connection, card.id)
+        event = _event_from_state(topic_slug, card.id, action, _state_for(card), previous_event_id, rating,
+                                  effective_date.isoformat() if effective_date else None)
+        try:
+            connection.commit()
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(
+                """INSERT INTO events(event_id, occurred_at, topic, card_id, action, rating, scheduler_version,
+                   effective_date, previous_event_id, result_state, schema_version)
+                   VALUES (:event_id, :occurred_at, :topic, :card_id, :action, :rating, :scheduler_version,
+                   :effective_date, :previous_event_id, :result_state, :schema_version)""",
+                {**event, "result_state": json.dumps(event["result_state"], sort_keys=True)},
+            )
+            sequence = connection.execute("SELECT sequence FROM events WHERE event_id = ?", (event["event_id"],)).fetchone()["sequence"]
+            connection.execute(
+                """INSERT INTO card_projection VALUES (?, ?, ?, ?, ?, ?)
+                   ON CONFLICT(card_id) DO UPDATE SET schedule = excluded.schedule, suspended = excluded.suspended,
+                   mastered = excluded.mastered, last_event_id = excluded.last_event_id, last_sequence = excluded.last_sequence""",
+                (card.id, json.dumps(card.schedule, sort_keys=True), card.suspended, card.mastered, event["event_id"], sequence),
+            )
+            _set_meta(connection, "projection_sequence", str(sequence))
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+    return event["event_id"]
+
+
+def iter_events() -> Iterator[dict]:
+    with _connect() as connection:
+        _ensure_projection(connection)
+        for row in connection.execute("SELECT * FROM events ORDER BY sequence"):
+            yield _decode_event(row)
 
 
 def append_card(topic_slug: str, card: Card) -> None:
-    """Append a private card definition; its learner state starts absent."""
     ensure_dirs()
-    path = user_topic_path(topic_slug)
-    with open(path, "a", encoding="utf-8") as f:
-        f.write(card.definition_json() + "\n")
+    with user_topic_path(topic_slug).open("a", encoding="utf-8") as file:
+        file.write(card.definition_json() + "\n")
 
 
 def read_cards(topic_slug: str) -> list[Card]:
-    """Join public/private definitions with local learner state by card ID."""
     _migrate_legacy_private_topic(topic_slug)
     cards = {card.id: card for card in _read_cards(FIXTURE_QUESTIONS_DIR / f"{topic_slug}.jsonl")}
     cards.update({card.id: card for card in _read_cards(user_topic_path(topic_slug))})
-    state = _load_state()["cards"]
+    with _connect() as connection:
+        _ensure_projection(connection)
+        projection = {row["card_id"]: {"schedule": json.loads(row["schedule"]),
+                      "suspended": bool(row["suspended"]), "mastered": bool(row["mastered"])}
+                      for row in connection.execute("SELECT card_id, schedule, suspended, mastered FROM card_projection")}
     for card in cards.values():
-        if local := state.get(card.id):
-            card.schedule = local.get("schedule", card.schedule)
-            card.suspended = local.get("suspended", card.suspended)
-            card.mastered = local.get("mastered", card.mastered)
+        if state := projection.get(card.id):
+            card.schedule, card.suspended, card.mastered = state["schedule"], state["suspended"], state["mastered"]
     return list(cards.values())
 
 
 def get_due_cards(topic_slug: str, today: date | None = None) -> list[Card]:
-    """Get all cards due for review in a topic."""
     today = today or date.today()
-    return [
-        c for c in read_cards(topic_slug)
-        if not c.suspended and not c.mastered and is_due(CardSchedule.from_dict(c.schedule), today)
-    ]
+    return [card for card in read_cards(topic_slug) if not card.suspended and not card.mastered
+            and is_due(CardSchedule.from_dict(card.schedule), today)]
 
 
 def get_all_due_cards(today: date | None = None) -> list[Card]:
-    """Get all due cards across all topics."""
     today = today or date.today()
-    due = []
-    for topic_slug in list_topics():
-        due.extend(get_due_cards(topic_slug, today))
-    return due
+    return [card for topic in list_topics() for card in get_due_cards(topic, today)]
+
+
+def _resolve_card(cards: list[Card], card_id: str) -> Card | None:
+    matches = [card for card in cards if card.id == card_id or card.id.startswith(card_id)]
+    if len(matches) > 1:
+        raise ValueError(f"Card ID prefix {card_id!r} is ambiguous")
+    return matches[0] if matches else None
 
 
 def review_card(topic_slug: str, card_id: str, quality: int, today: date | None = None) -> Card | None:
-    """Review a card: update its schedule in-place and log the review.
-
-    Rewrites the topic file with the updated card. Returns the updated card or None if not found.
-    """
     today = today or date.today()
-    cards = read_cards(topic_slug)
-    if not cards:
+    card = _resolve_card(read_cards(topic_slug), card_id)
+    if card is None:
         return None
-    updated_card = None
-
-    for i, card in enumerate(cards):
-        if card.id == card_id or card.id.startswith(card_id):
-            old_schedule = CardSchedule.from_dict(card.schedule)
-            new_schedule = review(old_schedule, quality, today)
-
-            # Graduate cards with interval > 180 days
-            if new_schedule.interval_days > 180:
-                card.mastered = True
-
-            card.schedule = new_schedule.to_dict()
-            updated_card = card
-            cards[i] = card
-            break
-
-    if updated_card is None:
-        return None
-
-    save_card_states([updated_card])
-
-    # Append to review log
-    log_entry = {
-        "card_id": card_id,
-        "topic": topic_slug,
-        "quality": quality,
-        "date": today.isoformat(),
-        "timestamp": datetime.now().isoformat(timespec="seconds"),
-        "new_interval": updated_card.schedule["interval_days"],
-        "new_ease": updated_card.schedule["ease_factor"],
-    }
-    with open(REVIEWS_LOG, "a", encoding="utf-8") as f:
-        f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
-
-    return updated_card
+    card.schedule = review(CardSchedule.from_dict(card.schedule), quality, today).to_dict()
+    card.mastered = card.mastered or card.schedule["interval_days"] >= 180
+    record_card_event(topic_slug, card, "reviewed", rating=quality, effective_date=today)
+    return card
 
 
 def list_topics() -> list[str]:
-    """List all topic slugs with question files."""
-    return sorted({p.stem for directory in (USER_QUESTIONS_DIR, FIXTURE_QUESTIONS_DIR)
-                   if directory.exists() for p in directory.glob("*.jsonl")})
+    return sorted({path.stem for directory in (USER_QUESTIONS_DIR, FIXTURE_QUESTIONS_DIR)
+                   if directory.exists() for path in directory.glob("*.jsonl")})
 
 
 def stats(topic_slug: str, today: date | None = None) -> dict:
-    """Summary stats for a topic's question bank."""
     today = today or date.today()
     cards = read_cards(topic_slug)
-    due = [c for c in cards if not c.suspended and not c.mastered and is_due(CardSchedule.from_dict(c.schedule), today)]
-    return {
-        "total": len(cards),
-        "due": len(due),
-        "mastered": sum(1 for c in cards if c.mastered),
-        "suspended": sum(1 for c in cards if c.suspended),
-        "active": sum(1 for c in cards if not c.suspended and not c.mastered),
-    }
+    due = [card for card in cards if not card.suspended and not card.mastered
+           and is_due(CardSchedule.from_dict(card.schedule), today)]
+    return {"total": len(cards), "due": len(due), "mastered": sum(card.mastered for card in cards),
+            "suspended": sum(card.suspended for card in cards),
+            "active": sum(not card.suspended and not card.mastered for card in cards)}
