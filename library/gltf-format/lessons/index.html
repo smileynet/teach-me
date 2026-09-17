@@ -95,7 +95,7 @@
 
 <div id="app"></div>
 
-<script type="application/json" id="page-data">{"domains": [{"slug": "gltf-format", "title": "glTF 2.0 — The Standard Under Every 3D Import", "description": "glTF is \"the JPEG of 3D\": a Khronos open standard for *delivering* runtime-ready 3D — a JSON scene graph plus binary geometry plus images — that Godot, Blender, three.", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "gltf-format-map.html", "topicIds": ["01M1T33FPC4YTKKSXWH53N60PZ", "01M1T33FPCDS2WKNDKFFXGA5V0", "01M1T33FPC4J9RV8GM8H6GFDQC", "01M1T33FPCNKMX0XXN715XJ7CT", "01M1T33FPCSQ0QED2XH9HDPR9A", "01M1T33FPCKCVXK5NMGDAR180Y"], "private": false, "hasPrivate": false, "privateTopicIds": []}], "edges": [], "islands": ["gltf-format"], "mission": {"title": "Mission: Understand the glTF 2.0 file format", "why": "glTF is the neutral exchange format between DCC tools (Blender) and engines (Godot,\nthree.js, Babylon, Unity). Most \"my model looks wrong after export/import\" bugs are\nreally glTF-format bugs — wrong color space, dropped material channels, a skeleton that\ndidn't export in rest pose. Understanding the standard itself makes those bugs readable\nfrom the file rather than guessed at, and the knowledge transfers across every engine.", "criteria": []}, "demoOverlay": {}, "stats": {"domainCount": 1, "topicCount": 6, "completeCount": 0, "inProgressCount": 0}}</script>
+<script type="application/json" id="page-data">{"domains": [{"slug": "gltf-format", "title": "glTF 2.0 — The Standard Under Every 3D Import", "description": "glTF is \"the JPEG of 3D\": a Khronos open standard for *delivering* runtime-ready 3D — a JSON scene graph plus binary geometry plus images — that Godot, Blender, three.", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "gltf-format-map.html", "topicIds": ["01M1T33FPC4YTKKSXWH53N60PZ", "01M1T33FPCDS2WKNDKFFXGA5V0", "01M1T33FPC4J9RV8GM8H6GFDQC", "01M1T33FPCNKMX0XXN715XJ7CT", "01M1T33FPCSQ0QED2XH9HDPR9A", "01M1T33FPCKCVXK5NMGDAR180Y"], "private": false, "hasPrivate": false, "privateTopicIds": []}], "edges": [], "islands": ["gltf-format"], "mission": {"title": "Mission: Understand the glTF 2.0 file format", "why": "glTF is the neutral exchange format between DCC tools (Blender) and engines (Godot,\nthree.js, Babylon, Unity). Most \"my model looks wrong after export/import\" bugs are\nreally glTF-format bugs — wrong color space, dropped material channels, a skeleton that\ndidn't export in rest pose. Understanding the standard itself makes those bugs readable\nfrom the file rather than guessed at, and the knowledge transfers across every engine.", "criteria": []}, "resourcesHref": null, "demoOverlay": {}, "stats": {"domainCount": 1, "topicCount": 6, "completeCount": 0, "inProgressCount": 0}}</script>
 <script type="module">
 
     import { h, render } from 'preact';
@@ -132,7 +132,8 @@
     await resolveProgress();
 
     render(
-      html`<${IndexView} domains=${data.domains} stats=${data.stats} mission=${data.mission} />`,
+      html`<${IndexView} domains=${data.domains} stats=${data.stats} mission=${data.mission}
+        resourcesHref=${data.resourcesHref} />`,
       document.getElementById('app')
     );
 

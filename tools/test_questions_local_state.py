@@ -164,7 +164,10 @@ def test_private_progress_leaves_a_clean_git_status(tmp_path):
     for args in (
         ["git", "init", "-q"],
         ["git", "add", ".gitignore"],
-        ["git", "-c", "user.name=test", "-c", "user.email=test@example.com", "commit", "-qm", "fixture"],
+        # -c commit.gpgsign=false: the fixture must commit regardless of the host's
+        # global signing config (commit.gpgsign=true + gpg.format=ssh fails headless).
+        ["git", "-c", "user.name=test", "-c", "user.email=test@example.com",
+         "-c", "commit.gpgsign=false", "commit", "-qm", "fixture"],
     ):
         subprocess.run(args, cwd=tmp_path, check=True)
     progress = tmp_path / "library" / "example" / ".user" / "learning-records" / "sr-events.sqlite3"

@@ -95,7 +95,7 @@
 
 <div id="app"></div>
 
-<script type="application/json" id="page-data">{"domains": [{"slug": "godot-asset-pipeline", "title": "Godot Asset Pipeline — Getting 3D In and Out of Godot", "description": "This track teaches Godot's side of the 3D asset pipeline: how a model authored in a DCC tool\n(Blender, etc.", "depth": 0, "parent": null, "total": 7, "complete": 0, "inProgress": 0, "mapHref": "godot-asset-pipeline-map.html", "topicIds": ["01M1Y84DVVEAZXWJKH6X3DSC49", "01M1Y84DVV579KX00T4MXXWFA4", "01M1Y84DVVH9Q6R0XT575K96BB", "01M1Y84DVVBPTBD56KK38H7E5C", "01M1Y84DVVSPZ33ZE8PBQDQ1BV", "01M1Y84DVVACKGVT23AEXS43N2", "01M1Y84DVVA9AT98SZHJ7MB9EJ"], "private": false, "hasPrivate": false, "privateTopicIds": []}], "edges": [], "islands": ["godot-asset-pipeline"], "mission": null, "demoOverlay": {}, "stats": {"domainCount": 1, "topicCount": 7, "completeCount": 0, "inProgressCount": 0}}</script>
+<script type="application/json" id="page-data">{"domains": [{"slug": "godot-asset-pipeline", "title": "Godot Asset Pipeline — Getting 3D In and Out of Godot", "description": "This track teaches Godot's side of the 3D asset pipeline: how a model authored in a DCC tool\n(Blender, etc.", "depth": 0, "parent": null, "total": 7, "complete": 0, "inProgress": 0, "mapHref": "godot-asset-pipeline-map.html", "topicIds": ["01M1Y84DVVEAZXWJKH6X3DSC49", "01M1Y84DVV579KX00T4MXXWFA4", "01M1Y84DVVH9Q6R0XT575K96BB", "01M1Y84DVVBPTBD56KK38H7E5C", "01M1Y84DVVSPZ33ZE8PBQDQ1BV", "01M1Y84DVVACKGVT23AEXS43N2", "01M1Y84DVVA9AT98SZHJ7MB9EJ"], "private": false, "hasPrivate": false, "privateTopicIds": []}], "edges": [], "islands": ["godot-asset-pipeline"], "mission": null, "resourcesHref": null, "demoOverlay": {}, "stats": {"domainCount": 1, "topicCount": 7, "completeCount": 0, "inProgressCount": 0}}</script>
 <script type="module">
 
     import { h, render } from 'preact';
@@ -132,7 +132,8 @@
     await resolveProgress();
 
     render(
-      html`<${IndexView} domains=${data.domains} stats=${data.stats} mission=${data.mission} />`,
+      html`<${IndexView} domains=${data.domains} stats=${data.stats} mission=${data.mission}
+        resourcesHref=${data.resourcesHref} />`,
       document.getElementById('app')
     );
 

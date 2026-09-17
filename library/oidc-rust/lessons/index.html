@@ -95,7 +95,7 @@
 
 <div id="app"></div>
 
-<script type="application/json" id="page-data">{"domains": [{"slug": "oidc-rust", "title": "OIDC Authentication in Rust", "description": "Every web service that says \"Sign in with Google\" is using OpenID Connect — an identity layer on top of OAuth 2.", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "oidc-rust-map.html", "topicIds": ["01M174TQPX1EZC8TA5KSZ4Q9WD", "01M174TQPXBH83XTK1HWTNY04R", "01M174TQPX4G6A5TMGD7MEEK2K", "01M174TQPX07QG13F5CPAFPC2P", "01M174TQPXSF617VN6Z02F3YM1", "01M174TQPXG8YAF3FWXRAQN92X"], "private": false, "hasPrivate": false, "privateTopicIds": []}], "edges": [], "islands": ["oidc-rust"], "mission": {"title": "Mission", "why": null, "criteria": []}, "demoOverlay": {}, "stats": {"domainCount": 1, "topicCount": 6, "completeCount": 0, "inProgressCount": 0}}</script>
+<script type="application/json" id="page-data">{"domains": [{"slug": "oidc-rust", "title": "OIDC Authentication in Rust", "description": "Every web service that says \"Sign in with Google\" is using OpenID Connect — an identity layer on top of OAuth 2.", "depth": 0, "parent": null, "total": 6, "complete": 0, "inProgress": 0, "mapHref": "oidc-rust-map.html", "topicIds": ["01M174TQPX1EZC8TA5KSZ4Q9WD", "01M174TQPXBH83XTK1HWTNY04R", "01M174TQPX4G6A5TMGD7MEEK2K", "01M174TQPX07QG13F5CPAFPC2P", "01M174TQPXSF617VN6Z02F3YM1", "01M174TQPXG8YAF3FWXRAQN92X"], "private": false, "hasPrivate": false, "privateTopicIds": []}], "edges": [], "islands": ["oidc-rust"], "mission": {"title": "Mission", "why": null, "criteria": []}, "resourcesHref": null, "demoOverlay": {}, "stats": {"domainCount": 1, "topicCount": 6, "completeCount": 0, "inProgressCount": 0}}</script>
 <script type="module">
 
     import { h, render } from 'preact';
@@ -132,7 +132,8 @@
     await resolveProgress();
 
     render(
-      html`<${IndexView} domains=${data.domains} stats=${data.stats} mission=${data.mission} />`,
+      html`<${IndexView} domains=${data.domains} stats=${data.stats} mission=${data.mission}
+        resourcesHref=${data.resourcesHref} />`,
       document.getElementById('app')
     );
 
