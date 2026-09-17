@@ -18,6 +18,7 @@ Usage:
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -34,6 +35,44 @@ OUTPUT = PROJECT_ROOT / "lessons" / "index.html"
 from lib.domain_graph import find_maps, find_private_maps, build_domain_graph, build_forest_edges  # noqa: E402
 from lib.map_links import map_href  # noqa: E402
 from lib.page_template import render_index_page  # noqa: E402
+
+
+def committed_maps_only(paths: list[Path]) -> list[Path]:
+    """Drop maps git ignore rules exclude (#369). A committed index page must never link
+    to machine-local content: the live `workspace/` is gitignored, so on a fresh clone
+    every baked `../workspace/...` href 404s. Private-overlay maps are NOT affected —
+    they arrive via `find_private_maps`, not this list. Fails open (no git → unchanged)
+    so the generator still runs outside a checkout."""
+    if not paths:
+        return paths
+    try:
+        rel = [str(p.relative_to(PROJECT_ROOT)).replace("\\", "/") for p in paths]
+    except ValueError:
+        return paths  # maps outside the project root — leave untouched
+    try:
+        r = subprocess.run(
+            ["git", "check-ignore", "-z", "--stdin"],
+            # Bytes, not text=: the Windows locale (cp1252) can't encode some map
+            # filenames, and git's own path encoding is UTF-8 regardless of locale.
+            # -z: NUL-separated both ways — also disables git's C-style path quoting.
+            input="\0".join(rel).encode("utf-8"), capture_output=True, cwd=PROJECT_ROOT,
+        )
+    except OSError:
+        return paths
+    ignored = {line for line in r.stdout.decode("utf-8", "replace").split("\0") if line}
+    return [p for p, rp in zip(paths, rel) if rp not in ignored]
+
+
+def resources_href(output_file: Path) -> str | None:
+    """Link target for the index's Sources affordance (#368) — only when a generated
+    resources page actually exists on disk. A resources page never renders as a sibling
+    of the index today (generate_resources_page writes the domain/workspace root), but
+    check the sibling first so a future per-lessons placement wins over the root one."""
+    for candidate, href in ((output_file.parent / "resources.html", "resources.html"),
+                            (output_file.parent.parent / "resources.html", "../resources.html")):
+        if candidate.exists():
+            return href
+    return None
 
 
 def parse_mission(scan_dir: Path | None) -> dict | None:
@@ -68,7 +107,8 @@ def parse_mission(scan_dir: Path | None) -> dict | None:
     }
 
 
-def build_page_data(records: list[dict], output_file: Path, mission: dict | None) -> dict:
+def build_page_data(records: list[dict], output_file: Path, mission: dict | None,
+                    resources: str | None = None) -> dict:
     """Project the superset domain-graph records into the ONE #page-data island feeding
     both views. `mapHref` is computed HERE (per output file — it's document-relative to the
     output path, so it can't live in the shared record). Domains carry ALL depths: the Tree
@@ -111,6 +151,9 @@ def build_page_data(records: list[dict], output_file: Path, mission: dict | None
         "edges": edges,
         "islands": islands,
         "mission": mission,
+        # #368: href of a generated resources page, or None — IndexView renders the
+        # Sources link ONLY when this is set (never a 404 affordance).
+        "resourcesHref": resources,
         "demoOverlay": demo_overlay,
         "stats": {
             "domainCount": len(roots),
@@ -225,7 +268,8 @@ _INDEX_MODULE_SCRIPT = """
     await resolveProgress();
 
     render(
-      html`<${IndexView} domains=${data.domains} stats=${data.stats} mission=${data.mission} />`,
+      html`<${IndexView} domains=${data.domains} stats=${data.stats} mission=${data.mission}
+        resourcesHref=${data.resourcesHref} />`,
       document.getElementById('app')
     );
 """
@@ -317,11 +361,11 @@ def _parse_args(argv: list[str]) -> tuple[list[Path], Path]:
 
 def main() -> int:
     scan_dirs, output = _parse_args(sys.argv[1:])
-    paths = find_maps(scan_dirs)
+    paths = committed_maps_only(find_maps(scan_dirs))
     private_paths = find_private_maps(scan_dirs)  # .user/ overlay (#184) — local-only
     records = build_domain_graph(paths, private_paths)
     mission = parse_mission(scan_dirs[0] if scan_dirs else None)
-    data = build_page_data(records, output, mission)
+    data = build_page_data(records, output, mission, resources=resources_href(output))
 
     # Single-domain landing (#281): one root domain, no cross-domain edges → the Tree|Map
     # toggle carries no value (nothing to navigate BETWEEN). Emit the clean IndexView card

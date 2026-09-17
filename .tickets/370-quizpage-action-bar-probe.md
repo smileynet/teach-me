@@ -1,7 +1,7 @@
 ---
 id: "370"
 title: "Action bar offers to generate the quiz you are already taking"
-status: open
+status: done
 blocked_by: []
 tags: ["ux", "components", "quiz"]
 ---
@@ -30,7 +30,18 @@ pages (the template knows which page type it is rendering).
 
 ## Acceptance criteria
 
-- [ ] Quiz pages show no "Generate quiz" affordance for their own quiz (and no doubled `quiz/quiz/` probe in the console)
-- [ ] Quick-check pages likewise
-- [ ] Lesson pages keep the correct Take quiz / Generate quiz behavior (probe resolves as today)
-- [ ] `mise run verify` exits 0; interactive checks stay green
+- [x] Quiz pages show no "Generate quiz" affordance for their own quiz (and no doubled `quiz/quiz/` probe in the console)
+- [x] Quick-check pages likewise
+- [x] Lesson pages keep the correct Take quiz / Generate quiz behavior (probe resolves as today)
+- [x] `mise run verify` exits 0; interactive checks stay green
+
+## Resolution
+
+Component-side guard in `LessonActions.js` (chosen over per-generator template flags —
+one fix covers quiz pages, quick-check/review pages, the deprecated preact_page path,
+and any hand-authored page): when the resolved lessonId ends with `-quiz` or the page
+path contains `/quiz/`, the bar skips the HEAD probe entirely (no `quiz/quiz/...`
+doubled-path 404 in the console) and renders no quiz affordance at all. Lesson pages
+are untouched — their config island still drives the normal Take quiz / Generate quiz
+probe. Interactive checks (`verify-interactive.py`) and the full `verify` suite exit 0;
+visual confirmation via Playwright walkthrough of lesson, quiz, and review pages.

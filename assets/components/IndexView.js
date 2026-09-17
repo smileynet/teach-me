@@ -100,13 +100,13 @@ function IndexCue({ domains }) {
   `;
 }
 
-export function IndexView({ domains, stats, mission }) {
+export function IndexView({ domains, stats, mission, resourcesHref }) {
   return html`
     <div class="index-view">
       <h1>📚 All Lessons</h1>
       <p class="index-meta">
         ${stats.domainCount} domain${stats.domainCount !== 1 ? 's' : ''} · ${stats.topicCount} topics · ${stats.completeCount} complete
-        ${mission && mission.why ? ' · ' : ''}${mission && mission.why ? html`<a href="resources.html" class="resources-link">Sources</a>` : ''}
+        ${resourcesHref ? ' · ' : ''}${resourcesHref ? html`<a href=${resourcesHref} class="resources-link">Sources</a>` : ''}
       </p>
 
       <${IndexCue} domains=${domains} />

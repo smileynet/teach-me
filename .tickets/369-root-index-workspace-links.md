@@ -1,7 +1,7 @@
 ---
 id: "369"
 title: "Root aggregate index links to gitignored workspace maps"
-status: open
+status: done
 blocked_by: []
 tags: ["ux", "generated-artifacts", "library"]
 ---
@@ -34,6 +34,20 @@ deciding its intended distribution as part of this fix (regenerate scanning
 
 ## Acceptance criteria
 
-- [ ] Every domain link on the committed root index resolves on a fresh clone
-- [ ] The generator does not bake gitignored-workspace-only domains into committed output
-- [ ] `python tools/check-index-drift.py` (in verify) stays green; `mise run verify` exits 0
+- [x] Every domain link on the committed root index resolves on a fresh clone
+- [x] The generator does not bake gitignored-workspace-only domains into committed output
+- [x] `python tools/check-index-drift.py` (in verify) stays green; `mise run verify` exits 0
+
+## Resolution
+
+Root-cause fix (not output-swap): `generate_index_page.py` now filters `find_maps`
+results through `git check-ignore -z --stdin` (`committed_maps_only`) before building
+the domain graph, so gitignored machine-local content (the live `workspace/`) can never
+be baked into a committed page, regardless of scan dir. Private `.user/` overlay maps
+are unaffected (separate `find_private_maps` path, #184). Bytes + `-z` on the git call:
+the Windows cp1252 locale can't encode some map filenames and git path quoting would
+break matching. Root `lessons/index.html` + `library/index.html` + all 9 per-domain
+indexes re-baked: the workspace-only domains (blender-godot-shaders, code-design,
+rust-fundamentals, data-analytics, storage-and-table-formats) are gone; the remaining
+`iceberg-workspace/` entries are the committed demo fixture, not the gitignored
+workspace. `check-index-drift.py` green; full `verify` suite exits 0.

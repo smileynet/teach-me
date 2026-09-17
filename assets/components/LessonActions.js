@@ -23,13 +23,19 @@ function LessonActions({ lessonId, domain, mapPage, topicTitle }) {
   const [error, setError] = useState(null);
 
   const resolvedMapPage = mapPage || (domain ? `${domain}-map.html` : null);
+  // #370: on quiz/review pages the URL-derived lessonId is already the quiz filename,
+  // so probing 'quiz/' + lessonId + '-quiz.html' doubles the path (quiz/quiz/...),
+  // 404s, and the bar ends up offering to generate the quiz the learner is taking.
+  // A quiz page never gets a quiz affordance — skip the probe entirely (no console 404).
+  const isQuizContext = lessonId.endsWith('-quiz') || /\/quiz\//.test(window.location.pathname);
   const quizUrl = 'quiz/' + lessonId + '-quiz.html';
 
   useEffect(() => {
+    if (isQuizContext) return;
     fetch(quizUrl, { method: 'HEAD' })
       .then(res => setQuizExists(res.ok))
       .catch(() => setQuizExists(false));
-  }, [quizUrl]);
+  }, [quizUrl, isQuizContext]);
 
   // Check current completion status on mount
   useEffect(() => {
@@ -71,11 +77,11 @@ function LessonActions({ lessonId, domain, mapPage, topicTitle }) {
       ${resolvedMapPage && html`
         <a href=${resolvedMapPage} class="btn">← Back to map</a>
       `}
-      ${quizExists === null && html`<span class="btn">…</span>`}
-      ${quizExists === true && html`
+      ${!isQuizContext && quizExists === null && html`<span class="btn">…</span>`}
+      ${!isQuizContext && quizExists === true && html`
         <a href=${quizUrl} class="btn" aria-label=${'Take quiz: ' + topicTitle}>📝 Take quiz</a>
       `}
-      ${quizExists === false && html`
+      ${!isQuizContext && quizExists === false && html`
         <${GeneratePrompt} buttonLabel="+ Generate quiz" groupLabel=${'How to generate the quiz for ' + topicTitle} prompt=${quizPrompt} />
       `}
       ${status === 'loading' && html`
