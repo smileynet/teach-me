@@ -1,7 +1,7 @@
 ---
 id: "350"
 title: "Make review and lifecycle history rebuildable and versioned"
-status: open
+status: in_progress
 priority: high
 type: feature
 blocked_by: ["349"]
