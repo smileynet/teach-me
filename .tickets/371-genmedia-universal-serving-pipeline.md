@@ -10,33 +10,115 @@ tags: ["content"]
 
 Generate the lesson for topic 1 of the `generative-media-pipelines` domain (MAP id
 `01M2R98N1JTYQXWXSDV3EBC7MW`, lesson file `01-the-universal-serving-pipeline.html`, scope:
-substantial, prereqs: none).
+substantial, prereqs: none). Produced via the `generate-topic` pipeline (research → generate →
+post-process → verify) — do not hand-author around it.
+
+> **Refined 2026-09-17** from 4 dispatched subagents (2 external research: serving-pipeline
+> architecture + diagram pedagogy; 2 internal review: design-source fidelity + lesson-authoring
+> contract). Findings: `.scratch/research/371-*.md`.
 
 ## What to build
 
-Teach the end-to-end shape shared by all three explored platforms as **one diagram** —
-client → auth → submit → queue → scale-to-zero GPU worker → weight staging → infer → output
-store → progress stream — with `REDACTED`, `REDACTED`, and `REDACTED`
-each mapped onto it so the shared pattern and the divergences are both visible. This is the spine
-every later topic decides *inside*, so it must land the whole loop before any single stage is
-deepened.
+Teach the **9-stage canonical loop** shared by all three explored platforms, as a single diagram
+the three platforms map onto so the shared shape *and* the divergences are visible:
 
-Run the `generate-topic` pipeline: research → lesson → post-process (jargon, diagram, downloadable
-artifacts if any code) → verify.
+```
+client → auth → submit → queue → scale-to-zero GPU worker → weight staging → infer → output store → progress stream
+```
+
+This is the pinned form (repeated verbatim in the MAP orientation, MAP topic-1 `why`, MISSION
+success bullet, and the study guide Part 2). **Do NOT reproduce the study guide's compressed
+one-liner** ("weights S3→local", Client/Auth fused) — it drops `auth` as a visible stage and looks
+like an error. Frame the loop under its industry name — **Asynchronous Request-Reply /
+Queue-Based Load Leveling** (return a job handle immediately → poll/stream → result) — so it
+transfers to any stack `[L4:established]`.
+
+Every later topic is "a decision inside this loop," so topic 1 lands the whole shape and defers the
+depth.
+
+## Diagram (per pedagogy + visual-teaching.md)
+
+- Base diagram: `draw-diagram.py --type graph --backend graphviz --title "…"` — the loop has a
+  back-edge (result/progress streams back to the caller), which `--type flow` (linear) can't
+  express. `--title` auto-injects `role="img"` + `<title>` + `aria-labelledby` + viewBox-only.
+- **5–9 element cap (hard rule).** The full 9-stage loop + 3 platform overlays exceeds one view.
+  Teach a fixed **shared skeleton** (5–7 role-labelled stages) as the base, then **progressively
+  layer** detail (retries/DLQ/autoscaling are zoom-ins on one stage, NOT base-view boxes). Show
+  shared-vs-divergent with a consistent signaling cue (color/dashed) on the parts that vary + a
+  **companion pattern→instances mapping table** beside the diagram carrying the per-platform
+  variance. Labels ON the nodes.
+- A separate small **sequence diagram** may carry the async submit→poll/stream→result handshake
+  (different question than the structural flow — don't merge them).
+
+## Per-platform mapping (cite the stage→file-path table)
+
+Map each platform onto the loop as columns/annotations on the SAME diagram. **Cite each
+stage/platform cell with its own repo file path** — the table is prebuilt in
+`.scratch/research/371-review-design-source.md` (REDACTED / REDACTED / REDACTED, one file
+path per stage). Do not cite the loop generically.
+
+Hang the divergences on the **six axes** (the source's own comparison structure):
+serving substrate · target user/client · progress transport · queue · weight staging ·
+scale-to-zero depth.
+
+**Three asymmetries to represent honestly (do NOT flatten into a too-clean loop):**
+1. REDACTED's Bedrock path has **no platform-owned worker/queue stage** — the managed service owns
+   it; the worker box is "someone else's."
+2. REDACTED's "auth" is **AWS-account trust, not a per-request authorizer** — don't invent a
+   Cognito-style gate it lacks.
+3. REDACTED's worker is a **warm-pod floor** (KEDA `minReplicaCount 1`, GPU cold start 3–4 min), **not
+   literal zero** — the source explicitly corrects this.
+
+## Scope boundary (defer to later topics)
+
+Topic 1 is the **shape only**. Defer to their owning topics: SageMaker Async as the worked
+reference + cold-start numbers → topic 2 (scale-to-zero); onboarding-as-data → topic 3;
+weight-staging mechanics (S3→NVMe / FSxN+FlexClone / HF-pull) → topics 2/3; ComfyUI
+one-process-one-workflow specifics → topic 5. State the general worker-pool rule
+(concurrency = 1 per GPU) here; defer the ComfyUI instance.
 
 ## Source-verification gate (per #367)
 
-- Every load-bearing claim traces to a cited **repo file path** (the three explored repos are
-  primary) or a **`[L#:confidence]` external source** per `source-authority` steering. No
-  parametric memory.
-- Design source: `.memory/research/world-models-and-genmedia/02-generative-media-pipelines.md`
-  (briefing + study guide). Backing: `repo-findings/{REDACTED,REDACTED,REDACTED}.md`.
-- `mise run verify` clean (links + lint + SVG theming + glossary coverage).
+- Every load-bearing claim traces to a **repo file path** (the three explored repos are primary)
+  or a **`[L#:confidence]` external source** per `source-authority` steering. No parametric memory.
+- Design source: `.memory/research/world-models-and-genmedia/02-generative-media-pipelines.md`.
+  Backing: `repo-findings/{REDACTED,REDACTED,REDACTED}.md`.
+- External prior art available in `.scratch/research/371-external-serving-pipeline.md` (fal.ai
+  run/subscribe/submit verbs + Queued/InProgress/Completed status model; AWS async reference
+  arch; SSE-as-default-for-one-way-progress; the "autoscaler kills a job mid-generation",
+  "broker ≠ result store", and "WebSocket-where-SSE-suffices" anti-patterns for a decision callout).
+
+## Artifact set (authoritative gate: `tools/check-topic-completeness.py`)
+
+A completed topic must produce ALL of:
+- **Lesson HTML** at `library/generative-media-pipelines/lessons/01-the-universal-serving-pipeline.html`
+  (FLAT under `lessons/` — the checker globs `lessons/*.html` at ONE level; a nested
+  `lessons/<domain>/` path is silently missed). Must pass `check_lesson_features`: SVG `role="img"`,
+  inline `glossary-data` block + `.term` spans, lesson-actions.js, theme-toggle.js, `<details>`
+  exercise, `var(--svg-*)` (no hardcoded hex).
+- **Reference doc** at `reference/{slug}.html`.
+- **Quiz** at `lessons/quiz/{slug}.html` — ≥5 cards, ≥3 card types.
+- **SR questions** at `.user/learning-records/questions/generative-media-pipelines.jsonl` — ≥1 card
+  for the topic (target 4–8 open + 2–3 interactive; per-user overlay, not committed).
+- **Code files** at `reference/code/{slug}/` + README — ONLY if the lesson has `data-file` blocks.
+- The **glossary is an inline `<script id="glossary-data">` block in the lesson HTML, NOT a separate
+  JSON file.**
+
+## Authoring rules that also apply (visual-teaching.md + code-validation-teaching.md)
+
+Narrative code-block framing (lead-in/bridge/connect-back; no bare "Here's the code"); downloadable
++ real-toolchain-validated code files if any; callout "when to use which" decision criteria (e.g.
+poll vs SSE vs WebSocket vs webhook — SSE is the correct default for one-way progress); glossary
+coverage (each term explained in prose AND reinforced by an SR card; min 3 terms); WCAG SVG
+accessibility + color-never-alone; 3+ cited source URLs; forward-link stitching (no prereq to
+update — topic 1 is the root); prose-check subagent pass after authoring.
 
 ## Acceptance criteria
 
-- [ ] `library/generative-media-pipelines/lessons/generative-media-pipelines/01-the-universal-serving-pipeline.html` generated via `generate-topic`
-- [ ] The three platforms are each mapped onto the single shared loop diagram (shared shape + divergences visible)
-- [ ] Reference doc + quiz + SR cards + glossary JSON produced (per lesson-authoring contract)
-- [ ] Every load-bearing claim cites a repo file path or `[L#]` source (source-verification gate)
-- [ ] `mise run verify` passes; `check-topic-completeness.py` reports no missing artifacts for this topic
+- [ ] `library/generative-media-pipelines/lessons/01-the-universal-serving-pipeline.html` generated via `generate-topic` (FLAT path — verified against the checker's `lessons/*.html` glob)
+- [ ] Single shared-skeleton diagram (`--type graph --backend graphviz`), ≤9 elements in the base view, with the three platforms mapped on + a companion variance table; deeper detail progressively layered
+- [ ] The three honest asymmetries represented (REDACTED no-worker / account-trust auth; REDACTED warm-pod floor) — loop not flattened
+- [ ] Divergences hung on the six axes; SageMaker Async + cold-start numbers deferred to topic 2
+- [ ] Reference doc + quiz (≥5 cards, ≥3 types) + SR JSONL (≥1 card) + inline glossary produced
+- [ ] Every load-bearing claim cites a repo file path or `[L#]` source (each diagram cell uses its own stage→file-path citation)
+- [ ] `mise run verify` passes AND `python3 tools/check-topic-completeness.py --workspace library/generative-media-pipelines --topic the-universal-serving-pipeline` (and `--concepts`) reports no missing artifacts
