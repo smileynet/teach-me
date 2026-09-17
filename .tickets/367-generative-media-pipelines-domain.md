@@ -1,7 +1,7 @@
 ---
 id: "367"
 title: "Set up generative-media-pipelines domain (MAP + study-guide-backed topics + source-verification gate)"
-status: open
+status: in_progress
 blocked_by: []
 priority: medium
 validation_criteria:
