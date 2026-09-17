@@ -118,6 +118,16 @@ domains clean); `map:generate` → 8 topics; `check-index-drift.py` → 9 index 
 the mesh/PBR/LOD cleanup mechanics to the gltf-format / godot-asset-pipeline domains (topic 6
 currently *references* them). Once confirmed, I'll cut the 8 topic tickets.
 
+## Decision (2026-09-17) — topic 6 REFERENCES existing domains
+
+User direction: **reference existing work.** Topic 6 (media-types-and-image-to-3d) teaches image→3D
+as a *generation + platform* concern (model families, the Hunyuan3D non-commercial-license gate,
+"the raw output needs a cleanup pass") and **cross-references `gltf-format` and
+`godot-asset-pipeline`** for the mesh/PBR/UV/LOD/collision cleanup mechanics rather than
+re-teaching them. Reflect this as a prose cross-link in the lesson (not a MAP prereq edge — those
+domains are engine/format tracks, not prerequisites for understanding gen-media hosting). Spine is
+final at 8 topics; ready to cut topic tickets on your go.
+
 ## Notes
 
 - Design source + backing research already written and committed under
