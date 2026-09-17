@@ -1,7 +1,7 @@
 ---
 id: "339"
 title: "Use one explicit workspace context across generators and server APIs"
-status: open
+status: in_progress
 priority: high
 blocked_by: ["332"]
 type: refactor
