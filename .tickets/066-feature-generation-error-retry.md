@@ -1,7 +1,7 @@
 ---
 id: "066"
 title: "Feature: error handling and retry for generative operations"
-status: open
+status: done
 priority: low
 blocked_by: []
 type: feature
@@ -39,3 +39,14 @@ When generation fails (kiro-cli crash, timeout, network issue), the user sees "�
 
 - **E2E (Playwright):** Trigger a generation that will fail (invalid prompt or mock failure mode) → verify error message appears → click retry → verify new generation starts
 - **Integration:** POST to `/api/generate` with a prompt that causes kiro-cli to exit non-zero → verify SSE done event includes error context
+
+## Resolution (2026-09-17, #335)
+
+Closed as mooted, not implemented. The entire premise — server-driven generation
+(`POST /api/generate`, SSE stream, retry buttons on a generation modal) — was removed
+by #319 (honest-prompt model): `tools/serve.py` has no generate/retry endpoints, the
+`assets/services/` SSE stream and `GenerationStream` are gone, and generation UX is now
+the copy-paste GeneratePrompt component. With no server generation there is no retry
+loop to build; "retry" is re-running the agent with the same prompt, outside this app.
+Verified against `tools/serve.py` route inventory 2026-09-17. If server-driven
+generation ever returns, reopen with the error-display/timeout ideas above.

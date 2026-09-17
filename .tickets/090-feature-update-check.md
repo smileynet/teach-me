@@ -32,3 +32,11 @@ Users running local clones should be nudged when a new version is available — 
 - Use `gh api repos/{owner}/{repo}/releases/latest` or `git ls-remote --tags origin` to check
 - Compare against `git describe --tags --abbrev=0` for current version
 - Consider running automatically on `mise run serve` with a 24h cooldown (cache last check timestamp in `.scratch/last-update-check`)
+
+## Resolution (added 2026-09-17, #335)
+
+Shipped as the mise task `update:check` (name differs from the body's `update-check`):
+`mise.toml` `[tasks."update:check"]` -> `python tools/check-update.py`, which compares the
+local `git describe --tags --abbrev=0` against the latest GitHub release and prints
+current/latest plus a pull hint, degrading gracefully offline. ACs above were left
+unchecked as originally written; the functionality is verified real (2026-09-17).

@@ -59,13 +59,18 @@ _site/
 
 ## Acceptance Criteria
 
-- [x] GitHub Pages deploys automatically on push to main
+- [x] GitHub Pages deploys on demand — as built: the workflow builds only for a `v*` tag
+      push or manual `workflow_dispatch`; a plain push to main skips the build job
+      (`.github/workflows/pages.yml:28-40`). "Automatically on push to main" as
+      originally written was overstated; amended 2026-09-17 (#335).
 - [x] Landing page lists all example workspaces with descriptions
 - [x] Each example's index, map, lessons, quizzes are browsable
 - [x] Dark theme renders correctly
 - [x] No broken asset links (style.css, vendor JS, components)
 - [x] Generate buttons show graceful fallback (no server = no generation)
-- [x] README links to the live demo
+- [ ] README links to the live demo — never shipped: no demo URL exists in README.md
+      (verified 2026-09-17, #335). Left unchecked honestly rather than faked; pick this
+      up if/when a public demo link is wanted.
 
 ## Context
 
@@ -73,6 +78,11 @@ _site/
 - Assets: `assets/` (style.css, vendor/, components/, services/)
 - Existing CI: `.github/workflows/verify.yml`
 
-## Resolution (2026-08-13)
+## Resolution (2026-08-13; corrected 2026-09-17 per #335)
 
-TBD
+Shipped the GitHub Pages pipeline: `.github/workflows/pages.yml` builds a flat
+`_site/` (symlinks resolved, `.nojekyll`, relative paths) and deploys via the official
+Pages actions, with a landing/index page linking each workspace. Two records corrected
+by the 2026-09-16 architecture review, verified against source: (1) deploys are gated
+on a `v*` tag or manual dispatch — not every push to main; (2) no README live-demo link
+was ever added (AC left unchecked above).

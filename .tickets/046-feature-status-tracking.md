@@ -35,11 +35,22 @@ Suggest continuing the one with most recent activity, or offer to switch.
 
 ## Acceptance criteria
 
-- [x] Status updates persist in MAP.md — done via /api/map/{domain}/{slug}/status (ticket 068/069)
+- [x] Status updates persist — via `/api/map/{domain}/{slug}/status`, which since #258 writes the gitignored `.user/` status overlay, NOT MAP.md (AC text amended 2026-09-17, #335; the endpoint itself shipped with 068/069)
 - [x] "What's next?" never suggests topics with incomplete prereqs — get_next_suggestion (ticket 043/068)
 - [x] Suggests the topic that unblocks the most downstream content — suggestion banner (ticket 068)
 - [ ] Handles "all done" (triggers leads_to presentation)
 - [ ] Handles "everything available" (offers choice, doesn't force)
+
+## Update (2026-09-17, #335 re-scope)
+
+The #335 triage line "all ACs already checked but status still open — close" was WRONG:
+two ACs above remain unchecked. This ticket stays open scoped to exactly those two
+items (both are completion-state UX and overlap #047's presentation work):
+1. "All done" → trigger the leads_to / where-this-leads presentation.
+2. "Everything available" (nothing in progress) → offer a choice rather than forcing one.
+The three checked ACs were re-verified against source: the status endpoint writes the
+overlay (`tools/serve.py` status route -> `tools/lib/overlay.py`), and the suggestion
+banner renders from `get_next_suggestion`.
 
 ## Validation
 

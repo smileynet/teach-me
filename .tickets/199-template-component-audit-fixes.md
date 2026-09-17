@@ -8,6 +8,41 @@ tags: [platform]
 
 # Address validated findings from template & component system audit
 
+## Re-scope (2026-09-17, #335 — findings re-verified against source)
+
+The sections below are the ORIGINAL audit. Since it ran, several findings were fixed or
+proved invalid. The surviving scope is exactly this list:
+
+1. **Port `tools/quick-check.py` onto `page_template._base_page`; delete
+   `tools/lib/preact_page.py`** — confirmed: `preact_page.py:79-89` emits no blocking
+   `typography-prefs.js` (FOUC; confirmed baked into
+   `library/iceberg-workspace/lessons/review/quick-check.html`), and `preact_page.py:84`
+   does not escape `<title>`.
+2. **Dead "Explore subtopics" button** — confirmed at `assets/components/TopicCard.js:53`
+   (no handler; the adjacent quiz button is now a wired GeneratePrompt). Wire it or
+   remove it.
+3. **Missing CSS, corrected precision:** only `.assess-buttons` (`QuizView.js:86`) and
+   rating-specific rules are genuinely unstyled (rating buttons do carry styled `.btn`
+   base classes). `.gen-progress` is a DEAD class — nothing emits it since GeneratePrompt
+   replaced the old generation flow — so drop it rather than style it. `.leads-to-btn`
+   IS styled inline on map pages (`generate_map_page.py:293-299`).
+4. **Strip hardcoded import maps from scaffolds** — confirmed still outstanding:
+   `assets/scaffolds/lesson.html:13-26` and `reference.html:9` duplicate
+   `assets/import-map.json`.
+5. **Delete `assets/components/ProgressiveReveal.js`** — still present (2026-09-17) and
+   referenced by nothing else.
+6. **ink-test-project artifact hygiene** — still undecided: `addons/` untracked (inkgd
+   vendored in `a431fce` + a newer `addons/godot_ai/`), `script_templates/` deletions
+   sitting uncommitted, `.godot/`/`*.uid` policy. Decide gitignore-vs-commit for each.
+
+Fixed or invalid since the audit (do NOT redo): XSS claim invalid (no `innerHTML`
+interpolation of topic data remains in Map/GraphView — measurement renders escaped
+Preact output); GenButton interval leak gone (component superseded by GeneratePrompt);
+LessonActions POST-failure UI shipped; "Generate quiz" dead button fixed (wired to
+GeneratePrompt); GenerationModal/GenerationStream deleted; §2 depth-model items were
+handled by #273 (re-verify only if breadcrumbs regress). QuizView has one `next()`
+(:102) plus `interactiveNext` (:130) — re-audit for dead code when executing item 1.
+
 ## What to build
 
 A full audit of the lesson template system (`tools/lib/`, `assets/scaffolds/`) and the
