@@ -5,6 +5,7 @@ Run: python -m pytest tools/test_map_page.py -v
 
 import tempfile
 import sys
+import json
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -35,16 +36,19 @@ This is a test orientation paragraph.
 ## Topics
 
 ### topic-one
+- **id:** 01M1T33FPC4YTKKSXWH53N60PZ
 - **title:** First Topic
 - **why:** The starting point
 - **prereqs:** []
 
 ### topic-two
+- **id:** 01M1T33FPCDS2WKNDKFFXGA5V0
 - **title:** Second Topic
 - **why:** Builds on the first
 - **prereqs:** [topic-one]
 
 ### topic-three
+- **id:** 01M1T33FPC4J9RV8GM8H6GFDQC
 - **title:** Third Topic
 - **why:** The capstone
 - **prereqs:** [topic-two]
@@ -151,6 +155,12 @@ class TestMapPageDataIsland:
         assert 'another-domain' in html
         assert 'And also this' in html
 
+    def test_carries_canonical_domain_for_live_status_lookup(self):
+        html = _generate_fixture_html()
+        import re
+        data = json.loads(re.search(r'id="page-data">(.*?)</script>', html, re.DOTALL).group(1))
+        assert data["domain"] == "test-domain"
+
 
 class TestMapPageLeadsTo:
     """Leads-to data must include slug and description."""
@@ -212,3 +222,33 @@ class TestMapPageOpenLesson:
         # In a fixture with no lessons, 'Open lesson' should not appear at all
         # (status is not-started, so GenButton shows Generate, not Open)
         assert '<button' not in html or 'Open lesson' not in html
+
+
+class TestMapPageProgressIsolation:
+    """Generated pages must not read private learner state."""
+
+    def test_uses_committed_demo_status_not_private_overlay(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp)
+            maps = workspace / "maps"
+            maps.mkdir()
+            map_path = maps / "test-domain.MAP.md"
+            map_path.write_text(FIXTURE_MAP, encoding="utf-8")
+
+            topics = parse_map_md(map_path)["topics"]
+            demo = topics[0]["id"]
+            private = topics[1]["id"]
+            (workspace / "demo-status.json").write_text(json.dumps({
+                "schema": 1,
+                "overlay": {demo: {"status": "complete"}},
+            }), encoding="utf-8")
+            user_dir = workspace / ".user"
+            user_dir.mkdir()
+            (user_dir / "status-overlay.json").write_text(json.dumps({
+                "schema": 1,
+                "overlay": {demo: {"status": "in-progress"}, private: {"status": "complete"}},
+            }), encoding="utf-8")
+
+            statuses = {topic["id"]: topic["status"] for topic in parse_map_md(map_path)["topics"]}
+            assert statuses[demo] == "complete"
+            assert statuses[private] == "not-started"

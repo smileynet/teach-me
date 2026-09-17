@@ -30,10 +30,6 @@ if hasattr(sys.stderr, "reconfigure"):
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 LESSONS_DIR = PROJECT_ROOT / "lessons"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from questions import questions_dir_for
-QUESTIONS_DIR = questions_dir_for(PROJECT_ROOT)
-# Workspace root for the per-user status overlay (defaults to project root; set_workspace overrides).
-OVERLAY_ROOT = PROJECT_ROOT
 
 # Sub-map navigation (zoom)
 try:
@@ -47,17 +43,10 @@ except ModuleNotFoundError:
         can_zoom_in, load_map as mp_load_map, MAX_DEPTH,
     )
 
-# Track the maps directory for sub-map discovery
-MAPS_DIR: Path | None = None
-
-
 def set_workspace(workspace_path: Path) -> None:
-    """Override LESSONS_DIR, QUESTIONS_DIR, MAPS_DIR, and OVERLAY_ROOT to a workspace."""
-    global LESSONS_DIR, QUESTIONS_DIR, MAPS_DIR, OVERLAY_ROOT
+    """Override LESSONS_DIR to a workspace."""
+    global LESSONS_DIR
     LESSONS_DIR = workspace_path / "lessons"
-    QUESTIONS_DIR = questions_dir_for(workspace_path)
-    MAPS_DIR = workspace_path / "maps"
-    OVERLAY_ROOT = workspace_path
 
 
 def _map_output_path(map_path: Path, domain: str) -> Path:
@@ -75,13 +64,13 @@ def _map_output_path(map_path: Path, domain: str) -> Path:
     return LESSONS_DIR / f"{domain}-map.html"
 
 
-def _overlay_status_map() -> dict:
-    """{node_id → status} from the per-user overlay for the active workspace."""
+def _demo_status_map(map_path: Path) -> dict:
+    """{node_id → status} from the committed demo fixture for a map's workspace."""
     try:
-        from tools.lib.overlay import Overlay
+        from tools.lib.overlay import demo_status_map_for_map
     except ModuleNotFoundError:
-        from lib.overlay import Overlay  # type: ignore[no-redef]
-    return Overlay(OVERLAY_ROOT).status_map()
+        from lib.overlay import demo_status_map_for_map  # type: ignore[no-redef]
+    return demo_status_map_for_map(map_path)
 
 # State → color mapping (teach-me color vocabulary)
 STATE_COLORS = {
@@ -117,9 +106,9 @@ def parse_map_md(path: Path) -> dict:
         if e.type == "prereq":
             prereq_by_target.setdefault(e.target_id, []).append(e.source_id)
 
-    # Per-user status overlay join (#258): status lives in the gitignored overlay,
-    # never on the committed node. Absent id = not-started.
-    status_map = _overlay_status_map()
+    # The generated page carries only its committed demo/no-JS status. Learner progress
+    # stays in the private overlay and joins at browser load time via /api/map/{domain}.
+    status_map = _demo_status_map(path)
 
     topics = [
         {
@@ -168,76 +157,6 @@ def topic_has_lesson(slug: str) -> str | None:
     return None
 
 
-def topic_has_reference(slug: str) -> bool:
-    """Check if a reference doc exists for this topic slug."""
-    ref_dir = LESSONS_DIR.parent / "reference"
-    if not ref_dir.exists():
-        return False
-    for f in ref_dir.glob("*.html"):
-        if slug in f.stem:
-            return True
-    return False
-
-
-def topic_has_quiz(slug: str) -> bool:
-    """Check if a quiz page exists for this topic slug."""
-    quiz_dir = LESSONS_DIR / "quiz"
-    if not quiz_dir.exists():
-        return False
-    for f in quiz_dir.glob("*.html"):
-        if slug in f.stem:
-            return True
-    return False
-
-
-def compute_effective_status(slug: str, overlay_status: str) -> str:
-    """Compute display status from files on disk, floored by the per-user overlay.
-
-    Status lifecycle:
-      not-started → in-progress (lesson exists) → complete (lesson + reference + quiz/questions)
-
-    The overlay is the source of truth for user intent: if the user marked a topic
-    `complete` or `in-progress` in the overlay, never downgrade below that. Disk
-    evidence can only promote a topic the overlay left at `not-started`. This derives
-    a view — it is NOT written back anywhere (per #258, status is never committed).
-    """
-    if overlay_status in ("complete", "in-progress"):
-        return overlay_status
-
-    has_lesson = topic_has_lesson(slug) is not None
-    has_ref = topic_has_reference(slug)
-    has_quiz = topic_has_quiz(slug)
-    has_questions = topic_has_questions(slug) > 0
-
-    if has_lesson and has_ref and (has_quiz or has_questions):
-        return "complete"
-    elif has_lesson:
-        return "in-progress"
-    else:
-        return overlay_status  # not-started
-
-
-def topic_has_questions(slug: str) -> int:
-    """Count quick-check questions for a topic slug. Checks all JSONL files for matching tags/lesson_id."""
-    import json
-    count = 0
-    for f in QUESTIONS_DIR.glob("*.jsonl"):
-        for line in open(f, encoding="utf-8"):
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                card = json.loads(line)
-                if card.get("question_type") == "quick-check" and (
-                    slug in card.get("tags", []) or slug in card.get("lesson_id", "")
-                ):
-                    count += 1
-            except json.JSONDecodeError:
-                continue
-    return count
-
-
-
 def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path | None = None) -> str:
     """Generate a Preact-based map page from parsed MAP.md data."""
     sys.path.insert(0, str(PROJECT_ROOT / "tools"))
@@ -251,16 +170,13 @@ def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path |
     topic_data = []
     for t in topics:
         lesson_path = t.get("lesson_file") or topic_has_lesson(t["slug"])
-        # Disk-derived view, floored by the per-user overlay (t["status"] from parse_map_md).
-        # NOT written back — status is never committed (#258).
-        effective_status = compute_effective_status(t["slug"], t["status"])
         topic_data.append({
             "id": t["id"],                 # real ULID (node key + edge endpoint space)
             "slug": t["slug"],             # for lesson/quiz routing + file matching
             "title": t["title"],
             "why": t["why"],
             "prereqs": t["prereqIds"],     # resolved ULIDs — matches node ids so dagre edges connect
-            "status": effective_status,
+            "status": t["status"],
             "lessonPath": lesson_path or None,
         })
 
@@ -273,6 +189,7 @@ def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path |
             leads_to_data.append({"slug": lt, "why": ""})
 
     data = {
+        "domain": map_data["frontmatter"].get("domain", ""),
         "title": title,
         "orientation": orientation,
         "topics": topic_data,
@@ -298,6 +215,20 @@ def generate_preact_map_page(map_data: dict, output_path: Path, map_path: Path |
 
     const html = htm.bind(h);
     const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    try {{
+      const response = await fetch(`/api/map/${{encodeURIComponent(data.domain)}}`);
+      if (response.ok) {{
+        const live = await response.json();
+        const statuses = new Map(live.topics.map(topic => [topic.slug, topic.status]));
+        data.topics = data.topics.map(topic => ({{
+          ...topic,
+          status: statuses.get(topic.slug) ?? topic.status,
+        }}));
+      }}
+    }} catch {{
+      // Static hosts and unavailable APIs keep the committed demo/no-JS state.
+    }}
 
     render(
       html`<${{MapView}} topics=${{data.topics}} leadsTo=${{data.leadsTo}} edges=${{data.edges}} orientation=${{data.orientation}} title=${{data.title}} />`,
