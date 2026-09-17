@@ -43,6 +43,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 # Add tools/ to import path for map_parser
 sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 from lib.workspace_context import WorkspaceContext
+from lib.overlay import Overlay, OverlayRecoveryError
 
 # ---------------------------------------------------------------------------
 # Arg parsing (early — needed before app mounts)
@@ -132,9 +133,14 @@ def _map_for_domain(domain: str):
 
 def _overlay():
     """The per-user status overlay for the served content root."""
-    from lib.overlay import Overlay
-
     return Overlay(CONTEXT.overlay_root)
+
+
+def _overlay_status_map() -> dict[str, str]:
+    try:
+        return _overlay().status_map()
+    except OverlayRecoveryError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
 
 @app.get("/api/lessons")
 async def list_lessons() -> JSONResponse:
@@ -192,7 +198,7 @@ async def get_map(domain: str) -> JSONResponse:
 
     _, m = _map_for_domain(domain)
     errors = validate(m)
-    status_map = _overlay().status_map()  # {node_id → status}; absent = not-started
+    status_map = _overlay_status_map()  # {node_id → status}; absent = not-started
     available = get_available_topics(m, status_map)
     suggestion = get_next_suggestion(m, status_map)
 
@@ -232,7 +238,10 @@ def _resolve_topic_id(domain: str, slug: str):
 async def get_topic_status(domain: str, slug: str) -> JSONResponse:
     """Get a topic's current status from the per-user overlay (absent = not-started)."""
     _, node_id = _resolve_topic_id(domain, slug)
-    rec = _overlay().get(node_id)
+    try:
+        rec = _overlay().get(node_id)
+    except OverlayRecoveryError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
     status = rec["status"] if rec else "not-started"
     return JSONResponse({"domain": domain, "slug": slug, "status": status})
 
@@ -245,6 +254,8 @@ async def update_topic_status(domain: str, slug: str, req: StatusUpdateRequest) 
         _overlay().set(node_id, req.status)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except OverlayRecoveryError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
 
     return JSONResponse({"ok": True, "domain": domain, "slug": slug, "status": req.status})
 
@@ -259,7 +270,7 @@ async def get_overlay() -> JSONResponse:
     status read"), not a new browser store of learner state. Absent overlay → empty map →
     the demo floor stands. Static hosts (GH Pages) have no server, so this 404s there and
     the page keeps the baked demo counts (Option A: static = display-only demo)."""
-    return JSONResponse({"overlay": _overlay().status_map()})
+    return JSONResponse({"overlay": _overlay_status_map()})
 
 
 # Mount static files: workspace content + project assets

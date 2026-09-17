@@ -36,6 +36,10 @@ in one SQLite transaction. The database is local-only and gitignored.
 - Existing `card-state.json` is imported into snapshot events when enough state
   exists; the old private files remain untouched for audit. Prefix-ID history without
   a state snapshot produces an explicit unsupported-version diagnostic.
+- The status overlay remains JSON because it is a tiny replaceable document. Its
+  separate contract is a retained OS-backed lock around read-modify-write plus a
+  same-directory, fsynced `os.replace`; SQLite supplies those guarantees internally
+  for the higher-volume SR event stream.
 
 ## Alternatives Considered
 

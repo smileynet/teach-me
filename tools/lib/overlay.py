@@ -28,6 +28,11 @@ default overlay resolved workspace-first (mirrors tools/questions.py).
 from __future__ import annotations
 
 import json
+import os
+import tempfile
+import threading
+import time
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -45,6 +50,13 @@ except ModuleNotFoundError:  # tools/ on sys.path directly, or run as a script
 SCHEMA = 1
 VALID_STATUSES = ("not-started", "in-progress", "complete")
 _OVERLAY_FILENAME = "status-overlay.json"
+_LOCK_TIMEOUT_SECONDS = 10
+_THREAD_LOCKS: dict[Path, threading.Lock] = {}
+_THREAD_LOCKS_GUARD = threading.Lock()
+
+
+class OverlayRecoveryError(RuntimeError):
+    """The local overlay needs repair; its last known state was not discarded."""
 
 
 def _now_iso() -> str:
@@ -58,17 +70,104 @@ class Overlay:
     def __init__(self, root: str | Path):
         self.root = Path(root)
         self.path = self.root / ".user" / _OVERLAY_FILENAME
+        self.lock_path = self.path.with_suffix(".lock")
+
+    @contextmanager
+    def _write_lock(self):
+        """Serialize writers with retained OS locks; a crash cannot leave a stale lock."""
+        with _THREAD_LOCKS_GUARD:
+            thread_lock = _THREAD_LOCKS.setdefault(self.lock_path, threading.Lock())
+        deadline = time.monotonic() + _LOCK_TIMEOUT_SECONDS
+        if not thread_lock.acquire(timeout=_LOCK_TIMEOUT_SECONDS):
+            raise OverlayRecoveryError(f"Timed out waiting for local overlay lock: {self.lock_path}")
+        try:
+            with self.lock_path.open("a+b") as lock:
+                if lock.tell() == 0:
+                    lock.write(b"0")
+                    lock.flush()
+                while True:
+                    try:
+                        if os.name == "nt":
+                            import msvcrt
+
+                            lock.seek(0)
+                            msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+                        else:
+                            import fcntl
+
+                            fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        break
+                    except OSError:
+                        if time.monotonic() >= deadline:
+                            raise OverlayRecoveryError(f"Timed out waiting for local overlay lock: {self.lock_path}")
+                        time.sleep(0.01)
+                try:
+                    yield
+                finally:
+                    if os.name == "nt":
+                        msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)
+                    else:
+                        fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+        finally:
+            thread_lock.release()
+
+    def _atomic_write(self, doc: dict) -> None:
+        """Replace the JSON document from a same-directory temporary file.
+
+        `os.replace` is atomic on one filesystem. On Windows it can briefly fail while
+        another process has the destination open, so retry that transient sharing error
+        while retaining the old complete document.
+        """
+        descriptor, temporary = tempfile.mkstemp(prefix=f".{self.path.name}.", suffix=".tmp", dir=self.path.parent)
+        temporary_path = Path(temporary)
+        try:
+            with os.fdopen(descriptor, "w", encoding="utf-8") as output:
+                json.dump(doc, output, indent=2)
+                output.write("\n")
+                output.flush()
+                os.fsync(output.fileno())
+            deadline = time.monotonic() + _LOCK_TIMEOUT_SECONDS
+            while True:
+                try:
+                    os.replace(temporary_path, self.path)
+                    break
+                except PermissionError as error:
+                    if time.monotonic() >= deadline:
+                        raise OverlayRecoveryError(f"Could not replace local overlay: {self.path}") from error
+                    time.sleep(0.01)
+        finally:
+            temporary_path.unlink(missing_ok=True)
 
     def load(self) -> dict:
-        """Return the full overlay document. Missing/corrupt file → empty sparse doc."""
+        """Return the full overlay document, or a diagnostic for corrupt local state."""
         if not self.path.exists():
             return {"schema": SCHEMA, "overlay": {}}
+        deadline = time.monotonic() + _LOCK_TIMEOUT_SECONDS
         try:
-            doc = json.loads(self.path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
-            return {"schema": SCHEMA, "overlay": {}}
+            while True:
+                try:
+                    text = self.path.read_text(encoding="utf-8")
+                    break
+                except FileNotFoundError:
+                    return {"schema": SCHEMA, "overlay": {}}
+                except PermissionError:
+                    if time.monotonic() >= deadline:
+                        raise
+                    time.sleep(0.01)
+            doc = json.loads(text)
+        except json.JSONDecodeError as error:
+            raise OverlayRecoveryError(f"Malformed local overlay at {self.path}: {error}") from error
+        except OSError as error:
+            raise OverlayRecoveryError(f"Could not read local overlay at {self.path}: {error}") from error
         if not isinstance(doc, dict) or not isinstance(doc.get("overlay"), dict):
-            return {"schema": SCHEMA, "overlay": {}}
+            raise OverlayRecoveryError(f"Malformed local overlay at {self.path}: missing overlay object")
+        if doc.get("schema") != SCHEMA:
+            raise OverlayRecoveryError(f"Unsupported local overlay schema at {self.path}: {doc.get('schema')!r}")
+        for node_id, record in doc["overlay"].items():
+            if not ulid.is_valid(node_id) or not isinstance(record, dict):
+                raise OverlayRecoveryError(f"Malformed local overlay record at {self.path}: {node_id!r}")
+            if record.get("status") not in VALID_STATUSES or not isinstance(record.get("updated_at"), str):
+                raise OverlayRecoveryError(f"Malformed local overlay record at {self.path}: {node_id!r}")
         return doc
 
     def get(self, node_id: str) -> dict | None:
@@ -81,15 +180,18 @@ class Overlay:
             raise ValueError(f"overlay key must be a ULID node id, got {node_id!r}")
         if status not in VALID_STATUSES:
             raise ValueError(f"invalid status {status!r}, must be one of {VALID_STATUSES}")
-        doc = self.load()
-        doc["schema"] = SCHEMA
-        doc["overlay"][node_id] = {"status": status, "updated_at": _now_iso()}
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+        with self._write_lock():
+            doc = self.load()
+            doc["schema"] = SCHEMA
+            doc["overlay"][node_id] = {"status": status, "updated_at": _now_iso()}
+            self._atomic_write(doc)
 
     def reset(self) -> None:
         """Delete the overlay file (resets all progress). No-op if absent."""
-        self.path.unlink(missing_ok=True)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        with self._write_lock():
+            self.path.unlink(missing_ok=True)
 
     def status_map(self) -> dict[str, str]:
         """Convenience join surface: {node_id → status} for keys present in the overlay."""
