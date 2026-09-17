@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Map: World Models — Building and Evaluating Interactive Environment Simulators</title>
+  <script src="../assets/typography-prefs.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+
+    body { max-width: none; padding: 2rem; }
+    .dag-container { position: relative; width: 100%; overflow-x: auto; }
+    .dag-canvas { position: relative; min-width: min-content; }
+    .edge-layer { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1; }
+    .topic-card {
+      position: absolute; width: 420px; padding: 1rem 1.2rem;
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+      z-index: 2; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .topic-card:hover { border-color: var(--accent); box-shadow: 0 2px 16px rgba(203, 166, 247, 0.1); }
+    .topic-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text); flex-wrap: wrap; }
+    .topic-card .why { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem; }
+    .topic-card .prereq-label { font-size: 0.75rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.5rem; }
+    .topic-card .prereq-list { list-style: none; margin: 0 0 0.5rem; padding: 0; font-size: 0.72rem; }
+    .topic-card .prereq-item { display: flex; align-items: baseline; gap: 0.4rem; line-height: 1.6; margin-bottom: 0.15rem; }
+    /* met/unmet: color reinforces, glyph (✓/○) + word ("met"/"not yet") carry meaning (color-not-alone) */
+    .topic-card .prereq-item.met .prereq-mark, .topic-card .prereq-item.met .prereq-state { color: var(--success); }
+    .topic-card .prereq-item.unmet .prereq-mark, .topic-card .prereq-item.unmet .prereq-state { color: var(--text-muted); }
+    .topic-card .prereq-mark { font-weight: 700; flex: 0 0 auto; }
+    .topic-card .prereq-state { font-variant: small-caps; letter-spacing: 0.02em; flex: 0 0 auto; margin-right: 0.15rem; }
+    .topic-card .prereq-name { color: var(--text-faint); font-style: italic; }
+    .topic-card .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .btn {
+      font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px;
+      border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+      cursor: pointer; transition: border-color 0.15s, color 0.15s;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.primary { border-color: var(--accent); color: var(--accent); }
+    .badge { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 3px; font-weight: 500; white-space: nowrap; }
+    .badge.not-started { background: color-mix(in srgb, var(--text-muted) 15%, transparent); color: var(--text-muted); }
+    .badge.generating { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
+    .badge.complete { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
+    .badge.in-progress { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+    .gen-progress { font-size: 0.75rem; color: var(--warning); margin-top: 0.4rem; font-family: monospace; }
+    .gen-stream { margin-top: 0.5rem; }
+    .gen-stream-header { font-size: 0.8rem; margin-bottom: 0.3rem; }
+    .gen-status.connecting { color: var(--text-muted); }
+    .gen-status.streaming { color: var(--warning); }
+    .gen-status.done { color: var(--success); }
+    .gen-status.error { color: var(--error); }
+    .gen-stream-output {
+      background: var(--code-bg); padding: 0.5rem; border-radius: 4px;
+      font-size: 0.72rem; font-family: monospace; max-height: 150px;
+      overflow-y: auto; line-height: 1.4;
+    }
+    .gen-stream-output .line { padding: 1px 0; }
+    .gen-stream-output .phase-tool { color: var(--accent); }
+    .gen-stream-output .phase-writing { color: var(--success); }
+    .gen-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex;
+      align-items: center; justify-content: center; z-index: 1000;
+    }
+    .gen-modal {
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1.5rem; max-width: 550px; width: 90%;
+    }
+    .gen-modal-actions { display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: flex-end; }
+    .leads-to { margin-top: 2rem; padding: 1.25rem; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border); }
+    .leads-to-grid { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+    .leads-to-btn {
+      display: flex; flex-direction: column; align-items: flex-start; padding: 0.75rem 1rem;
+      border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);
+      font-weight: 500; font-size: 0.95rem; cursor: pointer; text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .leads-to-btn:hover { border-color: var(--accent); background: var(--bg-elevated); }
+    .leads-to-desc { font-weight: 400; font-size: 0.83rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .loading { color: var(--text-muted); padding: 2rem; }
+    .map-header { margin-bottom: 1.5rem; }
+    .map-header h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    .map-header .orientation { color: var(--text-muted); font-size: 0.9rem; max-width: 700px; line-height: 1.5; }
+
+  </style>
+  <script type="importmap">
+{
+    "imports": {
+        "preact": "../assets/vendor/preact.module.js",
+        "preact/hooks": "../assets/vendor/preact-hooks.module.js",
+        "@preact/signals": "../assets/vendor/preact-signals.module.js",
+        "@preact/signals-core": "../assets/vendor/signals-core.module.js",
+        "htm": "../assets/vendor/htm.module.js"
+    }
+}
+  </script>
+  <script src="../assets/vendor/dagre.min.js"></script>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Breadcrumb"><a href="index.html">All Lessons</a> <span class="nav-sep">›</span> <span>World Models — Building and Evaluating Interactive Environment Simulators</span></nav>
+<div class="map-header">
+    <h1>World Models — Building and Evaluating Interactive Environment Simulators</h1>
+    <p class="orientation">A world model generates an explorable environment frame-by-frame in response to actions, instead
+of rendering from a fixed engine. Two real efforts frame the whole track: a benchmark that scores
+whether a model actually *plays* correctly (the FDS harness in the `world-models` repo) and a
+browser-playable real-time video-diffusion generator on AWS Trainium (`delirium-world-models-poc`,
+a fork of TencentARC Rolling Forcing). The field's central failure is the "vivid dream" — a model
+that looks photoreal while ignoring the player — so the track gives *evaluation* equal weight with
+*generation*. It teaches what world models are, the architecture landscape, how to evaluate them
+(the behavioral axis that separates play from look), how a real-time one is built (causal DiT +
+rectified flow, Rolling Forcing, DMD distillation), how action conditioning is grafted on, and how
+it's served on accelerators. It's architecture-first and source-grounded: every claim cites the two
+repos or `[L#:confidence]` prior art, and serving anchors to AWS Neuron/SageMaker docs. Serving a
+world model is itself a generative-media-pipeline problem, so this domain `leads_to` that one.</p>
+  </div>
+  <div id="app"></div>
+
+<script type="application/json" id="page-data">{"domain": "world-models", "title": "World Models — Building and Evaluating Interactive Environment Simulators", "orientation": "A world model generates an explorable environment frame-by-frame in response to actions, instead\nof rendering from a fixed engine. Two real efforts frame the whole track: a benchmark that scores\nwhether a model actually *plays* correctly (the FDS harness in the `world-models` repo) and a\nbrowser-playable real-time video-diffusion generator on AWS Trainium (`delirium-world-models-poc`,\na fork of TencentARC Rolling Forcing). The field's central failure is the \"vivid dream\" — a model\nthat looks photoreal while ignoring the player — so the track gives *evaluation* equal weight with\n*generation*. It teaches what world models are, the architecture landscape, how to evaluate them\n(the behavioral axis that separates play from look), how a real-time one is built (causal DiT +\nrectified flow, Rolling Forcing, DMD distillation), how action conditioning is grafted on, and how\nit's served on accelerators. It's architecture-first and source-grounded: every claim cites the two\nrepos or `[L#:confidence]` prior art, and serving anchors to AWS Neuron/SageMaker docs. Serving a\nworld model is itself a generative-media-pipeline problem, so this domain `leads_to` that one.", "topics": [{"id": "01M2RB7H6QXKJCYZJPF73E56R0", "slug": "what-is-a-world-model", "title": "What Is a World Model?", "why": "The whole track rests on one distinction: a world model is *action-conditioned, over-time steerable* simulation — not a video generator (fixed clip) and not a hand-coded engine. Establishes the vocabulary (state, action, rollout, drift) and names the \"vivid dream\" failure the rest of the track exists to detect and fix.", "prereqs": [], "status": "not-started", "lessonPath": "01-what-is-a-world-model.html"}, {"id": "01M2RB7H6Q8SRH0ZKZV5AT6SWW", "slug": "the-landscape", "title": "The World-Model Landscape", "why": "Situates the field so the learner can place any new model. Covers the six-way architecture taxonomy (video-latent, 3D-native, hybrid engine+model, latent-dynamics RL, JEPA, action-foundation) and the AWS-deployability tiers (self-hostable / walled / API-only), with named examples (Genie, Cosmos, Oasis, Dreamer, V-JEPA).", "prereqs": ["01M2RB7H6QXKJCYZJPF73E56R0"], "status": "not-started", "lessonPath": "02-the-landscape.html"}, {"id": "01M2RB7H6Q4WPV2ZN5C9NVJSDH", "slug": "evaluation-and-fds", "title": "Evaluation — Behavioral vs Visual (the FDS Harness)", "why": "The intellectual core. Why visual metrics lie (the ranking reversal); engine-as-oracle (games give deterministic, bit-reproducible ground truth robotics can't); the FDS four axes — visual (PSNR/LPIPS, reported-not-trusted), behavioral (IDM round-trip; **behavioral FDS = `1 - action_F1`**, a project-coined score, NOT a Fréchet distance and NOT FVD), drift-over-horizon `h*`, and the action-sensitivity guard. Situated against prior art: FVD/CD-FVD and the IDM-round-trip lineage (VPT→Genie→RLIR), where FDS is the repo's instantiation of an established family, complementary to FVD.", "prereqs": ["01M2RB7H6QXKJCYZJPF73E56R0"], "status": "not-started", "lessonPath": "03-evaluation-and-fds.html"}, {"id": "01M2RB7H6QV3NSZ97PRYRX4FD6", "slug": "building-a-real-time-world-model", "title": "Building a Real-Time World Model", "why": "How the generator actually works, from the delirium PoC. Causal video DiT (Wan2.1-T2V-1.3B) + rectified flow / flow matching; Rolling Forcing (denoise a rolling window + an attention-sink anchor block + a streaming KV cache) as the real-time, low-drift trick; DMD distillation to a few denoising steps (data-free, tracked by the gradient norm not the loss). Grounds the \"~14 fps\" figure precisely: RF-1.3B offline on Trainium2, not the interactive demo and not the 5B Matrix-Game-3.0.", "prereqs": ["01M2RB7H6QXKJCYZJPF73E56R0"], "status": "not-started", "lessonPath": "04-building-a-real-time-world-model.html"}, {"id": "01M2RB7H6QG1488ZG78SXMVNJC", "slug": "action-conditioning", "title": "Action Conditioning", "why": "The subtle part everyone gets wrong. Why a DMD-distilled model is action-invariant by construction (added action inputs measure 0.000 effect); the fix — small gated action modules (zero-init gate: start as a no-op, learn to un-gate) plus a supervised next-frame flow-matching term on real (latent, action) pairs; why a LoRA-on-attention variant was counterproductive (degraded to \"a grainy blob\") and disabled; coarse temporal granularity (one action vector per ~21-frame segment).", "prereqs": ["01M2RB7H6QV3NSZ97PRYRX4FD6"], "status": "not-started", "lessonPath": "05-action-conditioning.html"}, {"id": "01M2RB7H6QKCKES7E5RDVWVF9Z", "slug": "serving-and-accelerators", "title": "Serving & Accelerators", "why": "Getting a real-time world model to a player. The accelerator reality — Trainium/Neuron with NKI kernels, TP/CP parallel topology, the bandwidth/launch-bound roofline (RF sits at ~4-6% MFU; fps wins came from launch-count reduction, not FLOPs) — anchored to the **NxD Inference** and **NKI** AWS docs. Frame delivery via streaming (SSE/WebSocket; SageMaker `InvokeEndpointWithResponseStream`). The internal Decart analog (NKI mega-kernels, ~25 fps on Trn3) and the Self-Forcing + step-distillation + WebRTC reference stack. Honest gap: no first-party AWS doc for real-time *video generation* exists — it's extrapolation from DiT image serving + streaming delivery.", "prereqs": ["01M2RB7H6QV3NSZ97PRYRX4FD6"], "status": "not-started", "lessonPath": null}], "leadsTo": [{"slug": "generative-media-pipelines", "why": ""}], "edges": [{"source": "01M2RB7H6QXKJCYZJPF73E56R0", "target": "01M2RB7H6Q8SRH0ZKZV5AT6SWW", "type": "prereq", "why": ""}, {"source": "01M2RB7H6QXKJCYZJPF73E56R0", "target": "01M2RB7H6Q4WPV2ZN5C9NVJSDH", "type": "prereq", "why": ""}, {"source": "01M2RB7H6QXKJCYZJPF73E56R0", "target": "01M2RB7H6QV3NSZ97PRYRX4FD6", "type": "prereq", "why": ""}, {"source": "01M2RB7H6QV3NSZ97PRYRX4FD6", "target": "01M2RB7H6QG1488ZG78SXMVNJC", "type": "prereq", "why": ""}, {"source": "01M2RB7H6QV3NSZ97PRYRX4FD6", "target": "01M2RB7H6QKCKES7E5RDVWVF9Z", "type": "prereq", "why": ""}]}</script>
+<script type="module">
+
+    import { h, render } from 'preact';
+    import htm from 'htm';
+    import { MapView } from '../assets/components/MapView.js';
+
+    const html = htm.bind(h);
+    const data = JSON.parse(document.getElementById('page-data').textContent);
+
+    try {
+      const response = await fetch(`/api/map/${encodeURIComponent(data.domain)}`);
+      if (response.ok) {
+        const live = await response.json();
+        const statuses = new Map(live.topics.map(topic => [topic.slug, topic.status]));
+        data.topics = data.topics.map(topic => ({
+          ...topic,
+          status: statuses.get(topic.slug) ?? topic.status,
+        }));
+      }
+    } catch {
+      // Static hosts and unavailable APIs keep the committed demo/no-JS state.
+    }
+
+    render(
+      html`<${MapView} topics=${data.topics} leadsTo=${data.leadsTo} edges=${data.edges} orientation=${data.orientation} title=${data.title} />`,
+      document.getElementById('app')
+    );
+
+</script>
+
+</body>
+</html>

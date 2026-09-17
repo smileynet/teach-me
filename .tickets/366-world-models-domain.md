@@ -78,15 +78,45 @@ This is a conceptual domain — no Godot/ink runtime artifact. The gate is **cla
 
 ## Acceptance criteria
 
-- [ ] `world-models.MAP.md` at `library/world-models/maps/` with the topic spine + prereq edges; ULIDs via `tools/migrate_map_ids.py --apply`; passes `tools/check-maps-forest.py`
-- [ ] Source-verification gate recorded (claim→cited-source contract; the two source-TODOs above resolved or explicitly deferred per-topic)
-- [ ] Standalone depth-0 confirmed; `leads_to: [generative-media-pipelines]` edge recorded (soft — #367 need not exist first)
-- [ ] Provenance recorded (design source = the promoted guide; backing = repo-findings + gap-research)
-- [ ] Topic spine reviewed/trimmed (6 → final count) with the user before topic tickets
+- [x] `world-models.MAP.md` at `library/world-models/maps/` with the topic spine + prereq edges; ULIDs via `tools/migrate_map_ids.py --apply`; passes `tools/check-maps-forest.py`
+- [x] Source-verification gate recorded (claim→cited-source contract; the two source-TODOs above **resolved** — see scaffold note) — MISSION.md Constraints + RESOURCES.md
+- [x] Standalone depth-0 confirmed; `leads_to: [generative-media-pipelines]` edge recorded (validated in forest — that domain now exists, #367)
+- [x] Provenance recorded (design source = the promoted guide; backing = repo-findings + gap-research) — RESOURCES.md
+- [ ] Topic spine reviewed/trimmed (6 → final count) with the user before topic tickets — **AWAITING USER REVIEW** (see scaffold note)
 - [ ] NO lessons generated — topic tickets created after this is signed off
+
+## Scaffold status (2026-09-17) — PROPOSAL COMPLETE, awaiting sign-off
+
+Scaffold placed and validated (proposal-only, no lessons):
+`library/world-models/{MISSION.md, RESOURCES.md, maps/world-models.MAP.md}` — 6 topics.
+
+**Both source-TODOs resolved** (review pass, `gap-research/366-source-verification.md`):
+1. **FDS math CONFIRMED** = literally `1 - action_F1` (`fds_harness.py:202-203`), macro-F1 over
+   discrete action channels via IDM round-trip. NOT a Fréchet distance, NOT FVD; `camera_l1` is
+   reported but not folded into the scalar. The guide was correct — baked into topic 3's framing.
+2. **delirium lineage CONFIRMED**: RF = Wan2.1-T2V-1.3B (~4 fps interactive); MG3 = Wan2.2-5B
+   (~17 fps, 4×H100). The "~14 fps" = RF **offline on Trainium2**, TP4×CP4=16, 480×640, 5 steps —
+   distinct from the demo and from MG3. **Trn2-vs-GPU parity is NOT stated** — the MAP/MISSION
+   explicitly avoid claiming it.
+
+**AWS-doc anchors woven into topic 6** (the SageMaker-Async analog for this domain,
+`gap-research/366-aws-doc-anchors.md`): **NxD Inference** + **NKI** guide (accelerator serving) and
+**SageMaker real-time + `InvokeEndpointWithResponseStream`** (frame delivery). Honest gap recorded:
+no first-party AWS doc for real-time *video generation* exists — topic 6 frames it as extrapolation
+from DiT image serving + streaming, not a documented workflow.
+
+6 topics: (1) what-is-a-world-model → (2) the-landscape, (3) evaluation-and-fds,
+(4) building-a-real-time-world-model → (5) action-conditioning, (6) serving-and-accelerators.
+Prereq edges: `1→{2,3,4}`, `4→{5,6}`. `leads_to: [generative-media-pipelines]` (frontmatter +
+topic 6). **Verification:** forest check clean (all 9 domains); `map:generate` → 6 topics;
+`check-index-drift` → 10 index pages in sync.
+
+**Decision for you before topic tickets:** approve the 6-topic spine as-is, or adjust (e.g. split
+serving vs accelerators, or merge landscape into topic 1). On your go, I cut the 6 topic tickets.
 
 ## Notes
 
 - Design source + backing research already written and committed under
   `.memory/research/world-models-and-genmedia/`.
-- Pairs with #367 (generative-media-pipelines). The two domains share the delirium serving seam.
+- Pairs with #367 (generative-media-pipelines). The two domains share the delirium serving seam;
+  #366 `leads_to` #367.
