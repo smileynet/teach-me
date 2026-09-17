@@ -1,7 +1,7 @@
 ---
 id: "361"
 title: "Align learner-dialog skill writes with local-only state"
-status: open
+status: in_progress
 priority: high
 type: bug
 blocked_by: ["341"]
