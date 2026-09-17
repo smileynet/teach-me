@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### New domains & lessons
+
+- **World Models** — new 6-topic track scaffold (mission, map, resources): building and
+  evaluating interactive environment simulators.
+- **Generative Media Pipelines** — new 8-topic track scaffold: hosting models to generate
+  images, video, speech, and 3D, with SageMaker Async as a worked reference.
+- **Godot Asset Pipeline** — first lessons land: a first-import walkthrough verified against
+  a real Godot render, plus headless-Blender helpers that turn a `.glb`/`.fbx` into an
+  editable `.blend` and export a Godot-ready file with a structural format check.
+
+### Features
+
+- **Asset credits** — pages that use third-party assets carry an attribution footer.
+
+### Fixed
+
+- Index pages no longer dangle a **Sources** link that 404s — the link appears only when a
+  sources page actually exists, and appears automatically once one is generated.
+- The committed All Lessons index no longer links to topic maps from the author's private
+  workspace — links that 404 on any fresh clone.
+- Quiz and quick-check pages no longer offer to "generate" the quiz you're already taking
+  (and no longer log a spurious 404 probing for it).
+- Copy buttons on code blocks fall back gracefully when the browser denies clipboard
+  permission instead of silently failing.
+- Maps pick up your latest progress the moment they load.
+- Saving progress and spaced-repetition reviews is now crash-safe: writes are atomic, and
+  rapid repeat reviews of the same card can't lose or duplicate history.
+- Cross-domain "also leads to" map links written as inline lists parse correctly again.
+
+### Removed
+
+- The dead server-side lesson-generation endpoint. The honest Generate buttons (shipped in
+  0.3.0) remain the way to create content: they hand you the exact prompt to run.
+
 ## [0.3.0] — 2026-09-06
 
 Three new hands-on domains (glTF, ink narrative scripting, and a full Godot toon-shader +
