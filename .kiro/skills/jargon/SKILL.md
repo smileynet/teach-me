@@ -31,7 +31,7 @@ If no concept hints file exists but `source-chunks/{domain}.json` does, run `pyt
 
 ### 1. Read the lesson
 
-Read the full HTML content. Identify the domain being taught (from the lesson title, content, and MISSION.md if available).
+Read the full HTML content. Identify the domain being taught from the lesson title, content, and `.user/learner-profile.md` if available.
 
 ### 2. Extract candidate terms
 

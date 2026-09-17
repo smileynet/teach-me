@@ -11,21 +11,23 @@ The user wants to learn something. This is stateful — they intend multiple ses
 
 ## Teaching Workspace
 
-The current directory is the workspace. State lives in:
+The workspace separates shareable curriculum from private learner state:
 
-- `MISSION.md` — why the learner wants this (grounds everything)
 - `RESOURCES.md` — verified sources with trust ratings (populated BEFORE lessons)
 - `lessons/*.html` — self-contained HTML lessons (one concept each)
 - `reference/*.html` — scannable lookup companions to lessons
-- `learning-records/*.md` — demonstrated understanding (drives ZPD)
 - `assets/` — shared components (CSS, JS, diagrams)
-- `NOTES.md` — learner preferences, working notes
+- `.user/learner-profile.md` — mission, pace, preferences, working notes, and demonstrated understanding
+- `.user/learning-records/` — private quiz and SR outcomes
+
+Never write learner-specific state to committed paths such as `MISSION.md`, `NOTES.md`,
+or `learning-records/`. Curriculum, sources, maps, and lesson assets remain shareable.
 
 ## Workflow
 
-1. **Mission first.** If `MISSION.md` is empty, ask why they're learning this. Don't produce a lesson without a mission.
+1. **Mission first.** Read `.user/learner-profile.md`; if it has no mission, ask why they're learning this. Don't produce a lesson without a mission.
 2. **Research the domain.** Identify 3-6 subtopics, dispatch research, populate RESOURCES.md. See [references/research-methodology.md](./references/research-methodology.md). This is a hard gate — no lesson from parametric memory.
-3. **Find the ZPD.** Read learning records, determine what to teach next.
+3. **Find the ZPD.** Read `.user/learning-records/`, determine what to teach next.
 4. **Write the lesson.** One concept, one win. Read the scaffold from `assets/scaffolds/lesson.html` first. Follow [references/lesson-components.md](./references/lesson-components.md) for theming, diagrams, glossary, exercises.
 5. **Write the reference doc.** Simultaneously — same authoring pass. Scannable, lookup-oriented.
 6. **Generate SR questions.** 3-5 conceptual questions with criteria-based answers. See [references/sr-question-design.md](./references/sr-question-design.md).
@@ -42,7 +44,7 @@ The current directory is the workspace. State lives in:
 
 ## Session Start (new learner)
 
-Detection: No workspace with populated MISSION.md found (all contain template placeholders or don't exist).
+Detection: no workspace with `.user/learner-profile.md` containing a mission.
 
 This is the first-contact flow. The user opened this project in their AI assistant and either said something vague or asked to learn something.
 
@@ -53,11 +55,11 @@ This is the first-contact flow. The user opened this project in their AI assista
    - "What should you be able to DO after learning this?" (defines success)
    - "Any constraints — time pressure, prior knowledge, must-cover areas?"
 
-3. **Scaffold** (automatic): Run `tools/init-workspace.sh --path workspace` (or `library/{slug}` for demos). Write MISSION.md from their answers.
+3. **Scaffold** (automatic): Run `python tools/init_workspace.py --default` for a personal workspace. If the selected workspace is missing, diagnose it and scaffold it before writing state. Write the mission to `.user/learner-profile.md`.
 
 4. **Offer customization** (brief, don't block):
    - "Before I research, any preferences? Detailed walkthroughs or jump-to-the-point? Lots of diagrams or mostly text?"
-   - Write preferences to `NOTES.md` in the workspace
+   - Write preferences to `.user/learner-profile.md` in the workspace
    - If they say "just start" — use defaults (direct, diagrams, dark mode)
 
 5. **Mention the experience ahead**:

@@ -1,7 +1,7 @@
 ---
 id: "361"
 title: "Align learner-dialog skill writes with local-only state"
-status: in_progress
+status: done
 priority: high
 type: bug
 blocked_by: ["341"]
@@ -26,8 +26,18 @@ Route all learner-specific notes, quiz outcomes, progress, and preferences to th
 
 ## Acceptance criteria
 
-- [ ] Every learner-dialog skill names the approved local-only path or service for personal state.
-- [ ] No active skill instructs an agent to create/update learner progress in a tracked path.
-- [ ] The local workspace is created or diagnosed gracefully on first use.
-- [ ] Prompt fixtures confirm quiz outcomes, notes, and pace preferences stay local while authored curriculum remains shareable.
-- [ ] `.gitignore`, deployment assembly, and skill instructions describe the same ownership boundary.
+- [x] Every learner-dialog skill names the approved local-only path or service for personal state.
+- [x] No active skill instructs an agent to create/update learner progress in a tracked path.
+- [x] The local workspace is created or diagnosed gracefully on first use.
+- [x] Prompt fixtures confirm quiz outcomes, notes, and pace preferences stay local while authored curriculum remains shareable.
+- [x] `.gitignore`, deployment assembly, and skill instructions describe the same ownership boundary.
+
+## Resolution
+
+Teaching, quiz, and jargon instructions now route missions, preferences, gaps, quiz
+outcomes, and learning records to `.user/learner-profile.md` and
+`.user/learning-records/`. The teaching workspace initializer is the first-use path;
+curriculum, sources, maps, lessons, and authored SR definitions remain shareable.
+
+Evidence: `python -m pytest tools/test_skill_local_state.py -q` → 5 passed;
+`mise run site-dry-run` → 12 deployment assertions passed; `mise run verify` passed.
