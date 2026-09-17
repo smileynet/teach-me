@@ -221,29 +221,93 @@ def recipe_reveal(page, out_dir):
     return interactions, checks
 
 
+_SVG_INVENTORY_JS = """
+() => Array.from(document.querySelectorAll('body svg')).map((svg, index) => {
+    const parts = [];
+    for (let node = svg; node && node.nodeType === 1 && node.tagName !== 'BODY'; node = node.parentElement) {
+        let part = node.tagName.toLowerCase();
+        if (node.id) part += '#' + node.id;
+        else if (node.classList.length) part += '.' + Array.from(node.classList).join('.');
+        parts.unshift(part);
+    }
+    const rect = svg.getBoundingClientRect();
+    return {
+        index: index,
+        path: parts.join(' > ') || 'svg',
+        attr_width: svg.getAttribute('width'),
+        attr_height: svg.getAttribute('height'),
+        view_box: svg.getAttribute('viewBox'),
+        rendered_width: rect.width,
+        rendered_height: rect.height,
+        hidden_ancestor: svg.closest('[style*="display: none"], [style*="display:none"], [hidden]') !== null
+    };
+})
+"""
+
+
 def recipe_diagrams(page, out_dir):
-    """Check SVG diagrams: verify non-zero dimensions, screenshot."""
+    """Check SVG diagrams in every view pane; report per-SVG failure diagnostics.
+
+    UnifiedView keeps both the tree and map panes mounted and swaps them with
+    display:none (#276), so SVGs in the inactive pane have no rendered box by
+    design. The contract is therefore: every SVG must render with non-zero
+    dimensions in AT LEAST ONE pane, and each pane's SVGs are asserted while
+    that pane is actually visible (the toggle is exercised, not skipped).
+    """
     interactions = []
     checks = []
 
-    svgs = page.query_selector_all('body svg')
-    valid = 0
-    for i, svg in enumerate(svgs):
-        box = svg.bounding_box()
-        if box and box['width'] > 0 and box['height'] > 0:
-            valid += 1
+    # Client-rendered views mount after domcontentloaded; wait for either the
+    # unified view shell or any SVG before asserting.
+    try:
+        page.wait_for_selector('.unified-view, body svg', timeout=5000)
+    except Exception:
+        pass
+
+    panes = [('initial', None)]
+    map_tab = page.query_selector('button.vt-btn[role=tab]:has-text("Map")')
+    if map_tab:
+        panes.append(('map-pane', map_tab))
+
+    seen = {}
+    for pane_name, tab in panes:
+        if tab:
+            tab.click()
+            page.wait_for_timeout(400)  # CSS display swap, no remount
+        for item in page.evaluate(_SVG_INVENTORY_JS):
+            record = seen.setdefault((item['path'], item['index']), item)
+            if item['rendered_width'] > 0 and item['rendered_height'] > 0:
+                record['rendered'] = True
+                record['rendered_in'] = pane_name
+
+    svgs = list(seen.values())
+    valid = [s for s in svgs if s.get('rendered')]
+    failed = [s for s in svgs if not s.get('rendered')]
 
     if svgs:
         page.screenshot(path=str(out_dir / 'diagrams.png'), full_page=True)
         interactions.append({
             'component': 'diagrams', 'action': 'full_page',
-            'result': f'{valid}/{len(svgs)} SVGs rendered', 'screenshot': 'diagrams.png'
+            'result': f'{len(valid)}/{len(svgs)} SVGs rendered '
+                      f'(asserted across {len(panes)} view pane(s))',
+            'screenshot': 'diagrams.png'
         })
+
+    detail = f'{len(valid)}/{len(svgs)} inline SVGs have non-zero rendered dimensions'
+    if failed:
+        failing = '; '.join(
+            f"{s['path']} (attrs {s['attr_width']}x{s['attr_height']}"
+            + (f", viewBox {s['view_box']}" if s['view_box'] else '')
+            + f"; rendered {s['rendered_width']}x{s['rendered_height']}"
+            + ('; hidden ancestor' if s['hidden_ancestor'] else '') + ')'
+            for s in failed
+        )
+        detail += ' — failing: ' + failing
 
     checks.append({
         'name': 'svg_renders',
-        'pass': valid == len(svgs) and len(svgs) > 0,
-        'detail': f'{valid}/{len(svgs)} inline SVGs have non-zero dimensions'
+        'pass': len(failed) == 0 and len(svgs) > 0,
+        'detail': detail
     })
 
     return interactions, checks
