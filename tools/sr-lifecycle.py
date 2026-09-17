@@ -29,13 +29,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from questions import Card, list_topics, read_cards, QUESTIONS_DIR
+from questions import Card, ensure_dirs, list_topics, read_cards, user_topic_path
 from sm2 import CardSchedule, EASE_DEFAULT
 
 
 def _rewrite_topic(topic: str, cards: list[Card]) -> None:
-    """Rewrite a topic's JSONL file with updated cards."""
-    path = QUESTIONS_DIR / f"{topic}.jsonl"
+    """Copy a topic's cards into the private store with lifecycle changes."""
+    ensure_dirs()
+    path = user_topic_path(topic)
     with open(path, "w", encoding="utf-8") as f:
         for card in cards:
             f.write(card.to_json() + "\n")
