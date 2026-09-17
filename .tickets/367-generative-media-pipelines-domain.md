@@ -93,21 +93,30 @@ verified independently — not a claim about that specific repo. Keep the two di
 Scaffold placed and validated (proposal-only, no lessons):
 
 - `library/generative-media-pipelines/{MISSION.md, RESOURCES.md, maps/generative-media-pipelines.MAP.md}`
-- **Topic spine trimmed 9 → 7** (my proposal, needs your review): folded `weights-storage-and-cold-start`
-  into `scale-to-zero-gpu-serving` (topic 2) and `model-onboarding-as-data` (topic 3); **dropped
-  the optional `speech-generation` topic** given the thin coverage across the repos — speech prior
-  art is preserved in `gap-research/tts-speech-generation.md` and can be added back as topic 8 if
-  you want it in scope.
-- Final 7 topics: (1) universal-serving-pipeline → (2) scale-to-zero-gpu-serving,
-  (3) model-onboarding-as-data, (4) async-contract; (5) comfyui-at-scale [needs 3+4];
-  (6) media-types-and-image-to-3d; (7) lora-and-the-training-tier [needs 3].
-- Prereq edges: `1→{2,3,4}`, `{3,4}→5`, `1→6`, `3→7`. Within-map. `leads_to: []` (leaf; #366 points in).
-- **Verification:** `check-maps-forest.py` → "generative-media-pipelines: 1 map(s) — clean" (all 8
-  domains clean); `map:generate` → rendered 7 topics.
 
-**Two decisions for you before topic tickets:** (1) approve the 7-topic trim, or restore
-weights-storage / speech as their own topics; (2) confirm topic 6's image→3D depth vs deferring to
-the gltf-format / godot-asset-pipeline domains. Once approved, I'll cut the 7 topic tickets.
+**Spine v2 (2026-09-17, per user direction) — 8 topics:**
+- **Weights-storage MERGED** into topics 2 (scale-to-zero) + 3 (onboarding) — user approved merging.
+- **Speech RESTORED as topic 8** — user: "speech generation is important." Backed by a deeper
+  research pass promoted to `gap-research/tts-speech-generation-deep.md` (task taxonomy, Polly +
+  Nova 2 Sonic, commercial-safe-vs-non-commercial self-host models, Async-vs-real-time serving fit,
+  BVL/Ryu + Connect UTTS internal prior art).
+- **SageMaker Async Inference woven in as the worked reference** (user-requested), threaded through
+  topics 2 (managed scale-to-zero), 4 (S3-pointer/identifier+output-location/SNS async contract),
+  and 8 (dubbing/voiceover = the Async sweet spot). Doc:
+  https://docs.aws.amazon.com/sagemaker/latest/dg/async-inference.html
+
+Final 8 topics: (1) universal-serving-pipeline → (2) scale-to-zero-gpu-serving,
+(3) model-onboarding-as-data, (4) async-contract; (5) comfyui-at-scale [needs 3+4];
+(6) media-types-and-image-to-3d; (7) lora-and-the-training-tier [needs 3];
+(8) speech-generation [needs 2+4].
+Prereq edges: `1→{2,3,4}`, `{3,4}→5`, `1→6`, `3→7`, `{2,4}→8`. Within-map. `leads_to: []` (leaf).
+
+**Verification:** `check-maps-forest.py` → "generative-media-pipelines: 1 map(s) — clean" (all 8
+domains clean); `map:generate` → 8 topics; `check-index-drift.py` → 9 index pages in sync.
+
+**Remaining decision for you before topic tickets:** confirm topic 6's image→3D depth vs deferring
+the mesh/PBR/LOD cleanup mechanics to the gltf-format / godot-asset-pipeline domains (topic 6
+currently *references* them). Once confirmed, I'll cut the 8 topic tickets.
 
 ## Notes
 
