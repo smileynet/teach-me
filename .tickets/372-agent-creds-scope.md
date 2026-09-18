@@ -1,7 +1,7 @@
 ---
 id: "372"
 title: "Scope creds-agent MCP access away from every default agent session"
-status: open
+status: in_progress
 blocked_by: []
 priority: high
 type: review
