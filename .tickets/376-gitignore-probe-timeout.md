@@ -1,7 +1,7 @@
 ---
 id: "376"
 title: "Add a timeout to the git check-ignore probe in generate_index_page"
-status: open
+status: in_progress
 blocked_by: []
 priority: low
 type: fix
