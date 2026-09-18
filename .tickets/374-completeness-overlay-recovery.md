@@ -1,7 +1,7 @@
 ---
 id: "374"
 title: "Handle OverlayRecoveryError in check-topic-completeness (corrupt overlay crashes the checker)"
-status: open
+status: in_progress
 blocked_by: []
 priority: low
 type: bug
