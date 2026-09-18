@@ -1,7 +1,7 @@
 ---
 id: "377"
 title: "Close SR event-store sqlite connections deterministically"
-status: open
+status: in_progress
 blocked_by: []
 priority: low
 type: fix
