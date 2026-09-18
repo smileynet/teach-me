@@ -1,7 +1,7 @@
 ---
 id: "373"
 title: "Isolate malformed-MAP parse failures in _map_for_domain (one bad file 500s all domains)"
-status: open
+status: in_progress
 blocked_by: []
 priority: medium
 type: bug
