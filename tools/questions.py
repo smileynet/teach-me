@@ -7,6 +7,7 @@ import json
 import sqlite3
 import time
 import uuid
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -194,6 +195,24 @@ def _connect() -> sqlite3.Connection:
     return connection
 
 
+@contextmanager
+def _store_connection() -> Iterator[sqlite3.Connection]:
+    """Open the event store with transaction semantics AND a deterministic close (#377).
+
+    `with sqlite3.Connection` alone commits/rolls back but never closes, so connections
+    previously lingered until GC/process exit — and `iter_events`, which yields inside
+    the block, could strand one (with its read snapshot) when a consumer abandoned the
+    generator. The finally-close fixes all exit paths: normal, exception, and
+    GeneratorExit.
+    """
+    connection = _connect()
+    try:
+        with connection:
+            yield connection
+    finally:
+        connection.close()
+
+
 def _meta(connection: sqlite3.Connection, key: str) -> str | None:
     row = connection.execute("SELECT value FROM store_meta WHERE key = ?", (key,)).fetchone()
     return row["value"] if row else None
@@ -318,7 +337,7 @@ def _ensure_projection(connection: sqlite3.Connection) -> None:
 
 def rebuild_projection() -> None:
     """Replace the local projection with deterministic replay of canonical events."""
-    with _connect() as connection:
+    with _store_connection() as connection:
         connection.execute("BEGIN IMMEDIATE")
         try:
             if _meta(connection, "event_schema") is None:
@@ -354,7 +373,7 @@ def record_card_event(topic_slug: str, card: Card, action: str, *, rating: int |
     """
     if action == "reviewed" and effective_date is None:
         raise ValueError("A reviewed event requires an effective_date")
-    with _connect() as connection:
+    with _store_connection() as connection:
         for attempt in range(_WRITE_ATTEMPTS):
             try:
                 connection.execute("BEGIN IMMEDIATE")
@@ -404,7 +423,7 @@ def record_card_event(topic_slug: str, card: Card, action: str, *, rating: int |
 
 
 def iter_events() -> Iterator[dict]:
-    with _connect() as connection:
+    with _store_connection() as connection:
         _ensure_projection(connection)
         for row in connection.execute("SELECT * FROM events ORDER BY sequence"):
             yield _decode_event(row)
@@ -420,7 +439,7 @@ def read_cards(topic_slug: str) -> list[Card]:
     _migrate_legacy_private_topic(topic_slug)
     cards = {card.id: card for card in _read_cards(FIXTURE_QUESTIONS_DIR / f"{topic_slug}.jsonl")}
     cards.update({card.id: card for card in _read_cards(user_topic_path(topic_slug))})
-    with _connect() as connection:
+    with _store_connection() as connection:
         _ensure_projection(connection)
         projection = {row["card_id"]: {"schedule": json.loads(row["schedule"]),
                       "suspended": bool(row["suspended"]), "mastered": bool(row["mastered"])}
