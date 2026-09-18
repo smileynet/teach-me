@@ -117,16 +117,36 @@ except ValueError as error:
 
 
 def _map_for_domain(domain: str):
-    """Return the one parsed map whose canonical domain identity matches `domain`."""
+    """Return the one parsed map whose canonical domain identity matches `domain`.
+
+    Parse failures are isolated to their own file (#373): a malformed MAP.md is
+    skipped, and when the requested domain is (by filename attribution) the broken
+    one, the caller gets a 422 naming the file — healthy domains keep serving.
+    """
     from map_parser import load_map
 
     matches = []
+    broken: list[Path] = []
     for path in CONTEXT.maps:
-        parsed = load_map(path)
+        try:
+            parsed = load_map(path)
+        except (ValueError, OSError):
+            broken.append(path)
+            continue
         if parsed.domain == domain:
             matches.append((path, parsed))
     if len(matches) != 1:
-        detail = "No" if not matches else "Ambiguous"
+        if not matches:
+            ours = [p for p in broken if domain in p.stem or p.parent.parent.name == domain]
+            if ours:
+                names = ", ".join(str(p) for p in ours)
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"MAP.md for domain '{domain}' failed to parse: {names}",
+                )
+            detail = "No"
+        else:
+            detail = "Ambiguous"
         raise HTTPException(status_code=404, detail=f"{detail} MAP.md found for domain '{domain}'")
     return matches[0]
 
@@ -226,10 +246,24 @@ class StatusUpdateRequest(BaseModel):
 
 
 def _resolve_topic_id(domain: str, slug: str):
-    """Resolve (map_path, node_id) for a domain+slug, or raise 404."""
+    """Resolve (map_path, node_id) for a domain+slug, or raise 404.
+
+    A topic whose ULID was minted at parse time gets a NEW id on every parse, so an
+    overlay write keyed on it would silently never persist — reject loudly with the
+    remediation instead (#373).
+    """
     path, m = _map_for_domain(domain)
     for t in m.topics:
         if t.slug == slug:
+            if t.ephemeral_id:
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"Topic '{slug}' has no persisted ULID in {path.name} — its id is "
+                        f"minted fresh on every parse, so progress writes would never "
+                        f"persist. Run: python tools/migrate_map_ids.py --apply {path}"
+                    ),
+                )
             return path, t.id
     raise HTTPException(status_code=404, detail=f"Topic '{slug}' not found in domain '{domain}'")
 
@@ -368,6 +402,17 @@ def _print_startup_info() -> None:
     print(f"  Local:     {local_url}")
     if _HOST == "0.0.0.0":
         print(f"  LAN:       {lan_url}")
+    print()
+
+    # Broken maps discovered at scan time (#373): name them up front so a per-request
+    # 422 isn't the only signal. Their own domain 422s; other domains keep serving.
+    from map_parser import load_map
+
+    for path in CONTEXT.maps:
+        try:
+            load_map(path)
+        except (ValueError, OSError) as error:
+            print(f"  ⚠ Unparseable MAP.md (its domain will 422 until fixed): {path} — {error}")
     print()
 
     # Scan for lesson files
