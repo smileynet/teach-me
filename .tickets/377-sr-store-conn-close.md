@@ -1,7 +1,7 @@
 ---
 id: "377"
 title: "Close SR event-store sqlite connections deterministically"
-status: in_progress
+status: done
 blocked_by: []
 priority: low
 type: fix
@@ -41,9 +41,19 @@ closing context) so abandonment closes too.
 
 ## Acceptance criteria
 
-- [ ] All `_connect()` call sites close the connection on success, exception, and generator abandonment
-- [ ] `iter_events` half-consumed then garbage-collected leaves no open connection (testable via `sqlite3.Connection` instrumentation or a stress loop checking `PRAGMA`-side locks release)
-- [ ] Existing suites stay green (`tools/test_questions_local_state.py`, `tools/test_sr_event_serialization.py`)
+- [x] All `_connect()` call sites close the connection on success, exception, and generator abandonment — all four sites (`record_card_event`, `rebuild_projection`, `iter_events`, `read_cards`) now use `_store_connection()`, a `@contextmanager` that nests the transactional `with connection` inside `try/finally: connection.close()`
+- [x] `iter_events` half-consumed then garbage-collected leaves no open connection — `tools/test_store_connection_lifecycle.py` tracks opens/closes via a `sqlite3.Connection` factory subclass; the abandonment test consumes one event, drops the generator, `gc.collect()`s, and asserts `closed == opened`
+- [x] Existing suites stay green (`tools/test_questions_local_state.py`, `tools/test_sr_event_serialization.py`) — 15 passed (12 existing + 3 new lifecycle tests); lifecycle suite added to the `mise run verify` pytest list
+
+## Resolution (2026-09-18)
+
+`tools/questions.py`: added `_store_connection()` (contextmanager) — transaction semantics
+kept via the inner `with connection:`, deterministic close added via `finally`. Replaced the
+four `with _connect()` sites. Generator abandonment now routes `GeneratorExit` through the
+same finally (and rolls back any in-flight rebuild read txn). New
+`tools/test_store_connection_lifecycle.py` (3 tests) pins success/exception/abandonment
+release using a tracked `sqlite3.Connection` factory; both existing SR suites stay green.
+Ticket #377.
 
 ## References
 
