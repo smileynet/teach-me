@@ -1,7 +1,7 @@
 ---
 id: "375"
 title: "init_workspace must scaffold .user/learner-profile.md that the teach skill reads"
-status: open
+status: in_progress
 blocked_by: []
 priority: medium
 type: bug
