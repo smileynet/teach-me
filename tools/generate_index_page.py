@@ -36,6 +36,10 @@ from lib.domain_graph import find_maps, find_private_maps, build_domain_graph, b
 from lib.map_links import map_href  # noqa: E402
 from lib.page_template import render_index_page  # noqa: E402
 
+# check-ignore is a local, sub-second probe — bound it so a hung git can't hang
+# index generation (#376).
+_GIT_PROBE_TIMEOUT_S = 5
+
 
 def committed_maps_only(paths: list[Path]) -> list[Path]:
     """Drop maps git ignore rules exclude (#369). A committed index page must never link
@@ -56,8 +60,12 @@ def committed_maps_only(paths: list[Path]) -> list[Path]:
             # filenames, and git's own path encoding is UTF-8 regardless of locale.
             # -z: NUL-separated both ways — also disables git's C-style path quoting.
             input="\0".join(rel).encode("utf-8"), capture_output=True, cwd=PROJECT_ROOT,
+            timeout=_GIT_PROBE_TIMEOUT_S,
         )
-    except OSError:
+    except (OSError, subprocess.TimeoutExpired):
+        # Fail open on every git-failure mode (#376): git missing (OSError), git hung
+        # (timeout), or git erroring (non-zero exit → empty stdout → empty ignored set
+        # below). None of these may guess ignorability or block generation.
         return paths
     ignored = {line for line in r.stdout.decode("utf-8", "replace").split("\0") if line}
     return [p for p, rp in zip(paths, rel) if rp not in ignored]
