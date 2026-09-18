@@ -1,7 +1,7 @@
 ---
 id: "374"
 title: "Handle OverlayRecoveryError in check-topic-completeness (corrupt overlay crashes the checker)"
-status: in_progress
+status: done
 blocked_by: []
 priority: low
 type: bug
@@ -41,9 +41,18 @@ a clearly-marked incomplete report.
 
 ## Acceptance criteria
 
-- [ ] With a corrupt overlay file, `check-topic-completeness.py` prints the recovery diagnostic (path + reason) and exits deliberately, not via traceback
-- [ ] The checker never silently treats corrupt state as "no progress recorded"
-- [ ] A fixture test covers the corrupt-overlay path for the checker
+- [x] With a corrupt overlay file, `check-topic-completeness.py` prints the recovery diagnostic (path + reason) and exits deliberately, not via traceback — `--all` catches `OverlayRecoveryError`, prints "needs repair" + the underlying message (names `status-overlay.json`), exits 3 (state error, distinct from 2=workspace, 1=usage)
+- [x] The checker never silently treats corrupt state as "no progress recorded" — the handler fires before the empty-topics branch; corrupt state can no longer fall into "No complete topics found"
+- [x] A fixture test covers the corrupt-overlay path for the checker — `tools/test_topic_completeness_overlay.py` (truncated-JSON and invalid-record overlays → exit 3 + diagnostic + no traceback; healthy no-overlay workspace still exits 0), wired into `mise run verify`
+
+## Resolution (2026-09-18)
+
+`tools/check-topic-completeness.py`: added the dual-path `OverlayRecoveryError` import and a
+handler around `get_topics_from_map` in `main()` — corrupt local overlay state now exits 3
+with a readable "needs repair" diagnostic instead of an unhandled traceback, and cannot be
+mistaken for "no complete topics". New `tools/test_topic_completeness_overlay.py` (3 tests,
+all passing via `.venv` pytest) pins the contract and joins the core verify pytest list in
+`mise.toml`. Ticket #374.
 
 ## References
 
