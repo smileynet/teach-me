@@ -1,7 +1,7 @@
 ---
 id: "372"
 title: "Scope creds-agent MCP access away from every default agent session"
-status: in_progress
+status: done
 blocked_by: []
 priority: high
 type: review
@@ -49,10 +49,20 @@ absence) so committed agent configs don't reference a binary the project doesn't
 
 ## Acceptance criteria
 
-- [ ] Each of default/browser/godot_editor either drops `@creds-agent` or carries a written justification (ADR or AGENTS.md note) naming what it is for
-- [ ] What `local-creds-agent-mcp` exposes (which credentials, to whom) is written down; if it cannot be established, the server is removed from the default agent
-- [ ] A fresh clone without `aim` on PATH has no agent whose declared MCP servers hard-fail at session start (or the failure is documented as expected)
-- [ ] Trailing newlines restored on the three rewritten `.kiro/agents/*.json` files
+- [x] Each of default/browser/godot_editor either drops `@creds-agent` or carries a written justification (ADR or AGENTS.md note) naming what it is for — default DROPS it (restored to pre-`03e9d77` shape: no `mcpServers`, no `allowedTools`, `tools: ["@builtin"]`); browser/godot_editor KEEP it, justified in AGENTS.md Environment → "Agent MCP scoping (#372)" (authenticated URL validation; local editor tooling)
+- [x] What `local-creds-agent-mcp` exposes (which credentials, to whom) is written down; if it cannot be established, the server is removed from the default agent — it could NOT be established from repository facts (the exposure question is stated verbatim in this ticket's Context), so the default-agent removal branch fired; the AGENTS.md note records what IS known (machine-local `aim` binary, specialist-only scope)
+- [x] A fresh clone without `aim` on PATH has no agent whose declared MCP servers hard-fail at session start (or the failure is documented as expected) — documented as expected: the AGENTS.md note states the two specialists' creds-agent server fails to start without `aim` while everything else works; the default agent (the every-session path) now declares zero MCP servers
+- [x] Trailing newlines restored on the three rewritten `.kiro/agents/*.json` files — yes (all three re-validated as parseable JSON after the edit)
+
+## Resolution (2026-09-18)
+
+Removed the `creds-agent` MCP server, `@creds-agent` tool, and `allowedTools` entry from
+`.kiro/agents/default.json`, restoring its pre-`03e9d77` shape — routine teaching/content
+sessions no longer carry credential tools (biggest blast radius, no demonstrated need).
+`browser.json` and `godot_editor.json` keep the wiring, now justified in AGENTS.md
+(Environment → "Agent MCP scoping (#372)"), which also documents the `aim` dependency and
+its absent-binary failure mode. Trailing newlines restored on all three files; all three
+re-validated as parseable JSON (`json.load` smoke). Ticket #372.
 
 ## References
 
