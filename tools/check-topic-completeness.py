@@ -24,6 +24,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from questions import questions_dir_for
 
+try:
+    from tools.lib.overlay import OverlayRecoveryError as _OverlayRecoveryError
+except ModuleNotFoundError:  # tools/ on sys.path directly, or run as a script
+    from lib.overlay import OverlayRecoveryError as _OverlayRecoveryError  # type: ignore[no-redef]
+
 
 def find_lesson(workspace: Path, topic_slug: str, lesson_file: str | None = None) -> Path | None:
     """Find a lesson file matching the topic slug or explicit filename."""
@@ -315,7 +320,14 @@ def main():
     if args.topic:
         topics = [{"slug": args.topic, "lesson_file": None}]
     elif args.all:
-        topics = get_topics_from_map(workspace)
+        try:
+            topics = get_topics_from_map(workspace)
+        except _OverlayRecoveryError as error:
+            # Fail loud per the #353 overlay contract: corrupt local state is a repair
+            # condition, never "no progress recorded" (#374). Exit 3 = state error,
+            # distinct from 2 (bad workspace) and 1 (usage).
+            print(f"✗ Local progress overlay needs repair — not treating corrupt state as no-progress: {error}", file=sys.stderr)
+            sys.exit(3)
         if not topics:
             print("No complete topics found in MAP.md")
             sys.exit(0)
