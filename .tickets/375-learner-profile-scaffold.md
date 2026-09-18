@@ -1,7 +1,7 @@
 ---
 id: "375"
 title: "init_workspace must scaffold .user/learner-profile.md that the teach skill reads"
-status: in_progress
+status: done
 blocked_by: []
 priority: medium
 type: bug
@@ -47,10 +47,22 @@ recognized (migrated into `.user/` or read until migrated).
 
 ## Acceptance criteria
 
-- [ ] `python tools/init_workspace.py` creates `.user/learner-profile.md` with a mission placeholder
-- [ ] The teach skill's session-start detection passes on a freshly scaffolded workspace (no false first-contact)
-- [ ] A workspace with mission content only in `MISSION.md` gets it recognized/migrated into `.user/learner-profile.md` (idempotent; original file left intact for audit)
-- [ ] Fixture test covers scaffold + legacy-migration paths (extend `tools/test_skill_local_state.py` or the initializer's tests)
+- [x] `python tools/init_workspace.py` creates `.user/learner-profile.md` with a mission placeholder — `_ensure_learner_profile` runs on every init (fresh AND existing workspaces); test `test_fresh_scaffold_creates_learner_profile`
+- [x] The teach skill's session-start detection passes on a freshly scaffolded workspace (no false first-contact) — the profile exists post-scaffold with a `## Mission` section, so the skill's read path finds its state home (a fresh workspace correctly remains first-contact until the mission is elicited — that is the skill's intended flow, not a false positive)
+- [x] A workspace with mission content only in `MISSION.md` gets it recognized/migrated into `.user/learner-profile.md` (idempotent; original file left intact for audit) — init backfill migrates real (non-template) missions before the exists-guard early return; `MISSION.md` bytes verified untouched; idempotency verified (learner edits to the profile survive re-runs); the SKILL.md workflow step 1 also gained the session-time fallback for workspaces the tool never touches
+- [x] Fixture test covers scaffold + legacy-migration paths — new `tools/test_init_workspace.py` (4 tests: fresh scaffold, legacy migration, idempotency, template-not-migrated), all passing; added to the `mise run verify` pytest list (skill-local-state suite unaffected: 5 passed)
+
+## Resolution (2026-09-18)
+
+`tools/init_workspace.py`: added `_DEFAULT_LEARNER_PROFILE` and `_ensure_learner_profile()`
+— called before the idempotency guard, so it creates the profile on fresh scaffolds AND
+backfills existing workspaces, migrating a real (non-template) `MISSION.md` mission into
+the profile while leaving `MISSION.md` untouched (it still feeds committed index
+presentation via `parse_mission`). The `exists` return now carries `created`/`warnings`
+(migration notes). `.kiro/skills/teach/SKILL.md` workflow step 1 gained the legacy
+fallback (migrate from `MISSION.md` at session time if the profile lacks a mission).
+`tools/test_init_workspace.py`: 4 tests, all passing; wired into core verify.
+Ticket #375.
 
 ## References
 
