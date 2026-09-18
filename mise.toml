@@ -274,6 +274,11 @@ description = "Hermetic Playwright/API check for library-root and single-domain 
 depends = ["setup"]
 run = "python tools/test-library-status-api.py"
 
+[tasks."test:map-isolation"]
+description = "Hermetic server-spawn check: a malformed MAP.md 422s only its own domain (healthy domains keep 200s); ephemeral-id writes fail loudly with the migrate hint (#373)."
+depends = ["setup"]
+run = "python tools/test-map-routing-isolation.py"
+
 [tasks."test:cue-matrix"]
 description = "State-matrix test for the index orientation/resume/done cue (#282): builds throwaway single-domain fixtures (empty/partial/all-complete) and asserts each cue in isolation. Self-serves each fixture headless. NOT in core verify (browser test, like test:nav)."
 depends = ["setup"]

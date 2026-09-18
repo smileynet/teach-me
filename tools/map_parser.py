@@ -31,6 +31,7 @@ class Topic:
     id: str = ""  # immutable ULID; minted on parse if absent, persisted by migration (#257)
     aliases: list[str] = field(default_factory=list)  # former slugs, for rename resolution
     soft_prereqs: list[str] = field(default_factory=list)  # optional deps → symmetric `related` edges
+    ephemeral_id: bool = False  # True = `id` was minted at parse time (no persisted ULID): a NEW id every parse, so overlay writes keyed on it never persist (#373)
 
 
 @dataclass
@@ -262,8 +263,10 @@ def load_map(path: str | Path) -> DomainMap:
             fields[m.group(1)] = m.group(2).strip()
 
         tid = fields.get("id", "")
+        ephemeral = False
         if not ulid.is_valid(tid):
             tid = ulid.new()  # ephemeral mint so the graph still loads; migration persists it
+            ephemeral = True
 
         topics.append(Topic(
             slug=slug,
@@ -275,6 +278,7 @@ def load_map(path: str | Path) -> DomainMap:
             id=tid,
             aliases=_parse_list_field(fields.get("aliases", "[]")),
             soft_prereqs=_parse_list_field(fields.get("soft_prereqs", "[]")),
+            ephemeral_id=ephemeral,
         ))
 
     # slug/alias -> id index (edges are authored by slug, resolved to ids here)
