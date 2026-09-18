@@ -1,7 +1,7 @@
 ---
 id: "373"
 title: "Isolate malformed-MAP parse failures in _map_for_domain (one bad file 500s all domains)"
-status: in_progress
+status: done
 blocked_by: []
 priority: medium
 type: bug
@@ -61,10 +61,21 @@ the write-path behavior for ephemeral ids: reject with an actionable error (run
 
 ## Acceptance criteria
 
-- [ ] With one malformed MAP.md in the tree, `GET /api/map/{healthy-domain}` still returns 200 with data
-- [ ] The malformed map's own domain returns a clear 404/422 naming the broken file, not an unhandled 500
-- [ ] A fixture test covers the malformed-map case (tmp workspace, one bad + one good MAP)
-- [ ] `POST /api/map/{domain}/{slug}/status` against a topic whose MAP lacks a valid persisted id fails loudly with a remediation hint (migrate_map_ids) instead of writing an orphan overlay key
+- [x] With one malformed MAP.md in the tree, `GET /api/map/{healthy-domain}` still returns 200 with data — `_map_for_domain` catches `(ValueError, OSError)` per file and skips broken maps; verified against a live server (good-domain → 200 while `broken.MAP.md` sits in the same maps/ dir)
+- [x] The malformed map's own domain returns a clear 404/422 naming the broken file, not an unhandled 500 — filename-attributed 422 (`MAP.md for domain 'broken' failed to parse: ...broken.MAP.md`); `_print_startup_info` additionally warns at scan time naming the file
+- [x] A fixture test covers the malformed-map case (tmp workspace, one bad + one good MAP) — `tools/test-map-routing-isolation.py` (unit checks for the `ephemeral_id` flag + 6 live-server assertions, all passing), exposed as `mise run test:map-isolation` (server-spawning checks stay out of core verify, mirroring `test:status-api`)
+- [x] `POST /api/map/{domain}/{slug}/status` against a topic whose MAP lacks a valid persisted id fails loudly with a remediation hint (migrate_map_ids) instead of writing an orphan overlay key — `Topic.ephemeral_id` (set by `load_map` when it mints) drives a 400 in `_resolve_topic_id` naming `migrate_map_ids.py --apply <map>`; verified live (beta → 400 + hint, alpha → 200 + round-trip)
+
+## Resolution (2026-09-18)
+
+`tools/serve.py`: `_map_for_domain` now isolates parse failures per file (skip + attribute
+by filename → 422 naming the broken path; healthy domains unaffected); `_resolve_topic_id`
+rejects writes on parse-time-minted ids with the `migrate_map_ids` remediation;
+`_print_startup_info` warns about unparseable maps at scan time. `tools/map_parser.py`:
+`Topic.ephemeral_id` flags minted ids so the write guard can distinguish them.
+`tools/test-map-routing-isolation.py` proves all four behaviors against a real server
+(9/9 checks PASS); existing suites green (map_parser/map_page/workspace_context/overlay
+= 55 passed). New mise task `test:map-isolation`. Ticket #373.
 
 ## References
 
