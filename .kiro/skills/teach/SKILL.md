@@ -25,7 +25,7 @@ or `learning-records/`. Curriculum, sources, maps, and lesson assets remain shar
 
 ## Workflow
 
-1. **Mission first.** Read `.user/learner-profile.md`; if it has no mission, ask why they're learning this. Don't produce a lesson without a mission.
+1. **Mission first.** Read `.user/learner-profile.md`; if it has no mission, check whether a legacy `MISSION.md` carries a real mission (a pre-#361 workspace the scaffolder hasn't backfilled) and migrate it into the profile — leave `MISSION.md` untouched; otherwise ask why they're learning this. Don't produce a lesson without a mission.
 2. **Research the domain.** Identify 3-6 subtopics, dispatch research, populate RESOURCES.md. See [references/research-methodology.md](./references/research-methodology.md). This is a hard gate — no lesson from parametric memory.
 3. **Find the ZPD.** Read `.user/learning-records/`, determine what to teach next.
 4. **Write the lesson.** One concept, one win. Read the scaffold from `assets/scaffolds/lesson.html` first. Follow [references/lesson-components.md](./references/lesson-components.md) for theming, diagrams, glossary, exercises.

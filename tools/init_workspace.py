@@ -44,6 +44,26 @@ _DEFAULT_RESOURCES = """\
 Verified sources for topics in this workspace. Populated automatically as you explore new domains.
 """
 
+_DEFAULT_LEARNER_PROFILE = """\
+# Learner Profile
+
+Private learner state — `.user/` is gitignored, so this file never commits (#361/#375).
+Mission, pace, preferences, and working notes live here; demonstrated understanding
+accrues under `.user/learning-records/`.
+
+## Mission
+
+Not set yet.
+
+## Preferences
+
+Not set yet.
+
+## Working Notes
+
+Not set yet.
+"""
+
 _INDEX_TEMPLATE = """\
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
@@ -95,6 +115,13 @@ def init_workspace(
         ws = workspace if workspace.is_absolute() else PROJECT_ROOT / workspace
 
     warnings: list[str] = []
+    created: list[str] = []
+
+    # The teach skill's first-session detection reads `.user/learner-profile.md` (#375).
+    # Ensure it on BOTH fresh scaffolds and existing workspaces: a pre-#361 workspace
+    # keeps its mission in MISSION.md, which the skill no longer reads — backfill the
+    # profile (migrating a real, non-template mission) so its state isn't invisible.
+    _ensure_learner_profile(ws, created, warnings)
 
     # Idempotency guard — matches serve.py's standardized workspace/lessons check.
     if (ws / "lessons").is_dir():
@@ -103,13 +130,11 @@ def init_workspace(
         return {
             "status": "exists",
             "workspace": str(ws),
-            "created": [],
+            "created": created,
             "warnings": warnings,
             "lesson_files": lessons,
             "map_files": maps,
         }
-
-    created: list[str] = []
 
     for sub in _SUBDIRS:
         (ws / sub).mkdir(parents=True, exist_ok=True)
@@ -165,6 +190,45 @@ def _write_if_absent(path: Path, content: str, created: list[str]) -> None:
     if not path.exists():
         path.write_text(content, encoding="utf-8")
         created.append(str(path))
+
+
+def _template_mission_texts() -> list[str]:
+    """Mission texts that are scaffold templates, never a learner's real mission."""
+    texts = [_DEFAULT_MISSION.strip()]
+    template = TEMPLATE_DIR / "MISSION.md"
+    if template.exists():
+        texts.append(template.read_text(encoding="utf-8").strip())
+    return texts
+
+
+def _ensure_learner_profile(ws: Path, created: list[str], warnings: list[str]) -> None:
+    """Create `.user/learner-profile.md` if absent, migrating a real legacy mission.
+
+    Idempotent (never touches an existing profile) and audit-friendly (MISSION.md is
+    left untouched — it still feeds committed index presentation via parse_mission).
+    """
+    profile = ws / ".user" / "learner-profile.md"
+    if profile.exists():
+        return
+    mission = ""
+    mission_path = ws / "MISSION.md"
+    if mission_path.exists():
+        text = mission_path.read_text(encoding="utf-8").strip()
+        if text and text not in _template_mission_texts():
+            mission = text
+    content = _DEFAULT_LEARNER_PROFILE
+    if mission:
+        content = content.replace(
+            "## Mission\n\nNot set yet.",
+            "## Mission\n\n(migrated from MISSION.md)\n\n" + mission,
+        )
+    profile.parent.mkdir(parents=True, exist_ok=True)
+    profile.write_text(content, encoding="utf-8")
+    created.append(str(profile))
+    if mission:
+        warnings.append(
+            f"migrated mission from {mission_path} into {profile} (original left untouched)"
+        )
 
 
 def _parse_argv(argv: list[str]) -> tuple[Path | None, bool]:
