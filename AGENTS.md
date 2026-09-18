@@ -130,6 +130,7 @@ Deep track-specific gotchas (Blender bake internals, inkgd cache noise, transcri
 - All Preact packages must resolve to ONE instance or signals silently stop triggering re-renders. Vendored locally in `assets/vendor/` (import map resolves it); on a CDN (esm.sh) add `?external=preact`.
 - FOUC prevention: a synchronous `<script>` in `<head>` (currently `typography-prefs.js`) reads prefs from localStorage and applies CSS custom properties BEFORE CSS paints. Must stay blocking/in-head — deferring it reintroduces the flash.
 - Generated-artifact regeneration gotchas (idempotent library-page re-bake #278/#279; per-domain `--scan-dir` clobbers the root index; tracked-inputs-only #316; new-domain scaffold sequence) live in `.memory/specs/environment-gotchas.md` → "Generated artifacts / regeneration".
+- Agent MCP scoping (#372): the `creds-agent` MCP server (`aim mcp start-server local-creds-agent-mcp` — machine-local binary, NOT provisioned by `mise run setup`) is wired ONLY into the `browser` and `godot_editor` specialists (authenticated URL validation; local editor tooling). It is deliberately absent from `default.json` — routine teaching/content sessions get no credential tools. Without `aim` on PATH those two specialists' MCP server fails to start; everything else works.
 
 ## Skill Format (kiro-cli)
 
