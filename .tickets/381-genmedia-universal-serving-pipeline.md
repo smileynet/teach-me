@@ -1,5 +1,5 @@
 ---
-id: "371"
+id: "381"
 title: "Teach: generative-media-pipelines / the-universal-serving-pipeline"
 status: done
 blocked_by: ["367"]

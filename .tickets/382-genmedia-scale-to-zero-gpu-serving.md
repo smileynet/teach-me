@@ -1,8 +1,8 @@
 ---
-id: "372"
+id: "382"
 title: "Teach: generative-media-pipelines / scale-to-zero-gpu-serving"
 status: open
-blocked_by: ["367", "371"]
+blocked_by: ["367", "381"]
 tags: ["content"]
 ---
 

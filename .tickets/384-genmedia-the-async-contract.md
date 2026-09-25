@@ -1,8 +1,8 @@
 ---
-id: "374"
+id: "384"
 title: "Teach: generative-media-pipelines / the-async-contract"
 status: open
-blocked_by: ["367", "371"]
+blocked_by: ["367", "381"]
 tags: ["content"]
 ---
 

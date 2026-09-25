@@ -1,8 +1,8 @@
 ---
-id: "375"
+id: "385"
 title: "Teach: generative-media-pipelines / comfyui-at-scale"
 status: open
-blocked_by: ["367", "373", "374"]
+blocked_by: ["367", "383", "384"]
 tags: ["content"]
 ---
 

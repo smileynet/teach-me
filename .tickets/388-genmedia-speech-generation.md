@@ -1,8 +1,8 @@
 ---
-id: "378"
+id: "388"
 title: "Teach: generative-media-pipelines / speech-generation"
 status: open
-blocked_by: ["367", "372", "374"]
+blocked_by: ["367", "382", "384"]
 tags: ["content"]
 ---
 

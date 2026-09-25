@@ -1,8 +1,8 @@
 ---
-id: "373"
+id: "383"
 title: "Teach: generative-media-pipelines / model-onboarding-as-data"
 status: open
-blocked_by: ["367", "371"]
+blocked_by: ["367", "381"]
 tags: ["content"]
 ---
 

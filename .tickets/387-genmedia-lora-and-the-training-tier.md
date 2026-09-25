@@ -1,8 +1,8 @@
 ---
-id: "377"
+id: "387"
 title: "Teach: generative-media-pipelines / lora-and-the-training-tier"
 status: open
-blocked_by: ["367", "373"]
+blocked_by: ["367", "383"]
 tags: ["content"]
 ---
 

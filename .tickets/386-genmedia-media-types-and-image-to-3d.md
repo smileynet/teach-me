@@ -1,8 +1,8 @@
 ---
-id: "376"
+id: "386"
 title: "Teach: generative-media-pipelines / media-types-and-image-to-3d"
 status: open
-blocked_by: ["367", "371"]
+blocked_by: ["367", "381"]
 tags: ["content"]
 ---
 
