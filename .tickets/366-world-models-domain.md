@@ -1,7 +1,7 @@
 ---
 id: "366"
 title: "Set up world-models domain (MAP + study-guide-backed topics + source-verification gate)"
-status: in_progress
+status: done
 blocked_by: []
 priority: medium
 validation_criteria:
@@ -82,8 +82,41 @@ This is a conceptual domain — no Godot/ink runtime artifact. The gate is **cla
 - [x] Source-verification gate recorded (claim→cited-source contract; the two source-TODOs above **resolved** — see scaffold note) — MISSION.md Constraints + RESOURCES.md
 - [x] Standalone depth-0 confirmed; `leads_to: [generative-media-pipelines]` edge recorded (validated in forest — that domain now exists, #367)
 - [x] Provenance recorded (design source = the promoted guide; backing = repo-findings + gap-research) — RESOURCES.md
-- [ ] Topic spine reviewed/trimmed (6 → final count) with the user before topic tickets — **AWAITING USER REVIEW** (see scaffold note)
-- [ ] NO lessons generated — topic tickets created after this is signed off
+- [x] Topic spine reviewed/trimmed (6 → final count) with the user before topic tickets — **APPROVED as-is** (user "proceed", 2026-09-25)
+- [x] NO lessons generated during setup — 6 topic tickets created after sign-off (389-394)
+
+## Topic tickets cut (2026-09-25) — user "proceed"
+
+6-topic spine approved as-is. Topic tickets created, `blocked_by` mirroring the MAP prereq edges
+(all also blocked on #366):
+
+| ticket | slug | blocked_by |
+|--------|------|-----------|
+| 389 | what-is-a-world-model | [366] |
+| 390 | the-landscape | [366, 389] |
+| 391 | evaluation-and-fds | [366, 389] |
+| 392 | building-a-real-time-world-model | [366, 389] |
+| 393 | action-conditioning | [366, 392] |
+| 394 | serving-and-accelerators | [366, 392] |
+
+Each ticket carries the source-verification gate + design-source pointers; 391/392/394 also carry
+the VERIFIED-FACTS blocks (FDS = `1 - action_F1` not Fréchet; RF=Wan2.1-1.3B / ~14fps=RF-offline-Trn2
+/ no parity claim; AWS-doc anchors + the no-video-gen-doc honest gap). `tkt validate` → 0 errors.
+
+Note: sibling #367 (generative-media-pipelines) topic tickets were cut earlier and renumbered
+381-388 (id collision with an upstream parallel session's 371-378, resolved 2026-09-25).
+
+## Resolution (2026-09-25)
+
+world-models domain scaffolded (MISSION/RESOURCES/MAP, 6 topics, source-verification gate,
+NxD/NKI/SageMaker serving anchors) and its 6 topic tickets (389-394) cut with prereq-mirroring
+`blocked_by` edges. Both source-TODOs verified against the real repo files (FDS math + REDACTED
+lineage). Spine approved as-is by the user. NO lessons generated — that's the topic tickets' work.
+
+### Verification
+1. ✓ MAP passes check-maps-forest (all 9 domains clean); map:generate → 6 topics; check-index-drift → 10 pages in sync
+2. ✓ Source-verification gate in MISSION/RESOURCES; both source-TODOs resolved (gap-research/366-source-verification.md)
+3. ✓ 6 topic tickets 389-394 created; tkt validate → 0 errors; blocked_by mirrors MAP prereqs
 
 ## Scaffold status (2026-09-17) — PROPOSAL COMPLETE, awaiting sign-off
 
