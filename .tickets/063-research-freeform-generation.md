@@ -1,7 +1,7 @@
 ---
 id: "063"
 title: "Research: free-form topic generation from the map page"
-status: open
+status: done
 priority: medium
 blocked_by: []
 type: research
@@ -51,3 +51,7 @@ A findings file answering the above + proposed ticket breakdown (spikes/features
 
 - **Research complete:** All 6 questions answered with evidence (test output, screenshots)
 - **Tickets created:** Follow-on spikes/features filed with e2e validation criteria
+
+## Resolution (2026-10-21)
+
+Research spike complete. Delivered .memory/research/063-freeform-map-generation.md (236 lines): all 6 questions answered with evidence (5 verified via live kiro-cli generations or code trace, 1 UI placement recommendation). Corrected a false ticket premise (_genCreatedFile does not exist — grep-proven) and surfaced a critical blocker: kiro-cli checkpoint stall hangs generation with no TTY, with a verified fix (disable chat.enableCheckpoint or neutralize EDITOR). Follow-on tickets filed: 395 spike (checkpoint hardening), 396 feature (endpoint+UI), 397 feature (parent-linking), dependency-chained. Note: worker branch was cut from a 950-commit-stale base; findings landed directly on current main and follow-on IDs renumbered from colliding 090/091/092 to 395/396/397.
