@@ -209,6 +209,17 @@ def parse_transcript(fixture_text: str) -> tuple[list[int], str]:
 
 
 def validate_story(ink_path: Path, inklecate: str, turn_cap: int, out_dir: Path) -> dict:
+    # bink has no external-binding API, so a story with unbound EXTERNALs cannot
+    # run here — it would raise "Missing function binding" mid-play. Skip it (as
+    # capture/replay modes do); real Godot binds the external via ink:validate-gd.
+    ext = detect_unbound_externals(ink_path)
+    if ext:
+        return {
+            "name": ink_path.name,
+            "status": "SKIP",
+            "detail": f"unbound EXTERNAL ({', '.join(ext)}) — covered by ink:validate-gd",
+        }
+
     json_path = compile_ink(ink_path, inklecate, out_dir)
     if json_path is None:
         return {"name": ink_path.name, "status": "FAIL", "detail": "compilation failed"}
@@ -411,22 +422,25 @@ def main():
 
     fail_count = 0
     warn_count = 0
+    skip_count = 0
     # Compile artifacts to a temp dir so we don't litter the stories directory.
     with tempfile.TemporaryDirectory(prefix="play-ink-") as tmp:
         out_dir = Path(tmp)
         for ink_path in ink_files:
             result = validate_story(ink_path, inklecate, turn_cap, out_dir)
-            marker = {"PASS": "[ok]", "WARN": "[??]", "FAIL": "[XX]"}[result["status"]]
+            marker = {"PASS": "[ok]", "WARN": "[??]", "FAIL": "[XX]", "SKIP": "[--]"}[result["status"]]
             print(f"  {marker} {result['name']}")
             print(f"       {result['detail']}")
             if result["status"] == "FAIL":
                 fail_count += 1
             elif result["status"] == "WARN":
                 warn_count += 1
+            elif result["status"] == "SKIP":
+                skip_count += 1
 
     total = len(ink_files)
-    passed = total - fail_count - warn_count
-    print(f"\nResults: {total} stories, {passed} pass, {warn_count} warn, {fail_count} fail")
+    passed = total - fail_count - warn_count - skip_count
+    print(f"\nResults: {total} stories, {passed} pass, {warn_count} warn, {skip_count} skip, {fail_count} fail")
     if fail_count:
         print("FAILED (errors present)")
         sys.exit(1)

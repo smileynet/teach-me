@@ -28,4 +28,4 @@ A skill and/or tool that:
 - [x] Errors cause non-zero exit (blocks lesson completion)
 - [x] Warnings are reported but don't block (with option to promote to errors)
 - [x] Integrates with generate-topic Phase 4 verification gate
-- [x] Skill doc at `.kiro/skills/ink-validate/SKILL.md`
+- [x] ~~Skill doc at `.kiro/skills/ink-validate/SKILL.md`~~ **CORRECTION (#359):** No such skill was ever created — this AC described a deliverable that does not exist and has no Git history. Ink validation shipped as a scoped `mise` workflow (`ink:validate` / `ink:validate:strict` / `ink:play` / `ink:transcripts` / `ink:validate-gd`), not a skill. The authoritative contract lives in `.kiro/steering/ink-authoring.md` → "The validation pipeline". See #359 for the reconciliation.

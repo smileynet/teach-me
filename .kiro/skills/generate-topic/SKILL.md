@@ -106,6 +106,11 @@ Dispatch simultaneously:
 
 **Gate:** ALL must pass. Any failure blocks the topic from being marked complete.
 
+**Ink lesson tracks:** validate `.ink` / Godot artifacts via the project's Ink
+validation contract — see `.kiro/steering/ink-authoring.md` → "The validation
+pipeline" for the commands, prerequisites, and skip/fail behavior. Do not restate
+the commands here; that steering is the single authoritative source.
+
 **After all pass:**
 1. Update MAP.md — add the `lesson_file:` field for the topic (committed graph data).
    Do NOT write `status` into MAP.md — status is per-user overlay state. Set completion
