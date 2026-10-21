@@ -107,15 +107,41 @@ were wrong twice, so use these signatures, not memory:
 
 ## The validation pipeline
 
-| Check | Command | Catches |
-|-------|---------|---------|
-| Compile + lint | `mise run ink:validate` | Syntax errors, undefined diverts, warnings |
-| Playthrough | `mise run ink:play` | Runtime dead-ends (never reaches END), loops |
-| Golden transcript | `mise run ink:transcripts` | **Wrong output** (rules 1 & 2) on deterministic stories |
-| Glossary coverage (Q15) | `tools/check-lesson.py` | Defined-but-unannotated glossary terms |
+This is the **authoritative Ink validation contract** for the project. Ink
+validation is a scoped `mise` workflow — there is no `ink-validate` *skill*
+(a historical ticket claimed one; it never existed — see #359). The commands
+below are owned by the `mise` tasks and their backing `tools/` scripts; teaching
+and generation skills link here rather than restating the operational detail.
 
-`mise run verify` runs transcript replay automatically (skips gracefully if
-inklecate is absent).
+| Check | Command | Owner | Catches | Blocks? |
+|-------|---------|-------|---------|---------|
+| Compile + lint | `mise run ink:validate` | `tools/validate-ink.py` | Syntax errors, undefined diverts, warnings (loose ends) | Errors fail (exit 1); warnings report but pass |
+| Compile + lint (strict) | `mise run ink:validate:strict` | `tools/validate-ink.py --strict` | Same, but warnings become hard failures | Warnings fail (exit 1) |
+| Playthrough | `mise run ink:play` | `tools/play-ink.py` | Runtime dead-ends (never reaches END), loops | Dead-ends fail; unbound-EXTERNAL / nondeterministic stories SKIP |
+| Golden transcript | `mise run ink:transcripts` | `tools/play-ink.py --replay-transcripts` | **Wrong output** (rules 1 & 2) on deterministic stories | Mismatch fails; non-deterministic / unbound-EXTERNAL fixtures SKIP |
+| Godot runtime | `mise run ink:validate-gd` | `tools/ink-gd-sync.py` + `tools/ink-gd-run.py` | Godot integration bugs bink can't see (observer timing, tag dispatch, bound EXTERNALs) | Defects fail; **SKIPs (exit 0) if Godot is absent** |
+| Glossary coverage (Q15) | `tools/check-lesson.py` | `tools/check-lesson.py` | Defined-but-unannotated glossary terms | Missing annotations fail |
+
+**Prerequisites (ADR 0013):**
+- **inklecate** — provisioned by `mise` as a `[tools]` dep (`github:inkle/ink`,
+  pinned in `mise.lock`), on PATH after `mise install`. Every `ink:*` task
+  `depends = ["setup"]`, so a clean checkout self-provisions. Override via the
+  `INKLECATE` env var. If the binary is absent, the play/transcript tools SKIP
+  (exit 0) rather than hard-fail.
+- **Godot** — `[env]`-only (`GODOT = { default = "godot" }`), **not** a `[tools]`
+  dep (too heavy to force on every contributor). Only `ink:validate-gd` needs it,
+  and that gate skips gracefully (exit 0) when Godot is missing. Override in
+  gitignored `mise.local.toml`.
+- **bink** — the Python replay runtime (`play-ink.py` / `ink:transcripts`),
+  installed into the project `.venv` by `setup`. It has no RNG-seed or
+  external-binding API, which is why shuffle/`RANDOM` and unbound-`EXTERNAL`
+  stories are SKIPPED by play/transcript modes and covered by `ink:validate-gd`
+  instead (see the three exclusion classes above).
+
+**In core `verify`:** `mise run verify` runs `ink:transcripts` (transcript replay)
+automatically; it skips gracefully if inklecate is absent. `ink:validate`,
+`ink:play`, and `ink:validate-gd` are run explicitly (the first before closing any
+Ink lesson ticket; the last before closing a Phase-B/Godot-integration ticket).
 
 ## Capturing a golden transcript (reviewed artifact)
 

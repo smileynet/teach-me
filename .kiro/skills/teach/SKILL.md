@@ -114,6 +114,7 @@ Full checklist (verify after user accepts):
 - [ ] SR questions generated (3-5, criteria-based)
 - [ ] `mise run sr:check` passes
 - [ ] "What's Next" section present
+- [ ] Code/story artifacts validated via the track's toolchain. For Ink lessons, that's the Ink validation contract — see `.kiro/steering/ink-authoring.md` → "The validation pipeline" (commands, prerequisites, skip/fail behavior).
 
 ## It's Working If
 
