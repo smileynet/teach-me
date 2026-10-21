@@ -1,7 +1,7 @@
 ---
 id: "360"
 title: "Define teach and generate-topic ownership and routing"
-status: open
+status: in_progress
 priority: high
 type: design
 blocked_by: ["342"]
