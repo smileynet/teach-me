@@ -11,6 +11,37 @@ metadata:
 
 Orchestrates the full lesson generation pipeline for one topic. Ensures every downstream step (jargon, quiz, reference, SVG theming, verification) actually happens — not just the lesson writing.
 
+## Ownership & Routing
+
+`generate-topic` is the **durable artifact assembly line**. It owns the research-backed
+authoring sequence; `teach` owns the conversational relationship. The two never both drive
+the same request.
+
+**`generate-topic` owns:**
+- The **single source of truth** for the authoring sequence: research → lesson → reference →
+  SR questions → quiz → code extraction → verify (this document's Phase 1–4). Every other
+  skill that needs a durable artifact invokes this pipeline rather than restating it.
+- Completeness and the verify gate — a topic is not "done" until Phase 4 passes.
+- Committed graph data writes on success (`lesson_file:` in MAP.md) and overlay status
+  transitions for the topic being generated.
+
+**`generate-topic` does NOT own (defer, don't duplicate):**
+- The live learner relationship — mission elicitation, ZPD selection, orientation, and
+  re-explanation belong to `teach`. This pipeline assumes the topic and workspace are already
+  chosen.
+- Pedagogy rules it applies but does not define: lesson shape and the knowledgeable-colleague
+  posture (`teach` SKILL + ADR 0001), exercise/callout hierarchy (`visual-teaching.md`),
+  SR-question structure ([references/sr-question-authoring.md](./references/sr-question-authoring.md)).
+- Retention quizzing of taught material (`quiz-me`).
+
+**Invoked by:** `teach` (when a chosen topic must become a tracked artifact), a direct user
+request ("generate/complete topic X"), or map-driven generation. **Hands back to `teach`** for
+anything conversational once the artifact exists.
+
+See the routing table in the `teach` skill for how specific learner prompts resolve to one
+owner. The short rule: **durable + verified artifact → `generate-topic`; conversation,
+orientation, or re-explanation → `teach`.**
+
 ## When to use
 
 - Generating a new topic from a MAP.md
@@ -57,6 +88,10 @@ If no source-chunks exist (web-researched topic), skip this step — the agent u
 **Failure handling:** If 1 of 3 returns empty, retry once. If still empty after retry, proceed with available research (note the gap).
 
 ### Phase 2: Generate (SEQUENTIAL — main context)
+
+> **This phase is the single source of truth for the durable authoring sequence.** `teach`
+> and any map-driven generation invoke it rather than restating the steps. Do not fork a
+> parallel checklist elsewhere.
 
 **Before writing:** Check the topic's current status in the per-user overlay (via the
 running server's `GET /api/map/{domain}/{slug}/status`, or `tools/lib/overlay.py`
@@ -160,7 +195,9 @@ Topic 3: research (parallel) → generate → post-process (parallel) → verify
 
 ## Does NOT
 
-- Replace the teach skill (teach is the creative engine; this is the assembly line)
+- Replace the teach skill (`teach` is the conversational engine and owns mission, ZPD,
+  orientation, and re-explanation; this skill is the assembly line and owns the durable
+  authoring sequence — see the Ownership & Routing section above)
 - Add infrastructure (no workflow YAML parser, just a skill document)
 - Force the user to use it (teach works standalone for quick lessons)
 - Generate content for topics whose prereqs aren't complete
