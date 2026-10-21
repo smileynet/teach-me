@@ -1,7 +1,7 @@
 ---
 id: "063"
 title: "Research: free-form topic generation from the map page"
-status: open
+status: in_progress
 priority: medium
 blocked_by: []
 type: research
