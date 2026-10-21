@@ -1,7 +1,7 @@
 ---
 id: "359"
 title: "Reconcile missing Ink validation skill contract"
-status: open
+status: in_progress
 priority: high
 type: docs
 blocked_by: ["335"]
