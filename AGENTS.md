@@ -28,8 +28,8 @@ library/           — public topic library (shipped, growing; served by default
 
 | Skill | Trigger | What it does |
 |-------|---------|-------------|
-| teach | `/teach`, "teach me", "next lesson" | Multi-session learning with stateful workspace |
-| generate-topic | `/generate-topic`, "generate lesson", "complete topic" | Full pipeline: research → lesson → post-process → verify (parallel subagents) |
+| teach | `/teach`, "teach me", "next lesson" | Owns the conversational engine: mission, ZPD, orientation, re-explanation, map/zoom nav. Picks WHAT to teach; hands durable authoring to generate-topic (ADR 0019) |
+| generate-topic | `/generate-topic`, "generate lesson", "complete topic" | Owns the durable assembly line and the single-source authoring sequence: research → lesson → post-process → verify (ADR 0019) |
 | quiz-me | `/quiz-me`, "test me" | Socratic dialog — learner explains, agent probes |
 | wait-what | `/wait-what`, "I don't understand" | Re-explain when comprehension fails |
 | jargon | `/jargon`, "annotate terms" | Post-authoring: annotate domain jargon with tooltips |
@@ -77,7 +77,7 @@ library/           — public topic library (shipped, growing; served by default
 |-----------|--------|
 | **New user arrives** | Detect no populated workspace → introduce ("I'm a teaching workspace"), ask what they want to learn, scaffold their workspace, begin research |
 | Someone asks "what is this?" | Orient: research-backed lessons + quizzes + spaced repetition. Offer to start with any topic. |
-| User names a topic to learn | Run `generate-topic` pipeline (research → lesson → post-process → verify) |
+| User names a topic to learn | `teach` elicits the mission/ZPD, then hands the topic to the `generate-topic` pipeline to author (research → lesson → post-process → verify). Durable artifact → generate-topic; conversation/orientation/re-explanation → teach (ADR 0019) |
 | Starting a new lesson track | Scaffold reference project first (ADR 0010): test-scene, ink project, or equivalent. Each lesson produces a runnable artifact in the project. Validate via the project's toolchain before closing lessons. |
 | Cloning a repo into `.references/` | Immediately add a `git clone … .references/<dir>` line to REFERENCES.md (grouped by track, with a one-line "what it shows") — otherwise `mise run rehydrate` can't reconstruct it and the clone is lost on a fresh checkout. Prune the entry if you delete the clone. |
 | User wants to customize | Ask about pace (detailed vs direct), visuals (diagrams vs text), then save to NOTES.md |

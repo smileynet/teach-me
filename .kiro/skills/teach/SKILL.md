@@ -9,6 +9,41 @@ metadata:
 
 The user wants to learn something. This is stateful — they intend multiple sessions.
 
+## Ownership & Routing
+
+`teach` is the **conversational learning engine**. It owns the live relationship with the
+learner; `generate-topic` owns the durable artifact assembly line. The two never both drive
+the same request.
+
+**`teach` owns:**
+- First-contact orientation and mission elicitation (`.user/learner-profile.md`)
+- Finding the ZPD and deciding *what* to teach next
+- Interactive teaching: re-explanation of existing material, Socratic follow-ups, zoom navigation
+- Quick single-lesson drafts during a live session (no completeness guarantee)
+- The map (MAP.md) as the curriculum spine
+- Learner-state reads/writes (under `.user/` only)
+
+**`teach` does NOT own (hand off, don't duplicate):**
+- The durable authoring sequence (research → lesson → reference → SR → quiz → verify). That
+  procedure has a single owner: the `generate-topic` **Phase 2 pipeline**. When `teach` needs
+  a complete, verified, tracked artifact, it invokes `generate-topic` rather than re-running
+  the steps itself.
+- SR-question structure — owned by
+  [generate-topic/references/sr-question-authoring.md](../generate-topic/references/sr-question-authoring.md).
+- Exercise design and the callout/decision hierarchy — owned by `visual-teaching.md`.
+- Retention quizzing of already-taught material — owned by `quiz-me`.
+
+**Hand off to `generate-topic` when:** the learner names a topic to learn, asks for a new
+lesson, or asks to "complete" / fill gaps on an existing topic — anything that must produce a
+durable, verified artifact. Hand off to `quiz-me` when the learner wants to be tested on what
+they already learned.
+
+**Keep in `teach` when:** the learner is mid-conversation and needs a concept re-explained
+("wait, what?"), wants orientation ("show me the map", "where do I start?"), is setting up
+their mission/preferences, or explicitly wants a throwaway draft inside the current session.
+
+See the routing table in [#routing-table](#routing-table) for how specific prompts resolve.
+
 ## Teaching Workspace
 
 The workspace separates shareable curriculum from private learner state:
@@ -25,13 +60,23 @@ or `learning-records/`. Curriculum, sources, maps, and lesson assets remain shar
 
 ## Workflow
 
+The live-session loop. Steps 1-3 are `teach`'s own; step 4 hands the durable authoring off to
+the single owner.
+
 1. **Mission first.** Read `.user/learner-profile.md`; if it has no mission, check whether a legacy `MISSION.md` carries a real mission (a pre-#361 workspace the scaffolder hasn't backfilled) and migrate it into the profile — leave `MISSION.md` untouched; otherwise ask why they're learning this. Don't produce a lesson without a mission.
 2. **Research the domain.** Identify 3-6 subtopics, dispatch research, populate RESOURCES.md. See [references/research-methodology.md](./references/research-methodology.md). This is a hard gate — no lesson from parametric memory.
 3. **Find the ZPD.** Read `.user/learning-records/`, determine what to teach next.
-4. **Write the lesson.** One concept, one win. Read the scaffold from `assets/scaffolds/lesson.html` first. Follow [references/lesson-components.md](./references/lesson-components.md) for theming, diagrams, glossary, exercises.
-5. **Write the reference doc.** Simultaneously — same authoring pass. Scannable, lookup-oriented.
-6. **Generate SR questions.** 3-5 conceptual questions with criteria-based answers. See [references/sr-question-design.md](./references/sr-question-design.md).
-7. **Run quality gates.** `mise run sr:check` + the publish checklist below.
+4. **Author the topic.** Hand off to the `generate-topic` **Phase 2 pipeline** — the single
+   owner of the durable authoring sequence (lesson → reference → SR questions → quiz → code
+   extraction → verify). Do NOT re-run those steps from a parallel checklist here; that
+   caused duplicate, drifting instructions. The only exception is a **throwaway in-session
+   draft** the learner explicitly asks for and that will not be tracked — write it directly
+   following [references/lesson-components.md](./references/lesson-components.md) and the
+   Lesson Shape below, and skip the completeness gate.
+
+Everything below (Lesson Shape, Reference Documents, publish gates) describes the *qualities*
+`generate-topic` must honor when it authors on `teach`'s behalf — it is teach's statement of
+intent, not a second copy of the pipeline.
 
 ## Lesson Shape
 
@@ -67,7 +112,9 @@ This is the first-contact flow. The user opened this project in their AI assista
    - "After a lesson or two, I'll offer Socratic review — you explain concepts back and I probe your understanding. It's how we make knowledge stick."
    - "The lessons are interactive HTML pages you open in your browser. I generate them, you read and explore, then come back for quizzes or new material."
 
-6. **Begin**: Dispatch research subagents → generate MAP.md → offer first topic.
+6. **Begin**: Dispatch research subagents → generate MAP.md → offer first topic. When the
+   learner picks a topic, hand it to `generate-topic` to author (teach owns the pick, not the
+   pipeline).
 
 > **The MAP is a DAG, not a line.** Topics connect by `prereqs` edges — a topic whose
 > mechanism differs from its neighbor (different shader, different concept) is a SEPARATE
@@ -98,6 +145,11 @@ Produce alongside every lesson. The reference is what the learner pulls up at wo
 
 ## Before Publishing
 
+This is `teach`'s **acceptance contract** — the qualities any durable lesson must have. When
+`generate-topic` authors on teach's behalf, its verify phase enforces these; this list is what
+"done" means, not a second procedure. A throwaway in-session draft is exempt from the full
+checklist (it is explicitly not tracked), but should still carry the pre-flight items.
+
 Pre-flight gate — check BEFORE presenting the lesson to the user:
 
 - [ ] SVG diagram present with `var(--svg-*)` colors (no hardcoded hex)
@@ -111,7 +163,7 @@ Full checklist (verify after user accepts):
 
 - [ ] Context at top — why this matters for the mission
 - [ ] Claims cited or framed as general
-- [ ] SR questions generated (3-5, criteria-based)
+- [ ] SR questions generated (per [references/sr-question-design.md](./references/sr-question-design.md), which defers to the single owner)
 - [ ] `mise run sr:check` passes
 - [ ] "What's Next" section present
 - [ ] Code/story artifacts validated via the track's toolchain. For Ink lessons, that's the Ink validation contract — see `.kiro/steering/ink-authoring.md` → "The validation pipeline" (commands, prerequisites, skip/fail behavior).
@@ -126,7 +178,33 @@ Full checklist (verify after user accepts):
 
 ## Complete Topic Generation
 
-For the full pipeline (research → lesson → jargon → quiz → reference → verify), use the `generate-topic` skill. It wraps this skill with parallel subagent dispatch for research and verification, ensuring all post-processing steps happen automatically. Use `generate-topic` when you want guaranteed completeness; use `teach` directly for quick drafts or interactive teaching sessions.
+The durable authoring pipeline (research → lesson → jargon → quiz → reference → verify) is
+owned by the `generate-topic` skill — it is the single source of truth for that sequence.
+`teach` invokes it; it does not re-implement it. Use `generate-topic` whenever the learner
+needs a tracked, verified artifact (a new topic, or "completing"/filling gaps on an existing
+one). Author directly in `teach` **only** for an explicit throwaway draft inside a live
+session — that path trades the completeness gate for speed and produces nothing tracked.
+
+<a id="routing-table"></a>
+### Routing table
+
+Equivalent requests resolve to exactly one owner:
+
+| Learner says | Owner | Why |
+|--------------|-------|-----|
+| "Teach me X" / "I want to learn X" (new) | `generate-topic` | Durable topic needs the verified pipeline |
+| "Give me a lesson on X" / "generate a lesson" | `generate-topic` | Durable artifact |
+| "Complete this topic" / "fill the gaps on X" | `generate-topic` | Audit/rewrite is a pipeline run |
+| "Next lesson" (advancing the map) | `teach` → hands to `generate-topic` | teach picks the ZPD node, generate-topic authors it |
+| "Show me the map" / "where do I start?" | `teach` | Orientation, no authoring |
+| "Zoom in / go deeper on X" | `teach` | Navigation; authors the sub-map, then hands topic authoring to `generate-topic` |
+| "Wait, what?" / "I don't get X" | `teach` (or `wait-what`) | Re-explanation of existing material |
+| "Quiz me" / "test me on X" | `quiz-me` | Retention check, not authoring |
+| "Just give me a quick draft, don't track it" | `teach` (draft path) | Explicit throwaway, gate skipped |
+
+The rule when two could plausibly match: **if the request must produce a durable, verified
+artifact, `generate-topic` owns it; if it is conversation, orientation, or re-explanation,
+`teach` owns it.**
 
 ## Multi-Source Enrichment
 
