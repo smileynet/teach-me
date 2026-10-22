@@ -27,9 +27,9 @@ field so a learner can place any new model:
 
 ## Sources
 
-- Design: `01-world-models.md` (Part 1 "The landscape").
-- Backing: `repo-findings/world-models.md` (`.memory/world-models-synthesis.md` taxonomy +
-  deployability tiers). Situate against prior art in `gap-research/world-model-eval-prior-art.md`.
+- Design: research notes, non-public (Part 1 "The landscape").
+- Backing: the per-platform findings (non-public) (`.memory/world-models-synthesis.md` taxonomy +
+  deployability tiers). Situate against prior art in the gap research (non-public).
 
 ## Acceptance criteria
 

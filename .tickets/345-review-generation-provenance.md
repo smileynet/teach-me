@@ -27,7 +27,7 @@ source citations, and drift gates. Separate evidence provenance from build prove
 
 ## Context
 
-Read `.memory/specs/environment-gotchas.md`, `tools/check-index-drift.py`,
+Read `docs/agents/specs/environment-gotchas.md`, `tools/check-index-drift.py`,
 `tools/assemble-site.sh`, `tools/site-dry-run.py`, source-ingest tools, and
 #278/#279/#280/#316. Use authoritative reproducible-build/provenance sources.
 
@@ -41,7 +41,7 @@ Read `.memory/specs/environment-gotchas.md`, `tools/check-index-drift.py`,
 
 ## Progress
 
-Determinism probes completed for MAP pages, indexes, global-map redirects, and representative timezone/locale conditions; the detailed evidence is summarized in `.memory/research/2026-09-16-architecture-deep-dives.md`. The deploy-path gate is now unblocked by #331; final architecture-claim reconciliation remains blocked by #342. Tickets #356–#358 capture the confirmed missing gates.
+Determinism probes completed for MAP pages, indexes, global-map redirects, and representative timezone/locale conditions; the detailed evidence is summarized in `docs/agents/research/2026-09-16-architecture-deep-dives.md`. The deploy-path gate is now unblocked by #331; final architecture-claim reconciliation remains blocked by #342. Tickets #356–#358 capture the confirmed missing gates.
 
 ## Resolution
 

@@ -30,8 +30,8 @@ part everyone gets wrong:
 
 ## Sources
 
-- Design: `01-world-models.md` (Part 1 "Action steering").
-- Backing: `repo-findings/REDACTED.md`
+- Design: research notes, non-public (Part 1 "Action steering").
+- Backing: the per-platform findings (non-public)
   (`gpu/action_causal_model.py`, `training/model/action_dmd.py`).
 
 ## Acceptance criteria

@@ -17,7 +17,7 @@ Author lesson 4 of the **world-models** domain (setup: #366; prereq: #389).
 ## What to build
 
 Lesson `library/world-models/lessons/04-building-a-real-time-world-model.html` via `generate-topic`.
-Teaches how the generator works, from the REDACTED PoC:
+Teaches how the generator works, from the real-time PoC:
 - Causal video **DiT** (Wan2.1-T2V-1.3B) + **rectified flow / flow matching**.
 - **Rolling Forcing**: denoise a rolling window + an **attention-sink anchor block** + a streaming
   KV cache — the real-time, low-drift trick.
@@ -26,7 +26,7 @@ Teaches how the generator works, from the REDACTED PoC:
 
 - **scope:** deep · **prereqs:** [what-is-a-world-model] · **lesson_file:** 04-building-a-real-time-world-model.html
 
-## VERIFIED FACTS — hold these exactly (gap-research/366-source-verification.md)
+## VERIFIED FACTS — hold these exactly (the gap research (non-public))
 
 - **RF = Wan2.1-T2V-1.3B** (~4 fps interactive); **Matrix-Game-3.0 = Wan2.2-5B** (~17 fps, 4×H100).
   Keep them distinct.
@@ -39,8 +39,8 @@ Teaches how the generator works, from the REDACTED PoC:
 
 ## Sources
 
-- Design: `01-world-models.md` (Part 1 "The generator side").
-- Backing: `repo-findings/REDACTED.md`, `gap-research/{realtime-worldmodel-serving,366-source-verification}.md`.
+- Design: research notes, non-public (Part 1 "The generator side").
+- Backing: the per-platform findings (non-public), the gap research (non-public).
 
 ## Acceptance criteria
 

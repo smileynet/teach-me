@@ -2,7 +2,7 @@
 split-ink-docs.py — Split ink documentation into per-section files for portable search.
 
 Follows the godot-knowledge pattern:
-  .references/ink/Documentation/ → .memory/ink-reference/
+  .references/ink/Documentation/ → docs/agents/ink-reference/
 
 Each section gets:
   - YAML frontmatter (type, part, section, tags)
@@ -15,7 +15,7 @@ Usage:
 
 Defaults:
     --source .references/ink/Documentation/
-    --output .memory/ink-reference/
+    --output docs/agents/ink-reference/
 
 Stdlib only. No pip dependencies. Idempotent.
 """
@@ -346,7 +346,7 @@ def main():
     parser = argparse.ArgumentParser(description="Split ink docs into per-section reference files")
     parser.add_argument("--source", default=".references/ink/Documentation/",
                         help="Source documentation directory")
-    parser.add_argument("--output", default=".memory/ink-reference/",
+    parser.add_argument("--output", default="docs/agents/ink-reference/",
                         help="Output directory for split files")
     args = parser.parse_args()
 

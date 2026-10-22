@@ -23,15 +23,15 @@ a real-time world model to a player:
   **bandwidth/launch-bound roofline** (RF ~4-6% MFU; fps wins came from launch-count reduction, not
   FLOPs).
 - **Frame delivery** via streaming (SSE/WebSocket; SageMaker `InvokeEndpointWithResponseStream`).
-- The internal **Decart** analog (NKI mega-kernels, REDACTED) and the Self-Forcing +
+- The **Decart** analog (Oasis/Mirage) and the Self-Forcing +
   step-distillation + WebRTC reference stack.
 
 - **scope:** substantial · **prereqs:** [building-a-real-time-world-model] · **leads_to:** [generative-media-pipelines] · **lesson_file:** 06-serving-and-accelerators.html
 
-## AWS-doc anchors (thread through — gap-research/366-aws-doc-anchors.md)
+## AWS-doc anchors (thread through — the gap research (non-public))
 
 - **NxD Inference** (NeuronX Distributed): https://awsdocs-neuron.readthedocs-hosted.com/en/latest/libraries/nxd-inference/index.html — accelerator-native serving; TP/SP/CP config.
-- **NKI programming guide**: https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/ — the kernel lever (REDACTED's NKI kernels; Decart's mega-kernels).
+- **NKI programming guide**: https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/ — the kernel lever (the real-time PoC's NKI kernels; Decart's mega-kernels).
 - **SageMaker real-time + response streaming**: https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints.html + `InvokeEndpointWithResponseStream`.
 - **Pin Neuron doc URLs to a specific version at authoring** (`/en/latest/` churns per release).
 
@@ -44,9 +44,9 @@ documented AWS workflow.
 
 ## Sources
 
-- Design: `01-world-models.md` (Part 3 real-time serving).
-- Backing: `gap-research/{realtime-worldmodel-serving,366-aws-doc-anchors}.md`,
-  `repo-findings/REDACTED.md` (`docs/ROOFLINE_RF_1_3B.md`, `kernels/`).
+- Design: research notes, non-public (Part 3 real-time serving).
+- Backing: the gap research (non-public),
+  the per-platform findings (non-public) (`docs/ROOFLINE_RF_1_3B.md`, `kernels/`).
 
 ## Acceptance criteria
 

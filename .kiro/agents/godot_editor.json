@@ -20,7 +20,7 @@
       "args" : [ "mcp", "start-server", "local-creds-agent-mcp" ]
     }
   },
-  "resources" : [ "file://test-scene/shaders/**/*.gdshader", "file://test-scene/scenes/**/*.tscn", "file://test-scene/README.md", "file://examples/godot-gamedev/reference/code/**/*.gdshader" ],
+  "resources" : [ "file://test-scene/shaders/**/*.gdshader", "file://test-scene/scenes/**/*.tscn", "file://test-scene/README.md", "file://library/godot-gamedev/reference/code/**/*.gdshader" ],
   "keyboardShortcut" : "ctrl+shift+g",
   "welcomeMessage" : "Godot editor agent ready. I can inspect scenes, assign shaders to meshes, take screenshots, and validate shader output visually. What would you like me to do?"
 }

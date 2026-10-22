@@ -1,6 +1,8 @@
-# Project Glossary
+# teach-me
 
-Domain terms and naming decisions for teach-me.
+Domain terms and naming decisions for teach-me, the research-backed teaching workspace and its skills.
+
+## Language
 
 **teach-me**:
 A test bed for learning-oriented agent skills, refined here before deploying globally via crew-research.
@@ -93,5 +95,3 @@ _Avoid_: conflating with the demo fixture; calling either just "the overlay"
 **Demo-status fixture**:
 The COMMITTED per-domain `{workspace}/demo-status.json` (ADR 0016/#279) that bakes the shipped showcase progress counts — read at generate time, never a user's real progress.
 _Avoid_: putting it under `.user/`; calling it a "status overlay"
-
-

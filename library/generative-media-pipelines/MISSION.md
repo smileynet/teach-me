@@ -28,7 +28,7 @@ and so you know which AWS reference pattern each hand-rolled orchestrator is rea
 - Architecture-agnostic where possible; AWS-specific where the reference patterns are AWS
   (SageMaker, Bedrock, EKS/Karpenter/KEDA, FSxN)
 - Every load-bearing claim cites a source: a repo file path (the three explored platforms) or an
-  `[L#:confidence]`-tagged external/internal source (the gap research) — no parametric memory
+  `[L#:confidence]`-tagged public source — no parametric memory
 - Conceptual track — validation is source-verification + `mise run verify` (links/lint/SVG/glossary),
   not a runtime code harness
 - Adjacent to gltf-format / godot-asset-pipeline (image→3D *output* feeds them) — reference, don't

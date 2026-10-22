@@ -78,7 +78,7 @@ Three ACs resolved as deviations (not gaps):
    and the committed positioned map `DomainCard` are structurally incompatible (the map card
    derefs `position.x/y` and crashes without a dagre pass). Tree + map each own their node
    markup; the shared surface is the data record + `Ring`. This is the correct design, not a
-   shortcut — documented in `.memory/research/unified-graph-views/276-implementation-findings.md`.
+   shortcut — documented in `docs/agents/research/unified-graph-views/276-implementation-findings.md`.
 2. **"_site deploy on /{repo}/ subpath" — paths verified, full assembly not run.** All paths are
    document-relative (`../assets`, per-output `mapHref`); verified on a local server + verify-links.
    A real `_site` assembly only happens on a v* tag deploy; not exercised this session. Low risk —

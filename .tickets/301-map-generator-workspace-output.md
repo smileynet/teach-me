@@ -56,7 +56,7 @@ committed page from the MAP's own location (`{domain}/maps/*.MAP.md` → `{domai
 (`--all` and explicit-path default) now use it instead of the hardcoded `PROJECT_ROOT/lessons`.
 
 **Reframing (honest):** this is a HARDENING fix, not a critical bug. The established workflow —
-`generate-topic`/`teach` skills and `.memory/specs/environment-gotchas.md` — already prescribe
+`generate-topic`/`teach` skills and `docs/agents/specs/environment-gotchas.md` — already prescribe
 the safe explicit invocation `--workspace {ws} --output {out}`, and `maps:regenerate` passes them.
 My #253 incident came from running the tool WITHOUT those flags; #301 makes the bare default land
 correctly too (defense-in-depth), so a future session that omits the flags no longer creates a

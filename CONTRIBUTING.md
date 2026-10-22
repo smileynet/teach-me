@@ -21,7 +21,9 @@ workspace/          — Your live learning workspace (gitignored; a fresh clone 
                       from library/ until you start learning — see AGENTS.md)
 .kiro/skills/       — Agent skills (teach, generate-topic, quiz-me, etc.)
 .kiro/steering/     — Visual teaching guidelines
-.memory/            — Persistent knowledge (glossary, ADRs)
+GLOSSARY.md         — Domain vocabulary
+docs/adr/           — Decision records (ADRs)
+docs/agents/        — Agent reference (specs, research)
 tools/              — CLI scripts (diagram generation, quiz pages, verification)
 tools/lib/          — Python helpers (page_template.py for HTML generation)
 assets/             — Shared CSS, JS components, SVG patterns

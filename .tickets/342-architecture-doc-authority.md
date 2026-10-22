@@ -22,7 +22,7 @@ the committed library with local workspace/state.
 
 ## Context
 
-Read `.memory/specs/ui-contracts.md`, `.memory/map-format-spec.md`, ADRs 0012/0014/0016,
+Read `docs/agents/specs/ui-contracts.md`, `docs/agents/specs/map-format-spec.md`, ADRs 0012/0014/0016,
 `README.md`, and #335. Reconcile ticket records first so docs cite honest as-built evidence.
 
 ## What to build
@@ -43,7 +43,7 @@ typed relationships, the implemented page shell, and local-only learner state.
 
 Reconciled every governing document with the shipped system, working from a subagent
 docs↔code mismatch inventory with every item evidenced at file:line, then applied and
-gated: `.memory/specs/ui-contracts.md` (page-shell as implemented), `.memory/map-format-spec.md`
+gated: `docs/agents/specs/ui-contracts.md` (page-shell as implemented), `docs/agents/specs/map-format-spec.md`
 (full as-built rewrite — the central drift: committed `status` field no longer exists,
 ULIDs + typed edges do), ADR 0014 (accepted + as-built deviations), ADR 0016 (#284
 limitation resolved, #279 follow-up corrected), README ("Where things live" + library

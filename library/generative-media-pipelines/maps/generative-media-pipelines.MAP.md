@@ -13,8 +13,8 @@ leads_to: []
 
 A generative media pipeline is the platform that turns "a research model on a GPU" into "a stable
 API a creative team calls." Three real platforms — a custom scale-to-zero orchestrator
-(REDACTED), an artist studio over Bedrock + SageMaker (REDACTED), and a ComfyUI
-platform on EKS (REDACTED) — all implement the *same* core loop: authenticate,
+(a DCC service), an artist web studio over Bedrock + SageMaker, and a game studio's
+ComfyUI platform on EKS — all implement the *same* core loop: authenticate,
 submit a job, queue it, wake a GPU worker that was scaled to zero, stage the model weights, infer,
 store the output, and stream progress back. **SageMaker Asynchronous Inference is the worked
 managed reference threaded through the track** — it queues requests, scales to zero, takes an
@@ -25,8 +25,8 @@ of endpoints, why weights never live in the container image, how to host ComfyUI
 the image→3D landscape and its licensing look like, how speech generation fits the same async
 pattern, and why LoRA is a *hosted* category whose *training* lives in a separate tier. It's
 deliberately architecture-first — the specific models are
-examples; the serving patterns transfer. Sources are the three explored repos (primary) plus
-internal + external prior-art research; the image→3D *output* feeds the gltf-format and
+examples; the serving patterns transfer. Sources are the three explored platforms (primary) plus
+public prior-art research; the image→3D *output* feeds the gltf-format and
 godot-asset-pipeline domains, which this references rather than duplicates.
 
 ## Topics
@@ -42,7 +42,7 @@ godot-asset-pipeline domains, which this references rather than duplicates.
 ### scale-to-zero-gpu-serving
 - **id:** 01M2R98N1J0D5K8T3HW95QFKB9
 - **title:** Scale-to-Zero GPU Serving
-- **why:** GPUs are expensive and idle most of the time, so scaling to zero is the economic heart of the whole design — and cold start is the tax you pay for it. Covers the four AWS-native paths (SageMaker Async, Inference-Component minCopies=0, Serverless-CPU-only, EKS Karpenter+KEDA) + Bedrock, the measured cold-start SLO (~342s scale-from-zero vs ~150s warm-pool), and why the hand-rolled orchestrators re-implement SageMaker Async / the EKS reference architecture. **SageMaker Async Inference is the worked reference example threaded through the track** — it queues requests, scales instances to zero (pay only while processing), and is the managed mirror of REDACTED's entire hand-rolled SQS+worker orchestrator.
+- **why:** GPUs are expensive and idle most of the time, so scaling to zero is the economic heart of the whole design — and cold start is the tax you pay for it. Covers the four AWS-native paths (SageMaker Async, Inference-Component minCopies=0, Serverless-CPU-only, EKS Karpenter+KEDA) + Bedrock, the measured cold-start SLO (~342s scale-from-zero vs ~150s warm-pool), and why the hand-rolled orchestrators re-implement SageMaker Async / the EKS reference architecture. **SageMaker Async Inference is the worked reference example threaded through the track** — it queues requests, scales instances to zero (pay only while processing), and is the managed mirror of the DCC service's entire hand-rolled SQS+worker orchestrator.
 - **scope:** deep
 - **prereqs:** [the-universal-serving-pipeline]
 - **lesson_file:** 02-scale-to-zero-gpu-serving.html
@@ -50,7 +50,7 @@ godot-asset-pipeline domains, which this references rather than duplicates.
 ### model-onboarding-as-data
 - **id:** 01M2R98N1JH2ACGN90N90CR7A3
 - **title:** Model Onboarding as Data
-- **why:** Adding a model must not mean adding an endpoint or bespoke serving code — this is what lets one platform serve many models. Covers the manifest/registry (REDACTED), the universal data-driven inference handler + format families (REDACTED), and the versioned workflow-container (REDACTED); the rule-of-two seam; runner strategies (native/comfyui/mock); and why weights are never baked into the image (S3→NVMe vs FSxN+FlexClone vs HF-direct-pull, NF4/offload).
+- **why:** Adding a model must not mean adding an endpoint or bespoke serving code — this is what lets one platform serve many models. Covers the manifest/registry (DCC service), the universal data-driven inference handler + format families (artist studio), and the versioned workflow-container (ComfyUI platform); the rule-of-two seam; runner strategies (native/comfyui/mock); and why weights are never baked into the image (S3→NVMe vs FSxN+FlexClone vs HF-direct-pull, NF4/offload).
 - **scope:** deep
 - **prereqs:** [the-universal-serving-pipeline]
 - **lesson_file:** 03-model-onboarding-as-data.html
@@ -90,7 +90,7 @@ godot-asset-pipeline domains, which this references rather than duplicates.
 ### speech-generation
 - **id:** 01M2RAGF0SAB63SQZD244ZTAPY
 - **title:** Speech Generation — TTS, Voice Cloning & the Async Fit
-- **why:** The one media type the explored platforms barely touch (only STT), yet a first-class generative modality. Teaches the task taxonomy (TTS vs STT vs speech-to-speech vs voice cloning vs dubbing-as-a-pipeline vs music/SFX) and which tool serves each; the AWS-native decision (Amazon Polly generative engine + streaming; Nova 2 Sonic S2S on Bedrock) vs self-hosting open models (Kokoro/Chatterbox/CosyVoice2 are commercial-safe; XTTS-v2/F5-TTS are non-commercial — license gates before quality); and the serving-pattern fit — dubbing/voiceover are large-payload, long-job, bursty = the **SageMaker Async** sweet spot (S3-pointer in, scale-to-zero, SNS notify), while conversational voice needs a warm streaming endpoint. Internal reference: the REDACTED audiobook voice-clone on SageMaker Async and REDACTED real-time streaming.
+- **why:** The one media type the explored platforms barely touch (only STT), yet a first-class generative modality. Teaches the task taxonomy (TTS vs STT vs speech-to-speech vs voice cloning vs dubbing-as-a-pipeline vs music/SFX) and which tool serves each; the AWS-native decision (Amazon Polly generative engine + streaming; Nova 2 Sonic S2S on Bedrock) vs self-hosting open models (Kokoro/Chatterbox/CosyVoice2 are commercial-safe; XTTS-v2/F5-TTS are non-commercial — license gates before quality); and the serving-pattern fit — dubbing/voiceover are large-payload, long-job, bursty = the **SageMaker Async** sweet spot (S3-pointer in, scale-to-zero, SNS notify), while conversational voice needs a warm streaming endpoint.
 - **scope:** substantial
 - **prereqs:** [scale-to-zero-gpu-serving, the-async-contract]
 - **lesson_file:** 08-speech-generation.html

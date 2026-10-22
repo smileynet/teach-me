@@ -26,7 +26,7 @@ Lesson `library/world-models/lessons/03-evaluation-and-fds.html` via `generate-t
 
 - **scope:** deep · **prereqs:** [what-is-a-world-model] · **lesson_file:** 03-evaluation-and-fds.html
 
-## VERIFIED FACTS — hold these exactly (source-verification pass, gap-research/366-source-verification.md)
+## VERIFIED FACTS — hold these exactly (source-verification pass, the gap research (non-public))
 
 - Behavioral FDS = **`1 - action_F1`** (`world-models/tools/fds_harness.py:202-203`) — macro-F1 over
   discrete action channels via IDM round-trip (`:94-133`). It is a **project-coined score, NOT a
@@ -38,8 +38,8 @@ Lesson `library/world-models/lessons/03-evaluation-and-fds.html` via `generate-t
 
 ## Sources
 
-- Design: `01-world-models.md` (Part 1 "FDS four axes" + Part 3 prior-art).
-- Backing: `repo-findings/world-models.md`, `gap-research/{world-model-eval-prior-art,366-source-verification}.md`.
+- Design: research notes, non-public (Part 1 "FDS four axes" + Part 3 prior-art).
+- Backing: the per-platform findings (non-public), the gap research (non-public).
 
 ## Acceptance criteria
 

@@ -1,8 +1,9 @@
 # Ephemeral working notes (session-scoped, not committed)
 .scratch/
 
-# Reference repos (large, cloned locally for study)
-.references/
+# Reference repos (large, cloned locally for study); only the index README is committed
+.references/*
+!.references/README.md
 
 # Python virtual environment
 .venv/
@@ -41,3 +42,6 @@ ink-test-project/addons/godot_ai/
 # nobody can regenerate or diff-review. Narrow patterns; do NOT catch lesson .ink.json. (#234)
 ink-test-project/stories/test_fallback.*
 ink-test-project/stories/exercise_0*_answer.*
+
+# local-only preserved copies (privacy scrub)
+.private/

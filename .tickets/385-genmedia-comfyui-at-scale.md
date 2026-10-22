@@ -37,32 +37,32 @@ storage. Beats:
 ## G2 warnings (Con callouts with source — all three are load-bearing)
 
 - **ALB 60s idle-timeout drops the `/ws` progress socket** on long generations — fix: raise idle
-  timeout (REDACTED 3600s; AWS ECS sample 300s+) **and/or** WebSocket ping/pong ≤58s (note the
+  timeout (the ComfyUI platform 3600s; AWS ECS sample 300s+) **and/or** WebSocket ping/pong ≤58s (note the
   exactly-at-timeout race). Cross-vendor confirmed.
 - **No-auth = RCE surface.** Core ComfyUI has no built-in auth; custom nodes are arbitrary Python
   (supply-chain + RCE). Never internet-facing; auth-gate at the edge; **allowlist custom-node class
-  names before enqueue**; cap workflow payload size. (Internal Critical finding.)
+  names before enqueue**; cap workflow payload size. (Unauthenticated exposure is a critical security finding.)
 - **One-process-one-workflow.** ComfyUI serializes on one GPU; scale by adding whole pods, not
   concurrency → sticky sessions + `Recreate` deploy + one GPU/node. Round-robin without stickiness
   sends a status poll to the wrong worker.
 
-Also: cold checkpoint load dominates first-request latency (REDACTED ~15 min fresh vs ~182s warm).
+Also: cold checkpoint load dominates first-request latency (the ComfyUI platform ~15 min fresh vs ~182s warm).
 
-## Provenance paragraph (MANDATORY — keep REDACTED and aws-samples distinct)
+## Provenance paragraph (MANDATORY — keep the ComfyUI platform and aws-samples distinct)
 
-The lesson **must** state: `REDACTED` did NOT surface in REDACTED (likely a
-private REDACTED package), explored directly by symlink — its facts are `[L1]` first-party
+The lesson **must** state: the ComfyUI platform is a non-public codebase,
+explored directly — its facts are `[L1]` first-party
 observation of *that specific repo*. The three **`aws-samples`** reference architectures
 (`comfyui-on-eks`, `cost-effective-aws-deployment-of-comfyui`, `sample-comfy-to-sagemaker-processing-job`)
-are **PUBLIC, INDEPENDENT prior art** — NOT descriptions of, derived from, or claims about REDACTED.
+are **PUBLIC, INDEPENDENT prior art** — NOT descriptions of, derived from, or claims about the ComfyUI platform.
 Where they agree (ALB timeout, no-auth, S3→node weights, SHA pinning) that is **convergent evidence
-for the pattern**, not shared lineage. Never let the prose blur "REDACTED did X" with "aws-samples does X".
+for the pattern**, not shared lineage. Never let the prose blur "the ComfyUI platform did X" with "aws-samples does X".
 
 ## Honest scope (per topic-1 asymmetry discipline)
 
-REDACTED's ONLY live generative pipeline is **image→3D mesh (GLB)** via TRELLIS.2; text→image
+the ComfyUI platform's ONLY live generative pipeline is **image→3D mesh (GLB)** via TRELLIS.2; text→image
 (z_image_turbo) and Hunyuan3D-2 are staged-not-wired; video/audio/speech absent. Don't present
-staged/proposed capabilities as shipped. REDACTED's KEDA `minReplicaCount 1` is a **warm-pod floor, not
+staged/proposed capabilities as shipped. the ComfyUI platform's KEDA `minReplicaCount 1` is a **warm-pod floor, not
 literal zero** (weekend "park" is the true-zero path); the aws-samples EKS/ECS shapes DO scale to
 literal zero — keep the distinction explicit. Surface two open questions (custom-node supply-chain
 vetting; approved model-artifact provenance path) rather than glossing.
@@ -72,7 +72,7 @@ vetting; approved model-artifact provenance path) rather than glossing.
 Every claim → repo file path (`docs/VISION.md`, `k8s/ingress/comfy-alb.yaml`,
 `k8s/keda/comfy-scaledobject.yaml`, `containers/*/Dockerfile`, `lambda/router/index.ts`,
 `cdk/lib/*-stack.ts`) or `[L#]`; aws-samples cited as external `[L4]` with their repo URLs, kept
-distinct from REDACTED.
+distinct from the ComfyUI platform.
 
 ## Artifact set (authoritative gate: `tools/check-topic-completeness.py`)
 
@@ -88,7 +88,7 @@ code-files dir only if `data-file` blocks exist. Follows `visual-teaching.md` +
 - [ ] Two execution surfaces (headless EKS vs AppStream UI) as one image+library, with the router that dispatches by tier
 - [ ] All three G2 warnings in Con callouts with source (ALB `/ws` idle-timeout + fix; no-auth RCE + node allowlist + never-internet-facing; one-process-one-workflow → sticky sessions/Recreate/one-GPU)
 - [ ] Workflow-as-immutable-container versioning explained (git→build→scan→approve→immutable tag; SHA-pin; weights not in image) + the version-mixing bug
-- [ ] **Explicit provenance paragraph**: REDACTED = private/first-party-observed; aws-samples = independent public prior art; convergence ≠ shared lineage
+- [ ] **Explicit provenance paragraph**: the ComfyUI platform = non-public/first-party-observed; aws-samples = independent public prior art; convergence ≠ shared lineage
 - [ ] Media-type reality honest (image→3D live; text→image staged; video/audio/speech absent); warm-pod-floor vs literal-zero distinction stated
 - [ ] Reference + quiz (≥5/≥3) + SR JSONL + inline glossary produced; every claim cites a repo path or `[L#]`
 - [ ] `mise run verify` passes AND `check-topic-completeness.py --workspace library/generative-media-pipelines --topic comfyui-at-scale` (and `--concepts`) clean

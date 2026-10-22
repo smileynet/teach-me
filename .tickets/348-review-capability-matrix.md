@@ -40,7 +40,7 @@ Read ADRs 0003/0012/0014/0015/0016, `tools/serve.py`, `tools/assemble-site.sh`,
 
 ## Progress
 
-The direct capability matrix is recorded in `.memory/research/2026-09-16-architecture-deep-dives.md`: static reading works, while Pages is blocked by #331, library-root behavior by #332/#338, and shared learner state by #341/#349. Direct-link and JavaScript-disabled browser probes still need specialist/browser evidence before closure.
+The direct capability matrix is recorded in `docs/agents/research/2026-09-16-architecture-deep-dives.md`: static reading works, while Pages is blocked by #331, library-root behavior by #332/#338, and shared learner state by #341/#349. Direct-link and JavaScript-disabled browser probes still need specialist/browser evidence before closure.
 
 ## Resolution
 

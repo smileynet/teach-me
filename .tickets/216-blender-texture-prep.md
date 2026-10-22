@@ -138,14 +138,14 @@ All 9 texture samplers are guarded by `use_*` booleans (all default `false`). Te
 
 ## Research references
 
-- `.memory/research/mktoon-texture-prep/toon-texture-pipelines.md` — industry approaches (Guilty Gear ILM maps, Genshin, Malt)
-- `.memory/research/mktoon-texture-prep/blender-bake-nodes.md` — specific node setups, bake settings, addon list
-- `.memory/research/mktoon-texture-prep/mktoon-texture-requirements.md` — what toon shaders expect vs generate procedurally
-- `.memory/research/mktoon-texture-prep/existing-test-scene-review.md` — current state of test-scene assets and shader uniforms
-- `.memory/research/mktoon-texture-prep/mk-toon-lite-analysis.md` — full shader uniform/usage analysis
-- `.memory/research/mktoon-texture-prep/mktoon-scene-analysis.md` — scene structure, material state, wiring needed
-- `.memory/research/mktoon-texture-prep/godot-texture-import.md` — color space hints, import flags, Poly Haven gotchas
-- `.memory/research/mktoon-texture-prep/toon-texture-problems.md` — 8 specific PBR+toon artifacts with causes/solutions
+- `docs/agents/research/mktoon-texture-prep/toon-texture-pipelines.md` — industry approaches (Guilty Gear ILM maps, Genshin, Malt)
+- `docs/agents/research/mktoon-texture-prep/blender-bake-nodes.md` — specific node setups, bake settings, addon list
+- `docs/agents/research/mktoon-texture-prep/mktoon-texture-requirements.md` — what toon shaders expect vs generate procedurally
+- `docs/agents/research/mktoon-texture-prep/existing-test-scene-review.md` — current state of test-scene assets and shader uniforms
+- `docs/agents/research/mktoon-texture-prep/mk-toon-lite-analysis.md` — full shader uniform/usage analysis
+- `docs/agents/research/mktoon-texture-prep/mktoon-scene-analysis.md` — scene structure, material state, wiring needed
+- `docs/agents/research/mktoon-texture-prep/godot-texture-import.md` — color space hints, import flags, Poly Haven gotchas
+- `docs/agents/research/mktoon-texture-prep/toon-texture-problems.md` — 8 specific PBR+toon artifacts with causes/solutions
 
 ## Resolved questions
 

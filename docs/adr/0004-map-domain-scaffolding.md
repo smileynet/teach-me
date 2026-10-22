@@ -30,7 +30,7 @@ Key constraints:
 
 ## Consequences
 
-- New format spec at `.memory/map-format-spec.md`
+- New format spec at `docs/agents/specs/map-format-spec.md`
 - New tools: `generate_map_page.py`, `generate_index_page.py`
 - Teach skill needs big-request detection (ticket 042) and MAP.md generation logic
 - Navigation hierarchy: All Lessons → Domain Map → Topic → Lesson

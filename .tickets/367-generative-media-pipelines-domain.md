@@ -18,15 +18,15 @@ Stand up the standalone **`generative-media-pipelines`** teaching domain — the
 like LoRA. Conceptual/architecture track built from three real platforms + prior-art research.
 
 **Setup/scaffold + proposal only — NO lessons generated.** Design source (already written +
-promoted): `.memory/research/world-models-and-genmedia/02-generative-media-pipelines.md` (briefing +
-study guide + gap research). Backing findings: `repo-findings/{REDACTED,REDACTED,REDACTED}.md`
-and all seven `gap-research/*.md`.
+promoted): the research notes (non-public, removed) (briefing +
+study guide + gap research). Backing findings: the per-platform findings (non-public)
+and all seven gap-research notes (non-public).
 
 ## Why this domain
 
-Three explored platforms solve the same core differently — `REDACTED` (custom
-scale-to-zero orchestrator), `REDACTED` (artist web studio over Bedrock + SageMaker), and
-`REDACTED` (ComfyUI on EKS/AppStream). The study guide already extracts the shared
+Three explored platforms solve the same core differently — the DCC service (custom
+scale-to-zero orchestrator), the artist studio (artist web studio over Bedrock + SageMaker), and
+the ComfyUI platform (ComfyUI on EKS/AppStream). The study guide already extracts the shared
 pattern (submit→queue→scale-to-zero worker→stage weights→infer→stream) and the cross-cutting
 lessons (onboarding-as-data, cold-start-as-SLO, LoRA-is-hosted-not-trained, image→3D as the common
 denominator), and the gap research adds the AWS reference architectures each repo reinvents.
@@ -57,7 +57,7 @@ feeds them) — reference, don't duplicate.
 | 6 | `comfyui-at-scale` | node-graph workflows; headless API (/prompt, /ws, /history, /object_info); headless vs streamed UI; ALB WebSocket trap; no-auth risk; three AWS reference samples | [3,5] |
 | 7 | `media-types-and-image-to-3d` | what each platform generates; the two-level 2D pipeline; video-async; image→3D model families + Hunyuan3D license gate + the universal retopo/UV/PBR/LOD cleanup tax | [1] |
 | 8 | `lora-and-the-training-tier` | LoRA is hosted, not trained; SageMaker Training Jobs (default for one LoRA) vs HyperPod (org-scale); the data-flywheel pattern; style-via-prompt as the non-LoRA alternative | [3] |
-| 9 | `speech-generation` (optional) | the gap: AWS Polly + Nova Sonic S2S; self-host Chatterbox/Kokoro/XTTS; internal dubbing prior art; how it fits the same pipeline | [1] |
+| 9 | `speech-generation` (optional) | the gap: AWS Polly + Nova Sonic S2S; self-host Chatterbox/Kokoro/XTTS; how it fits the same pipeline | [1] |
 
 Prereq edges: `1→{2,3,5}`, `2→4`, `{3,5}→6`, `1→7`, `3→8`, `1→9`. All within-map. (9 is the
 biggest — likely trim to ~6-7 core topics; 9 is optional given the thin speech coverage.)
@@ -67,16 +67,15 @@ biggest — likely trim to ~6-7 core topics; 9 is optional given the thin speech
 Conceptual domain — no runtime artifact. Same gate as #366:
 
 - Every load-bearing claim traces to a cited **repo file path** or a **`[L#:confidence]` external
-  source** (per `source-authority` steering). Cite AWS reference-sample repos and internal wiki
+  source** (per `source-authority` steering). Cite AWS reference-sample repos and public
   guides from the gap research, not parametric memory.
 - Standard `mise run verify` (links + lint + SVG theming + glossary coverage).
 - Numbers cited or framed general — e.g. cold-start "342s vs 150s p95" cites
-  `REDACTED/.memory/spikes/02-cold-start-comparison.md`.
+  the DCC service's cold-start spike note.
 
 ## Source note to carry into topic 6
 
-The `REDACTED` package did not surface in REDACTED (likely a private REDACTED
-package). Topic 6's AWS reference-sample content (`aws-samples/comfyui-on-eks` etc.) is prior art,
+The ComfyUI platform is non-public. Topic 6's AWS reference-sample content (`aws-samples/comfyui-on-eks` etc.) is prior art,
 verified independently — not a claim about that specific repo. Keep the two distinct in lessons.
 
 ## Acceptance criteria
@@ -84,7 +83,7 @@ verified independently — not a claim about that specific repo. Keep the two di
 - [x] `generative-media-pipelines.MAP.md` at `library/generative-media-pipelines/maps/` with the topic spine + prereq edges; ULIDs via `tools/migrate_map_ids.py --apply`; passes `tools/check-maps-forest.py`
 - [x] Source-verification gate recorded (claim→cited-source contract) — in MISSION.md Constraints + RESOURCES.md source-authority note
 - [x] Standalone depth-0 confirmed; incoming `leads_to` from #366 recorded; differentiated from gltf-format / godot-asset-pipeline (no duplication — reference for image→3D output)
-- [x] Provenance recorded (design source = the promoted guide; backing = repo-findings + all gap-research) — RESOURCES.md
+- [x] Provenance recorded (design source = the promoted guide; backing = per-platform findings + all gap research) — RESOURCES.md
 - [x] Topic spine reviewed/trimmed (9 → final count; decide whether speech is in-scope) with the user before topic tickets — **SIGNED OFF 2026-09-17**: final 8 topics, speech in-scope as topic 8
 - [x] NO lessons generated — topic tickets created after this is signed off (8 topic tickets 371–378 cut on sign-off; zero lessons generated)
 
@@ -97,9 +96,8 @@ Scaffold placed and validated (proposal-only, no lessons):
 **Spine v2 (2026-09-17, per user direction) — 8 topics:**
 - **Weights-storage MERGED** into topics 2 (scale-to-zero) + 3 (onboarding) — user approved merging.
 - **Speech RESTORED as topic 8** — user: "speech generation is important." Backed by a deeper
-  research pass promoted to `gap-research/tts-speech-generation-deep.md` (task taxonomy, Polly +
-  Nova 2 Sonic, commercial-safe-vs-non-commercial self-host models, Async-vs-real-time serving fit,
-  REDACTED + REDACTED internal prior art).
+  research pass promoted to the gap research (non-public) (task taxonomy, Polly +
+  Nova 2 Sonic, commercial-safe-vs-non-commercial self-host models, Async-vs-real-time serving fit).
 - **SageMaker Async Inference woven in as the worked reference** (user-requested), threaded through
   topics 2 (managed scale-to-zero), 4 (S3-pointer/identifier+output-location/SNS async contract),
   and 8 (dubbing/voiceover = the Async sweet spot). Doc:
@@ -131,10 +129,10 @@ final at 8 topics; ready to cut topic tickets on your go.
 ## Notes
 
 - Design source + backing research already written and committed under
-  `.memory/research/world-models-and-genmedia/`.
-- Pairs with #366 (world-models). Gap research surfaced strong internal prior art for every
-  sub-area (fine-tune-SDXL-with-Kohya IaC, ComfyUI reference samples, TTS dubbing pipelines,
-  the "Deploying Open Models on AWS" decision guide) — cite these in the relevant topics.
+  the research notes (non-public, removed).
+- Pairs with #366 (world-models). Gap research surfaced prior art for every
+  sub-area (Kohya fine-tuning docs, ComfyUI reference samples, TTS deployment guides) — cite the
+  public sources in the relevant topics.
 
 ## Resolution (2026-09-17)
 

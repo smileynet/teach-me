@@ -6,7 +6,7 @@ A world model is an AI system that *simulates an interactive environment* — pr
 given the current state and an action — instead of rendering from a hand-coded engine. Two real
 efforts are the whole arc: a benchmark that scores whether a world model actually *plays* correctly
 (the FDS evaluation harness) and a browser-playable real-time video-diffusion generator on AWS
-Trainium (the REDACTED PoC). The field's central trap is the "vivid dream": a model that looks
+Trainium (a real-time world-model PoC). The field's central trap is the "vivid dream": a model that looks
 photoreal while ignoring the player's actions. This track teaches what world models are, how a
 real-time one is built and served, and — the part everyone gets wrong — how you tell a good one
 from a convincing hallucination.
@@ -28,8 +28,8 @@ from a convincing hallucination.
 
 - Conceptual/architecture track — no runtime code harness; validation is source-verification +
   `mise run verify` (links/lint/SVG/glossary)
-- Every load-bearing claim cites a source: a repo file path (world-models, REDACTED) or an
-  `[L#:confidence]`-tagged external/internal source — no parametric memory
+- Every load-bearing claim cites a source: a project source file (the two explored projects) or an
+  `[L#:confidence]`-tagged public source — no parametric memory
 - **Verified facts to hold exactly** (from the 2026-09-17 source-verification pass): behavioral FDS
   is literally `1 - action_F1` (a project-coined score, NOT a Fréchet distance, NOT FVD; camera_L1
   is reported separately and not folded into the scalar); the "~14 fps" figure is the RF-1.3B

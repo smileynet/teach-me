@@ -21,13 +21,13 @@ Teach scale-to-zero as the **economic heart** of the design and cold start as th
 
 1. **The four AWS-native scale-to-zero paths** + Bedrock, each with *when-to-use* criteria, and map
    each repo onto its path: SageMaker **Inference Components `minCopies=0`**; **SageMaker Async**
-   (managed queue + scale-to-zero — the worked reference, = REDACTED's whole hand-rolled
-   SQS+worker); **Serverless** (CPU-only — a trap for GPU work); **EKS Karpenter+KEDA** (= REDACTED);
+   (managed queue + scale-to-zero — the worked reference, = the DCC service's whole hand-rolled
+   SQS+worker); **Serverless** (CPU-only — a trap for GPU work); **EKS Karpenter+KEDA** (= the ComfyUI platform);
    plus Bedrock.
 2. **Cold start as a MEASURED SLO** — p95 **342s scale-from-zero vs 150s warm-pool**, with the
    per-phase breakdown showing **docker image pull dominates (p95 137s, ~40%)**, while model load
    (~30s) and inference (~5s) are cheap-and-fixed. This inverts the naive intuition (which fears
-   weight-loading). Cite `REDACTED/.memory/spikes/02-cold-start-comparison.md`; state
+   weight-loading). Cite the DCC service's cold-start spike note; state
    the percentile.
 3. **Mitigation levers, separated by which phase they attack** — image-pull levers (SOCI *with its
    ML caveat*, slim images, Container Caching, Dragonfly) vs weight-load levers (Fast Model Loader
@@ -37,8 +37,8 @@ Also: **weights never baked into the image** (S3→NVMe / FSxN+FlexClone / HF-di
 *why* — keeps the pull tax bounded); capacity as a first-class problem (diversified EC2 Fleet vs
 single-type droughts; ODCR solves retention not acquisition; 2026 managed Capacity-Aware Inference).
 
-**Honest asymmetry (per topic-1 discipline):** the three repos are NOT all "true zero" — REDACTED runs
-a warm pod (KEDA `minReplicaCount 1`), REDACTED offers both as a config dial, only
+**Honest asymmetry (per topic-1 discipline):** the three repos are NOT all "true zero" — the ComfyUI platform runs
+a warm pod (KEDA `minReplicaCount 1`), the DCC service offers both as a config dial, only
 SageMaker Async / Bedrock are literal-zero-idle. Teach the dial, not "everyone scales to zero."
 Pin in the glossary that `minReplicaCount`/`minCopies`/`MinCapacity` are three provider names for
 the same "floor" dial.
@@ -49,7 +49,7 @@ the same "floor" dial.
   queues forever; async cold-start-from-zero can hit ~20 min for a large image.
 - **SOCI is weak specifically for ML** (inference reads most of the image); it defers cost to first
   request and shifts failure semantics.
-- **Keep 1–2 warm for interactive, true-zero for batch** (why REDACTED chose `minReplicaCount 1`);
+- **Keep 1–2 warm for interactive, true-zero for batch** (why the ComfyUI platform chose `minReplicaCount 1`);
   guard scale-in against in-flight work ("scaled to zero mid-decode").
 - **Serverless is CPU-only** — a dead end for diffusion/LLM GPUs.
 - **SQS-visibility double-run**: cold-start p95 (342s) > 300s default visibility → redelivery;
@@ -64,8 +64,8 @@ mitigation.
 ## Source-verification gate (per #367)
 
 Every load-bearing claim → repo file path or `[L#:confidence]` external source (per
-`source-authority`). Design source `.memory/research/world-models-and-genmedia/02-generative-media-pipelines.md`
-+ `gap-research/scale-to-zero-gpu-serving.md`; external best-practice/anti-pattern set in
+`source-authority`). Design source the research notes (non-public, removed)
++ the gap research (non-public); external best-practice/anti-pattern set in
 `.scratch/research/372-refine.md` (four-paths docs, SOCI/Fast Model Loader, the G2 reposts). No
 parametric memory.
 

@@ -50,7 +50,7 @@ The sibling-fork relationship is documented in #155 (global map) and #055 (cross
 - [x] `test-scene/scenes/mktoon_test.tscn` exists with at least one PBR mesh
 - [x] Reference shader copied to test-scene (not modified — read-only comparison target)
 - [x] `godot --headless --editor --import --quit --path test-scene` passes
-- [x] Design decisions recorded in `.memory/adr/` or `.memory/`
+- [x] Design decisions recorded in `docs/adr/` or `.memory/`
 
 ## Downstream tickets (one per lesson)
 

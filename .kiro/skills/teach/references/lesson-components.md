@@ -35,7 +35,7 @@ First use of a domain term → wrap in tooltip:
 ```html
 <span class="term" data-term="snapshot">snapshot</span>
 ```
-Include glossary JSON block at bottom (before page-shell.js). After lesson, add terms to `.memory/CONTEXT.md`.
+Include glossary JSON block at bottom (before page-shell.js). After lesson, add terms to `GLOSSARY.md`.
 
 ## Collapsible Details
 

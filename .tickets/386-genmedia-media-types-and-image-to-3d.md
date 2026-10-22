@@ -20,12 +20,12 @@ Produced via the `generate-topic` pipeline.
 Three arcs, all repo-grounded:
 
 1. **Media-type coverage matrix** across the three platforms — image→3D is the *common denominator*
-   every platform ships or targets; 2D+editing is REDACTED's depth; video is Bedrock-async **(same
+   every platform ships or targets; 2D+editing is the artist studio's depth; video is Bedrock-async **(same
    async contract, not a fourth serving substrate)**; speech = **STT-only, deferred to topic 8**; no
    TTS, no in-platform LoRA training.
 2. **The two-level 2D pipeline** (Options × Variations, 1..5 each → ≤25 images) with the **canary
    moderation probe** (one probe moderated before the full batch → a block wastes 1 call not 25),
-   cited to `REDACTED/backend/routers/generate.py`.
+   cited to the artist studio's source.
 3. **Image→3D as TWO model families** — native-3D latent generation (Hunyuan3D-DiT, TripoSG,
    TRELLIS/SLAT) vs feed-forward LRM reconstruction (TripoSR ~0.5s, SF3D) — placed correctly, with
    the frontier (TRELLIS.2-4B full-PBR).
@@ -40,7 +40,7 @@ Three arcs, all repo-grounded:
   license-clear the *whole dependency closure*, not just the headline model.
 - **Cleanup tax (existence + who pays it only):** raw AI meshes are triangle-soup with no clean UVs /
   invalid PBR; named stages retopo→LOD→re-UV→PBR-correction→scale/pivot→collision→GLB-export;
-  REDACTED's headless-Blender `mesh_export.py` is the "automated" example to cite.
+  the artist studio's headless-Blender `mesh_export.py` is the "automated" example to cite.
 
 ## LOCKED cross-reference framing (enforce; do NOT drift into how-to)
 
@@ -59,8 +59,8 @@ engine-ready meshes).
 
 ## Source-verification gate (per #367)
 
-Design-source facts → repo file paths (`REDACTED/backend/routers/generate.py`, `generate_3d.py`,
-`services/mesh_export.py`; `REDACTED .../workflow_api.json`); every **license/model-quality claim** →
+Design-source facts → repo file paths (the artist studio's source, `generate_3d.py`,
+`services/mesh_export.py`; the ComfyUI platform's workflow JSON); every **license/model-quality claim** →
 model-card/LICENSE URL, dated 2026-09, tagged `[L#:confidence]`. No "commonly known" citations.
 
 ## Artifact set (authoritative gate: `tools/check-topic-completeness.py`)

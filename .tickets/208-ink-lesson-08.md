@@ -32,7 +32,7 @@ Once-only vs sticky choices, text suppression brackets, stitches as sub-sections
 - Mismatched gather nesting levels
 - Deep nesting becoming unreadable
 
-### Source material (from .memory/ink-reference/)
+### Source material (from docs/agents/ink-reference/)
 - 1-02-choices.md — bracket zones (before/inside/after)
 - 1-06-includes-and-stitches.md — stitch syntax, local diverts, header content gotcha
 - 1-07-varying-choices.md — once-only, sticky, fallback, conditional preview

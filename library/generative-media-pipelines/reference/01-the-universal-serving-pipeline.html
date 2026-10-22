@@ -43,9 +43,9 @@
 
 <h2>Per-platform stage map</h2>
 <table>
-  <thead><tr><th>Stage</th><th>REDACTED</th><th>REDACTED</th><th>REDACTED</th></tr></thead>
+  <thead><tr><th>Stage</th><th>DCC service</th><th>Artist studio</th><th>ComfyUI platform</th></tr></thead>
   <tbody>
-    <tr><td>auth</td><td>Cognito JWT + <code>org_id</code></td><td>AWS-account trust</td><td>Cognito + REDACTED</td></tr>
+    <tr><td>auth</td><td>Cognito JWT + <code>org_id</code></td><td>AWS-account trust</td><td>Cognito + SAML IdP</td></tr>
     <tr><td>submit</td><td><code>POST /v1/models/{id}/{ver}/jobs</code></td><td><code>POST /api/generate/stream</code></td><td><code>POST /prompt</code></td></tr>
     <tr><td>queue</td><td>SQS FIFO</td><td>S3 async job tracker</td><td>DynamoDB + KEDA</td></tr>
     <tr><td>worker</td><td>ECS/EC2 Spot + Fleet</td><td>SageMaker MinCapacity=0</td><td>EKS GPU pod + Karpenter</td></tr>
@@ -87,12 +87,12 @@
 
 <h2>Three honest asymmetries</h2>
 <ul>
-  <li>REDACTED Bedrock path — no platform-owned worker (managed service owns it).</li>
-  <li>REDACTED auth — AWS-account trust, not a per-request authorizer.</li>
-  <li>REDACTED scale-to-zero — a warm-pod floor (KEDA <code>minReplicaCount 1</code>), not literal zero.</li>
+  <li>Artist studio Bedrock path — no platform-owned worker (managed service owns it).</li>
+  <li>Artist studio auth — AWS-account trust, not a per-request authorizer.</li>
+  <li>ComfyUI platform scale-to-zero — a warm-pod floor (KEDA <code>minReplicaCount 1</code>), not literal zero.</li>
 </ul>
 
-<p class="muted-note">Design source: <code>.memory/research/world-models-and-genmedia/02-generative-media-pipelines.md</code>; all cells <code>[L1]</code> against the three explored repos.</p>
+<p class="muted-note">All cells <code>[L1]</code> against the three explored platforms (non-public).</p>
 
 
 <script type="module" src="../assets/page-shell.js"></script>

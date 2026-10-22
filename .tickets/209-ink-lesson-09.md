@@ -26,7 +26,7 @@ VAR/temp declarations, types, conditional content (curly braces), read counts, v
 4. Missing fallback in conditional text (gaps in prose)
 5. Boolean proliferation (20 flags when a number suffices)
 
-### Source material (from .memory/ink-reference/)
+### Source material (from docs/agents/ink-reference/)
 - 3-01-global-variables.md — VAR, 4 types, printing, divert targets, sticky string gotcha
 - 3-02-logic.md — `~` marker, arithmetic, RANDOM, INT/FLOOR, string queries
 - 3-03-conditional-blocks-if-else.md — if/else, switch, multiline alternatives, no-gathers-inside-blocks

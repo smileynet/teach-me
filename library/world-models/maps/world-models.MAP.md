@@ -13,15 +13,15 @@ leads_to: [generative-media-pipelines]
 
 A world model generates an explorable environment frame-by-frame in response to actions, instead
 of rendering from a fixed engine. Two real efforts frame the whole track: a benchmark that scores
-whether a model actually *plays* correctly (the FDS harness in the `world-models` repo) and a
-browser-playable real-time video-diffusion generator on AWS Trainium (`REDACTED`,
-a fork of TencentARC Rolling Forcing). The field's central failure is the "vivid dream" — a model
+whether a model actually *plays* correctly (the FDS harness, from a world-model evaluation project) and a
+browser-playable real-time video-diffusion generator on AWS Trainium (a proof of concept forked
+from TencentARC Rolling Forcing). The field's central failure is the "vivid dream" — a model
 that looks photoreal while ignoring the player — so the track gives *evaluation* equal weight with
 *generation*. It teaches what world models are, the architecture landscape, how to evaluate them
 (the behavioral axis that separates play from look), how a real-time one is built (causal DiT +
 rectified flow, Rolling Forcing, DMD distillation), how action conditioning is grafted on, and how
 it's served on accelerators. It's architecture-first and source-grounded: every claim cites the two
-repos or `[L#:confidence]` prior art, and serving anchors to AWS Neuron/SageMaker docs. Serving a
+explored projects or `[L#:confidence]` prior art, and serving anchors to AWS Neuron/SageMaker docs. Serving a
 world model is itself a generative-media-pipeline problem, so this domain `leads_to` that one.
 
 ## Topics
@@ -53,7 +53,7 @@ world model is itself a generative-media-pipeline problem, so this domain `leads
 ### building-a-real-time-world-model
 - **id:** 01M2RB7H6QV3NSZ97PRYRX4FD6
 - **title:** Building a Real-Time World Model
-- **why:** How the generator actually works, from the REDACTED PoC. Causal video DiT (Wan2.1-T2V-1.3B) + rectified flow / flow matching; Rolling Forcing (denoise a rolling window + an attention-sink anchor block + a streaming KV cache) as the real-time, low-drift trick; DMD distillation to a few denoising steps (data-free, tracked by the gradient norm not the loss). Grounds the "~14 fps" figure precisely: RF-1.3B offline on Trainium2, not the interactive demo and not the 5B Matrix-Game-3.0.
+- **why:** How the generator actually works, from the real-time PoC. Causal video DiT (Wan2.1-T2V-1.3B) + rectified flow / flow matching; Rolling Forcing (denoise a rolling window + an attention-sink anchor block + a streaming KV cache) as the real-time, low-drift trick; DMD distillation to a few denoising steps (data-free, tracked by the gradient norm not the loss). Grounds the "~14 fps" figure precisely: RF-1.3B offline on Trainium2, not the interactive demo and not the 5B Matrix-Game-3.0.
 - **scope:** deep
 - **prereqs:** [what-is-a-world-model]
 - **lesson_file:** 04-building-a-real-time-world-model.html
@@ -69,7 +69,7 @@ world model is itself a generative-media-pipeline problem, so this domain `leads
 ### serving-and-accelerators
 - **id:** 01M2RB7H6QKCKES7E5RDVWVF9Z
 - **title:** Serving & Accelerators
-- **why:** Getting a real-time world model to a player. The accelerator reality — Trainium/Neuron with NKI kernels, TP/CP parallel topology, the bandwidth/launch-bound roofline (RF sits at ~4-6% MFU; fps wins came from launch-count reduction, not FLOPs) — anchored to the **NxD Inference** and **NKI** AWS docs. Frame delivery via streaming (SSE/WebSocket; SageMaker `InvokeEndpointWithResponseStream`). The internal Decart analog (NKI mega-kernels, REDACTED) and the Self-Forcing + step-distillation + WebRTC reference stack. Honest gap: no first-party AWS doc for real-time *video generation* exists — it's extrapolation from DiT image serving + streaming delivery.
+- **why:** Getting a real-time world model to a player. The accelerator reality — Trainium/Neuron with NKI kernels, TP/CP parallel topology, the bandwidth/launch-bound roofline (RF sits at ~4-6% MFU; fps wins came from launch-count reduction, not FLOPs) — anchored to the **NxD Inference** and **NKI** AWS docs. Frame delivery via streaming (SSE/WebSocket; SageMaker `InvokeEndpointWithResponseStream`). The Decart analog (Oasis/Mirage) and the Self-Forcing + step-distillation + WebRTC reference stack. Honest gap: no first-party AWS doc for real-time *video generation* exists — it's extrapolation from DiT image serving + streaming delivery.
 - **scope:** substantial
 - **prereqs:** [building-a-real-time-world-model]
 - **leads_to:** [generative-media-pipelines]

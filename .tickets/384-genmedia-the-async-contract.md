@@ -22,8 +22,8 @@ and why **idempotency (claim→commit, "work-done-wins") is where correctness li
 
 1. **The universal contract:** submit (validate + enqueue + return job id; inputs as **S3
    references, never inline bytes**; optional `Idempotency-Key`) → authoritative status GET →
-   progress stream. All three repos converge (REDACTED WS poll-then-WS; REDACTED SSE;
-   REDACTED ComfyUI `/ws`).
+   progress stream. All three repos converge (the DCC service WS poll-then-WS; the artist studio SSE;
+   the ComfyUI platform ComfyUI `/ws`).
 2. **At-least-once delivery vs exactly-once EFFECT.** Distributed queues deliver at-least-once **by
    design** (SQS included) — chasing broker-level exactly-once is the classic wasted-effort
    anti-pattern. Correctness = an **idempotent handler**: stable key + atomic check-and-record,
@@ -33,15 +33,15 @@ and why **idempotency (claim→commit, "work-done-wins") is where correctness li
    are non-deterministic, so re-running produces a *different* artifact — idempotency keys on the
    job id, not output comparison.
 4. **The double-run failure mode with its concrete trigger:** visibility timeout shorter than
-   worst-case processing (REDACTED's cold-start p95 **342s > 300s default**, `[L1]`
+   worst-case processing (the DCC service's cold-start p95 **342s > 300s default**, `[L1]`
    spike) → redelivery + double-run; mitigate with the per-message heartbeat that extends
    visibility, and the rule **one liveness authority — never a reaper AND visibility recovery
    together** (`orchestrator/worker.py`, ADR 0007). Present the general "visibility > worst-case
    processing (≈6× rule of thumb)" separately with its external cite so the lesson doesn't overfit
    to one number.
 5. **SSE vs WebSocket vs webhook — decision callout with criteria:** SSE = one-way progress off an
-   authoritative store (REDACTED `generate.py`); WebSocket = bidirectional/interactive (REDACTED `/ws`,
-   REDACTED events); webhook = terminal callback (SageMaker SNS notify). **Resumability
+   authoritative store (the artist studio `generate.py`); WebSocket = bidirectional/interactive (the ComfyUI platform `/ws`,
+   the DCC service events); webhook = terminal callback (SageMaker SNS notify). **Resumability
    is server-side, not transport-side** — `Last-Event-ID` reconnects the transport but loses
    generation state; poll-then-WS sends the authoritative snapshot first, then streams
    (`app.py:job_events`).
@@ -57,7 +57,7 @@ you give up (the double-run reasoning) and keep (idempotent handler on at-least-
 Visibility-timeout-shorter-than-processing = guaranteed double-run; SQS delivers >once by design;
 two recovery mechanisms at once double-run; non-deterministic processor + at-least-once ≠
 at-most-once; SSE has no backpressure and loses state on drop; don't force broker exactly-once;
-**ALB 60s idle-timeout kills long WS/SSE streams** (REDACTED set 3600s — cross-ref topic 5).
+**ALB 60s idle-timeout kills long WS/SSE streams** (the ComfyUI platform set 3600s — cross-ref topic 5).
 
 ## Source-verification gate (per #367)
 

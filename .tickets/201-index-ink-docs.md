@@ -13,7 +13,7 @@ type: feature
 
 `.references/ink/Documentation/WritingWithInk.md` is the 124KB authoritative ink tutorial (6 parts, 30+ sections). We need it searchable for lesson generation — but via a portable, client-agnostic approach (not locked to kiro-cli's knowledge tool).
 
-Following the proven godot-knowledge pattern: split large docs into per-section files with frontmatter + intent preambles → commit to `.memory/ink-reference/` → import to recall wing.
+Following the proven godot-knowledge pattern: split large docs into per-section files with frontmatter + intent preambles → commit to `docs/agents/ink-reference/` → import to recall wing.
 
 ## Research Findings (2026-08-25)
 
@@ -48,7 +48,7 @@ Following the proven godot-knowledge pattern: split large docs into per-section 
 Stdlib-only Python script. No pip deps. Idempotent.
 
 **Input:** `.references/ink/Documentation/`
-**Output:** `.memory/ink-reference/`
+**Output:** `docs/agents/ink-reference/`
 
 **For WritingWithInk.md:**
 1. Split at `##` boundaries → one file per section (~30 files)
@@ -65,12 +65,12 @@ Stdlib-only Python script. No pip deps. Idempotent.
 ### Import
 
 ```bash
-recall import .memory/ink-reference/ --wing ink_reference
+recall import docs/agents/ink-reference/ --wing ink_reference
 ```
 
 ### Portability
 
-- Any agent can `read .memory/ink-reference/{file}.md` directly (no search needed)
+- Any agent can `read docs/agents/ink-reference/{file}.md` directly (no search needed)
 - recall provides semantic search for conceptual queries
 - grep/ripgrep works for exact text lookup
 - Future: optional FTS5 index if needed
@@ -78,7 +78,7 @@ recall import .memory/ink-reference/ --wing ink_reference
 ## Acceptance criteria
 
 - [x] `tools/split-ink-docs.py` exists, stdlib-only, runs without errors
-- [x] `.memory/ink-reference/` contains ~33 files (30 from WritingWithInk + 3 smaller docs)
+- [x] `docs/agents/ink-reference/` contains ~33 files (30 from WritingWithInk + 3 smaller docs)
 - [x] Every file has valid frontmatter (type, part/section, tags)
 - [x] Tab-indented code in WritingWithInk converted to fenced `ink` blocks
 - [x] `recall search "ink gather weave"` returns Part 2 gather content

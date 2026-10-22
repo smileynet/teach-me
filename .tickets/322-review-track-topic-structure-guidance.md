@@ -51,7 +51,7 @@ the test — don't evaluate from memory. Then synthesize the adopt-vs-selective 
 - [ ] Each shipped domain evaluated against "would this make its lessons stronger?" — outcome recorded per domain (subagent-reviewed, not from memory)
 - [ ] Decision recorded: adopt-universally (a) vs one-style-among-several (b), with rationale
 - [ ] `visual-teaching.md` updated — either the structure adopted as the default, or the structure + its alternatives documented with when-to-use-which criteria
-- [ ] If a durable decision with a rejected alternative results → ADR in `.memory/adr/`
+- [ ] If a durable decision with a rejected alternative results → ADR in `docs/adr/`
 - [ ] teach/SKILL.md gets the companion checklist pointer IF adopted as default
 
 ## Notes

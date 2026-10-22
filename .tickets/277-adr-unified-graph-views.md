@@ -20,7 +20,7 @@ ticket still writes the ADR — documenting the rejected unification and why.)
 
 ## What to build
 
-- Write `.memory/adr/NNNN-unified-domain-graph-views.md` capturing:
+- Write `docs/adr/NNNN-unified-domain-graph-views.md` capturing:
   - **Context:** the duplication (two generators re-deriving one domain list, two `.domain-card`
     defs), the #271 low-load-landing constraint, the "two views of one dataset" reframe.
   - **Decision:** one data island + list/map views (or the spike's alternative if it diverged).
@@ -32,12 +32,12 @@ ticket still writes the ADR — documenting the rejected unification and why.)
     toggle as a permitted distinct-view switch), scale behavior.
 - Review the ADR against the AS-BUILT #276 result — reconcile any drift between plan and
   implementation before marking accepted.
-- Update `.memory/CONTEXT.md` if the unification introduces/retires any ambiguous term
+- Update `GLOSSARY.md` if the unification introduces/retires any ambiguous term
   (e.g. "index" vs "landing" vs "forest map").
 
 ## Acceptance criteria
 
-- [x] ADR written in `.memory/adr/` with Context / Decision / Options(+rejected, cited) / Consequences
+- [x] ADR written in `docs/adr/` with Context / Decision / Options(+rejected, cited) / Consequences
 - [x] Decision reconciled against the as-built #276 implementation (no plan-vs-reality drift)
 - [x] Rejected alternatives (keep-separate, replace-index) recorded with the evidence that rejected them
 - [x] Status set to Accepted (or Superseded/Rejected if the spike changed course)
@@ -50,7 +50,7 @@ the merged code; no claim in the ADR contradicts the shipped #276 behavior.
 
 ## Resolution (2026-08-31)
 
-Wrote `.memory/adr/0016-unified-domain-graph-views.md` (as-built record of the #275→#276
+Wrote `docs/adr/0016-unified-domain-graph-views.md` (as-built record of the #275→#276
 decision). Matches ADR 0014's house format; parented on ADR 0014 (the graph schema it presents),
 relating to 0012/0015/0008/0005. Decision, three cited alternatives (keep-separate,
 graph-as-landing rejected on #271 + prior art, chosen unified model), and observed consequences.

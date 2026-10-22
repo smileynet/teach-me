@@ -33,7 +33,7 @@
 </div>
 <h2>The problem: a GPU model is not a service</h2>
 
-<p>Turning "a research model on a GPU" into "an API a creative team calls" is a platform problem, not a model problem. Inference is slow — seconds to minutes. So you cannot hold a request open while a GPU runs, and you cannot keep a GPU warm for every model, because GPUs are expensive and idle most of the time. Three real platforms solve this the same way underneath: <code>REDACTED</code> (a custom scale-to-zero orchestrator serving art models to Blender), <code>REDACTED</code> (an artist web studio over Bedrock + SageMaker), and <code>REDACTED</code> (a ComfyUI platform on EKS). They make different bets on the serving substrate and the target user, but they run the <em>same loop</em>.</p>
+<p>Turning "a research model on a GPU" into "an API a creative team calls" is a platform problem, not a model problem. Inference is slow — seconds to minutes. So you cannot hold a request open while a GPU runs, and you cannot keep a GPU warm for every model, because GPUs are expensive and idle most of the time. Three real platforms solve this the same way underneath: a <strong>DCC service</strong> (a custom scale-to-zero orchestrator serving art models to Blender), an <strong>artist studio</strong> (a web studio over Bedrock + SageMaker), and a <strong>ComfyUI platform</strong> (a game studio's ComfyUI platform on EKS). They make different bets on the serving substrate and the target user, but they run the <em>same loop</em>.</p>
 
 <p>That loop is the whole track. Every later topic — scale-to-zero, model onboarding, the async contract, ComfyUI, image-to-3D, LoRA, speech — is depth <em>inside</em> one of these stages. Land the shape here and the rest is detail.</p>
 
@@ -122,25 +122,25 @@
 
 <h2>The same loop, three platforms</h2>
 
-<p>The value of the loop is that it holds across wildly different stacks. Here each stage is mapped to the exact file in each repo that implements it, so the shared shape is a claim you can verify one cell at a time. Read down a column to see one platform end to end; read across a row to see how the same job differs by stack.</p>
+<p>The value of the loop is that it holds across wildly different stacks. Here each stage is mapped to how each platform implements it, so the shared shape is a claim you can check one cell at a time. Read down a column to see one platform end to end; read across a row to see how the same job differs by stack.</p>
 
 <table>
   <thead>
-    <tr><th>Stage</th><th>REDACTED</th><th>REDACTED</th><th>REDACTED</th></tr>
+    <tr><th>Stage</th><th>DCC service</th><th>Artist studio</th><th>ComfyUI platform</th></tr>
   </thead>
   <tbody>
-    <tr><td><strong>auth</strong></td><td>Cognito JWT / <code>Principal</code> w/ <code>org_id</code> <span class="cite-file">orchestrator/auth.py</span></td><td>AWS-account trust (no per-request authorizer) <span class="cite-file">README.md:33</span></td><td>Cognito authorizer + REDACTED <span class="cite-file">cdk/lib/router-stack.ts</span></td></tr>
-    <tr><td><strong>submit</strong></td><td><code>POST /v1/models/{id}/{ver}/jobs</code> <span class="cite-file">orchestrator/app.py</span></td><td><code>POST /api/generate/stream</code> (SSE) <span class="cite-file">backend/routers/generate.py</span></td><td><code>POST /prompt</code> → <code>prompt_id</code> <span class="cite-file">docs/VISION.md</span></td></tr>
-    <tr><td><strong>queue</strong></td><td>SQS FIFO + <code>Envelope</code> <span class="cite-file">orchestrator/queue.py</span></td><td>S3-persisted async job tracker <span class="cite-file">services/async_jobs.py</span></td><td>DynamoDB job queue <span class="cite-file">k8s/keda/comfy-scaledobject.yaml</span></td></tr>
-    <tr><td><strong>worker</strong></td><td>ECS/EC2 Spot + diversified Fleet <span class="cite-file">orchestrator/autoscaler.py</span></td><td>SageMaker endpoint, MinCapacity=0 <span class="cite-file">services/sagemaker_deployer.py</span></td><td>EKS GPU pod + KEDA + Karpenter <span class="cite-file">k8s/nodepools/gpu-serving.yaml</span></td></tr>
-    <tr><td><strong>weight staging</strong></td><td>S3 → local NVMe at start <span class="cite-file">runners/native.py</span></td><td>HuggingFace direct-pull at start <span class="cite-file">services/sagemaker_deployer.py</span></td><td>S3 → FSxN → FlexClone NFS mount <span class="cite-file">docs/platform-brief.md</span></td></tr>
-    <tr><td><strong>infer</strong></td><td>runner <code>stage/load/infer</code> <span class="cite-file">orchestrator/executor.py</span></td><td>universal inference handler <span class="cite-file">sagemaker_handlers/inference.py</span></td><td>ComfyUI graph execution <span class="cite-file">containers/trellis2-3d/workflow_api.json</span></td></tr>
-    <tr><td><strong>output store</strong></td><td>S3 upload of typed artifacts <span class="cite-file">orchestrator/executor.py</span></td><td>local FS / S3 <code>data/generated/</code> <span class="cite-file">storage/local_store.py</span></td><td>EFS outputs + <code>/view</code> <span class="cite-file">k8s/deployments/comfy-api-baseline.yaml</span></td></tr>
-    <tr><td><strong>progress</strong></td><td>WebSocket, poll-then-WS <span class="cite-file">orchestrator/app.py</span></td><td>SSE <span class="cite-file">backend/routers/generate.py</span></td><td>ComfyUI WebSocket <code>/ws</code> <span class="cite-file">docs/VISION.md</span></td></tr>
+    <tr><td><strong>auth</strong></td><td>Cognito JWT / <code>Principal</code> w/ <code>org_id</code></td><td>AWS-account trust (no per-request authorizer)</td><td>Cognito authorizer + SAML IdP</td></tr>
+    <tr><td><strong>submit</strong></td><td><code>POST /v1/models/{id}/{ver}/jobs</code></td><td><code>POST /api/generate/stream</code> (SSE)</td><td><code>POST /prompt</code> → <code>prompt_id</code></td></tr>
+    <tr><td><strong>queue</strong></td><td>SQS FIFO + <code>Envelope</code></td><td>S3-persisted async job tracker</td><td>DynamoDB job queue</td></tr>
+    <tr><td><strong>worker</strong></td><td>ECS/EC2 Spot + diversified Fleet</td><td>SageMaker endpoint, MinCapacity=0</td><td>EKS GPU pod + KEDA + Karpenter</td></tr>
+    <tr><td><strong>weight staging</strong></td><td>S3 → local NVMe at start</td><td>HuggingFace direct-pull at start</td><td>S3 → FSxN → FlexClone NFS mount</td></tr>
+    <tr><td><strong>infer</strong></td><td>runner <code>stage/load/infer</code></td><td>universal inference handler</td><td>ComfyUI graph execution</td></tr>
+    <tr><td><strong>output store</strong></td><td>S3 upload of typed artifacts</td><td>local FS / S3 <code>data/generated/</code></td><td>EFS outputs + <code>/view</code></td></tr>
+    <tr><td><strong>progress</strong></td><td>WebSocket, poll-then-WS</td><td>SSE</td><td>ComfyUI WebSocket <code>/ws</code></td></tr>
   </tbody>
 </table>
 
-<p class="muted-note">Every cell above is <code>[L1:verified]</code> against the named repo file (design source: <code>.memory/research/world-models-and-genmedia/02-generative-media-pipelines.md</code>).</p>
+<p class="muted-note">Every cell above is <code>[L1:verified]</code> against the platform's source (the platforms are non-public, so file citations are omitted).</p>
 
 <h2>Where they diverge: six axes</h2>
 
@@ -149,10 +149,10 @@
 <ul>
   <li><strong>Serving substrate</strong> — custom FastAPI + SQS orchestrator · Bedrock + SageMaker · ComfyUI-on-EKS.</li>
   <li><strong>Target user / client</strong> — a machine (Blender plugin) · a human (browser) · any team (both).</li>
-  <li><strong>Progress transport</strong> — WebSocket (studio, REDACTED) · SSE (REDACTED).</li>
+  <li><strong>Progress transport</strong> — WebSocket (DCC service, ComfyUI platform) · SSE (artist studio).</li>
   <li><strong>Queue</strong> — SQS FIFO · S3 job tracker · DynamoDB + KEDA.</li>
   <li><strong>Weight staging</strong> — S3-to-NVMe · HuggingFace direct-pull · FSxN + FlexClone.</li>
-  <li><strong>Scale-to-zero depth</strong> — true zero (studio; SageMaker Async) · warm-pod floor (REDACTED).</li>
+  <li><strong>Scale-to-zero depth</strong> — true zero (DCC service; SageMaker Async) · warm-pod floor (ComfyUI platform).</li>
 </ul>
 
 <h2>Three places the loop must stay honest</h2>
@@ -164,22 +164,22 @@
     <tr><th>Tidy assumption</th><th>The honest reality</th><th>Evidence</th></tr>
   </thead>
   <tbody>
-    <tr><td>Every platform owns a worker + queue stage</td><td>REDACTED's Bedrock path has <strong>no platform-owned worker</strong> — the managed service owns that box. The loop still holds; the worker is just "someone else's."</td><td><span class="cite-file">SPEC.md · model_registry.json</span></td></tr>
-    <tr><td>Auth is a per-request authorizer</td><td>REDACTED's "auth" is <strong>AWS-account trust</strong>, not a Cognito-style gate. Don't invent an authorizer it doesn't have.</td><td><span class="cite-file">REDACTED README.md:33</span></td></tr>
-    <tr><td>"Scale-to-zero" means zero</td><td>REDACTED keeps a <strong>warm-pod floor</strong> (KEDA <code>minReplicaCount 1</code>) because GPU cold start is 3–4 min; true zero happens only via a weekend-park annotation.</td><td><span class="cite-file">k8s/keda/comfy-scaledobject.yaml</span></td></tr>
+    <tr><td>Every platform owns a worker + queue stage</td><td>The artist studio's Bedrock path has <strong>no platform-owned worker</strong> — the managed service owns that box. The loop still holds; the worker is just "someone else's."</td><td>platform source (non-public)</td></tr>
+    <tr><td>Auth is a per-request authorizer</td><td>The artist studio's "auth" is <strong>AWS-account trust</strong>, not a Cognito-style gate. Don't invent an authorizer it doesn't have.</td><td>platform source (non-public)</td></tr>
+    <tr><td>"Scale-to-zero" means zero</td><td>The ComfyUI platform keeps a <strong>warm-pod floor</strong> (KEDA <code>minReplicaCount 1</code>) because GPU cold start is 3–4 min; true zero happens only via a weekend-park annotation.</td><td>platform source (non-public)</td></tr>
   </tbody>
 </table>
 
 <h2>Choosing the progress transport</h2>
 
-<p>The one stage where you have a genuine early decision is the progress channel. The submit/queue/worker shape is forced by the physics of slow GPU jobs; how the result gets back is a real choice with four options. The platforms split on it — REDACTED and REDACTED use WebSockets, REDACTED uses SSE — so the lesson gives you criteria, not a single "right" answer.</p>
+<p>The one stage where you have a genuine early decision is the progress channel. The submit/queue/worker shape is forced by the physics of slow GPU jobs; how the result gets back is a real choice with four options. The platforms split on it — the DCC service and ComfyUI platform use WebSockets, the artist studio uses SSE — so the lesson gives you criteria, not a single "right" answer.</p>
 
 <div class="note">
   <strong>When to use which — progress transport:</strong>
   <ul>
     <li><strong>Polling</strong> — client asks "done yet?" on a timer. The most robust and fully stateless option; survives autoscaling and reconnects for free. Use as the default when simplicity matters and sub-second latency doesn't.</li>
-    <li><strong>SSE (Server-Sent Events)</strong> — one-way server→client stream over plain HTTP, with automatic reconnection built into <code>EventSource</code>. <strong>The correct default for one-way progress</strong> (a bar advancing, log lines) — REDACTED's choice. <a href="https://dev.to/pavelespitia/streaming-long-ai-jobs-to-the-browser-sse-patterns-from-building-an-audit-tool-2lc8" class="citation">[L5: SSE for long AI jobs]</a></li>
-    <li><strong>WebSocket</strong> — bidirectional, lowest latency, heaviest lifecycle. Reach for it only when the client also sends messages mid-job. REDACTED adds a <span class="term" data-term="poll-then-ws">poll-then-WS</span> resume: the socket first sends the authoritative snapshot, then streams events, so a reconnect resumes from real state.</li>
+    <li><strong>SSE (Server-Sent Events)</strong> — one-way server→client stream over plain HTTP, with automatic reconnection built into <code>EventSource</code>. <strong>The correct default for one-way progress</strong> (a bar advancing, log lines) — the artist studio's choice. <a href="https://dev.to/pavelespitia/streaming-long-ai-jobs-to-the-browser-sse-patterns-from-building-an-audit-tool-2lc8" class="citation">[L5: SSE for long AI jobs]</a></li>
+    <li><strong>WebSocket</strong> — bidirectional, lowest latency, heaviest lifecycle. Reach for it only when the client also sends messages mid-job. The DCC service adds a <span class="term" data-term="poll-then-ws">poll-then-WS</span> resume: the socket first sends the authoritative snapshot, then streams events, so a reconnect resumes from real state.</li>
     <li><strong>Webhook</strong> — the server calls you back at a URL; no held connection. Best for server-to-server and long-tail jobs. fal.ai's recommended production path. <a href="https://fal.ai/docs/documentation/model-apis/inference" class="citation">[L4: fal.ai submit + webhook]</a></li>
   </ul>
   <strong>Rule of thumb:</strong> use SSE for one-way progress; upgrade to WebSocket only when the client talks back. Using a WebSocket for one-way progress is over-engineering, and polling over a WebSocket is "pagination on a persistent connection" — not what the socket is for.
@@ -191,7 +191,7 @@
 
 <ul>
   <li><strong>The autoscaler kills a job mid-generation.</strong> A naïve horizontal-pod-autoscaler or a spot reclaim terminates a GPU worker while it is running — the output is lost <em>and</em> you paid for the full run. Long GPU jobs need job-aware, graceful-drain scaling, not blind CPU-metric scaling <a href="https://scaleops.com/blog/reducing-gpu-cold-start-times-in-kubernetes-patterns-and-solutions/" class="citation">[L5: GPU cold starts / draining]</a>.</li>
-  <li><strong>The broker doubles as the result store.</strong> Keep the queue (SQS / DynamoDB / Redis) and the result backend (S3) separate. A queue holds <em>references</em> and short control messages; a large generated artifact goes to object storage. REDACTED enforces this by requiring image and mesh inputs as S3 references, not inline bytes <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/gen-ai-inference-architecture-and-best-practices-on-aws/" class="citation">[AWS Prescriptive Guidance]</a>.</li>
+  <li><strong>The broker doubles as the result store.</strong> Keep the queue (SQS / DynamoDB / Redis) and the result backend (S3) separate. A queue holds <em>references</em> and short control messages; a large generated artifact goes to object storage. The DCC service enforces this by requiring image and mesh inputs as S3 references, not inline bytes <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/gen-ai-inference-architecture-and-best-practices-on-aws/" class="citation">[AWS Prescriptive Guidance]</a>.</li>
 </ul>
 
 <h2>What this topic defers</h2>

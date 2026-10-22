@@ -1,6 +1,6 @@
 # AGENTS.md — teach-me
 
-Test bed for learning-oriented agent skills. Refined here, then ported to crew-research for global deployment.
+Test bed for learning-oriented agent skills. Refined here, then ported to the user-level skill set for global deployment (historically crew-research; the current target is an open `migration-finding` ticket).
 
 ## Workspace Layout
 
@@ -8,9 +8,11 @@ Test bed for learning-oriented agent skills. Refined here, then ported to crew-r
 workspace/          — THE user's live learning workspace (gitignored; served from library/ until populated)
 .kiro/skills/       — agent skills (teach, quiz-me, wait-what, jargon, visual-qa, theme, etc.)
 .kiro/steering/     — visual-teaching guidelines
-.memory/            — persistent knowledge (CONTEXT.md glossary, ADRs, research findings)
+GLOSSARY.md         — domain vocabulary
+docs/adr/           — decision records (ADRs)
+docs/agents/        — agent reference: specs/, research/, ink-reference/, notes
 .scratch/           — ephemeral (gitignored) — only visual-qa output regenerated on run
-.references/        — cloned reference repos (gitignored, rehydrate via mise run rehydrate)
+.references/        — cloned reference repos (gitignored; index in REFERENCES.md, rehydrate via mise run rehydrate)
 tools/              — project scripts (draw-diagram, visual-qa, theme-preview, render-diagrams, sr-*)
 tools/lib/          — Python helpers (page_template.py is THE HTML page-shell source of truth; preact_page.py is its deprecated duplicate, slated for deletion in #199)
 palettes/           — color palette definitions (JSON)
@@ -26,18 +28,7 @@ library/           — public topic library (shipped, growing; served by default
 
 ## Skills
 
-| Skill | Trigger | What it does |
-|-------|---------|-------------|
-| teach | `/teach`, "teach me", "next lesson" | Owns the conversational engine: mission, ZPD, orientation, re-explanation, map/zoom nav. Picks WHAT to teach; hands durable authoring to generate-topic (ADR 0019) |
-| generate-topic | `/generate-topic`, "generate lesson", "complete topic" | Owns the durable assembly line and the single-source authoring sequence: research → lesson → post-process → verify (ADR 0019) |
-| quiz-me | `/quiz-me`, "test me" | Socratic dialog — learner explains, agent probes |
-| wait-what | `/wait-what`, "I don't understand" | Re-explain when comprehension fails |
-| jargon | `/jargon`, "annotate terms" | Post-authoring: annotate domain jargon with tooltips |
-| visual-qa | "visual qa", "check the ui" | Exercise components, capture screenshots, report |
-| theme | "theme", "colors", "palette" | Preview, validate, and apply color palettes |
-| draw-diagram | "draw diagram", "generate SVG" | Generate inline SVG teaching diagrams |
-| browse-and-verify | "validate link", "check this URL" | Dispatch browser agent for URL validation |
-| asset-conversion | "convert asset", "make blend", "export glb for godot" | Headless-Blender format conversion for lesson artifacts (glb/fbx→.blend, .blend→Godot glb + oracle) |
+Skills live in `.kiro/skills/` (each description carries its triggers); `.agents/skills/` symlinks them for other harnesses. teach/generate-topic ownership: ADR 0019.
 
 ## Commands
 
@@ -86,14 +77,14 @@ library/           — public topic library (shipped, growing; served by default
 | After a lesson | Run jargon skill to annotate domain terms |
 | After UI changes | `mise run visual-qa` to verify components still work |
 | Leaving a ticket | Ticket is DONE (all AC checked) or OPEN with an update note. No partial closes. No moving on with unchecked boxes. |
-| Closing a ticket | Edit frontmatter `status: done` directly — `tkt close` has a config validation bug that rejects valid tickets. Check all AC boxes in the same commit. Every close carries a `## Resolution` section (what shipped + how verified) — enforced going forward by `close.require_resolution=true` in `.tickets/config.toml`. |
+| Closing a ticket | `tkt close <id> --check-all --resolution "..."` (see Tickets) — never hand-edit `status: done`. Every close carries a `## Resolution` section (what shipped + how verified) — enforced going forward by `close.require_resolution=true` in `.tickets/config.toml`. |
 | Historical ticket-resolution debt | `tkt validate` flags ~116 pre-convention done tickets `[missing/tbd-resolution]` — these are an ACCEPTED BASELINE (#285), non-blocking, not to be bulk-backfilled (git-log/body-mining is low-value churn per the baseline+ratchet best practice). Forward-only enforcement gates NEW closes; the baseline count may only decrease (add a Resolution opportunistically when you touch an old ticket). Fix `[stub-body]`/`[unchecked-acs-on-done]` honestly, never by faking a box. |
 | Creating tickets | Use `tkt new slug --title "..."` then edit the created file. Don't create a separate file manually — causes duplicate ID validation errors. `tkt new` auto-commits AND pushes the stub; your populated-body edit is a separate follow-up commit. |
-| Proposing non-trivial work (new ticket, design, or code change) | Dispatch research subagents (best practices/prior art) AND review subagents (existing code/docs/config) FIRST, then propose from findings — the established default here (requested verbatim across #233/#286). Extends the global research-dispatch mandate with the review-pairing. Skip for trivial/mechanical changes (over-trigger risk is real). When presenting a change for sign-off, show the actual DIFF, not just described effects or output samples. A review/research subagent's factual claims (esp. "X already shipped — check the box") are hypotheses: VERIFY against the source before acting (2026-09-04: a reviewer said "check #163's renumber AC"; the renumber had never happened — verifying stopped a faked box). |
+| Proposing non-trivial work (new ticket, design, or code change) | Dispatch research subagents (best practices/prior art) AND review subagents (existing code/docs/config) FIRST, then propose from findings — the established default here (requested verbatim across #233/#286). Extends the `research` skill's subagent dispatch with the review-pairing. Skip for trivial/mechanical changes (over-trigger risk is real). When presenting a change for sign-off, show the actual DIFF, not just described effects or output samples. A review/research subagent's factual claims (esp. "X already shipped — check the box") are hypotheses: VERIFY against the source before acting (2026-09-04: a reviewer said "check #163's renumber AC"; the renumber had never happened — verifying stopped a faked box). |
 | Validating work | Validate from the user's perspective (Playwright click-through, curl the endpoint, load the page). Prefer linters, syntax checkers, and templates over formal test suites. Only write maintained tests for libraries with multiple consumers (e.g., map_parser.py). |
 | Session start | `mise run sr` to check if cards are due before new material |
-| New domain term | Add to `.memory/CONTEXT.md` immediately |
-| Significant decision | Write ADR in `.memory/adr/NNNN-slug.md` |
+| New domain term | Add to `GLOSSARY.md` immediately |
+| Significant decision | Write ADR in `docs/adr/NNNN-slug.md` (`domain-modeling` ADR section) |
 | Changing colors | Use theme skill (preview → validate contrast → apply) |
 | Complex diagram needed | Use `--backend graphviz` for cycles, state machines, 9+ nodes |
 
@@ -101,8 +92,8 @@ library/           — public topic library (shipped, growing; served by default
 
 | Don't | Do instead |
 |-------|-----------|
-| Don't accumulate scratch files | Promote to `.memory/` or delete after use |
-| Don't put implementation details in CONTEXT.md | Use ADRs for decisions with rationale |
+| Don't accumulate scratch files | Promote to `docs/agents/` (or GLOSSARY.md / an ADR) or delete after use |
+| Don't put implementation details in GLOSSARY.md | Use ADRs for decisions with rationale |
 | Don't commit .scratch/ or .references/ | Both are gitignored |
 | Don't load Playwright MCP in default agent | Dispatch to `browser` specialist |
 | Don't assume subagent tool trust inherits | Each specialist needs its own `allowedTools` |
@@ -119,8 +110,9 @@ Lesson-authoring rules (page-shell.js, narrative framing around code blocks, dow
 
 ## Environment
 
-Deep track-specific gotchas (Blender bake internals, inkgd cache noise, transcript UTF-8, Windows Python quirks, Godot shader coordinate/lighting traps, glTF color-space, GitHub-Pages CI/deploy) live in `.memory/specs/environment-gotchas.md`. Always-on facts:
+Deep track-specific gotchas (Blender bake internals, inkgd cache noise, transcript UTF-8, Windows Python quirks, Godot shader coordinate/lighting traps, glTF color-space, GitHub-Pages CI/deploy) live in `docs/agents/specs/environment-gotchas.md`. Always-on facts:
 
+- **Tickets tagged `migration-finding`** are unconfirmed outside-audit findings from the grey-matter adoption (2026-10-22). Review first: reproduce each point, then confirm, reject, or re-scope it before changing anything.
 - Codex sandbox (bwrap) fails: `bwrap: loopback: Failed RTM_NEWADDR`. Use `codex exec --dangerously-bypass-approvals-and-sandbox`.
 - Playwright MCP requires headless mode (no X server).
 - Bedrock image limit: >20 images in conversation history triggers 2000px max. Resize to ≤768px; dispatch fresh subagents for image analysis in long sessions.
@@ -129,12 +121,12 @@ Deep track-specific gotchas (Blender bake internals, inkgd cache noise, transcri
 - serve.py serves ONE workspace at a time. To view a different domain, restart: `mise run serve -- --workspace library/{domain}`. Git symlinks on Windows are text files — serve.py mounts `/assets` from project root automatically (no junctions). Serving a multi-domain root (`library/`, the fresh-clone default) works: serve.py normalizes any-depth `**/assets` + nested `index.html` back-links to the shared root (ADR-0015 unifying root, #198) — contents are exposed at `/{domain}/...` (NO `/library/` prefix; `/index.html` = the aggregate). Pages stay document-relative (`../assets`) — never root-relative `/assets` (breaks anchors/SVG under GitHub project-page `<base>`).
 - All Preact packages must resolve to ONE instance or signals silently stop triggering re-renders. Vendored locally in `assets/vendor/` (import map resolves it); on a CDN (esm.sh) add `?external=preact`.
 - FOUC prevention: a synchronous `<script>` in `<head>` (currently `typography-prefs.js`) reads prefs from localStorage and applies CSS custom properties BEFORE CSS paints. Must stay blocking/in-head — deferring it reintroduces the flash.
-- Generated-artifact regeneration gotchas (idempotent library-page re-bake #278/#279; per-domain `--scan-dir` clobbers the root index; tracked-inputs-only #316; new-domain scaffold sequence) live in `.memory/specs/environment-gotchas.md` → "Generated artifacts / regeneration".
+- Generated-artifact regeneration gotchas (idempotent library-page re-bake #278/#279; per-domain `--scan-dir` clobbers the root index; tracked-inputs-only #316; new-domain scaffold sequence) live in `docs/agents/specs/environment-gotchas.md` → "Generated artifacts / regeneration".
 - Agent MCP scoping (#372): the `creds-agent` MCP server (`aim mcp start-server local-creds-agent-mcp` — machine-local binary, NOT provisioned by `mise run setup`) is wired ONLY into the `browser` and `godot_editor` specialists (authenticated URL validation; local editor tooling). It is deliberately absent from `default.json` — routine teaching/content sessions get no credential tools. Without `aim` on PATH those two specialists' MCP server fails to start; everything else works.
 
 ## Skill Format (kiro-cli)
 
-Skills live in `.kiro/skills/<name>/SKILL.md`, auto-loaded via `skill://.kiro/skills/**/SKILL.md`. For frontmatter and authoring conventions, see the global `skill-authoring` skill. Judge a skill by effectiveness — activation accuracy, workflow up front (detail in `references/`), non-redundancy, one-level references, dispatched-skills-stay-monolithic — NOT a line count (the agentskills.io spec has no hard size limit; <500 lines is a soft guardrail).
+Skills live in `.kiro/skills/<name>/SKILL.md`, auto-loaded via `skill://.kiro/skills/**/SKILL.md`. For frontmatter and authoring conventions, see the global `writing-for-agents` skill. Judge a skill by effectiveness — activation accuracy, workflow up front (detail in `references/`), non-redundancy, one-level references, dispatched-skills-stay-monolithic — NOT a line count (the agentskills.io spec has no hard size limit; <500 lines is a soft guardrail).
 
 ## Design Posture (ADR 0001)
 
@@ -142,11 +134,44 @@ The teach skill's posture is **knowledgeable colleague at a whiteboard** — not
 
 ## When Blocked
 
-1. Check `.memory/` for prior decisions and context
+1. Check `GLOSSARY.md`, `docs/adr/`, and `docs/agents/` for prior decisions and context
 2. Check `.references/` for patterns in reference repos
-3. If domain term is ambiguous — ask, then record in CONTEXT.md
+3. If domain term is ambiguous — ask, then record in GLOSSARY.md
 4. If architecture choice needed — write ADR with options, propose to user
 
 ## Test Fixture
 
 `library/iceberg-workspace/` is the committed **Iceberg on AWS** demo fixture — a real teaching session (MISSION.md, RESOURCES.md, lessons/, reference/, learning-records/) shipped as read-only demo content; its `learning-records/` is fixture data, NOT learner state (real learner records live under `.user/`). See `library/README.md` for what to test feature changes against.
+
+<!-- tkt:begin -->
+## Tickets
+
+This project uses [tkt](https://github.com/smileynet/tkt) for work tracking. Tickets live in `.tickets/`.
+
+```
+tkt ready                                         # what to work on next
+tkt claim <id>                                    # mark as in_progress (shared repos)
+tkt close <id> --check-all --evidence "..." --resolution "..."  # mark done (--evidence: 1 per validation criterion, repeatable)
+tkt new <slug> --title "..." [--tags stream]      # create work (defaults to open, on the frontier)
+tkt edit <id> --status backlog                    # park a ticket off the frontier (deferred work)
+tkt validate --brief                              # check for issues
+```
+
+### Status lifecycle
+
+`open` (frontier-eligible, the default) → `in_progress` → `done`; `backlog` = parked, invisible to `ready`.
+
+New work defaults to `open`. Use `--status backlog` only for work deliberately deferred out of this cycle — not for discovered work that's actually actionable.
+
+Reach `done` only via `tkt close` — never edit a ticket's status to `done` by hand (it skips the close gates).
+
+### Workflow
+
+Single-agent: `tkt ready` → `tkt close <id> --check-all --resolution "..."`
+Shared-repo: `tkt ready` → `tkt claim <id>` → work → `tkt close <id> --check-all --resolution "..."`
+Discovered work: `tkt new <slug> --title "..."` (open — a separate, actionable ticket; add `--blocked-by` if it depends on current work)
+Migrated work: `tkt close <id> --force --resolution "Migrated to <project> #<id>"` (don't check ACs)
+
+Tag new tickets with their work stream (`--tags <stream>`) in multi-stream projects — one tag is the norm.
+If a claim push is rejected, someone else got there first — pick the next frontier ticket.
+<!-- tkt:end -->

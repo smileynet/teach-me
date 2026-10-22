@@ -35,7 +35,7 @@ Temp variables, knot parameters, pure functions (inline computation), tunnels (s
 - 80 Days: per-route files with episodic isolation
 - Overboard!: core spine + patchwork diversions via tunnels with read-count safety
 
-### Source material (from .memory/ink-reference/)
+### Source material (from docs/agents/ink-reference/)
 - 3-04-temporary-variables.md — temp, params, recursive knots, divert target typing
 - 3-05-functions.md — declaration, return, inline calling, ref params, no flow control allowed
 - 4-01-tunnels.md — syntax, ->->, nested tunnels, advanced returns

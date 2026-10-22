@@ -11,7 +11,7 @@ tags: ["platform"]
 ## Why (found during #273 validation, 2026-08-30; scope corrected 2026-08-31 after review)
 
 `tools/test-navigation.py` is the Playwright user-journey suite (index → map → lesson →
-quiz → back-nav). Review (`.memory/research/unified-graph-views/274-implementation-findings.md`)
+quiz → back-nav). Review (`docs/agents/research/unified-graph-views/274-implementation-findings.md`)
 found it is **stale on two axes, not just iceberg-hardcoded** — so this is a REWRITE, not a
 parameterization:
 
@@ -72,7 +72,7 @@ assertion (`index_two_view_toggle`) and the tree keyboard model (`index_tree_key
 ## Resolution (2026-08-31)
 
 Rewrote `tools/test-navigation.py` against the current Preact contract (findings:
-`.memory/research/unified-graph-views/274-implementation-findings.md`). It discovers the 5
+`docs/agents/research/unified-graph-views/274-implementation-findings.md`). It discovers the 5
 depth-0 domains from the aggregate `#page-data` island, self-serves the `library/` root
 headless, and runs a per-domain journey: aggregate → (Tree row `a.ti-row[data-domain]`) → map
 (poll `.dag-canvas[data-render-complete]`) → lesson (`topics[i].lessonPath` / `a.btn.primary`)

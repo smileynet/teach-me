@@ -54,7 +54,7 @@ depth.
 
 Map each platform onto the loop as columns/annotations on the SAME diagram. **Cite each
 stage/platform cell with its own repo file path** — the table is prebuilt in
-`.scratch/research/371-review-design-source.md` (REDACTED / REDACTED / REDACTED, one file
+`.scratch/research/371-review-design-source.md` (the DCC service / the artist studio / the ComfyUI platform, one file
 path per stage). Do not cite the loop generically.
 
 Hang the divergences on the **six axes** (the source's own comparison structure):
@@ -62,11 +62,11 @@ serving substrate · target user/client · progress transport · queue · weight
 scale-to-zero depth.
 
 **Three asymmetries to represent honestly (do NOT flatten into a too-clean loop):**
-1. REDACTED's Bedrock path has **no platform-owned worker/queue stage** — the managed service owns
+1. the artist studio's Bedrock path has **no platform-owned worker/queue stage** — the managed service owns
    it; the worker box is "someone else's."
-2. REDACTED's "auth" is **AWS-account trust, not a per-request authorizer** — don't invent a
+2. the artist studio's "auth" is **AWS-account trust, not a per-request authorizer** — don't invent a
    Cognito-style gate it lacks.
-3. REDACTED's worker is a **warm-pod floor** (KEDA `minReplicaCount 1`, GPU cold start 3–4 min), **not
+3. the ComfyUI platform's worker is a **warm-pod floor** (KEDA `minReplicaCount 1`, GPU cold start 3–4 min), **not
    literal zero** — the source explicitly corrects this.
 
 ## Scope boundary (defer to later topics)
@@ -81,8 +81,8 @@ one-process-one-workflow specifics → topic 5. State the general worker-pool ru
 
 - Every load-bearing claim traces to a **repo file path** (the three explored repos are primary)
   or a **`[L#:confidence]` external source** per `source-authority` steering. No parametric memory.
-- Design source: `.memory/research/world-models-and-genmedia/02-generative-media-pipelines.md`.
-  Backing: `repo-findings/{REDACTED,REDACTED,REDACTED}.md`.
+- Design source: the research notes (non-public, removed).
+  Backing: the per-platform findings (non-public).
 - External prior art available in `.scratch/research/371-external-serving-pipeline.md` (fal.ai
   run/subscribe/submit verbs + Queued/InProgress/Completed status model; AWS async reference
   arch; SSE-as-default-for-one-way-progress; the "autoscaler kills a job mid-generation",
@@ -117,7 +117,7 @@ update — topic 1 is the root); prose-check subagent pass after authoring.
 
 - [x] `library/generative-media-pipelines/lessons/01-the-universal-serving-pipeline.html` generated via `generate-topic` (FLAT path — verified against the checker's `lessons/*.html` glob)
 - [x] Single shared-skeleton diagram (7-stage skeleton + dashed back-edge, hand-authored accessible inline SVG — see note), ≤9 elements in the base view, with the three platforms mapped in a companion variance table; deeper detail progressively layered
-- [x] The three honest asymmetries represented (REDACTED no-worker / account-trust auth; REDACTED warm-pod floor) — loop not flattened
+- [x] The three honest asymmetries represented (the artist studio no-worker / account-trust auth; the ComfyUI platform warm-pod floor) — loop not flattened
 - [x] Divergences hung on the six axes; SageMaker Async + cold-start numbers deferred to topic 2
 - [x] Reference doc + quiz (9 questions, 6 types) + SR JSONL (6 open + 3 interactive) + inline glossary produced
 - [x] Every load-bearing claim cites a repo file path or `[L#]` source (each diagram cell uses its own stage→file-path citation)

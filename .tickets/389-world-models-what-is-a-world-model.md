@@ -27,9 +27,9 @@ that topics 3+ exist to detect and fix.
 
 ## Sources (design + backing)
 
-- Design: `.memory/research/world-models-and-genmedia/01-world-models.md` (Part 1 orientation +
+- Design: the research notes (non-public, removed) (Part 1 orientation +
   Part 2 concept 1).
-- Backing: `repo-findings/world-models.md` (`.memory/CONTEXT.md` glossary), the "vivid dream" framing
+- Backing: the per-platform findings (non-public) (`GLOSSARY.md` glossary), the "vivid dream" framing
   in `world-models/docs/games-wmlbench-proposal.md`.
 
 ## Acceptance criteria

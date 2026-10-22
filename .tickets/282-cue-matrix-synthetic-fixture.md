@@ -90,5 +90,5 @@ New mise task `test:cue-matrix` (mirrors `test:nav` — browser test, NOT in cor
 - Overlay authoring: `tools/lib/overlay.py` schema (`{schema:1, overlay:{ULID:{status,updated_at}}}`);
   ULID ids come from each fixture MAP.md's `- **id:**` field. See #278's committed overlays for the exact shape.
 - Client-drive alternative: `assets/components/store.js` `setTopicStatus(id, status)` (keyed by ULID).
-- Context: `.memory/research/unified-graph-views/274-implementation-findings.md` (cue-matrix caveat);
+- Context: `docs/agents/research/unified-graph-views/274-implementation-findings.md` (cue-matrix caveat);
   #271 (the cue feature); #274 resolution (why only resume is covered by the real library).

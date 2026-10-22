@@ -71,4 +71,4 @@ All 5 questions answered with experimental evidence:
 
 Detailed findings:
 - `.scratch/research/kiro-cli-output-characterization.md` (spike 058)
-- `.memory/kiro-cli-process-management.md` (promoted reference)
+- `docs/agents/kiro-cli-process-management.md` (promoted reference)

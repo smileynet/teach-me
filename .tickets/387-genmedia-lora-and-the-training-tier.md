@@ -21,11 +21,11 @@ Frame the lesson around the **tier boundary**, NOT "how to train a LoRA" (a gene
 miss the point and duplicate the open web). The load-bearing, repo-grounded thesis:
 
 1. **Hosted-not-trained, with per-platform file-path evidence.** None of the three serving platforms
-   *trains* a LoRA — they *host* one. Lead with the "only hosts" citations: REDACTED (`loras` as a
+   *trains* a LoRA — they *host* one. Lead with the "only hosts" citations: the ComfyUI platform (`loras` as a
    model-store category + SageMaker Model Package Group; `README.md` "fine-tuning is not in this
-   platform"); REDACTED (training is a deferred "data flywheel" hook, ADR 0006 /
-   `.memory/CONTEXT.md`); REDACTED (`style_analyzer.py` style-via-prompt instead of training; every
-   `lora`/`training` hit is vendored upstream). Keep **REDACTED as a one-line contrast only** (it
+   platform"); the DCC service (training is a deferred "data flywheel" hook, ADR 0006 /
+   `GLOSSARY.md`); the artist studio (`style_analyzer.py` style-via-prompt instead of training; every
+   `lora`/`training` hit is vendored upstream). Keep **the real-time PoC as a one-line contrast only** (it
    trains, but that's world-model research, not media LoRA).
 2. **The two training tiers the platforms defer to:** **SageMaker Training Jobs** (ephemeral,
    pay-per-use — the correct default for a single SDXL/FLUX LoRA) vs **HyperPod** (persistent,
@@ -33,7 +33,7 @@ miss the point and duplicate the open web). The load-bearing, repo-grounded thes
    reserved-GPU → HyperPod. **HyperPod-for-one-LoRA is overkill** (the platform's own proposal admits
    a single-node job is cheaper). HyperPod Recipes = one config, both backends.
 3. **When LoRA vs prompt — a decision callout with criteria (three rungs, cheapest first):** prompt
-   engineering + style-via-prompt directive (REDACTED's ≤200-word vision-profiled directive) →
+   engineering + style-via-prompt directive (the artist studio's ≤200-word vision-profiled directive) →
    reference-image conditioning (IP-Adapter, session-scoped, doesn't persist) → **train a LoRA**
    (distinctive, reusable, versioned asset). Rule: *escalate only when the cheaper rung plateaus.* A
    LoRA is an **asset** (persisted/versioned/hosted); a prompt/reference is a **session knob** — which
@@ -60,10 +60,10 @@ own diffusers/PEFT to a p5/HyperPod job").
 
 ## Source-verification gate (per #367)
 
-Every "only hosts" claim → repo file path (REDACTED `README.md` + `cdk/lib/registry-stack.ts`;
-REDACTED ADR 0006 / `.memory/CONTEXT.md`; REDACTED `style_analyzer.py` + vendored-packages
+Every "only hosts" claim → repo file path (the ComfyUI platform `README.md` + `cdk/lib/registry-stack.ts`;
+the DCC service ADR 0006 / `GLOSSARY.md`; the artist studio `style_analyzer.py` + vendored-packages
 note). Training-tier + technique facts → `[L#]` (AWS re:Post decision guide, HF diffusers, Kohya;
-internal REDACTED Kohya-on-SageMaker, AIM205). No parametric memory.
+AIM205). No parametric memory.
 
 ## Artifact set (authoritative gate: `tools/check-topic-completeness.py`)
 
@@ -75,11 +75,11 @@ code-files dir only if `data-file` blocks exist. Follows `visual-teaching.md` +
 ## Acceptance criteria
 
 - [ ] `library/generative-media-pipelines/lessons/07-lora-and-the-training-tier.html` generated via `generate-topic` (flat path)
-- [ ] Hosted-not-trained thesis stated with a per-platform file-path citation table (REDACTED / REDACTED / REDACTED each shown to only host); REDACTED kept a one-line contrast
+- [ ] Hosted-not-trained thesis stated with a per-platform file-path citation table (the ComfyUI platform / the DCC service / the artist studio each shown to only host); the real-time PoC kept a one-line contrast
 - [ ] Two-tier training decision (Training Jobs default for one LoRA vs HyperPod org-scale) with criteria + the HyperPod-for-one-LoRA-is-overkill warning + HyperPod Recipes bridge
 - [ ] When-LoRA-vs-prompt decision callout: three-rung escalation (prompt/style-directive → reference-image → LoRA) with a default recommendation and asset-vs-session-knob framing
 - [ ] Instance-sizing fact (SDXL→ml.g5 24GB; FLUX rank-16 >40GB→ml.p4d/p5) stated
 - [ ] Data-flywheel pattern described AND the "no turnkey AWS image blueprint" gap stated honestly
-- [ ] Warnings section: overfitting/overcooking + dataset-quality-over-resolution, each tied to a fix; style-via-prompt shown as the non-LoRA alternative (REDACTED)
+- [ ] Warnings section: overfitting/overcooking + dataset-quality-over-resolution, each tied to a fix; style-via-prompt shown as the non-LoRA alternative (the artist studio)
 - [ ] Reference + quiz (≥5/≥3) + SR JSONL + inline glossary produced; every claim cites a repo path or `[L#]`
 - [ ] `mise run verify` passes AND `check-topic-completeness.py --workspace library/generative-media-pipelines --topic lora-and-the-training-tier` (and `--concepts`) clean

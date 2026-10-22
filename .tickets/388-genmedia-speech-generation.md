@@ -28,7 +28,7 @@ serving pattern**. Spine:
    `SynthesizeSpeech` ≤3k billable chars, async `StartSpeechSynthesisTask` ≤100k → S3 = Polly's own
    async mirror, bidirectional `StartSpeechSynthesisStream` generative-only). **Nova 2 Sonic** (GA
    2025-12-02, real-time conversational S2S on Bedrock; regions incl. Stockholm per current release
-   notes — supersede the gap-research "rolled back" note). **No native Bedrock music/SFX** — fill via
+   notes — supersede the gap research "rolled back" note). **No native Bedrock music/SFX** — fill via
    Bedrock Marketplace (MusicGen) or self-host (Stable Audio).
 3. **Self-host open models — license gates the choice BEFORE quality** (a decision callout with the
    verified table, each row cited to its model card):
@@ -44,9 +44,8 @@ serving pattern**. Spine:
    cold-start UX damage); CPU-tiny (Kokoro) → Serverless (CPU-only). Teach the parallel: **Polly
    `StartSpeechSynthesisTask` ↔ SageMaker Async**.
 
-**Internal prior art anchors (one per pipeline shape):** **REDACTED** = async + SNS fan-in (the
-textbook async example); **REDACTED** = Step Functions + Processing Jobs dubbing; **REDACTED** =
-per-cell real-time streaming; REDACTED = managed→self-host fallback ladder.
+**Pipeline shapes to anchor:** async + SNS fan-in (the textbook async example); Step Functions +
+Processing Jobs dubbing; per-cell real-time streaming; a managed→self-host fallback ladder.
 
 ## G2 warnings (Con callouts adjacent to what they apply to, cited)
 
@@ -64,9 +63,8 @@ container on `ml.g6.xlarge` unmeasured (a spike would pin it); Nova 2 Sonic cont
 
 ## Source-verification gate (per #367)
 
-Design-source facts → `02-generative-media-pipelines.md` + both `gap-research/tts-speech-generation*.md`;
-every **license verdict** → its model-card URL, dated 2026-09; Polly/Nova limits → AWS docs;
-internal prior art → the named wiki runbooks. Tagged `[L#:confidence]`.
+Design-source facts → the research notes + gap research (non-public);
+every **license verdict** → its model-card URL, dated 2026-09; Polly/Nova limits → AWS docs. Tagged `[L#:confidence]`.
 
 ## Artifact set (authoritative gate: `tools/check-topic-completeness.py`)
 
@@ -80,10 +78,10 @@ code-files dir only if `data-file` blocks exist. Follows `visual-teaching.md` +
 - [ ] `library/generative-media-pipelines/lessons/08-speech-generation.html` generated via `generate-topic` (flat path)
 - [ ] Task-taxonomy table/diagram (TTS/STT/S2S/clone/dubbing/music-SFX) explicitly flagging STT-is-inverse and dubbing-is-a-pipeline
 - [ ] Commercial-safe license Decision callout with the verified table (Kokoro/Chatterbox/CosyVoice2 shippable; XTTS-v2/F5-TTS/Fish Speech non-commercial), each row cited to its card; CosyVoice2 "academic" caveat + Chatterbox watermark flagged
-- [ ] Managed-vs-self-host Decision callout with concrete criteria (the REDACTED 4-motivation rubric) + fallback ladder; AWS-native (Polly engines/limits, Nova 2 Sonic GA/regions) covered
+- [ ] Managed-vs-self-host Decision callout with concrete criteria (a 4-motivation rubric) + fallback ladder; AWS-native (Polly engines/limits, Nova 2 Sonic GA/regions) covered
 - [ ] Async-vs-streaming serving-pattern decision table with the Polly-async ↔ SageMaker-Async parallel and why real-time can't scale to zero
 - [ ] Warnings placed adjacent to the code/decision they apply to (Polly 10-min close; Serverless CPU-only; real-time-can't-scale-to-zero)
-- [ ] Internal prior-art anchors named (REDACTED async+SNS; REDACTED Processing; REDACTED real-time); music/SFX gap noted (no first-party Bedrock model)
+- [ ] Pipeline-shape anchors named (async+SNS; Processing-job dubbing; real-time streaming); music/SFX gap noted (no first-party Bedrock model)
 - [ ] Near-transfer misconception-probe exercise (classify task + pick serving pattern + commercial-safe model; explain why the best-sounding non-commercial cloner is blocked at launch)
 - [ ] Reference + quiz (≥5/≥3) + SR JSONL + inline glossary produced; every claim cites a repo path or a card/doc URL
 - [ ] `mise run verify` passes AND `check-topic-completeness.py --workspace library/generative-media-pipelines --topic speech-generation` (and `--concepts`) clean

@@ -140,5 +140,5 @@ this ticket replaces.
 - `assets/components/UnifiedView.js` / `assets/components/store.js` — client side that would read the overlay at load.
 - `assets/preferences.js` — the `teach-me-prefs-v1` signal store (where a user-init flag could live).
 - `.github/workflows/pages.yml:~120` — the `_site/.user` strip (may be retireable per the question above).
-- ADR 0016 (`.memory/adr/0016-unified-domain-graph-views.md`) — the #279 note + the UI-state-vs-learner-state line (ADR 0014 §B.6 keeps LEARNER state out of the browser; a *view* pref is UI state — do not blur when adding a client overlay read).
-- Design context: `.memory/research/unified-graph-views/276-implementation-findings.md` (#279 coordination section).
+- ADR 0016 (`docs/adr/0016-unified-domain-graph-views.md`) — the #279 note + the UI-state-vs-learner-state line (ADR 0014 §B.6 keeps LEARNER state out of the browser; a *view* pref is UI state — do not blur when adding a client overlay read).
+- Design context: `docs/agents/research/unified-graph-views/276-implementation-findings.md` (#279 coordination section).

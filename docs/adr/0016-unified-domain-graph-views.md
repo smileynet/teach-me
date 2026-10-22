@@ -39,7 +39,7 @@ Two constraints shaped the choice:
   document-relative paths and per-output-file `mapHref` — never root-relative — so it
   resolves on localhost AND the GitHub project-pages `/{repo}/` subpath.
 
-The #275 spike (`.memory/research/unified-graph-views/`, `.scratch/spike-275/`) reframed the
+The #275 spike (`docs/agents/research/unified-graph-views/`, `.scratch/spike-275/`) reframed the
 problem: these are not two pages, they are **two views over one dataset** — the established
 **Multiple Coordinated Views** pattern (Baldonado et al.'s "Rule of Parsimony": add a view
 only when one cannot do the job) over a **single source of truth**.

@@ -27,5 +27,5 @@ Use subagents to analyze the research findings from #135 and the reference proje
 
 - [x] Subagent analysis of each pattern (4 stages: provenance, cognitive load, conflicts+situation, answer gate)
 - [x] Proposal with scope + effort in ADR 0007
-- [x] Decision recorded in .memory/adr/0007-adopt-research-patterns.md
+- [x] Decision recorded in docs/adr/0007-adopt-research-patterns.md
 - [x] Conventions adopted in generate-topic SKILL.md (no separate tickets needed — guidance-only changes)

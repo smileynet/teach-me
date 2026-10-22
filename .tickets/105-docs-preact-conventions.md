@@ -24,7 +24,7 @@ Document the Preact conventions so the agent (and future developers) know how to
 
 - `.kiro/skills/teach/SKILL.md` — update "Before Publishing" checklist for Preact pages
 - `AGENTS.md` — add Preact commands (vendor update, component scaffold) and conventions
-- `.memory/CONTEXT.md` — add terms: data island, import map, signal, HTM, dagre
+- `GLOSSARY.md` — add terms: data island, import map, signal, HTM, dagre
 - `assets/components/README.md` — component catalog + patterns
 
 ## Acceptance Criteria

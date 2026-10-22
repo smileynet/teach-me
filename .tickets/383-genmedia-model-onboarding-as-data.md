@@ -22,17 +22,17 @@ config action, not new serving code — the model is data/config, the serving ma
 The learner's Win: "I can add a model as a config action and know which onboarding shape fits my
 platform." The three shapes (with when-to-use criteria):
 
-1. **Typed manifest in a registry** (REDACTED) — `ModelManifest` + `register_model()`
+1. **Typed manifest in a registry** (the DCC service) — `ModelManifest` + `register_model()`
    as the only path; license gate enforced at registration.
-2. **Catalog JSON + one universal data-driven handler** (REDACTED) — `model_registry.json` +
+2. **Catalog JSON + one universal data-driven handler** (the artist studio) — `model_registry.json` +
    one `inference.py` dispatching on env vars; format families; HF-direct-pull.
-3. **Versioned workflow container** (REDACTED) — the ComfyUI+nodes+workflow-JSON image is the
+3. **Versioned workflow container** (the ComfyUI platform) — the ComfyUI+nodes+workflow-JSON image is the
    ECR-tagged unit; git→build→scan→approve→immutable-tag; vending Lambda gates.
 
 **Load-bearing teachable — the rule of two:** build the generic seam only once two dissimilar
-models need it. Only REDACTED ships explicit proof (CHORD PBR + TripoSR mesh, chosen
-for max output-shape contrast). **State honestly** that REDACTED proves it implicitly (5 families,
-one handler) and **REDACTED has DESIGNED but not PROVEN** a generic seam (Trellis2 is the only live
+models need it. Only the DCC service ships explicit proof (CHORD PBR + TripoSR mesh, chosen
+for max output-shape contrast). **State honestly** that the artist studio proves it implicitly (5 families,
+one handler) and **the ComfyUI platform has DESIGNED but not PROVEN** a generic seam (Trellis2 is the only live
 workflow; others staged) — don't imply otherwise.
 
 Also: three runner strategies (native/comfyui/mock); **weights never baked** (S3→NVMe /
@@ -42,7 +42,7 @@ registration / HF gated-access pre-check + attribution / vending approval + team
 
 **Critical distinction to keep crisp:** onboarding-as-data ≠ multi-model endpoint (MME).
 Onboarding-as-data = the model is *declared, not coded*; MME = many models *share one container's
-memory*. REDACTED is onboarding-as-data WITHOUT shared-memory MME (each model = its own
+memory*. the DCC service is onboarding-as-data WITHOUT shared-memory MME (each model = its own
 scale-to-zero fleet). The noisy-neighbor / eviction-thrash warnings apply to the *shared-container*
 variant — flag as a decision callout so learners don't conflate them.
 
@@ -78,7 +78,7 @@ code-files dir only if `data-file` blocks exist. Follows `visual-teaching.md` +
 
 - [ ] `library/generative-media-pipelines/lessons/03-model-onboarding-as-data.html` generated via `generate-topic` (flat path)
 - [ ] The ONE concept stated + the three shapes presented with a *when-to-use-which* decision callout; per-platform citation table maps each onboarding claim to an exact repo file path
-- [ ] Rule-of-two taught with the CHORD+TripoSR proof; stated honestly that REDACTED designed-but-not-proven a generic seam
+- [ ] Rule-of-two taught with the CHORD+TripoSR proof; stated honestly that the ComfyUI platform designed-but-not-proven a generic seam
 - [ ] Onboarding-as-data distinguished from shared-container multi-model serving (decision callout); the shared-container G2 warnings carried with sources
 - [ ] Governance-at-the-seam shown for all three (license gate / HF gated pre-check + attribution / vending approval + team tag)
 - [ ] Reference + quiz (≥5/≥3) + SR JSONL + inline glossary produced; every claim cites a repo path or `[L#]`; near-transfer misconception-probe exercise (building the generic seam before a second dissimilar model exists)

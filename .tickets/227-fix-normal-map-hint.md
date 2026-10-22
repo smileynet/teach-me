@@ -16,7 +16,7 @@ validation_criteria:
 
 ## Intent source
 
-Discovered during #217 (texture-audit) research + scene wiring this session. The `godot-texture-import` research (`.memory/research/mktoon-texture-prep/godot-texture-import.md`) established that normal-map sampler uniforms REQUIRE `hint_normal` for correct RGTC reimport and blue-channel reconstruction. Verified the reference shader is missing it.
+Discovered during #217 (texture-audit) research + scene wiring this session. The `godot-texture-import` research (`docs/agents/research/mktoon-texture-prep/godot-texture-import.md`) established that normal-map sampler uniforms REQUIRE `hint_normal` for correct RGTC reimport and blue-channel reconstruction. Verified the reference shader is missing it.
 
 ## What to build
 
@@ -41,7 +41,7 @@ Note: lesson #222's code snippet already SHOWS the uniform with `hint_normal` �
 - **Reference shader:** `test-scene/shaders/reference/mk_toon_lite.gdshader` (line 18)
 - **Second copy:** `examples/godot-gamedev/reference/code/` — check for a copy that also needs the fix (keep them in sync)
 - **Affected scene:** `test-scene/scenes/mktoon_test.tscn` (uses normal_map with use_normal_map=true)
-- **Research:** `.memory/research/mktoon-texture-prep/godot-texture-import.md` — hint reference table
+- **Research:** `docs/agents/research/mktoon-texture-prep/godot-texture-import.md` — hint reference table
 - **Validation constraint:** MCP `save_scene` is destructive — edit shader file on disk, validate via headless import (see godot-validation skill)
 
 ## Acceptance criteria

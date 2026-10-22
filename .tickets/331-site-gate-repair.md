@@ -26,7 +26,7 @@ tags: ["arch-review"]
 - Fix the missing-index redirect target in `assemble-site.sh` to `{domain}/lessons/{domain}-map.html` and update the dry-run assertion to match reality.
 - Make the domain-count check derive from the actual `library/` scan instead of a hardcoded number.
 
-Regeneration gotchas (idempotent re-bake rules, tracked-inputs-only) live in `.memory/specs/environment-gotchas.md` → "Generated artifacts / regeneration" — read before regenerating anything.
+Regeneration gotchas (idempotent re-bake rules, tracked-inputs-only) live in `docs/agents/specs/environment-gotchas.md` → "Generated artifacts / regeneration" — read before regenerating anything.
 
 ## Acceptance criteria
 
