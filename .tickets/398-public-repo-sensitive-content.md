@@ -1,7 +1,7 @@
 ---
 id: "398"
 title: "Review migration finding: non-public material is published in the public repo and Pages site"
-status: backlog
+status: done
 blocked_by: []
 validation_criteria:
   - "Reviewed before any change: each finding reproduced against the current repo and marked confirmed / rejected / re-scoped, with evidence"
