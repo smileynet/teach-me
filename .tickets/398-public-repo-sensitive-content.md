@@ -34,6 +34,19 @@ Source: grey-matter adopt-project, 2026-10-22.
 
 ## Acceptance criteria
 
-- [ ] Reviewed before any change: each finding reproduced against the current repo and marked confirmed / rejected / re-scoped, with evidence
-- [ ] Whether this material may be public decided by the owner, with any untrack/scrub done in the current tree
-- [ ] History purge decision recorded (done, or explicitly declined)
+- [x] Reviewed before any change: each finding reproduced against the current repo and marked confirmed / rejected / re-scoped, with evidence
+- [x] Whether this material may be public decided by the owner, with any untrack/scrub done in the current tree
+- [x] History purge decision recorded (done, or explicitly declined)
+
+## Resolution (2026-10-23)
+
+Owner decided the material must not be public.
+
+- Finding confirmed: the flagged non-public material was present in the tracked tree and in the
+  published site sources.
+- Tree scrub: removed from the current tree by the privacy-scrub commit (now `52220f1` after the
+  history rewrite).
+- History purge: done. Paths, file contents, and commit messages rewritten with git-filter-repo
+  and force-pushed; a fresh mirror clone of the remote shows 0 denylist hits.
+- Residual: the host may still serve old commits by direct SHA until its support team purges
+  cached objects; that request is outside this repo.
